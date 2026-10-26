@@ -1,27 +1,37 @@
 # Decisions
 
-## Open: owner to decide (defaults in **bold** are what the plan assumes)
-
-| # | Decision | Options | Default and why |
-|---|---|---|---|
-| D1 | Public name | keep "Semantic Release Auditor" · rename (e.g. *Samesay*, *Concord*, *Truthline*) | **Rename before going public.** `semantic-release` is a widely used npm release tool, so the current name will be confused with it in search and on GitHub. Keep `sra` as the working CLI name until then. |
-| D2 | License | **Apache-2.0** · MIT | Apache-2.0: permissive, with an explicit patent grant, which matters for tooling companies may adopt. |
-| D3 | GitHub owner | personal account · `finablo` org · new org | **New org or personal account.** The auditor is meant to be independent of Finablo; hosting it under `finablo` makes it read as a Finablo internal tool. |
-| D4 | Team | solo · up to 4 | **Solo** + Claude Code agents (disclosed in HACKATHON.md). |
-| D5 | Demo target app | **Northbound (fictional travel app, built here)** · a Finablo-like finance clone | Travel shows the tool generalizes beyond Finablo's domain, and its claims (price, dates, refund policy, baggage) are instantly legible to any judge. Finablo supplies the real-world proof. |
-| D6 | How much of Finablo appears | **Screens + one finding, synthetic personas, labelled "app under audit"** · also show the Finablo contract · no Finablo at all | Screens and one finding are enough for impact. The Finablo contract stays in Finablo's private repo. |
-| D7 | Finablo bug to recreate | **Pending-page 401(k) limit ($24,500 vs $35,750, age 61)** · PDF-vs-JSON finalizer gap · the tax-loss-harvest dollar | The 401(k) case is a pure cross-surface number, easy to explain in 10 seconds, and the old deterministic harness missed it blind. |
-| D8 | iOS stretch | **Design slide only** · single-screen spike on a generic sample app | Mobile is a post-hackathon adapter; any spike uses a generic sample app and synthetic data. |
-| D9 | Sage chat in the Finablo run | **Skip** · include | Sage calls Claude and spends Finablo's AI budget; Finablo's rule is to ask before any LLM persona run. |
-| D10 | Hosted "live product" | **Static report on GitHub Pages** · hosted Northbound + sra | Static is free and cannot break during judging. |
-
 ## Settled
 
 | Date | Decision | Source |
 |---|---|---|
 | 2026-10-26 | Standalone open-source repo; Finablo is a consumer, never a dependency | owner |
-| 2026-10-26 | Demo designed first; MCV defined in [07-implementation-plan.md](07-implementation-plan.md) | owner |
-| 2026-10-26 | No code copied from Finablo's same-story harness; ideas only, listed in HACKATHON.md | hackathon "new work only" rule |
-| 2026-10-26 | Roles, not models: every model is reached through `sra.models` routing | architecture |
-| 2026-10-26 | Northbound v2 issues are seeded blind, by a separate session | benchmark integrity |
-| 2026-10-26 | Nothing is pushed or made public until the owner says so | owner standing rule |
+| 2026-10-26 | No code copied from Finablo's harness; ideas only, recorded in HACKATHON.md | hackathon "new work only" rule |
+| 2026-10-26 | Solo entry (Indie Developer track) | owner |
+| 2026-10-26 | Skip Finablo's Sage chat surface | owner |
+| 2026-10-26 | Mobile is a generic adapter for later | owner |
+| 2026-10-26 | GitHub: the owner's personal account is acceptable (the rules only require a public repo); `finablo` is the fallback | owner |
+| 2026-10-26 | Push and publish only on the owner's word | owner standing rule |
+| 2026-10-26 | **Thesis:** the auditor reconstructs a user's experience across a release, finds conflicting behaviour and messages, and gives reproducible evidence for a shipping decision. The User Experience Story is the unit of analysis; fact comparison is one layer inside it | owner, after the external review |
+| 2026-10-26 | Severity, confidence and verification status are separate fields, never combined | owner |
+| 2026-10-26 | Principles are operational, with conditions and scoped exceptions; an "accept" decision creates a scoped, expiring exception, never a blanket suppression | external review, adopted |
+| 2026-10-26 | Deterministic checks only for expressible rules; otherwise approved semantic expectations | external review, adopted |
+| 2026-10-26 | Capture first; deterministic pass before any model work | external review, adopted |
+| 2026-10-26 | Release naming: Northbound **2.3** (base) · **2.4** (narrative/demo) · **2.4.1** (memory) · **bench-NN** (sealed benchmark) | doc consistency review |
+| 2026-10-26 | Narrative fixture ≠ benchmark fixture; headline numbers come only from the sealed set | external review, adopted |
+| 2026-10-26 | Fair baselines: same model, same context, same budget; three evaluations (coverage, judgment, reproducibility); negative controls first-class | external review, adopted |
+| 2026-10-26 | **Finablo:** R1 (the 401(k) cross-surface number) is the real-product validation; R2 (an experience-level collision) is shown only if it survives contextual adjudication. The auditor gets only inputs that existed before the release | doc consistency review |
+| 2026-10-26 | Three Meta models: Muse Spark, Muse Spark Open, Muse Voice Transcribe. SAM 3.1 and others are out of the MCV | external review, adopted |
+| 2026-10-26 | Finablo runs use synthetic profiles and Standard-mode endpoints only; Contributor mode only for fictional data | external review, adopted |
+| 2026-10-26 | The demo script does not predetermine issue counts, severities or benchmark numbers | external review, adopted |
+
+## Open: owner to decide (defaults in bold)
+
+| # | Decision | Default and why |
+|---|---|---|
+| D1 | Public name | **"Semantic Auditor"**, with the `semaudit` CLI. "Release auditor" is taken on PyPI and npm; `semantic-release` is a well-known npm tool; `semantic-auditor` is free on PyPI. The docs keep "Semantic Release Auditor" until this is confirmed |
+| D2 | License | **Apache-2.0** (permissive, with a patent grant) |
+| D3 | GitHub username for the personal account | needed before publishing; `gh` on this machine is logged in as `finablo` |
+| D11 | Northbound principle wording (P1–P4, P1-E1) | **as in examples/northbound/README.md**; the owner records the voice note that produces them |
+| D12 | An independent human adjudicator for the subjective labels | **ask one person** for about 1 hour on Nov 1–2; otherwise report owner-only adjudication and say so |
+| D13 | Which Finablo commits for R1 and R2 | the planning agent finds the introducing commits; the owner confirms |
+| D14 | Open-weights hosting credits (Modal / Baseten) | **apply today**; if they are not granted, the fallback is in the plan |

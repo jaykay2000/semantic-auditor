@@ -1,57 +1,60 @@
 # 1. Vision
 
-## One sentence
+## Thesis
 
-**Every release should tell every user one true story**, and a machine should be able to check that before the user does.
+> **The Semantic Release Auditor reconstructs what a particular user experiences across a release, identifies conflicting product behavior and messages, and gives the owner reproducible evidence to make a shipping decision.**
 
 ## The shift
 
-Products no longer show one screen built from one database query. A single user sees the same facts through a dashboard, a PDF, a lifecycle email, a push notification, an exported summary and an AI assistant that writes its own sentences. Each surface is built by a different person, at a different time, often in a different language, and increasingly by a model. Functional tests check that each surface *works*. Nothing checks that they *agree*, that they are *true*, or that they still make sense for *this* user.
+Users do not experience features. They experience a **release**: everything the product says to them, in order, across screens, emails, pushes, PDFs and AI answers, while their own situation changes (they search, they book, time passes).
 
-The Semantic Release Auditor is a QA layer for meaning. It does not replace unit tests, end-to-end tests or human UX review. It sits on top of them and answers the questions none of them ask:
+Each feature in a release is built, tested and reviewed on its own. So a release can pass every feature's QA and still tell one user to wait and to hurry on the same afternoon. It can second-guess a purchase they can no longer change, or apply urgency to exactly the people the product promised not to pressure. These are **semantic release issues**: product behaviour that only becomes wrong when you see the whole experience of one person, judged against what the owner intended.
 
-1. **Consistent:** does every surface give this user the same answer to the same question?
-2. **True:** does every claim match the product's own source of truth?
-3. **Supported:** is every claim, especially AI-written text, backed by something the product actually knows?
-4. **Fit:** does what this user sees make sense for who they are?
-5. **Intended:** of everything that changed in meaning this release, what did the team mean to change?
+They are not always bugs. Two messages that look contradictory can be a legitimate tradeoff, or a deliberate, persona-specific exception. So the output is not a pass/fail gate. It is a **release review**: ranked issues with reproducible evidence, and a Ship / Hold recommendation that the owner decides on.
 
-## What it is
+## What it does
 
-A standalone, open-source tool with two phases:
+1. **Learns the owner's intent.** It turns "we never pressure travellers" into an operational rule with testable conditions and scoped exceptions, and the owner approves it.
+2. **Reconstructs each user's experience.** It drives personas through time-ordered scenarios on both releases, and records every message, its feature, the user's actions and the user's state.
+3. **Finds conflicts in that story.** Code proposes candidate conflicts (competing advice on the same decision, guidance that went stale after the user acted, rule conditions, message load, facts that disagree), and a model interprets each one against the owner's rules and exceptions.
+4. **Separates conflicts from legitimate differences:** an approved exception, an explained tradeoff, messages never live at the same time, a persona's own facts.
+5. **Proves it.** Every issue can be replayed with one command. It cites exact captured moments and is cross-checked by a second model, with severity, confidence and verification status shown separately.
+6. **Remembers decisions, narrowly.** A *fix* must come back resolved. An *accept* becomes a scoped, expiring exception, and never a blanket suppression.
 
-- **Onboard (learn the product).** It reads docs, explores the running app, and interviews the product owner (spoken or written). From these it drafts a **Product Contract**: the surfaces, the facts each one asserts, where the truth for each fact lives, which personas matter, and the rules that must always hold. The owner reviews and approves it. The contract is versioned YAML that lives in the customer's repo, like a schema.
-- **Audit (check a release).** Given a base build and a head build, it generates personas aimed at the edges of the contract, drives them through every surface of both builds, and extracts every claim into a graph. It runs the checkers, verifies each finding independently, and separates intended changes from unexplained ones using the release notes. It emits evidence packets, and each confirmed finding becomes a deterministic regression check.
+## Where it sits
 
-## What makes it more than "ask a frontier model to do QA"
+Tests check that features work. LLM evals check single AI answers. Visual tools check pixels. Agentic QA platforms increasingly explore apps autonomously and keep a product knowledge base. The Semantic Release Auditor focuses on one distinct objective: **release-level, persona-specific semantic coherence, judged against owner-approved intent, with reproducible evidence.** It is designed to sit alongside those tools, not to replace them.
 
-A strong model with a million-token context can look at a pile of screenshots and spot some contradictions. That is our baseline, and we will measure against it. The auditor's advantage comes from the system around the model, not from a better prompt:
+## Why a system and not a prompt
 
-| A one-shot prompt... | The auditor... |
-|---|---|
-| sees only what you paste in | **generates its own coverage**: personas aimed at the contract's edge axes × every surface × both builds |
-| forgets the product between releases | keeps a **Product Contract**: intent, oracles and accepted exceptions, versioned with the code |
-| judges plausibility | checks claims against the product's **own source of truth** (API, database, rule) |
-| reports everything that looks odd | **verifies before reporting**: fresh re-capture, a second extraction by a different model, deterministic recomputation, and an adversarial "explain it away" pass |
-| cannot tell a regression from a planned change | **diffs meaning between builds** and matches each change against release intent |
-| costs the same every release | runs a **ratchet**: every confirmed finding becomes a cheap deterministic check, so model spend goes to what is new |
-| gives no measure of trust | publishes **recall and precision** on a seeded benchmark, against the one-prompt baseline, with ablations |
+A strong model with a browser, the docs and the owner's rules can find many of these issues once. The auditor's value is that it finds them **completely, reproducibly and consistently**:
+
+| | One-off agentic review | The auditor |
+|---|---|---|
+| Coverage | the paths the agent happened to take | every persona × scenario × release, including time-triggered and post-purchase moments |
+| Evidence | a narrative, sometimes citing things that are not there | exact captured moments, locators, state and a replay command for every issue |
+| False alarms | judged case by case | an exception and tradeoff checklist applied before anything is raised; negative controls measured |
+| Repeatability | different answers on different runs | stable issue sets; changes attributed to features; owner decisions respected next release |
+| Cost | the same every time | the cache, the deterministic pass and candidate-only interpretation keep model spend proportional to change |
+
+We measure each row against a fair baseline: the same model and the same context ([08-evaluation.md](08-evaluation.md)).
 
 ## Who it is for
 
-- **First customer: Finablo**, a personal-finance web app whose report, dashboard, PDF, email and AI assistant all state the same numbers about a user's money. It has paid for cross-surface bugs repeatedly, and its own hand-built harness caught 2 of 5 real past release bugs blind.
-- **Then: any team shipping a multi-surface or AI-written product**: fintech, travel, insurance, SaaS billing, marketplaces, and anything with an LLM writing user-facing copy.
-- **Later: native mobile**, where there is no DOM and screens are read by vision and segmentation (iOS is the stretch case).
+- **First real consumer: Finablo**, a personal-finance web app whose report, dashboard, PDF, export and AI assistant all speak to the same user about the same money. It has shipped both kinds of issue: numbers that disagreed across surfaces, and surfaces that were each correct but together told the user incompatible things.
+- **Then:** any multi-surface or AI-written product (travel, fintech, insurance, SaaS billing, marketplaces).
+- **Later:** native mobile, through a vision and accessibility-tree adapter.
 
-## Product principles
+## Principles
 
-1. **Precision over volume.** A finding nobody trusts is noise. Nothing is reported unverified, and rejected candidates are shown with the reason they were rejected.
-2. **Evidence, not opinions.** Every finding carries the persona, both surfaces, screenshots, the normalized claims, the oracle value and a reproduction.
-3. **The contract is the owner's.** The auditor proposes; a human approves. It never silently changes what "correct" means.
-4. **Deterministic where possible, model where necessary.** Models extract and judge; arithmetic, joins and diffs are code.
-5. **Gets cheaper with use.** The ratchet moves knowledge from model calls into checks.
-6. **App-agnostic core, thin adapters.** Web, email, PDF, API and chat ship first; iOS later. A consumer integrates by writing a contract, never by forking the tool.
+1. **The user's story is the unit.** Not a screen, not a feature, not a single claim.
+2. **The owner's rules, operationalized.** Judgement is against approved principles with conditions and exceptions, not the model's taste.
+3. **Separate what is bad from what is certain.** Severity, confidence and verification are never combined into one label.
+4. **Evidence or it is not raised.** Every issue replays; every quote is the captured text.
+5. **Code narrows, models interpret.** Time, state, joins, conditions and policy are code; meaning is the model's.
+6. **Decisions are scoped.** An exception never silently grows.
+7. **App-agnostic core.** Everything app-specific lives in the consumer's contract.
 
 ## North-star metric
 
-**Unexplained semantic regressions reaching users per release**, driven toward zero at a stated precision. For the hackathon: **recall and precision on the seeded benchmark versus the one-prompt baseline**, plus at least one real bug found on a real product.
+**Unreviewed semantic conflicts reaching users per release.** For the hackathon: coverage, precision and recall, the false-alarm rate on negative controls, and run-to-run stability against a fair baseline on a frozen benchmark, plus one real-product finding.

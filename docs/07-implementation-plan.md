@@ -1,103 +1,97 @@
-# 7. Phased implementation plan
+# 7. Implementation plan (prioritized)
 
-Building period **Tue Oct 27 – Wed Nov 4** (submission 9 PM ET; our internal deadline is **12 PM ET Nov 4**). That is 9 working days, of which the last 1.5 are reserved for the video and submission.
+Building period **Tue Oct 27 – Wed Nov 4**. Submission is due 9 PM ET; our internal deadline is **12 PM ET, Nov 4**.
 
-## Minimum compelling version (MCV)
+How work runs: brainstorming, planning, critique, design, development and QA all happen in Claude Code sessions. Implementation agents work in their own worktrees. Model calls for the auditor itself use the Meta credits ($150, with a spend limit set).
 
-The smallest build that makes the demo true. Anything not on this list is a stretch.
+## The minimum compelling version (MCV)
 
-1. **Northbound demo app**: 7 surfaces (search results, fare detail, checkout, confirmation page, confirmation email via an outbox sink, itinerary PDF, AI concierge chat), a booking API as the oracle, a test-data hook, builds `v1`, `v2` (seeded issues + intended changes + decoys), `v3` (fixes).
-2. **Contract schema + `sra onboard`**: docs + URL + voice note → explorer map → draft contract → HTML review → approved `.sra/`.
-3. **`sra audit`**: personas → capture both builds → extract (Muse Spark Open) → graph + diff → the 6 finding families → intent matching → verifier → report + evidence packets + exit codes.
-4. **Ratchet**: `sra accept` writes a deterministic check; the v3 audit runs it with no model calls.
-5. **Benchmark**: frozen ground truth for v2, a one-prompt baseline (Muse Spark, all captures, 1M context), the full system, and 3 ablations (no contract, no verifier, no diff). Recall, precision, $ and time.
-6. **Finablo run**: a Finablo contract (kept in Finablo's repo) and one recorded audit that reproduces a real historical bug blind.
-7. **Report UI good enough to film**: persona × surface matrix, packets, verifier trail, REJECTED list, scoreboard.
+The MCV is everything the demo storyboard needs to be true ([06-demo-vision.md](06-demo-vision.md)):
 
-**Explicitly not in the MCV:** iOS, SAM 3.1, GitHub Action / PR comments, multi-user hosting, an auth-walled SaaS. These are stretches, in that order of cut.
+1. **Northbound** 2.3 / 2.4 / 2.4.1, with persona and clock hooks, feature attribution and oracles ([examples/northbound](../examples/northbound/README.md)).
+2. **Contract schema**, covering principles with conditions and scoped exceptions, features, decisions, personas with state, scenarios, facts and oracles, rules and release policy, plus a hand-written Northbound reference contract.
+3. **Capture**: a scenario runner (simulated time) producing episodes and state snapshots.
+4. **Evidence**: extraction of messages, directives and claims, with feature attribution.
+5. **Stories**: time-ordered events, base ↔ head alignment and delta.
+6. **Relations**: code generators, model interpretation, and exception evaluation (data conditions in code, soft conditions judged).
+7. **Issues**: severity, confidence and verification as three separate fields; a verifier; a policy-based recommendation; a rejected list.
+8. **Release Story UI** (the hero screen), plus `sra repro`.
+9. **Memory**: dispositions, scoped exceptions and the 2.4.1 re-review.
+10. **Onboarding (demo depth)**: voice note → drafted P1 / P1-E1 → review page → approved contract.
+11. **Benchmark**: a sealed fixture, B-explore / B-judge / B-repeat, scoring and adjudication ([08-evaluation.md](08-evaluation.md)).
+12. **Finablo**: a contract from dated inputs, with R1 (and R2 if it survives adjudication).
 
-## Phases
+**Not in the MCV:** autonomous mapping of an unknown app (beyond a recorded walk with journey repair), SAM 3.1, iOS, a GitHub Action, hosted multi-user service.
 
-### Phase 0 · Oct 26 (today): setup and de-risking
-- [x] Read the rules; write the docs; scaffold the repo.
-- [ ] Claim the Meta credits and set a $150 spend limit. Apply for Baseten and Modal credits.
-- [ ] Settle the decisions in [decisions.md](decisions.md): name, license, GitHub owner, team, Finablo exposure.
-- **Exit:** owner signs off on goals and MCV.
+## Work items, in priority order
 
-### Phase 1 · Oct 27: model access + target app
-- Model router with roles, cache and cost ledger. **Smoke tests that verify, not assume:** Muse Spark chat, image input, PDF input, tool calling, structured (JSON-schema) output, context limits, rate limits; Muse Spark Open 1026 on Baseten (and/or Modal) with structured output; Muse Voice Transcribe on a sample note; SAM 3.1 availability.
-- Northbound v1: FastAPI app, 7 surfaces, booking API, outbox sink, PDF, concierge (deterministic templates plus one optional LLM-backed answer path), test-data hook.
-- **Exit:** `pytest tests/test_models_smoke.py` green on real endpoints; Northbound v1 boots; a script captures all 7 surfaces for one persona.
+| P | ID | Work item | Depends on | Day |
+|---|---|---|---|---|
+| **P0** | W0 | Foundation: these docs coherent; open decisions in decisions.md settled; one critic pass over the docs | — | Oct 26 |
+| **P0** | W1 | **Model access, verified by calls, not assumed**. Muse Spark: latest official ID, image input, structured output, tool calling, Standard vs Contributor endpoints, real token costs on a sample capture. Muse Spark Open on Modal and/or Baseten. Muse Voice Transcribe | credits | Oct 27 AM |
+| **P0** | W2 | Northbound 2.3 with the persona and clock hooks, oracles and `data-feature` attribution | — | Oct 27 |
+| **P0** | W3 | Contract schema (Pydantic) + Northbound reference contract (P1–P4, P1-E1, decisions, scenarios) | — | Oct 27–28 |
+| **P0** | W10a | **Release Story design**: design spec → wireframe → **owner approval** (it gates W10b) | W3 shape | Oct 27–28 |
+| **P0** | W4 | Scenario runner: episodes, captures, state snapshots, journey repair | W2, W3 | Oct 28 |
+| **P0** | W5 | Northbound 2.4 and 2.4.1 | W2 | Oct 28 |
+| **P0** | W6 | Extraction: messages, directives, claims, attribution; cache; ledger | W1, W4 | Oct 28–29 |
+| **P0** | W7 | Stories, alignment, delta | W6 | Oct 29 |
+| **P0** | W8 | Generators, interpretation, exception evaluation, `model_open` pass | W7 | Oct 29–30 |
+| **P0** | W9 | Issues: severity, confidence, verification; verifier; release policy; rejected list; `sra repro` | W8 | Oct 30 |
+| **P0** | W10b | Release Story UI build (to the approved wireframe) | W10a, W9 | Oct 30–31 |
+| **P0** | W11 | Dispositions → memory; 2.4.1 re-review | W9 | Oct 31 |
+| **P0** | W12 | Onboarding at demo depth: voice → principles draft → review page | W1, W3 | Oct 31 |
+| | | **Core feature freeze: Oct 31, end of day** | | |
+| **P1** | W13a | **Sealed benchmark** (a separate session): bench-01…06 + ground truth outside the repo; hashes committed to `bench/FROZEN.md` | W2 (2.3 exists) | Oct 28–31 |
+| **P1** | W13b | Baselines B-explore / B-judge / B-repeat; prompts frozen on 2.4; scoring; ablations; adjudication sheet | W9, W13a | Nov 1 |
+| **P1** | W14 | Finablo: dated inputs, contract, owner review, R1 + R2 runs, adjudication | W9, W12 | Nov 2 |
+| **P0** | W15 | Packaging: README quickstart, `sra demo`, static hosted report, license, public repo (on the owner's word) | all P0 | Nov 3 |
+| **P0** | W16 | Video: record, review against the storyboard, re-record; submit | W15 | Nov 3–4 |
+| **P2** | — | Autonomous mapping of unknown apps · SAM 3.1 grounding · iOS adapter · GitHub Action | — | after |
 
-### Phase 2 · Oct 28–29: contract + capture + extraction
-- Pydantic contract schema + validation + a hand-written **reference contract** for Northbound (the benchmark answer key for onboarding).
-- Adapters: web (Playwright), email sink, PDF, API, chat.
-- Journey recorder/replayer; persona materialization through the hook.
-- Extractor: capture → claims, contract-guided; normalization (money, compact formats, dates/timezones, units).
-- `sra onboard` v0: ingest docs + transcript → mapper draft → oracle discovery by value matching → review HTML.
-- Seed **Northbound v2**. ⚠️ The issue list is written by a *separate session* that keeps the ground truth in `bench/ground_truth/` and does not share it with the session building the checkers. This limits overfitting to our own bugs.
-- **Exit:** claims for v1 × 8 personas extracted with ≥95% value accuracy against the reference; draft contract recovers ≥90% of the reference facts and surfaces.
+**Critical path:** W1 → W4 → W6 → W7 → W8 → W9 → W10b → W16. Its riskiest link is W8, the relation interpretation. W8 gets one day of slack, which is the reason the freeze is Oct 31 and not Nov 1.
 
-### Phase 3 · Oct 30–31: checkers, verifier, diff, report, ratchet (**core feature freeze Oct 31 EOD**)
-- Claim graph + semantic diff with grouping.
-- Checkers: CONTRADICTION, ORACLE_MISMATCH (code); UNSUPPORTED, PERSONA_MISFIT (rules + judge); SEMANTIC_REGRESSION + intent matching; UNKNOWN_CLAIM.
-- Verifier: re-capture, cross-model re-extract, recompute, defense pass.
-- Report HTML: matrix, packets, verifier trail, REJECTED list, ledger. `sra repro`, `sra accept`, `sra allow`.
-- Ratchet: checks run first; v3 run.
-- **Exit:** the end-to-end demo runs on Northbound v1→v2→v3 from a cold cache in under 15 minutes and under $5.
+## Quality gates per work item
 
-### Phase 4 · Nov 1: benchmark + precision tuning
-- Unseal the ground truth. Score the full system, the one-prompt baseline and 3 ablations. Write `bench/results/<date>.json` and a scoreboard page.
-- Tune prompts and thresholds on v2 **only through a held-out split**: half the seeded issues are used for tuning, half are scored. Report both halves.
-- **Exit:** scoreboard committed; numbers reproducible from cache.
+- Each item gets its own tests. Guards are mutation-checked: delete the code a test guards, and the test must go red.
+- W6 is accepted when directive extraction on the 2.4 narrative captures matches the reference labels on ≥ 90% of directives (decision + action + urgency).
+- W8 is accepted when, on the narrative fixture, **every** narrative negative control (NC1–NC6) is *not* raised and every seeded narrative issue is raised. This is development evidence, not a benchmark claim.
+- W9 is accepted when severity, confidence and verification can each be shown to change independently. Test cases: high severity with low confidence; high confidence with an unverified status.
+- W10b is accepted when a viewer who has not heard the narration can state the four things in the screen spec. The check: the owner watches a silent screen recording.
 
-### Phase 5 · Nov 2: real product (Finablo) + stretch window
-- Run `sra onboard` against local Finablo; owner reviews the contract, which is committed to **Finablo's** repo, never this one.
-- Recreate one real historical bug on a local Finablo branch (the pending-page 401(k) limit is the first candidate) and audit base vs that branch blind, using no Finablo-specific code in sra.
-- Constraints carried from Finablo: run locally only, never against prod; no Finablo pushes (limited CI minutes); skip Sage chat unless the owner approves its Claude spend.
-- Stretch, only if Phases 1–4 are green: SAM 3.1 highlight on the PDF → iOS single-screen spike → PR comment.
-- **Exit:** one recorded Finablo run with a CONFIRMED finding matching the historical bug, or an honest write-up of why not.
+## Budget (Meta $150, plus any Modal/Baseten credits)
 
-### Phase 6 · Nov 3: polish + record
-- README quickstart (`pip install`, `sra demo` boots Northbound and runs the whole story).
-- Static hosted report (GitHub Pages) as the "live product" link.
-- Repo public; license; HACKATHON.md provenance ledger final.
-- Record video take 1, review it against [06-demo-vision.md](06-demo-vision.md), re-record.
-
-### Phase 7 · Nov 4: submit
-- Final video (≤3:00), captions, upload, check the link is public.
-- Submission form; all contributors listed; repo public check from a logged-out browser.
-- Post the demo on X (Most Viral prize); share in Discord.
-
-## Budget
-
-| Item | Estimate |
+| Item | Cap |
 |---|---|
-| One full Northbound audit, cold cache: 8 personas × 7 surfaces × 2 builds ≈ 112 captures | extraction ~0.5M tokens on open weights; judge + verifier ~0.3M on Muse Spark; **≈ $1–3** |
-| Benchmark: system + baseline + 3 ablations, ×3 repeats | ≈ $20–30 |
-| Onboarding runs (explorer is the costly part) | ≈ $10 |
-| Finablo runs | ≈ $10 |
-| Headroom for iteration | the rest of the $150 Meta credit; Baseten/Modal credits for open weights |
+| A full 2.3 → 2.4 review (8 personas, ~2 scenarios, 2 releases): extraction mostly cached after the first run | ≤ $3 per cold run |
+| Development iterations | ≤ $30 |
+| B-judge: 6 bench releases × 3 runs | ≤ $15 |
+| B-explore: 3 bench releases × 3 runs, each capped at $3 | ≤ $27 |
+| Auditor on bench (6 × 3) + ablations | ≤ $25 |
+| Finablo runs | ≤ $10 |
+| Reserve | ≥ $40 |
 
-Pricing is not yet verified. One source says Muse Spark costs $1.25 per million input tokens and $4.25 per million output. Recheck the pricing on day 1, and keep `--max-usd` on every run.
+The Standard-mode price for Muse Spark ($1.25 / $4.25 per million input / output tokens) is to be re-measured in W1 on real captures, because images and reasoning tokens dominate. Every run takes `--max-usd`. If open-weights hosting credits are not granted, the extractor and defender roles move to Muse Spark (with the Contributor endpoint for fictional Northbound data only), and the open-weights bonus is dropped. The demo is unaffected.
 
-## Risks and mitigations
+## Risks
 
 | Risk | Mitigation |
 |---|---|
-| Meta API capability differs from what we assume (vision, tools, JSON schema, rate limits) | Day-1 smoke tests; router allows swapping roles between Muse Spark and Muse Spark Open |
-| Open-weights hosting not granted or slow | Apply to both Baseten and Modal on day 1. The fallback is extraction on Muse Spark, which loses the open-weights bonus but keeps the demo |
-| Explorer agent unreliable on arbitrary UIs | Record journeys once at onboarding and replay them deterministically; the agent only repairs |
-| Benchmark looks rigged (we wrote the bugs) | Blind seeding by a separate session; held-out split; honest baseline; real-product run |
-| Nondeterministic model outputs break the demo | Content-hash cache; demo replays committed runs |
-| Disqualification over "what was built during the hackathon" | Provenance ledger; on-screen labels; no Finablo code in the repo |
-| Video takes longer than planned | Phase 6 starts no later than Nov 3 morning, whatever is unfinished |
-| Solo bandwidth | Claude Code agents for implementation (disclosed in the provenance ledger); cut stretches first |
+| Relation interpretation is unreliable (W8) | Generators narrow it to small, well-typed candidates; the schema forces a label plus reasons; the narrative controls catch regressions; cross-model check |
+| Directive extraction mislabels decisions or actions | contract vocabulary constraint; `action: other` becomes an owner question; two-model agreement feeds confidence |
+| Real apps lack a clock hook | report time-triggered surfaces as *not measured*; Northbound has one; for Finablo, use its existing dev and cron endpoints locally only |
+| The baseline does as well as the auditor on judgment | that is a legitimate result; E1 and E3 measure coverage and reproducibility separately; we publish what we find |
+| The benchmark is seen as self-graded | separate seeding session, frozen hashes, negative controls, owner plus independent adjudication, stated limitation |
+| Finablo R2 fails adjudication | R1 is the real-product validation; the video says the experience-level capability is shown on Northbound |
+| Disqualification over provenance | provenance ledger, on-screen labels, no Finablo code in the repo |
+| Video crunch | W16 starts Nov 3 morning regardless |
 
-## Cut order (if behind)
+## Cut order
 
-1. iOS spike → 2. SAM 3.1 → 3. PR comment → 4. voice onboarding (fall back to a typed interview) → 5. ablations beyond "no verifier" → 6. Finablo live run (fall back to a run on recorded Finablo captures). The benchmark and the partial-rollout packet are never cut.
+1. B-explore is reduced to 2 bench releases.
+2. Ablations are reduced to no-exceptions and no-verifier.
+3. The 2.4.1 hotel-scope moment is cut (fixed → resolved is kept).
+4. Finablo R2 is cut.
+5. Onboarding drops to a typed interview (the transcript step is dropped).
 
-## After the hackathon (not planned in detail)
-
-GitHub Action, contract diff review in PRs, iOS/Android adapters (vision + accessibility tree + SAM), a hosted service, and contracts for more real apps.
+**Never cut:** Maya's story, Raj's exception, repro, the honest baseline panel, Finablo R1.

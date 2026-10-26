@@ -1,30 +1,39 @@
-# Integration: Finablo (first consumer)
+# Integration: Finablo (first real consumer)
 
-Finablo is a personal-finance web app and the auditor's first real customer. It consumes sra like any other app would. **No Finablo code or contract lives in this repo.**
+Finablo is a personal-finance web app. Its report, dashboard, PDF, export and AI assistant all speak to the same user about the same money, so it is a natural first consumer. It adopts the auditor like any other app would. **No Finablo code or contract lives in this repo.**
 
 ## What lives where
 
 | Thing | Location |
 |---|---|
-| sra (the tool) | this repo, installed into Finablo's dev environment as a package |
-| Finablo's Product Contract | `finlearn/.sra/` in Finablo's own (private) repo |
-| Run artifacts | `finlearn-local-evidence/sra-runs/` (outside both repos) |
-| This note | only the generic adoption steps, so other apps can copy them |
+| The auditor | this repo, installed into Finablo's dev environment as a package |
+| Finablo's contract | `.sra/` in Finablo's own private repo |
+| Run artifacts | outside both repos (a local evidence folder) |
+| This note | generic adoption steps only |
 
 ## Adoption steps (generic)
 
-1. Boot two builds locally: base (`main`) and head (the release branch), on two ports.
-2. Provide a test-data hook. For Finablo: the guest assessment API plus the dev-only login code endpoint, which already exist for QA. Both run against local only.
-3. `sra onboard --url http://localhost:8080 --docs <docs> --voice owner-note.m4a`, then review and commit `.sra/` in the app's repo.
-4. `sra audit --base http://localhost:8080 --head http://localhost:8081 --notes <release notes>`.
+1. Boot two releases locally (base and head) on two ports.
+2. Provide a persona hook (Finablo: the guest assessment API plus the dev-only login-code endpoint, local only) and, where available, a clock hook.
+3. Onboard: `sra onboard --url … --docs … --voice …`. The owner reviews, and the contract is committed in the app's repo.
+4. Review a release: `sra review --base … --head … --notes …`.
 
-## Finablo-specific constraints (carried from Finablo's rules)
+## Hackathon evaluation (see [docs/08-evaluation.md](../../docs/08-evaluation.md))
 
-- Local only. Never run against `app.finablo.com`.
-- Do not push Finablo branches for this work (limited CI minutes).
-- Skip the Sage chat surface unless the owner approves its Claude spend.
-- The auditor's own model calls (Meta credits) are separate from Finablo's Anthropic budget.
+| Event | Kind | Role |
+|---|---|---|
+| **R1** | objective: on the pending report page, a 61-year-old saw $24,500 as their 401(k) maximum while the server and export said $35,750 | **the real-product validation** |
+| **R2** | experience-level: the dashboard hero's on-pace framing beside a new card's urgent directive | shown **only if it survives contextual adjudication**, because "ahead overall, with one urgent task" can be legitimate |
 
-## Target for the hackathon
+**Blindness:**
+- The auditor gets only `VISION.md` and the principles as they existed **before** the release, an owner voice note, synthetic personas, and the two builds.
+- It never gets `CLAUDE.md`, `BUG-HISTORY.md`, `PLAN.md` or the handoff cards, all of which describe these bugs.
+- The input list and commit SHAs are recorded in the run.
 
-Recreate one real historical cross-surface bug on a local branch and catch it blind. Candidate: the pending-page 401(k) limit for a 61-year-old ($24,500 shown, $35,750 correct). The contract must be produced by `sra onboard`, not hand-coded with knowledge of the bug.
+## Constraints (carried from Finablo's own rules)
+
+- Local only; never `app.finablo.com`.
+- No Finablo pushes for this work (limited CI minutes).
+- Skip the Sage chat surface.
+- Synthetic profiles only; Standard-mode endpoints only.
+- The auditor's model spend (Meta credits) is separate from Finablo's Anthropic budget.

@@ -1,97 +1,92 @@
-# 5. Release audit workflow
+# 5. Release review workflow
 
 ```
-sra audit --contract .sra --base <url|ref> --head <url|ref> --notes RELEASE_NOTES.md [--max-usd 5]
+sra review --contract .sra --base <release|url> --head <release|url> --notes RELEASE_NOTES.md [--max-usd 5]
 ```
+
+The output is a **release review**: the stories of each persona, the issues ranked for the owner, the evidence for each, and a recommendation (Ship / Ship with notes / Needs owner review / Hold) that the owner decides on. Layer names (L0–L7) refer to [03-architecture.md](03-architecture.md).
 
 ## Pipeline
 
 ```
- 0 RATCHET ─► 1 PERSONAS ─► 2 CAPTURE ─► 3 EXTRACT ─► 4 GRAPH+DIFF ─► 5 CHECK ─► 6 INTENT ─► 7 VERIFY ─► 8 REPORT ─► 9 LEARN
- cheap        edge-aimed     both builds   claims       join + diff      6 families   notes→      repro,       packets,     ratchet +
- checks       set            all surfaces  JSONL                                      intended    x-model,     exit code    questions
- first                                                                                             defense
+1 PERSONAS ─► 2 CAPTURE ─► 3 DETERMINISTIC ─► 4 EXTRACT ─► 5 STORIES ─► 6 RELATE ─► 7 ISSUES ─► 8 VERIFY ─► 9 RECOMMEND ─► 10 OWNER
+  + state      episodes,     checks, facts      messages,    ordered      generate    delta,       repro,       policy,        dispositions
+               both          vs oracles,        directives,  events,      candidates, severity,    evidence,    report,        → memory
+               releases      data conditions    claims       aligned      interpret   confidence   x-model,     Release Story
+                             (no model)         (model)      base↔head    (model)                  defense
 ```
-
-### 0. Ratchet checks first
-Run every deterministic check in `.sra/checks/` against fresh head captures. These are past confirmed findings, so a regression of a known bug is caught here for near-zero cost.
 
 ### 1. Personas
-Generate a persona set from `personas.yaml`:
-- every archetype;
-- **pairwise coverage** of the axes, plus **edge** values (thresholds named in the contract: an age at a statutory limit, a fare at a policy boundary, a currency with no minor unit);
-- **change-aimed** personas: if the diff or release notes touch a fact or rule, add personas whose axes exercise it.
+- Use every contract archetype, plus generated personas: pairwise coverage of the axes, edge values (thresholds named in principles and exceptions, such as departure at 71 h vs 73 h), and change-aimed personas whose axes exercise the features named in the release notes.
+- Default cap: 8. Each persona carries **state** into its scenarios.
 
-The persona count is capped (default 8 for the demo). Personas are materialized through the test-data hook, or by the explorer filling forms.
+### 2. Capture (first, always)
+- Run every applicable **scenario** for every persona on **both** releases. Steps advance the simulated clock through the clock hook, so time-triggered emails and pushes are captured where they happen in the story.
+- Each step stores its captures and a **state snapshot** read from the oracles.
+- If a step breaks, the explorer repairs it and logs a `step_repaired` event. A surface that cannot be reached is recorded as **not measured**, never treated as absent.
 
-### 2. Capture
-For each (build, persona, journey): replay the recorded steps and capture every surface the journey reaches. Screenshots, DOM text and boxes, emails from the sink, PDF bytes, API responses (the oracles) and chat transcripts are all stored under `runs/<id>/captures/`.
-- **Journey repair:** if a recorded step fails on head (selector gone, new screen), the explorer repairs it and logs a `journey_repaired` event. New surfaces are flagged for the owner.
+### 3. Deterministic pass (no model calls)
+- Run the expressible checks in `.sra/checks/` against the fresh captures.
+- Compare facts with oracles (fact divergence, unsupported assertions on facts).
+- Evaluate the **data conditions** of every principle and exception against persona and state (time-sensitive? booked? within the free-change window?).
+- This step is cheap and catches known regressions before any model spend.
 
-### 3. Extract
-Each capture → claims (schema in [03-architecture.md](03-architecture.md)) by the `extractor` (Muse Spark Open), constrained by the contract: "here are the facts this surface is expected to show, plus: report anything else that is a factual claim to the user."
-- DOM text is the primary input; the screenshot is the second. For PDFs and email images: page renders, with SAM 3.1 regions as a stretch.
-- Values are normalized in code: currency, compact formats per the contract's formatting policy, timezones, units.
+### 4. Extract (model, cached)
+- From each capture, extract messages (with feature attribution), directives (decision, action, urgency, validity, rationale, explains-tradeoff) and claims. Muse Spark Open does this, constrained to the contract vocabulary.
+- Unchanged captures hit the cache, so they cost nothing.
 
-### 4. Graph and diff
-- Index claims by `(build, persona, fact, surface)`.
-- **Semantic diff:** for every cell, compare base and head. Values (after normalization), the presence or absence of claims, and, for qualitative claims (verdicts, recommendations, policy statements), a change in normalized meaning. Changed cells are grouped by fact and change shape, so 40 cells moving the same way read as one change.
+### 5. Stories
+- Assemble the time-ordered events (messages, user actions, state changes) for each (release, persona, scenario).
+- Align the base and head stories by feature, surface, message template and order.
 
-### 5. Check: candidates
-Run the finding families: CONTRADICTION, ORACLE_MISMATCH, UNSUPPORTED, PERSONA_MISFIT, SEMANTIC_REGRESSION, UNKNOWN_CLAIM. Deterministic families run on all cells. Judge families run only on changed cells, AI-generated surfaces and conditional invariants, which keeps model spend proportional to the change.
+### 6. Relate
+- The generators (code) propose candidate relations: competing directives, stale guidance, principle conditions, attention load, fact divergence, unsupported assertion.
+- One `model_open` pass per story looks for anything the generators missed.
+- Muse Spark labels each candidate: `conflict` · `unexplained_tradeoff` · `explained_tradeoff` · `exception_applies` · `compatible` / `duplicate_ok`. An exception applies only if code finds every data condition *met* and every soft condition is judged *met*.
 
-### 6. Intent matching
-- The `judge` reads the release notes, PR titles/bodies and changelog, and produces an **intended-change list**: `{fact|topic, direction, scope, quote}`.
-- Each SEMANTIC_REGRESSION group is classified as **INTENDED** (with the matching quote), **PARTIAL** (intended, but not every surface moved, which is itself a CONTRADICTION), or **UNEXPLAINED**.
-- **The important case is a partial rollout:** "service fee raised to $15" is intended, but the PDF still says $12. That is a real bug, which a human reading the release notes would wave through.
+### 7. Issues
+- Relations labelled `conflict` or `unexplained_tradeoff` become **issues**. The same relation seen across several personas is grouped into one issue with its reach.
+- **Delta:** each issue is marked *new*, *changed*, *pre_existing* or *resolved*, with the features that changed.
+- **Severity** and **confidence** are computed independently (factors in the architecture doc).
 
-### 7. Verify
-Re-capture, cross-model re-extraction, deterministic recompute and the defense pass, as specified in the architecture doc. Output: CONFIRMED, PLAUSIBLE or REJECTED, each with reasons.
+### 8. Verify
+For each issue, the applicable steps are run and recorded:
+1. `reproduced`: the episode is re-run, and the same events appear.
+2. `evidence_linked`: every cited event resolves to a capture, a locator and an exact quote that matches the DOM text.
+3. `cross_model`: the *other* model re-extracts the directives and re-labels the relation.
+4. `defended`: a defense pass tries to explain the issue away using the principles, exceptions, release notes and tradeoff criteria.
+5. `oracle_checked` (fact kinds only).
 
-### 8. Report
-For each CONFIRMED finding, an **evidence packet**:
-- a one-line claim in plain English: *"Solo EUR traveller: the email total (€1,248.00) differs from checkout (€1,284.00) and from the booking record (€1,284.00)."*
-- persona card; both screenshots with the claim region boxed; normalized values; oracle value and fetch;
-- which builds (new in head, or pre-existing);
-- reproduction: `sra repro <finding-id>` replays exactly that persona and journey;
-- verifier trail: which steps ran and what each returned;
-- intent: matched release-note quote, or "unexplained";
-- **proposed regression check** (YAML), ready to accept.
+Each step yields a **verification status** (`unverified` → `partially_verified` → `verified`, or `failed`: `not_reproducible` or `disputed`). The steps also feed confidence. Failed candidates go to the **rejected** list with their reasons. They are shown, not hidden.
 
-The run report shows the **persona × surface matrix** per fact (green = agrees, red = finding, grey = not shown), the findings, the PLAUSIBLE list, the REJECTED list with reasons, and the ledger (tokens, $, wall time per stage).
+### 9. Recommend and report
+- `release_policy.yaml` turns (severity, confidence, verification) into the recommendation. This is a rule, not a model opinion.
+- Outputs:
+  - `report.html` (the Release Story view and the issue list);
+  - `issues/*.json`;
+  - `rejected.jsonl`;
+  - `ledger.json` (tokens, $, time per stage);
+  - `pr-summary.md`.
+- Exit code: `0` Ship · `1` an owner decision is needed · `2` could not measure (a release would not boot, an oracle was unreachable, the budget ran out before coverage). Exit `2` never reads as a pass.
 
-Exit code: `0` no confirmed findings · `1` confirmed findings · `2` could not measure (oracle unreachable, build failed to boot, budget exhausted before coverage). A "could not measure" result must never print as a clean pass.
-
-### 9. Learn
-- `sra accept <finding-id>` writes the proposed check into `.sra/checks/` (the ratchet). Next release it runs at step 0, with no model calls.
-- `sra allow <finding-id> --reason … --expires …` records an accepted divergence.
-- UNKNOWN_CLAIM and new surfaces become owner questions in the next `sra contract review`.
-
-## Ratchet check format
-
-```yaml
-# .sra/checks/CHK-0007-email-total.yaml
-id: CHK-0007
-from_finding: F-r_20261101-03
-kind: same_value_across_surfaces
-fact: trip_total
-surfaces: [checkout, confirmation_email]
-personas: {party: [couple, family_with_kids], currency: [EUR]}   # the shapes that broke
-locators:                                                       # learned from the finding, so no model needed
-  checkout: {selector: "#order-total"}
-  confirmation_email: {regex: "Total paid: (?P<v>[€$¥][\\d,\\.]+)"}
-```
-
-If a locator stops matching (the UI changed), the check reports `could_not_measure` and asks the extractor to re-learn the locator. It never reports a silent pass.
-
-## What this buys over a prompt, step by step
-
-| Step | Without the system |
+### 10. Owner decisions → memory
+| Command | Effect |
 |---|---|
-| 1 Personas | Tester's one default user; the bug lives in a persona nobody tried |
-| 2 Capture | Only the screens someone pasted; emails and PDFs are usually missing |
-| 4 Diff | No notion of "changed since last release" |
-| 5 Oracle | Can see two numbers differ, cannot say which is true |
-| 6 Intent | A partial rollout reads as intended |
-| 7 Verify | Unknown false-positive rate |
-| 9 Learn | Same cost and the same blind spots next release |
+| `sra decide <issue> fix` | the next review must show it `resolved`, or it is re-raised as `still_open` |
+| `sra decide <issue> accept --scope … --expires …` | creates a **scoped exception**: conditions, features, surfaces, personas, expiry. Never broader than the issue's own events |
+| `sra decide <issue> not-an-issue --reason …` | that exact relation signature is not re-raised; a variant is |
+| `sra decide <issue> rule` | only when the issue is expressible (fact equality, presence/absence under a condition, a precondition). Writes a deterministic check to `.sra/checks/` |
+| `sra decide <issue> expect "…"` | records an **approved semantic expectation**, evaluated by the relation layer every release. Not claimed to be deterministic |
+| `sra repro <issue>` | replays exactly that persona, scenario and release, and re-runs verification |
+
+Questions for the owner (new vocabulary, new surfaces, unknown claims, unknown exception conditions) appear in the next `sra contract review`.
+
+## The legitimate-difference checklist (applied before anything is raised)
+
+A candidate is **not** an issue when any of these holds, and the report says which one:
+- a scoped exception applies, and every one of its conditions was evaluated as *met*;
+- the product explains the tradeoff to the user (`explained_tradeoff`);
+- the messages are never live at the same time, because their validity windows do not overlap in this story;
+- the difference follows from the persona's own facts (another party size, another fare);
+- it is a transactional repetition (`duplicate_ok`);
+- a post-purchase suggestion is still actionable (precondition true, with a deadline).

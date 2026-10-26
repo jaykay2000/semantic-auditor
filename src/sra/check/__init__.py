@@ -1,1 +1,1 @@
-"""sra.check — see docs/03-architecture.md."""
+"""sra.check — deterministic (expressible) checks only — see docs/03-architecture.md."""

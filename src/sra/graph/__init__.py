@@ -1,1 +1,1 @@
-"""sra.graph — see docs/03-architecture.md."""
+"""sra.graph — claims: facts, oracles, normalization, divergence — see docs/03-architecture.md."""

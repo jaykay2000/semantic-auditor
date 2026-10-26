@@ -1,84 +1,97 @@
-# 4. Onboarding flow: learning the product
+# 4. Onboarding: learning the product and the owner's intent
 
-**Goal:** turn "here is my app" into an owner-approved **Product Contract** in under an hour of owner time. For the demo, the target is under 10 minutes.
+**Goal:** an owner-approved **Product Contract** that is complete enough to reconstruct a user's experience and judge it against the owner's own rules. Target: under an hour of owner time; under 10 minutes for the demo app.
 
 ## Inputs
 
-| Input | Required | Used for |
+| Input | Required | Feeds |
 |---|---|---|
-| App URL (base build) + optional login/test-data hook | yes | exploration, journeys, oracle discovery |
-| Docs: README, help pages, pricing/policy pages, PRDs, API spec (OpenAPI) | recommended | facts, policies, oracle paths |
-| Owner interview: a 2–5 minute voice note, or typed answers to generated questions | recommended | expectations, personas, what "wrong" means |
-| Known past bugs (issue links, retros) | optional | seeds invariants; becomes benchmark events |
+| App URL (base release) + persona hook + clock hook | yes | surfaces, scenarios, state, oracles |
+| Docs: product vision, help and policy pages, pricing, API spec | recommended | principles (draft), facts, oracles, decisions |
+| Owner voice note (2–5 min) or typed answers | recommended | principles, conditions, exceptions, persona hints |
+| Feature list: release notes, a flag registry or design-system attribution | recommended | feature attribution |
+
+**Leakage control for evaluations:** when onboarding is used to *test* the auditor on a historical release, it may only see inputs that existed **before** that release. Any doc that describes the bug being tested is excluded, and the input list with its commit SHAs is recorded in the run (see [08-evaluation.md](08-evaluation.md)).
 
 ## Steps
 
 ```
-1 INGEST ─► 2 EXPLORE ─► 3 DRAFT ─► 4 INTERVIEW ─► 5 REVIEW ─► 6 BASELINE
-   docs       map app      contract   fill gaps     owner        record journeys,
-   voice      surfaces     v0         ask owner     approves     first clean run
+1 INGEST ─► 2 MAP ─► 3 DRAFT ─► 4 SHARPEN PRINCIPLES ─► 5 REVIEW ─► 6 BASELINE
 ```
 
 ### 1. Ingest
-- Docs and the API spec are chunked and read in one long-context pass by the `mapper` (Muse Spark, 1M context; PDF and image inputs accepted).
-- The voice note is transcribed by Muse Voice Transcribe. The mapper extracts **expectation statements** ("a traveller must never see two prices") and **persona hints** ("our tricky users are families and anyone paying in euros").
+- The voice note is transcribed with Muse Voice Transcribe. Docs and API specs are read by Muse Spark in one long-context pass.
+- Out come **intent statements** with their sources (a transcript timestamp or doc span), persona hints, and named features.
 
-### 2. Explore
-- The `explorer` agent (Muse Spark with browser tools: navigate, click, fill, read, screenshot) walks the app from the entry URL, with a step budget.
-- It records each **surface** it reaches (page, modal, generated email in the sink, downloadable PDF, chat), the **journey** that reached it as replayable steps, and the **network calls** made along the way. The network calls are the candidate **oracles** (JSON fields whose values match what the screen shows).
-- **Oracle discovery is mostly code:** for each number or date on a screen, search the captured API responses for a matching value (with format normalization). A match proposes an oracle path. The owner confirms it.
+### 2. Map
+- The explorer (Muse Spark with browser tools) walks the app within a step budget, recording surfaces, the steps that reached them (replayable), network calls, and the feature attribution available on each surface.
+- Oracle discovery is code: each value on a screen is matched against the captured API responses, and a match proposes an oracle path.
+- **Hackathon scope:** for Northbound, a recorded walk plus automated oracle discovery is enough. Autonomous mapping of an unknown app is phase P2 (see the plan).
 
-### 3. Draft contract v0
-The mapper proposes:
-- `surfaces.yaml`: every surface reached, with kind and journey.
-- `facts.yaml`: recurring quantities and conclusions seen on ≥2 surfaces, or named in docs, each with an oracle when one was found.
-- `personas.yaml`: **axes** (the dimensions that change what the product should say), found from form fields, pricing tiers, policy branches and the interview; plus 3–6 archetypes.
-- `invariants.yaml`: one `same_value_across_surfaces` per multi-surface fact, `grounded` rules for AI-generated surfaces, and conditional rules from the owner's expectations.
+### 3. Draft the contract
+The model proposes, each item with its provenance and a confidence:
+- `features.yaml`: features and how to attribute a message to them.
+- `decisions.yaml`: the user decisions the product guides; their **actions**; which actions are **incompatible**; each action's **preconditions**.
+- `personas.yaml`: axes, archetypes and the **state** that matters (booked? departure time?).
+- `scenarios.yaml`: time-ordered scripts covering the important journeys, including the time after the user acts.
+- `surfaces.yaml`, `facts.yaml` (with oracles), `rules.yaml` (expressible checks).
+- `principles.yaml`: drafts from the intent statements.
 
-Each proposed item carries **provenance** (the doc span, screenshot or transcript line it came from) and a **confidence**.
+### 4. Sharpen principles (the step that matters most)
+Owners speak in absolutes ("we never pressure travellers"). An absolute principle cannot tell Maya's case from Raj's, so the auditor turns each one into an **operational principle**:
+- **applies_to:** which decisions, directives or surfaces it governs;
+- **violated_when:** persona and state conditions, as data;
+- **exceptions:** each with conditions (data or judged), a scope (features, surfaces, personas), an approver and an expiry.
 
-### 4. Interview (gap-filling)
-The auditor asks the owner only what it cannot infer, as a short list of concrete questions:
-- "Checkout shows `$1,284` and the email `$1,284.00`. Should the email ever show a compact form such as `$1.3K`?"
-- "Is `cancel_deadline` in the traveller's timezone or the airline's?"
-- "The concierge mentioned 'price guarantee'. Is that a real policy? Where is its source of truth?"
+It asks the owner targeted questions to get there:
+> "You said you never pressure travellers. Fare Lock shows 'only 2 seats left'. Is that ever acceptable, for example for a trip departing within days, if the seat count is real? Should the banner then also explain the tradeoff?"
 
-Answers can be spoken (Muse Voice Transcribe) or typed. Each answer edits the contract with provenance.
+**Example result:**
+> **P1.** We do not manufacture scarcity or use urgency to pressure flexible travellers. For genuinely time-sensitive trips, we may communicate verified inventory constraints and explain the tradeoff.
+> **P1-E1.** Applies when the trip departs within 72 h or its dates are fixed, *and* the seats-left claim matches inventory, *and* the tradeoff is explained. Scope: Fare Lock on fare detail and checkout. Expires 2027-01-31.
 
 ### 5. Owner review
-- `sra contract review` renders an HTML page: each surface with its screenshot and extracted claims highlighted, each fact with its oracle and the surfaces that render it, each invariant in plain English ("Every surface shows the same trip total for the same traveller"), and an approve / edit / reject control per item.
-- The approved contract is written to `.sra/` and committed in the customer's repo. **Nothing becomes a rule without approval.**
+`sra contract review` renders one HTML page:
+- each principle in plain English, with its conditions as a checklist and its source (the audio timestamp plays the clip);
+- each exception with its scope;
+- each decision's actions and incompatibilities;
+- each feature with an example of an attributed message;
+- each fact with its oracle.
+
+Each item can be approved, edited or rejected. **Nothing becomes a rule without approval.** The approved contract is committed to the consumer's repo.
 
 ### 6. Baseline
-- Replay all journeys for the generated personas on the base build. Run every checker. Anything found here is either a **pre-existing bug** (reported) or a contract error (fixed in review).
-- The result is the first **clean claim graph**. Later audits diff against it.
+- Run the scenarios on the base release and build its stories.
+- Issues found here are **pre-existing**. They are reported as such, or they reveal a contract error that is fixed in review.
+- The base stories become the reference for the first release review's delta.
 
-## Incremental learning (after day one)
+## Incremental learning
 
-Onboarding never fully ends. Every audit feeds back:
-- **UNKNOWN_CLAIM** findings become interview questions ("A new claim, 'price guarantee', appeared on checkout. Add it as a fact? Where is its truth?").
-- **New surfaces** found by journey repair are proposed as additions.
-- **REJECTED** candidates with an owner-supplied reason become allowlist entries or refined invariants.
-- **CONFIRMED** findings become ratchet checks (see the audit workflow).
+After every review:
+- unknown directive vocabulary, new surfaces, unmapped claims and exception conditions that evaluated as *unknown* become **owner questions**;
+- owner dispositions update the memory (see [05-audit-workflow.md](05-audit-workflow.md), step 10): scoped exceptions, approved expectations, and deterministic checks only for expressible rules.
 
-The contract improves over time, and this is the property a one-shot prompt cannot have.
-
-## Onboarding output, as files
+## Output
 
 ```
 .sra/
-  product.yaml        name, summary, owner expectations (with transcript provenance)
+  product.yaml            name, summary, sources
+  principles.yaml         operational principles + scoped exceptions (with audio/doc provenance)
+  features.yaml
+  decisions.yaml          decisions, actions, incompatibilities, preconditions
+  personas.yaml           axes, archetypes, state
+  scenarios.yaml          time-ordered scripts
   surfaces.yaml
-  facts.yaml          facts + oracles + tolerance/formatting policy
-  personas.yaml       axes, archetypes, generation strategy, test-data hook
-  invariants.yaml
-  journeys/*.json     recorded, replayable steps
-  allowlist.yaml      accepted divergences, each with reason + owner + expiry
-  checks/             (empty until the first confirmed finding)
-  CONTRACT.md         generated human-readable summary
+  facts.yaml              facts + oracles + formatting policy
+  rules.yaml              expressible rules (deterministic)
+  release_policy.yaml     severity x confidence x verification -> recommendation
+  checks/                 deterministic checks from owner "rule" decisions
+  expectations/           approved semantic expectations
+  dispositions/           owner decisions on past issues
+  CONTRACT.md             generated readable summary
 ```
 
-## Acceptance criteria for the hackathon
+## Acceptance for the hackathon
 
-- On Northbound: from URL + docs + a 60-second voice note to an approved contract with ≥90% of the hand-written reference contract's facts and surfaces. Measured, not eyeballed: `bench/` holds the reference contract.
-- On Finablo: a draft contract that finds at least the report, dashboard, PDF, email and export surfaces, and at least 6 of its 10 known cross-surface facts, without any Finablo-specific code.
+- **Northbound:** from the voice note and docs to an approved contract in under 10 minutes of owner time, matching the hand-written reference contract on principles, exceptions, decisions and features. The reference sits in `bench/` and is compared item by item.
+- **Finablo:** a contract built only from the dated inputs. It must include at least the report, dashboard, PDF and export surfaces, the first-move and freedom-age decisions and facts, and principles drafted from `VISION.md`. The owner reviews it.

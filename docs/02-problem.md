@@ -1,50 +1,48 @@
 # 2. Problem statement
 
-## The bug class
+## The issue class
 
-A **semantic release bug** is a release where every surface works, and the product still tells a user something false, contradictory, unsupported or wrong for them.
+A **semantic release issue** is product behaviour that is acceptable feature by feature, but, as one user experiences the release over time, conflicts with itself or with what the owner intends. The kinds:
 
-These bugs share three properties that make them escape normal QA:
+| Kind | Shape | Northbound example |
+|---|---|---|
+| **Competing directives** | two features give incompatible advice on the same decision, live at the same time | Price Watch: "wait for a drop" · Fare Lock: "only 2 seats, lock now" |
+| **Stale guidance** | advice whose precondition is no longer true for this user | after booking: "we'll tell you when to book" |
+| **Principle breach** | behaviour the owner's rule forbids for this persona, with no exception applying | scarcity pressure on a flexible traveller |
+| **Unexplained tradeoff** | two legitimate signals the product never reconciles for the user | "prices may drop" and "seats are limited", side by side with no help |
+| **Attention load** | more demands on the user than the owner's rule allows | four non-booking messages in 24 hours |
+| **Fact divergence** | the same fact with different values on different surfaces | lock fee €9 on the banner, €12 at checkout |
+| **Unsupported assertion** | a claim that the product's own data does not back | "only 2 seats left" when inventory shows 9 |
 
-1. **Each surface is individually correct-looking.** The page renders and the email sends. The defect only exists *between* two surfaces, or between a surface and the truth.
-2. **They are persona-dependent.** The default test user is fine. A 61-year-old, a user with no debt, or a traveller paying in euros is not.
-3. **They are invisible to assertion-based tests**, because nobody wrote an assertion for a sentence that did not exist yet, or for text a model wrote at runtime.
+The last two are the classic cross-surface bugs. They remain in scope because they are the most objective evidence an experience can contain. The first five are why the auditor exists.
+
+## Why they escape QA
+
+1. **Each feature passes on its own.** Its tests, evals and reviews look at it in isolation.
+2. **They depend on order and state.** "Wait" and "book now" conflict only when both are live; "book refundable" is only wrong *after* a non-refundable booking.
+3. **They depend on the persona.** The same banner is right for Raj and wrong for Maya.
+4. **They depend on intent.** Whether something is a conflict or a legitimate tradeoff is the owner's call, and rarely written down operationally.
+5. **No one sees the whole story.** Emails, pushes and PDFs live outside the app, and AI copy differs per user at runtime.
 
 ## Evidence from a real product (Finablo)
 
-Finablo is a personal-finance web app. Its report, dashboard, PDF, emails, "Copy for your AI" export and AI assistant all state the same facts about a user's money: freedom age, savings, first recommended move, budget verdict. Over several months it shipped many bugs of exactly this class, despite a deterministic test gate of thousands of tests. Examples from its own bug history:
+Finablo, a personal-finance web app, has shipped both kinds:
+- **Objective:** on the pending report page, a 61-year-old was shown $24,500 as their 401(k) maximum while the server and the export said $35,750.
+- **Experience-level:** surfaces that each rendered correctly but together gave a user incompatible framing or duplicated the same directive. Finablo found these by hand, after they shipped.
 
-- **One quantity, two values.** On the pending report page, a 61-year-old read **$24,500** as their 401(k) maximum while the server and the export said **$35,750**. The server was right; the page composed its number from a different, unfinalized list.
-- **One stored source, two adjacent endpoints.** The JSON report and the PDF of the same stored report disagreed, because one endpoint finalized the AI plan and the other did not.
-- **A dollar the product could not justify.** A tax-loss-harvest saving rendered beside copy saying "we can't size it for you". It took four fixes, because four independent authors could attach a figure to that one claim: the prompt, the ranker, the shared card chrome and a read-path fallback.
-- **Verdicts decided in many places.** An inventory found 22 user-facing conclusions, each decided in 4–22 separate places.
-
-Finablo built a deterministic harness for this: 10 hand-coded facts across 22 surfaces and 20 hand-written cohorts. Replayed blind against 5 real past releases, **it caught 2**. The misses were all things nobody had written an extractor or a cohort for. Hand-coded coverage only finds what someone already anticipated, and that is the gap this project targets.
+Finablo also built a deterministic, hand-coded cross-surface harness (10 facts, 22 surfaces). Replayed blind against 5 real past releases, it caught 2. Hand-written coverage finds only what someone anticipated, and it cannot represent directives, time or intent at all.
 
 ## Why now
 
-- **AI-written copy is everywhere.** Assistants, summaries and generated recommendations produce sentences no test author saw in advance.
-- **Surfaces multiply.** Web, email, PDF, push, export, chat, mobile, with one fact rendered through all of them.
-- **Frontier multimodal models can read screens.** Muse Spark takes images, PDFs and video with a 1M-token context. Extraction and judgement that needed humans now cost cents. What is missing is the *system* that makes those judgements complete, grounded, verified and remembered.
+- AI-written, per-user copy means the number of distinct experiences grows faster than anyone can review.
+- Frontier multimodal models (Muse Spark: image and PDF input, structured output, tool calling, long context) can now read what a surface tells the user at low cost. What is missing is the system that makes that reading **complete, ordered, grounded in the owner's rules, reproducible and consistent across releases**.
 
-## Why a prompt is not enough
+## What we are solving for the hackathon
 
-The obvious alternative: screenshot everything and ask a strong model, "find the inconsistencies." It helps, and we use it as our benchmark baseline. It also has structural limits that no prompt removes:
-
-1. **Coverage is the tester's, not the model's.** It sees only the personas and screens someone chose to capture. The bugs above lived in personas nobody tried.
-2. **No oracle.** It can say two numbers differ, but not which one is right, or that both are wrong.
-3. **No memory of intent.** It does not know that the fee increase was planned, that "$1.2K" and "$1,199" are the same by policy, or that last release's finding was accepted.
-4. **No change awareness.** It reviews a snapshot, not a release. It cannot say "this sentence changed meaning since the last build and nobody said why."
-5. **Unmeasured precision.** It reports plausible-sounding issues with no reproduction. Teams stop reading after the third false alarm.
-6. **Flat cost.** Every release costs the same model spend, and nothing is learned.
-
-## Problem we are solving in the hackathon
-
-> Given a web application and a new release, automatically find the semantic issues that would mislead a real user, across every surface and the personas that matter. Prove each one with reproducible evidence, separate them from intended changes, and do it with measurably higher recall and precision than asking a frontier model directly.
+> For a web application and a new release: reconstruct each important persona's time-ordered experience across features and surfaces; identify conflicting product behaviour and messages against the owner's operational principles; distinguish real conflicts from legitimate tradeoffs and approved exceptions; and give the owner reproducible evidence and a Ship / Hold recommendation. Then measure, against the same model given the same context, where this adds coverage, precision, reproducibility and repeatability.
 
 ## Out of scope
 
-- Functional correctness (does the button work): existing E2E tools do that.
-- Visual or pixel regressions: existing snapshot tools do that.
-- Taste and UX quality judgements beyond explicit persona-fit rules. Human review remains the owner of taste.
-- Deciding what is *correct* when the product owner has not said. The auditor asks, and records the answer in the contract.
+- Functional correctness, visual regression and performance (existing tools).
+- Taste beyond the owner's stated principles. Human design review remains the owner of taste.
+- Deciding what is correct when the owner has not said so. The auditor asks.
