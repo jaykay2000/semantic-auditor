@@ -20,12 +20,23 @@ class Trip:
 
 
 @dataclass
+class Stay:
+    """A hotel stay the traveller is looking at (created by the persona hook)."""
+    hotel_id: str
+    check_in_at: datetime
+    nights: int = 2
+    rooms: int = 1
+
+
+@dataclass
 class Traveller:
     id: str
     name: str
     party: int  # number of travellers on the booking: 1, 2 or 4
     flexible: bool
     trip: Trip
+    experiments: dict[str, Any] = field(default_factory=dict)  # experiment arm per traveller: {"name": arm}
+    stay: Stay | None = None
 
     @property
     def email(self) -> str:
@@ -53,7 +64,7 @@ class Fare:
 @dataclass
 class Charge:
     id: str
-    what: str  # fare | taxes_and_fees | upgrade_to_refundable
+    what: str  # fare | taxes_and_fees | upgrade_to_refundable | fare_lock
     label: str
     amount_cents: int
     transaction: str
@@ -96,6 +107,8 @@ class Message:
     slot: str = "notice"
     action: dict[str, Any] | None = None  # {"url", "label", "method": "get"|"post", "fields": {...}}
     id: str | None = None  # assigned when the message is logged
+    component: str = "flight"  # flight | hotel: what the message is about
+    more_actions: list[dict[str, Any]] = field(default_factory=list)  # secondary actions, same shape as `action`
 
     @property
     def shown_at_iso(self) -> str:
@@ -103,4 +116,5 @@ class Message:
 
     def log_row(self) -> dict[str, Any]:
         return {"id": self.id, "traveller": self.traveller_id, "feature": self.feature, "surface": self.surface,
-                "channel": self.channel, "message_key": self.key, "shown_at": self.shown_at_iso, "text": self.text}
+                "channel": self.channel, "message_key": self.key, "shown_at": self.shown_at_iso, "text": self.text,
+                "component": self.component}

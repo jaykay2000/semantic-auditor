@@ -5,23 +5,34 @@ Traveller identity: cookie `nb_traveller=<id>`, or header `X-Traveller`, or quer
 """
 from __future__ import annotations
 
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from fastapi import Body, FastAPI, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
 
 from . import pdf as pdf_mod
-from .catalogue import fare_by_id, fares_for
+from .catalogue import fare_by_id, fares_for, hotel_by_id
 from .clock import iso, parse_duration, parse_instant
 from .config import Config
-from .models import Trip
+from .models import Stay, Trip
 from .releases import Release
 from .runtime import Ctx, DuplicateTraveller, Runtime
 
 HERE = Path(__file__).parent
 SLOTS = ("summary", "fare_row", "line", "total", "notice")
+
+
+@dataclass
+class AppEnv:
+    """What a feature's routes(app, env) hook gets (see northbound.features)."""
+    rt: Runtime
+    templates: Jinja2Templates
+    ctx_for: Callable[..., Ctx]
+    page: Callable[..., HTMLResponse]
+    need_fare: Callable[[str], Any]
 
 
 def create_app(cfg: Config | None = None, release: Release | str | None = None) -> FastAPI:
@@ -60,6 +71,8 @@ def create_app(cfg: Config | None = None, release: Release | str | None = None) 
         if fare is None:
             raise HTTPException(404, f"No such fare {fare_id!r}")
         return fare
+
+    env = AppEnv(rt, templates, ctx_for, page, need_fare)
 
     @app.exception_handler(HTTPException)
     async def plain_errors(request: Request, exc: HTTPException):  # harness errors, not product messages
@@ -189,7 +202,14 @@ def create_app(cfg: Config | None = None, release: Release | str | None = None) 
         return rt.oracle_booking(need_known_traveller(request, traveller))
 
     @app.get("/api/oracle/inventory")
-    def oracle_inventory(fare: str):
+    def oracle_inventory(fare: str | None = None, hotel: str | None = None):
+        if (fare is None) == (hotel is None):
+            raise HTTPException(422, "send exactly one of ?fare= or ?hotel=")
+        if hotel is not None:
+            h = hotel_by_id(hotel)
+            if h is None:
+                raise HTTPException(404, f"No such hotel {hotel!r}")
+            return {"hotel": h["id"], "rooms_left": rt.world.rooms_left(h["id"])}
         f = need_fare(fare)
         return {"fare": f.id, "seats_left": rt.world.seats_left(f.id)}
 
@@ -223,9 +243,20 @@ def create_app(cfg: Config | None = None, release: Release | str | None = None) 
                 party = int(body.get("travellers", 1))
                 if party not in (1, 2, 4):
                     raise ValueError("travellers must be 1, 2 or 4")
+                experiments = body.get("experiments") or {}
+                if not isinstance(experiments, dict):
+                    raise ValueError("experiments must be an object {name: arm}")
+                stay = None
+                if body.get("stay"):
+                    st = body["stay"]
+                    hotel = hotel_by_id(str(st["hotel"]))
+                    if hotel is None:
+                        raise ValueError(f"unknown hotel {st['hotel']!r}")
+                    stay = Stay(hotel["id"], parse_instant(str(st["check_in_at"])), int(st.get("nights", 2)),
+                                int(st.get("rooms", 1)))
                 t = rt.create_traveller(tid, str(body.get("name", tid)), party, bool(body.get("flexible", True)),
                                         Trip(str(trip["origin"]).upper(), str(trip["destination"]).upper(),
-                                             parse_instant(str(trip["departure_at"]))))
+                                             parse_instant(str(trip["departure_at"]))), experiments, stay)
             except DuplicateTraveller as exc:
                 raise HTTPException(409, f"traveller {exc} already exists; POST /api/test/reset first")
             except KeyError as exc:
@@ -239,10 +270,18 @@ def create_app(cfg: Config | None = None, release: Release | str | None = None) 
         def world(body: dict = Body(...)):
             for fid, n in (body.get("seats") or {}).items():
                 rt.world.seats[need_fare(fid).id] = int(n)
+            for fid, n in (body.get("bucket_seats") or {}).items():
+                rt.world.bucket_seats[need_fare(fid).id] = int(n)
+            for hid, n in (body.get("rooms") or {}).items():
+                hotel = hotel_by_id(hid)
+                if hotel is None:
+                    raise HTTPException(404, f"No such hotel {hid!r}")
+                rt.world.rooms[hotel["id"]] = int(n)
             for route, f in (body.get("forecast") or {}).items():
                 rt.world.forecasts[route.upper()] = {"drop": bool(f.get("drop", True)),
                                                      "window_days": int(f.get("window_days", 14))}
-            return {"seats": rt.world.seats, "forecasts": rt.world.forecasts}
+            return {"seats": rt.world.seats, "bucket_seats": rt.world.bucket_seats, "rooms": rt.world.rooms,
+                    "forecasts": rt.world.forecasts}
 
         @app.post("/api/test/reset")
         def reset():
@@ -254,6 +293,9 @@ def create_app(cfg: Config | None = None, release: Release | str | None = None) 
             rows = [r for r in rt.log if traveller is None or r["traveller"] == traveller]
             return {"debug_only": True, "note": "server-side message log; debug only, not an oracle",
                     "messages": rows}
+
+    for feature in rt.features:  # extra pages and endpoints a feature brings (after the core routes)
+        feature.routes(app, env)
 
     return app
 

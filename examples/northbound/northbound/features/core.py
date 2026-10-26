@@ -4,14 +4,33 @@ Calm and factual. Core says nothing about scarcity, urgency or when to book.
 """
 from __future__ import annotations
 
-from ..catalogue import money, when
+from fastapi import HTTPException, Request
+from fastapi.responses import HTMLResponse
+
+from ..catalogue import hotel_by_id, money, when
 from ..models import Message
 from . import BaseFeature
 
 
 class Feature(BaseFeature):
     id = "core"
-    DEFAULTS = {"change_window_hours": 24, "upgrade_fee_cents": 3000}
+    DEFAULTS = {"change_window_hours": 24, "upgrade_fee_cents": 3000, "hotels": False}
+    COPY = {
+        "core.hotel.summary": "{hotel_name} in {hotel_city}. Check-in {check_in}, {nights} nights.",
+        "core.hotel.summary.nostay": "{hotel_name} in {hotel_city}. No stay dates are selected.",
+    }
+
+    def routes(self, app, env):
+        if not self.settings["hotels"]:  # the hotel page exists only in releases that turn hotels on
+            return
+
+        @app.get("/hotel/{hotel_id}", response_class=HTMLResponse)
+        def hotel_detail(request: Request, hotel_id: str):
+            hotel = hotel_by_id(hotel_id)
+            if hotel is None:
+                raise HTTPException(404, f"No such hotel {hotel_id!r}")
+            ctx = env.ctx_for(request, hotel=hotel)
+            return env.page(request, "hotel.html", ctx, "hotel_detail")
 
     # ---- helpers
     def _fare_params(self, ctx, fare):
@@ -51,6 +70,15 @@ class Feature(BaseFeature):
                 out.append(self.msg(ctx, "core.checkout.total", surface, "page", slot="total",
                                     amount=money(q["total"])))
                 out.append(self.msg(ctx, f"core.fare.policy.{fare.kind}", surface, "page"))
+        elif surface == "hotel_detail":
+            h, stay = ctx.hotel, t.stay
+            if stay is None:
+                out.append(self.msg(ctx, "core.hotel.summary.nostay", surface, "page", slot="summary",
+                                    component="hotel", hotel_name=h["name"], hotel_city=h["city"]))
+            else:
+                out.append(self.msg(ctx, "core.hotel.summary", surface, "page", slot="summary", component="hotel",
+                                    hotel_name=h["name"], hotel_city=h["city"], check_in=when(stay.check_in_at),
+                                    nights=stay.nights))
         elif surface == "confirmation":
             b = ctx.booking
             out.append(self.msg(ctx, "core.confirmed", surface, "page", slot="summary", booking_id=b.id, **common))

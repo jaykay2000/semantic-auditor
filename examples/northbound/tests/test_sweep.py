@@ -122,3 +122,74 @@ def test_concierge_answers_are_deterministic_and_never_proactive(client):
     assert [r for r in client.rt.log if r["feature"] == "concierge" and r["channel"] != "chat"] == []
     assert "cg.regret" not in {r["message_key"] for r in client.rt.log}  # 2.3 never second-guesses
     assert client.post("/api/concierge", headers=h, json={"text": "  "}).status_code == 422
+
+
+# ------------------------------------------------------------------------------------- 2.4 and 2.4.1 sweep
+import pytest  # noqa: E402
+
+from nbhelpers import outbox  # noqa: E402
+
+NR = "LIS-BER-NR"
+STAY = {"hotel": "LIS-H1", "check_in_at": "2026-11-03T16:00:00Z", "nights": 2, "rooms": 1}
+
+
+@pytest.mark.parametrize("release", ["2.4", "2.4.1"])
+def test_every_page_of_2_4_and_2_4_1_carries_the_data_attributes(make_client, release):
+    c = make_client(release)
+    hotels = release == "2.4.1"
+    c.post("/api/test/world", json={"seats": {NR: 2}, "bucket_seats": {"LIS-BER-RF": 3}, "rooms": {"LIS-H1": 1}})
+    people = {
+        "plain": dict(),                                                         # fl.banner (+ reconcile on 2.4.1)
+        "fixed": dict(flexible=False, departure="2026-11-03T16:00:00Z"),         # fl.banner.urgent
+        "bare": dict(departure="2026-11-03T16:00:00Z", experiments={"fl_urgent_copy": "bare"}),
+        "arm": dict(experiments={"fare_detail_reconcile": True}),                # inline cg.reconcile on 2.4
+        "couple": dict(party=2, stay=STAY if hotels else None),
+    }
+    headers = {pid: persona(c, pid, **kw) for pid, kw in people.items()}
+    markers = shown = 0
+    for pid, h in headers.items():
+        for url in ["/search", f"/fare/{NR}", "/fare/LIS-BER-RF", f"/checkout/{NR}"]:
+            r, n = check_page(c, url, h)
+            markers += n
+    check_page(c, f"/fare/{NR}/lock", headers["couple"], method="post", expect_status=(200,))  # buy a lock, then the
+    check_page(c, f"/checkout/{NR}", headers["couple"])                                         # checkout line
+    check_page(c, f"/fare/{NR}", headers["couple"])                                              # banner is gone
+    if hotels:
+        for pid, h in headers.items():
+            r, n = check_page(c, "/hotel/LIS-H1", h)
+            markers += n
+    advance(c, "1m")
+    for pid in ("plain", "bare"):  # book, then walk the proactive and post-booking surfaces
+        c.post(f"/checkout/{NR}", headers=headers[pid])
+    advance(c, "3h")
+    for q in QUESTIONS:
+        client_q = c.post("/api/concierge", headers=headers["plain"], json={"text": q})
+        assert client_q.status_code == 200
+    shown = check_page(c, "/concierge", headers["plain"], exact=False)[1]
+    assert shown >= 8 and markers >= 40  # the chat shows the proactive tip and every answer
+    check_page(c, "/booking/NB0001", headers["plain"])
+    advance(c, "10h")  # the follow-up emails / pushes / tips that were due
+
+    for tag_row in c.rt.log:  # every message, page or sink, carries a feature in the contract and a copy key
+        assert tag_row["feature"] in FEATURES and tag_row["message_key"] in c.rt.copy
+        assert tag_row["component"] in ("flight", "hotel")
+    for kind in ("email", "push"):
+        for doc in outbox(c, kind):
+            assert doc["headers"]["X-Feature"] in FEATURES and doc["headers"]["X-Message-Key"] in c.rt.copy
+    page = c.get(f"/fare/{NR}", headers=headers["fixed"]).text
+    assert 'data-component="flight"' in page
+    if hotels:
+        assert 'data-component="hotel"' in c.get("/hotel/LIS-H1", headers=headers["couple"]).text
+    # the lock offer and a purchase endpoint do not carry a message of their own beyond the macro
+    assert c.post(f"/fare/{NR}/lock", headers={"X-Traveller": "nobody"}).status_code == 401
+
+
+def test_the_itinerary_pdf_of_2_4_lists_only_known_keys(make_client):
+    c = make_client("2.4")
+    h = persona(c)
+    c.post(f"/fare/{NR}/lock", headers=h)
+    c.post(f"/checkout/{NR}", headers=h)
+    r = c.get("/booking/NB0001/itinerary.pdf", headers=h)
+    with pdfplumber.open(io.BytesIO(r.content)) as pdf:
+        keys = {k.strip() for k in pdf.metadata["Keywords"].split(",")}
+    assert keys <= set(c.rt.copy)

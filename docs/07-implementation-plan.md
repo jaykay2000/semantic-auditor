@@ -18,6 +18,7 @@ How the work runs:
 | W3b | **built**: surfaces, oracles, facts, derived-state model (moved out of the core), personas, scenarios, release policy (exhaustive, every row reachable), app hooks; validator; hash-pinned approvals; review page + `semaudit contract check/review/approve` | `src/semaudit/contract/`, `tests/test_contract.py` |
 | W10a | spec + wireframe drafted, **awaiting owner approval** | [design/release-story.md](design/release-story.md) |
 | W2 | **built**: Northbound 2.3 with release/feature plugins, simulated clock, test hooks, oracles, markers, file sinks; NC6 works end to end ($0 of Meta budget) | `examples/northbound/`, 50 tests in `examples/northbound/tests/` |
+| W5 | **built**: Northbound 2.4 (Fare Lock, Price Watch auto-enroll, Concierge 2.0 with the seeded bugs as settings) and 2.4.1 (the three fixes as named settings, Fare Lock on hotels); one test per README persona, mutation-checked ($0 of Meta budget) | `examples/northbound/`, `examples/northbound/tests/test_release_2_4.py` |
 
 ## The minimum compelling version (MCV)
 

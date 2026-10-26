@@ -5,10 +5,15 @@ from html.parser import HTMLParser
 MAYA_DEPARTURE = "2026-12-14T08:00:00Z"  # D0 + 42 d - 2 h
 
 
-def persona(client, pid="maya", party=1, departure=MAYA_DEPARTURE, origin="LIS", destination="BER", flexible=True):
-    r = client.post("/api/test/personas", json={
-        "id": pid, "name": pid.title(), "travellers": party, "flexible": flexible,
-        "trip": {"origin": origin, "destination": destination, "departure_at": departure}})
+def persona(client, pid="maya", party=1, departure=MAYA_DEPARTURE, origin="LIS", destination="BER", flexible=True,
+            experiments=None, stay=None):
+    body = {"id": pid, "name": pid.title(), "travellers": party, "flexible": flexible,
+            "trip": {"origin": origin, "destination": destination, "departure_at": departure}}
+    if experiments:
+        body["experiments"] = experiments
+    if stay:
+        body["stay"] = stay
+    r = client.post("/api/test/personas", json=body)
     assert r.status_code == 200, r.text
     return {"X-Traveller": pid}
 

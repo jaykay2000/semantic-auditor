@@ -15,10 +15,11 @@ from . import BaseFeature
 class Feature(BaseFeature):
     id = "price_watch"
     DEFAULTS = {"mode": "opt_in", "alert_delay": "30s", "stop_after_booking": True}
+    MODES = ("opt_in",)  # a subclass (price_watch_v2) widens this; this module implements opt-in only
 
     def __init__(self, settings=None):
         super().__init__(settings)
-        if self.settings["mode"] != "opt_in":
+        if self.settings["mode"] not in self.MODES:
             raise ValueError(f"price_watch mode {self.settings['mode']!r} is not implemented by this module")
 
     def messages_for(self, surface, ctx):
