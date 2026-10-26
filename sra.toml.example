@@ -1,0 +1,35 @@
+# Role -> model routing. Model IDs are UNVERIFIED until the day-1 smoke tests pass.
+[budget]
+max_usd_per_run = 5.0
+
+[roles.explorer]
+provider = "meta"
+model = "muse-spark-1.2"
+
+[roles.mapper]
+provider = "meta"
+model = "muse-spark-1.2"
+
+[roles.extractor]
+provider = "baseten"
+model = "meta-models/muse-spark-open-1026"   # hackathon-specific ID (participant guide)
+
+[roles.cross_extractor]
+provider = "meta"
+model = "muse-spark-1.2"
+
+[roles.judge]
+provider = "meta"
+model = "muse-spark-1.2"
+
+[roles.defender]
+provider = "baseten"
+model = "meta-models/muse-spark-open-1026"
+
+[roles.transcriber]
+provider = "meta"
+model = "muse-voice-transcribe"              # exact ID to confirm
+
+[roles.segmenter]                            # stretch
+provider = "meta"
+model = "sam-3.1"                            # exact ID to confirm
