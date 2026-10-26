@@ -15,6 +15,7 @@ How the work runs:
 | W1 | done: Muse Spark 1.3 / 1.2, structured output, images, tools verified ($0.06) | [evidence/w1-model-access.md](evidence/w1-model-access.md) |
 | W1b | **accepted**: 15 stories × 5 fresh runs exact; all stubs fail | [evidence/w1b-semantic-core.md](evidence/w1b-semantic-core.md) |
 | W3a | done: rule, decision and feature schema; Northbound contract | `examples/northbound/contract/` |
+| W10a | spec + wireframe drafted, **awaiting owner approval** | [design/release-story.md](design/release-story.md) |
 | W2 | **built**: Northbound 2.3 with release/feature plugins, simulated clock, test hooks, oracles, markers, file sinks; NC6 works end to end ($0 of Meta budget) | `examples/northbound/`, 50 tests in `examples/northbound/tests/` |
 
 ## The minimum compelling version (MCV)
