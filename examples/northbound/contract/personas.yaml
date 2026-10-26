@@ -34,7 +34,7 @@
    world: {forecast: {LIS-BER: {drop: false}}}}
 - {id: omar, name: Omar, role: boundary,             # inventory 9, but the banner's bucket says 2
    trip: {route: LIS-BER, departure_at: "D1 06:00", flexible: true},
-   world: {inventory: {LIS-BER-NR: 9}, bucket_seats: {LIS-BER-NR: 2}, forecast: {LIS-BER: {drop: false}}}}
+   world: {seats: {LIS-BER-NR: 9}, bucket_seats: {LIS-BER-NR: 2}, forecast: {LIS-BER: {drop: false}}}}
 - {id: sam_alex, name: Sam & Alex, role: factual, party: 2,
    trip: {route: LIS-BER, departure_at: "D42 08:00", flexible: true},
    world: {forecast: {LIS-BER: {drop: true, window_days: 14}}}}
@@ -44,5 +44,5 @@
    trip: {route: LIS-BER, departure_at: "D42 08:00", flexible: true},
    world: {forecast: {LIS-BER: {drop: true, window_days: 14}}}}
 - {id: rina, name: Rina, role: boundary,             # 2.4.1: hotel, check-in 30 h away, 1 room, inventory 1
-   trip: {component: hotel, hotel: BER-H1, departure_at: "D1 16:00", flexible: false},
-   world: {room_inventory: {BER-H1: 1}}}
+   trip: {component: hotel, hotel: LIS-H1, departure_at: "D1 16:00", flexible: false},
+   world: {rooms: {LIS-H1: 1}}}

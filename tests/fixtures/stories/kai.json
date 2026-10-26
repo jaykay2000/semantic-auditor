@@ -31,6 +31,18 @@
     "user_initiated": false
    },
    {
+    "id": "pw_email",
+    "at": "2026-11-02T10:01:00+00:00",
+    "kind": "message",
+    "feature": "price_watch",
+    "surface": "inbox",
+    "channel": "email",
+    "component": "flight",
+    "copy_key": "pw.card",
+    "text": "Prices on your dates are likely to drop over the next two weeks. We suggest waiting; we'll tell you when to book.",
+    "user_initiated": false
+   },
+   {
     "id": "fl_urgent",
     "at": "2026-11-02T10:03:00+00:00",
     "kind": "message",
@@ -53,6 +65,11 @@
   {
    "rule": "U3",
    "subject": "pw_card",
+   "status": "passed"
+  },
+  {
+   "rule": "U3",
+   "subject": "pw_email",
    "status": "passed"
   },
   {

@@ -345,7 +345,7 @@ def test_theo(c24):
         row(t(minutes=5), "fare_lock", "fare_detail", "banner", "fl.banner"),
         row(t(hours=3), "concierge", "chat", "chat", "cg.upgrade"),
     ]
-    assert text_of(c24, "cg.upgrade") == "You can still switch to a refundable fare for €30 until tomorrow 10:05."
+    assert text_of(c24, "cg.upgrade") == "You can still switch to a refundable fare for €30 until tomorrow 10:06."
     assert [e["headers"]["X-Message-Key"] for e in outbox(c24)] == ["core.email.confirmation"]  # in-app, not a contact
     assert outbox(c24, "push") == []
     ob = oracle(c24, "theo")

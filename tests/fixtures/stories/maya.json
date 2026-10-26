@@ -76,6 +76,18 @@
     "user_initiated": false
    },
    {
+    "id": "cg_upgrade",
+    "at": "2026-11-02T13:00:00+00:00",
+    "kind": "message",
+    "feature": "concierge",
+    "surface": "chat",
+    "channel": "chat",
+    "component": "flight",
+    "copy_key": "cg.upgrade",
+    "text": "You can still switch to a refundable fare for €30 until tomorrow 10:06.",
+    "user_initiated": false
+   },
+   {
     "id": "pw_push",
     "at": "2026-11-02T18:00:00+00:00",
     "kind": "message",
@@ -133,6 +145,11 @@
    "rule": "U3",
    "subject": "pw_after",
    "status": "violated"
+  },
+  {
+   "rule": "U3",
+   "subject": "cg_upgrade",
+   "status": "passed"
   },
   {
    "rule": "U4",

@@ -186,7 +186,7 @@ The model extracts strength **and the cue it relied on** (U-a, U-b or U-c, or no
 | Key | Feature | Copy |
 |---|---|---|
 | `pw.card` | Price Watch | "Prices on your dates are likely to drop over the next two weeks. We suggest waiting; we'll tell you when to book." |
-| `pw.email.forecast` | Price Watch | the same message, by email |
+| `pw.email.forecast` | Price Watch | the same message, by email, to every searcher at +1 min (`pw.email.forecast.nodrop` carries the `pw.card.nodrop` wording when the forecast says no drop; information, not a directive) |
 | `pw.email.after` | Price Watch | "Keep waiting to book. We'll tell you when prices drop." → `wait_for_drop`, **suggest**. Sent after booking (the bug), so its precondition `not_booked` is false |
 | `pw.push.moving` | Price Watch | "Prices on LIS→BER are moving." |
 | `pw.card.nodrop` | Price Watch | "Our forecast: prices on this trip are unlikely to drop before departure." |
@@ -197,7 +197,7 @@ The model extracts strength **and the cue it relied on** (U-a, U-b or U-c, or no
 | `fl.hotel.urgent` | Fare Lock (2.4.1) | hotel page: "Checking in soon: only 1 room left at this rate. Book now, or hold it for 12 h for €9 total if your plans might change." → `book_now`, **urge**, explains its own tradeoff |
 | `cg.regret` | Concierge 2.0 | "You should have booked a refundable fare." → retrospective |
 | `cg.reconcile` | Concierge 2.0 | "Prices on your dates are likely to drop, but this fare has 2 seats left. If you can move your dates, wait for the alert; if not, locking protects this price." → reconciles `pw.card` + `fl.banner` |
-| `cg.upgrade` | Concierge 2.0 | "You can still switch to a refundable fare for €30 until tomorrow 10:05." → suggest `upgrade_to_refundable` |
+| `cg.upgrade` | Concierge 2.0 | "You can still switch to a refundable fare for €30 until tomorrow {deadline}." The deadline is the oracle's change-window end (10:06 for a 10:06 booking). Sent in-app at 13:00 to every non-refundable booker while the window is open → suggest `upgrade_to_refundable` |
 
 ## Personas and expected results
 
@@ -205,16 +205,16 @@ Each persona's **expected status vector** is committed as `tests/fixtures/storie
 
 | Persona | Trip and scenario | Expected |
 |---|---|---|
-| **Maya** (hero) | solo, flexible, departs in 42 days. 10:00 search (`pw.card`), 10:01 `pw.email.forecast`, 10:03 fare (`fl.banner`), 10:06 books non-refundable **without** buying a lock, 12:00 `pw.email.after`, 18:00 `pw.push.moving`, D2 09:02 asks "Did I get a good deal?" → `cg.regret` | **P2 violated, labelled `unexplained_tradeoff`**: `wait_for_drop` (live since 10:00) and `lock_fare` (10:03) come from different features and are compatible actions with a material tradeoff, and nothing explains it. **U3 violated** at 12:00. **U4 violated** at D2. **P3 violated**: exactly 3 outbound contacts in 24 h (emails at 10:01 and 12:00, push at 18:00; the concierge conversation does not count). P1 not applicable (suggest, no cue). U1 passed. U2 not applicable (no lock purchased) |
+| **Maya** (hero) | solo, flexible, departs in 42 days. 10:00 search (`pw.card`), 10:01 `pw.email.forecast`, 10:03 fare (`fl.banner`), 10:06 books non-refundable **without** buying a lock, 12:00 `pw.email.after`, 13:00 `cg.upgrade` (in-app tip), 18:00 `pw.push.moving`, D2 09:02 asks "Did I get a good deal?" → `cg.regret` | **P2 violated, labelled `unexplained_tradeoff`**: `wait_for_drop` (live since 10:00) and `lock_fare` (10:03) come from different features and are compatible actions with a material tradeoff, and nothing explains it. **U3 violated** at 12:00 (U3 passed for the 13:00 upgrade tip, which is still actionable). **U4 violated** at D2. **P3 violated**: exactly 3 outbound contacts in 24 h (emails at 10:01 and 12:00, push at 18:00; the concierge conversation does not count). P1 not applicable (suggest, no cue). U1 passed. U2 not applicable (no lock purchased) |
 | **Maya-R** (negative) | as Maya, but 2.4's fare page shows `cg.reconcile` inline below the banner | P2 **passed** (reconciled while both live). The others as for Maya |
 | **Lena** (negative, NC2) | flexible, 42 days. Sees **both** features' recommendations, Price Watch (`pw.card`, `wait_for_drop`) and Fare Lock (`fl.banner`, `lock_fare`); then asks "Book now or wait?" and the concierge answers `cg.reconcile`, which `reconciles` both, while both are live and before she decides; she leaves without booking | P2 candidate generated, then **passed** (`explained_tradeoff`). Appears in the *not raised* list |
-| **Raj** (negative, NC1) | solo, departs in 30 h. Search (`pw.card.nodrop`), fare (`fl.banner.urgent`) | P1 applies, **P1-E1 met** (a ✓ b ✓ c ✓) → **excepted**. P2 **not applicable** (no competing directive). Nothing raised |
+| **Raj** (negative, NC1) | solo, **fixed dates**, departs in 30 h. Search (`pw.card.nodrop`), fare (`fl.banner.urgent`) | P1 applies, **P1-E1 met** (a ✓ b ✓ c ✓) → **excepted**. P2 **not applicable** (no competing directive). Nothing raised |
 | **Raj-X** (positive) | as Raj, with `fl.banner.urgent_bare` | **P1 violated**: P1-E1 (c) `not_met` |
 | **Raj@72h** (boundary) | as Raj, but departure is **exactly 72 h 00 min 00 s** after the banner is shown | P1-E1 (a) **met** (≤ 72 h): excepted |
 | **Raj@72h+30s** (boundary) | departure 72 h 00 min **30 s** after the banner | P1-E1 (a) **not_met**: **P1 violated**. Guards against rounding or truncation |
 | **Raj@72h+1m** (boundary) | departure 72 h **01 min** after the banner | P1-E1 (a) **not_met**: **P1 violated** |
 | **Kai** (boundary) | departs in 30 h. Search (`pw.card`, the forecast says drop), fare (`fl.banner.urgent`) | P1 **excepted** (P1-E1 met). **P2 violated, labelled `conflict`**: `book_now` ⟂ `wait_for_drop` are incompatible, and `explains_own_tradeoff` ≠ `reconciles` |
-| **Hana** (boundary) | fixed dates, departs in 6 months. Search (`pw.card.nodrop`), fare (`fl.banner.urgent`) | **P1 violated**: P1-E1 (a) `not_met` (≈ 4,380 h) |
+| **Hana** (boundary) | fixed dates, departs in 181 days (≈ 4,344 h after the banner). Search (`pw.card.nodrop`), fare (`fl.banner.urgent`) | **P1 violated**: P1-E1 (a) `not_met` (≈ 4,344 h) |
 | **Omar** (boundary) | departs in 20 h; inventory shows 9. Search (`pw.card.nodrop`), fare (`fl.banner.urgent`, which says 2) | **U1 violated**; P1-E1 (b) `not_met` → **P1 violated** |
 | **Sam & Alex** (factual) | a couple, flexible. Search (`pw.card`), fare (`fl.banner`: €9 *total, for your whole booking*), **buy the lock**: `fl.checkout.lock` charges €18; the quote is unchanged | **U2 violated**: same travellers, same transaction (the lock purchase), unchanged quote, €9 shown vs €18 charged. **P2 violated** (`unexplained_tradeoff`), as for Maya |
 | **Theo** (negative, NC5) | opens the fare from a direct link (no search, so no Price Watch enrolment), sees `fl.banner`, books non-refundable at 10:06; at 13:00 the concierge proactively sends `cg.upgrade` in-app (chat, not an outbound contact) | U3 passed (within the change window); U4 not applicable (not retrospective) |
@@ -226,4 +226,4 @@ Each persona's **expected status vector** is committed as `tests/fixtures/storie
 
 - Issues marked *fix* come back `resolved`.
 - An exception the owner accepts during the 2.4 review is honoured, inside its scope only.
-- **Rina** (2.4.1) books a **hotel** checking in **30 h** later. `fl.hotel.urgent` says 1 room left, and the inventory oracle says 1 (verified); the copy explains its own tradeoff. So P1-E1's conditions (a), (b) and (c) are all **met**, and the exception fails **only on scope**: it covers Fare Lock on *flight* fare detail and checkout. P1 is raised with *"nearest exception P1-E1 does not apply: scope (hotel)"*. The expected vector records a ✓ b ✓ c ✓ and scope ✗.
+- **Rina** (2.4.1) opens a **hotel** checking in **30 h** later. `fl.hotel.urgent` says 1 room left, and the inventory oracle says 1 (verified); the copy explains its own tradeoff. So P1-E1's conditions (a), (b) and (c) are all **met**, and the exception fails **only on scope**: it covers Fare Lock on *flight* fare detail and checkout. P1 is raised with *"nearest exception P1-E1 does not apply: scope (hotel)"*. The expected vector records a ✓ b ✓ c ✓ and scope ✗.

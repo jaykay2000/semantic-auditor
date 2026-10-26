@@ -9,3 +9,6 @@
 - id: forecast
   endpoint: /api/oracle/forecast?route={route}
   fields: {drop: "$.drop", window_days: "$.window_days"}
+- id: room_inventory
+  endpoint: /api/oracle/inventory?hotel={hotel}
+  fields: {rooms_left: "$.rooms_left"}

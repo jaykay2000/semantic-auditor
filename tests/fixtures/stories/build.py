@@ -29,7 +29,7 @@ COPY = {
     "cg.regret": "You should have booked a refundable fare.",
     "cg.reconcile": ("Prices on your dates are likely to drop, but this fare has 2 seats left. If you can move "
                      "your dates, wait for the alert; if not, locking protects this price."),
-    "cg.upgrade": "You can still switch to a refundable fare for €30 until tomorrow 10:05.",
+    "cg.upgrade": "You can still switch to a refundable fare for €30 until tomorrow 10:06.",
 }
 
 P2 = "fare_lock|price_watch@when_to_book"
@@ -70,6 +70,8 @@ SEARCH = act("a_search", t(), "search")
 PW_CARD = msg("pw_card", t(seconds=5), "price_watch", "search_results", "card", "pw.card")
 PW_EMAIL = msg("pw_email", t(minutes=1), "price_watch", "inbox", "email", "pw.card")
 PW_NODROP = msg("pw_nodrop", t(seconds=5), "price_watch", "search_results", "card", "pw.card.nodrop")
+# W5: Northbound 2.4 emails every searcher the forecast at +1 min, the no-drop wording included (information).
+PW_NODROP_EMAIL = msg("pw_email", t(minutes=1), "price_watch", "inbox", "email", "pw.card.nodrop")
 FL_BANNER = msg("fl_banner", t(minutes=3), "fare_lock", "fare_detail", "banner", "fl.banner")
 FL_URGENT = msg("fl_urgent", t(minutes=3), "fare_lock", "fare_detail", "banner", "fl.banner.urgent")
 BOOK = act("a_book", t(minutes=6), "book", booking_status="booked")
@@ -84,12 +86,13 @@ def story(id, persona, departure, oracles, events, expected, release="2.4", reco
 
 MAYA_EVENTS = [SEARCH, PW_CARD, PW_EMAIL, FL_BANNER, BOOK,
                msg("pw_after", t(hours=2), "price_watch", "inbox", "email", "pw.email.after"),
+               msg("cg_upgrade", t(hours=3), "concierge", "chat", "chat", "cg.upgrade"),
                msg("pw_push", t(hours=8), "price_watch", "device", "push", "pw.push.moving"),
                act("a_ask", t(days=2, minutes=-58), "ask"),
                msg("cg_regret", t(days=2, minutes=-58, seconds=10), "concierge", "chat", "chat", "cg.regret",
                    user_initiated=True)]
 MAYA_COMMON = [ok("U1", "fl_banner"), ok("U3", "pw_card"), ok("U3", "pw_email"), ok("U3", "fl_banner"),
-               bad("U3", "pw_after"), bad("U4", "cg_regret"), bad("P3", "story")]
+               bad("U3", "pw_after"), ok("U3", "cg_upgrade"), bad("U4", "cg_regret"), bad("P3", "story")]
 
 STORIES = {
     "maya": story("maya", "maya", t(days=42, hours=-2), {"inventory": 2}, MAYA_EVENTS,
@@ -110,35 +113,35 @@ STORIES = {
                    {"rule": "P2", "subject": P2, "status": "passed", "label": "explained_tradeoff"},
                    ok("P3", "story")],
                   reconciler="cg_answer"),
-    "raj": story("raj", "raj", t(hours=30), {"inventory": 2}, [SEARCH, PW_NODROP, FL_URGENT],
+    "raj": story("raj", "raj", t(hours=30), {"inventory": 2}, [SEARCH, PW_NODROP, PW_NODROP_EMAIL, FL_URGENT],
                  [ok("U1", "fl_urgent"), ok("U3", "fl_urgent"), exc("P1", "fl_urgent", ALL_MET), ok("P3", "story")]),
     "raj_x": story("raj_x", "raj", t(hours=30), {"inventory": 2},
-                   [SEARCH, PW_NODROP, msg("fl_bare", t(minutes=3), "fare_lock", "fare_detail", "banner",
+                   [SEARCH, PW_NODROP, PW_NODROP_EMAIL, msg("fl_bare", t(minutes=3), "fare_lock", "fare_detail", "banner",
                                            "fl.banner.urgent_bare")],
                    [ok("U1", "fl_bare"), ok("U3", "fl_bare"),
                     bad("P1", "fl_bare", conditions=[["a", "met"], ["b", "met"], ["c", "not_met"], ["scope", "met"]]),
                     ok("P3", "story")]),
-    "raj_72h": story("raj_72h", "raj", t(minutes=3, hours=72), {"inventory": 2}, [SEARCH, PW_NODROP, FL_URGENT],
+    "raj_72h": story("raj_72h", "raj", t(minutes=3, hours=72), {"inventory": 2}, [SEARCH, PW_NODROP, PW_NODROP_EMAIL, FL_URGENT],
                      [ok("U1", "fl_urgent"), ok("U3", "fl_urgent"), exc("P1", "fl_urgent", ALL_MET),
                       ok("P3", "story")]),
     "raj_72h_30s": story("raj_72h_30s", "raj", t(minutes=3, seconds=30, hours=72), {"inventory": 2},
-                         [SEARCH, PW_NODROP, FL_URGENT],
+                         [SEARCH, PW_NODROP, PW_NODROP_EMAIL, FL_URGENT],
                          [ok("U1", "fl_urgent"), ok("U3", "fl_urgent"),
                           bad("P1", "fl_urgent", conditions=[["a", "not_met"], ["b", "met"], ["c", "met"], ["scope", "met"]]),
                           ok("P3", "story")]),
     "raj_72h_1m": story("raj_72h_1m", "raj", t(minutes=4, hours=72), {"inventory": 2},
-                        [SEARCH, PW_NODROP, FL_URGENT],
+                        [SEARCH, PW_NODROP, PW_NODROP_EMAIL, FL_URGENT],
                         [ok("U1", "fl_urgent"), ok("U3", "fl_urgent"),
                          bad("P1", "fl_urgent", conditions=[["a", "not_met"], ["b", "met"], ["c", "met"], ["scope", "met"]]),
                          ok("P3", "story")]),
-    "kai": story("kai", "kai", t(hours=30), {"inventory": 2}, [SEARCH, PW_CARD, FL_URGENT],
-                 [ok("U1", "fl_urgent"), ok("U3", "pw_card"), ok("U3", "fl_urgent"), exc("P1", "fl_urgent", ALL_MET),
+    "kai": story("kai", "kai", t(hours=30), {"inventory": 2}, [SEARCH, PW_CARD, PW_EMAIL, FL_URGENT],
+                 [ok("U1", "fl_urgent"), ok("U3", "pw_card"), ok("U3", "pw_email"), ok("U3", "fl_urgent"), exc("P1", "fl_urgent", ALL_MET),
                   bad("P2", P2, label="conflict"), ok("P3", "story")]),
-    "hana": story("hana", "hana", t(days=181), {"inventory": 2}, [SEARCH, PW_NODROP, FL_URGENT],
+    "hana": story("hana", "hana", t(days=181), {"inventory": 2}, [SEARCH, PW_NODROP, PW_NODROP_EMAIL, FL_URGENT],
                   [ok("U1", "fl_urgent"), ok("U3", "fl_urgent"),
                    bad("P1", "fl_urgent", conditions=[["a", "not_met"], ["b", "met"], ["c", "met"], ["scope", "met"]]),
                    ok("P3", "story")]),
-    "omar": story("omar", "omar", t(hours=20), {"inventory": 9}, [SEARCH, PW_NODROP, FL_URGENT],
+    "omar": story("omar", "omar", t(hours=20), {"inventory": 9}, [SEARCH, PW_NODROP, PW_NODROP_EMAIL, FL_URGENT],
                   [bad("U1", "fl_urgent"), ok("U3", "fl_urgent"),
                    bad("P1", "fl_urgent", conditions=[["a", "met"], ["b", "not_met"], ["c", "met"], ["scope", "met"]]),
                    ok("P3", "story")]),

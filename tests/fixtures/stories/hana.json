@@ -31,6 +31,18 @@
     "user_initiated": false
    },
    {
+    "id": "pw_email",
+    "at": "2026-11-02T10:01:00+00:00",
+    "kind": "message",
+    "feature": "price_watch",
+    "surface": "inbox",
+    "channel": "email",
+    "component": "flight",
+    "copy_key": "pw.card.nodrop",
+    "text": "Our forecast: prices on this trip are unlikely to drop before departure.",
+    "user_initiated": false
+   },
+   {
     "id": "fl_urgent",
     "at": "2026-11-02T10:03:00+00:00",
     "kind": "message",

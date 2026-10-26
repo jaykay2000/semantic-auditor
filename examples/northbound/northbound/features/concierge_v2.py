@@ -28,7 +28,7 @@ class Feature(concierge.Feature):
         "cg.regret": "You should have booked a refundable fare.",
         "cg.reconcile": ("Prices on your dates are likely to drop, but this fare has {seats} left. If you can "
                          "move your dates, wait for the alert; if not, locking protects this price."),
-        "cg.upgrade": "You can still switch to a refundable fare for €30 until tomorrow 10:05.",
+        "cg.upgrade": "You can still switch to a refundable fare for {upgrade_fee} until tomorrow {deadline}.",
     }
 
     def __init__(self, settings=None):  # Concierge 1.0 refuses to be proactive; 2.0 is the release that is
@@ -69,9 +69,10 @@ class Feature(concierge.Feature):
 
     def on_job(self, job, ctx):
         b = ctx.booking
-        if job.kind == "upgrade_tip" and b is not None and b.fare_kind == "non_refundable" \
-                and ctx.rt.change_window(b)[1]:
-            ctx.send_chat(self.id, "cg.upgrade")
+        if job.kind == "upgrade_tip" and b is not None and b.fare_kind == "non_refundable":
+            ends, within = ctx.rt.change_window(b)
+            if within:   # the deadline is the oracle's own window end, so the claim cannot drift from it
+                ctx.send_chat(self.id, "cg.upgrade", deadline=ends.strftime("%H:%M"))
 
     def concierge_reply(self, question, ctx):
         topic, b = self.classify(question), ctx.booking

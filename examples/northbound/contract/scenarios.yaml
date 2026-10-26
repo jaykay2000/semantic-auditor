@@ -53,4 +53,4 @@
   day0: 2026-11-02T00:00:00Z
   personas: [rina]
   steps:
-    - {at: "D0 10:00", do: open_hotel, params: {hotel: BER-H1}}
+    - {at: "D0 10:00", do: open_hotel, params: {hotel: LIS-H1}}
