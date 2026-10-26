@@ -1,0 +1,12 @@
+name: Northbound
+fictional: true            # Contributor-mode endpoints are allowed only for fictional targets
+data: synthetic
+base_url: http://127.0.0.1:8765
+release_env: NORTHBOUND_RELEASE
+releases: ["2.3", "2.4", "2.4.1"]
+hooks:
+  reset: POST /api/test/reset
+  persona: POST /api/test/personas
+  clock: POST /api/test/clock
+  world: POST /api/test/world
+adapter: null              # scenario-verb adapter, added in W4

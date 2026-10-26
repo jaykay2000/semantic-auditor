@@ -1,0 +1,13 @@
+# Derived state: computed from the traveller's actions strictly before a moment, never stored on a persona.
+# Rules and decision preconditions read these ids.
+- id: booking_status
+  initial: not_booked
+  set_by: {book: booked}
+- id: lock
+  initial: none
+  set_by: {buy_lock: held}
+- id: within_change_window        # upgrade_to_refundable is possible for 24 h after booking
+  kind: window
+  opens_on: book
+  hours: 24
+  hours_from_trip: change_window_hours

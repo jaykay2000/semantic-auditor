@@ -1,0 +1,16 @@
+# Evaluated top to bottom; the first row that fires wins. The last row is a catch-all, so the policy is
+# exhaustive by construction. Issues whose verification failed are not open (they are on the not-raised list).
+source: {kind: default, file: docs/03-architecture.md, at: "L6 Decision and memory"}
+rows:
+  - recommendation: hold
+    text: "an open issue is critical, verified, with confidence at least medium"
+    any_issue: [{severity: [critical], verification: [verified], confidence_at_least: medium}]
+  - recommendation: needs_owner_review
+    text: "an open issue is critical, or an open issue is not verified"
+    any_issue: [{severity: [critical]}, {verification_not: [verified]}]
+  - recommendation: ship
+    text: "no open issues"
+    no_open_issues: true
+  - recommendation: ship_with_notes
+    text: "open issues exist; all are verified and non-critical"
+    otherwise: true

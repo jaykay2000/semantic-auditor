@@ -1,4 +1,23 @@
-- {id: price_watch, default_lifetime_hours: {card: 2, email: 168, push: 24}}
-- {id: fare_lock, default_lifetime_hours: {banner: 2, page: 2}}
-- {id: concierge, default_lifetime_hours: {chat: 2, card: 2}}
-- {id: core, default_lifetime_hours: {page: 2, email: 168}}
+- id: core
+  name: Core booking
+  release_introduced: "1.0"
+  attribution: {dom_attr: "data-feature=core", headers: ["X-Feature: core"]}
+  default_lifetime_hours: {page: 2, email: 168}
+- id: price_watch
+  name: Price Watch
+  release_introduced: "2.3"
+  changed_in: ["2.4"]                 # opt-in alerts -> auto-enroll, alerts continue after booking
+  attribution: {dom_attr: "data-feature=price_watch", headers: ["X-Feature: price_watch"]}
+  default_lifetime_hours: {card: 2, email: 168, push: 24}
+- id: fare_lock
+  name: Fare Lock
+  release_introduced: "2.4"
+  changed_in: ["2.4.1"]               # extended to hotels
+  attribution: {dom_attr: "data-feature=fare_lock", headers: ["X-Feature: fare_lock"]}
+  default_lifetime_hours: {banner: 2, page: 2}
+- id: concierge
+  name: Concierge
+  release_introduced: "2.3"
+  changed_in: ["2.4"]                 # Concierge 2.0: proactive tips
+  attribution: {dom_attr: "data-feature=concierge", headers: ["X-Feature: concierge"]}
+  default_lifetime_hours: {chat: 2, card: 2}

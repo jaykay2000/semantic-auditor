@@ -49,17 +49,27 @@ class Story(BaseModel):
     def messages(self) -> list[Event]:
         return [e for e in self.events if e.kind == "message"]
 
-    def state_at(self, t: datetime) -> dict[str, Any]:
-        """State derived from user actions strictly before t (exact timestamps, no rounding)."""
-        state: dict[str, Any] = {"booking_status": "not_booked", "within_change_window": False}
-        for e in sorted(self.events, key=lambda e: e.at):
-            if e.kind == "user_action" and e.at < t:
-                state.update(e.effects)
-                if e.effects.get("booking_status") == "booked":
-                    state["booked_at"] = e.at
-        if "booked_at" in state:
-            window = timedelta(hours=self.trip.get("change_window_hours", 24))
-            state["within_change_window"] = t <= state["booked_at"] + window
+    def state_at(self, t: datetime, model: list) -> dict[str, Any]:
+        """State derived from the contract's state model and user actions strictly before t.
+
+        Exact timestamps, no rounding. An action's explicit `effects` are applied after the model.
+        """
+        acts = sorted((e for e in self.events if e.kind == "user_action" and e.at < t), key=lambda e: e.at)
+        state: dict[str, Any] = {}
+        for var in model:
+            if var.kind == "plain":
+                value = var.initial
+                for a in acts:
+                    if a.action in var.set_by:
+                        value = var.set_by[a.action]
+                state[var.id] = value
+            else:
+                opened = next((a.at for a in acts if a.action == var.opens_on), None)
+                hours = self.trip.get(var.hours_from_trip) if var.hours_from_trip else None
+                hours = var.hours if hours is None else hours
+                state[var.id] = opened is not None and hours is not None and t <= opened + timedelta(hours=hours)
+        for a in acts:
+            state.update(a.effects)
         return state
 
     def first_action_after(self, t: datetime, actions: list[str]) -> datetime | None:

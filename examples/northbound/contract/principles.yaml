@@ -14,7 +14,7 @@
 - id: U4
   kind: universal
   text: After purchase, we never second-guess a completed choice. Offering an action the traveller can still take is not second-guessing.
-  applies_to: {message_kind: retrospective, state: booked}
+  applies_to: {message_kind: retrospective, state: {booking_status: booked}}
 - id: P1
   kind: conditional
   text: We may always share true inventory information. We do not urge immediate booking, except for genuinely time-sensitive trips.

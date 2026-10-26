@@ -1,0 +1,10 @@
+# Where Northbound tells the traveller something, and how evidence there is located.
+- {id: search_results, kind: web, locator: css, component: flight, reached_by: search, message_selector: "[data-message-key]"}
+- {id: fare_detail, kind: web, locator: css, component: flight, reached_by: open_fare, message_selector: "[data-message-key]"}
+- {id: checkout, kind: web, locator: css, component: flight, reached_by: buy_lock, message_selector: "[data-message-key]"}
+- {id: confirmation, kind: web, locator: css, component: flight, reached_by: book, message_selector: "[data-message-key]"}
+- {id: hotel_detail, kind: web, locator: css, component: hotel, reached_by: open_hotel, message_selector: "[data-message-key]"}
+- {id: chat, kind: chat, locator: chat_turn, reached_by: ask_concierge}
+- {id: inbox, kind: email, locator: message_id, sink: outbox/email}
+- {id: device, kind: push, locator: notification_id, sink: outbox/push}
+- {id: itinerary, kind: pdf, locator: pdf_page, reached_by: view_itinerary}

@@ -1,0 +1,11 @@
+# Read after every scenario step (state snapshot) and when checking claims. JSON paths are into the response.
+- id: booking
+  endpoint: /api/oracle/booking?traveller={traveller}
+  fields: {status: "$.status", fare_type: "$.fare_type", departure_at: "$.departure_at",
+           within_change_window: "$.within_change_window", charges: "$.charges", total_cents: "$.total_cents"}
+- id: inventory
+  endpoint: /api/oracle/inventory?fare={fare}
+  fields: {seats_left: "$.seats_left"}
+- id: forecast
+  endpoint: /api/oracle/forecast?route={route}
+  fields: {drop: "$.drop", window_days: "$.window_days"}

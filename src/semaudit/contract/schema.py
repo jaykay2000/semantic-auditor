@@ -1,19 +1,40 @@
-"""Product Contract: the owner-approved rules, decision vocabulary and features.
+"""Product Contract: the owner-approved description of an app that every audit layer reads.
 
-Only the parts W1b needs are modelled here; surfaces, facts, scenarios and release
-policy are added in W3b. Everything app-specific lives in the consumer's YAML.
+Rules (with conditions and scoped exceptions), the decision vocabulary, features, surfaces,
+facts and their oracles, the derived-state model, personas, scenarios, the release policy and
+the app's hooks. Everything app-specific lives in the consumer's YAML; nothing here names an app.
+
+Times inside a contract are written relative to a scenario's day 0 ("D0 10:00", "D3 10:03:30").
+`resolve_time` turns them into exact datetimes; nothing is rounded.
 """
 
 from __future__ import annotations
 
+import re
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Literal
 
 import yaml
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
-class Condition(BaseModel):
+class Strict(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+
+class Source(Strict):
+    """Where an item came from: a doc span, a transcript timestamp, or a review click."""
+    kind: Literal["doc", "transcript", "review", "default"]
+    file: str | None = None
+    at: str | None = None
+    by: str | None = None
+    date: str | None = None
+
+
+# ---------- rules ----------
+
+class Condition(Strict):
     id: str
     kind: Literal["data", "judged"]
     test: str | None = None          # data conditions: name of a code test
@@ -24,14 +45,15 @@ class Condition(BaseModel):
     oracle: str | None = None
 
 
-class ExceptionRule(BaseModel):
+class ExceptionRule(Strict):
     id: str
     conditions: list[Condition]
     scope: dict[str, list[str]] = Field(default_factory=dict)
     approved: dict[str, str] = Field(default_factory=dict)
+    source: Source | None = None
 
 
-class Rule(BaseModel):
+class Rule(Strict):
     id: str
     kind: Literal["universal", "conditional", "coherence", "load"]
     text: str
@@ -39,15 +61,18 @@ class Rule(BaseModel):
     check: dict[str, Any] = Field(default_factory=dict)
     count: dict[str, Any] = Field(default_factory=dict)
     exceptions: list[ExceptionRule] = Field(default_factory=list)
+    source: Source | None = None
 
 
-class Pair(BaseModel):
+# ---------- decisions ----------
+
+class Pair(Strict):
     pair: tuple[str, str]
     rationale: str | None = None
     material: str | None = None
 
 
-class Decision(BaseModel):
+class Decision(Strict):
     id: str
     actions: list[str]
     incompatible: list[Pair] = Field(default_factory=list)
@@ -55,6 +80,7 @@ class Decision(BaseModel):
     never_pairs: list[str] = Field(default_factory=list)
     decided_by: list[str] = Field(default_factory=list)   # user actions that settle the decision
     preconditions: dict[str, dict[str, Any]] = Field(default_factory=dict)
+    source: Source | None = None
 
     def pair_type(self, a: str, b: str) -> Pair | None:
         for kind in ("incompatible", "tradeoffs"):
@@ -74,16 +100,206 @@ class Decision(BaseModel):
         return self.preconditions.get(action, self.preconditions.get("*", {}))
 
 
-class Feature(BaseModel):
+# ---------- features, surfaces, facts ----------
+
+class Feature(Strict):
     id: str
+    name: str | None = None
+    release_introduced: str | None = None
+    changed_in: list[str] = Field(default_factory=list)
+    attribution: dict[str, Any] = Field(default_factory=dict)    # dom_attr / headers the app stamps
     default_lifetime_hours: dict[str, float] = Field(default_factory=dict)
+    source: Source | None = None
 
 
-class Contract(BaseModel):
+class Surface(Strict):
+    """A place the product tells the user something, and how evidence on it is located."""
+    id: str
+    kind: Literal["web", "email", "push", "pdf", "chat", "api"]
+    locator: Literal["css", "message_id", "notification_id", "pdf_page", "json_path", "chat_turn"]
+    component: str | None = None
+    reached_by: str | None = None        # scenario verb that brings the user here
+    message_selector: str | None = None  # web: elements that carry messages
+    sink: str | None = None              # email/push: where the app writes messages
+
+
+class Oracle(Strict):
+    """Ground truth the app exposes; read after every scenario step to snapshot state."""
+    id: str
+    kind: Literal["http_json"] = "http_json"
+    endpoint: str                        # path template, e.g. /api/oracle/inventory?fare={fare}
+    fields: dict[str, str] = Field(default_factory=dict)   # name -> JSON path in the response
+
+
+class Fact(Strict):
+    """A kind of claim a message can make, and the oracle field it is checked against."""
+    id: str
+    unit: str | None = None
+    oracle: str | None = None            # oracle id; None means claims of this fact are unverifiable
+    field: str | None = None
+
+
+# ---------- derived state ----------
+
+class StateVar(Strict):
+    """A state variable derived from user actions strictly before a moment (never stored on a persona).
+
+    plain:  value = initial, replaced by set_by[action] when that action happens.
+    window: True while t <= (first time `opens_on` happened) + hours (or the trip's `hours_from_trip`).
+    """
+    id: str
+    kind: Literal["plain", "window"] = "plain"
+    initial: Any = None
+    set_by: dict[str, Any] = Field(default_factory=dict)
+    opens_on: str | None = None
+    hours: float | None = None
+    hours_from_trip: str | None = None
+
+    @model_validator(mode="after")
+    def _shape(self):
+        if self.kind == "window" and not self.opens_on:
+            raise ValueError(f"window state {self.id} needs opens_on")
+        return self
+
+
+# ---------- personas and scenarios ----------
+
+_REL = re.compile(r"^D(-?\d+)\s+(\d{1,2}):(\d{2})(?::(\d{2}))?$")
+
+
+def resolve_time(spec: str, day0: datetime) -> datetime:
+    """'D3 10:03:30' -> day0's date + 3 days at 10:03:30 (same tz). Exact; never rounded."""
+    m = _REL.match(spec.strip())
+    if not m:
+        raise ValueError(f"bad relative time {spec!r}; expected 'D<n> HH:MM[:SS]'")
+    d, hh, mm, ss = int(m[1]), int(m[2]), int(m[3]), int(m[4] or 0)
+    base = day0.replace(hour=0, minute=0, second=0, microsecond=0)
+    return base + timedelta(days=d, hours=hh, minutes=mm, seconds=ss)
+
+
+class Trip(Strict):
+    component: Literal["flight", "hotel"] = "flight"
+    route: str | None = None             # flights: ORIGIN-DEST
+    hotel: str | None = None             # hotels: hotel id
+    departure_at: str                    # relative time; for hotels, check-in
+    flexible: bool = True
+
+
+class Persona(Strict):
+    id: str
+    name: str
+    party: int = 1
+    axes: dict[str, Any] = Field(default_factory=dict)
+    trip: Trip
+    experiments: dict[str, Any] = Field(default_factory=dict)   # experiment arms the app assigns
+    world: dict[str, Any] = Field(default_factory=dict)         # oracle state seeded before the scenario
+    role: str | None = None              # hero | negative | boundary | factual (documentation only)
+
+
+class Step(Strict):
+    at: str                              # relative time
+    do: str                              # scenario verb, mapped to the app by its adapter
+    params: dict[str, Any] = Field(default_factory=dict)
+    when_offered: bool = False           # skip (and record the skip) if the release does not offer it
+
+
+class Scenario(Strict):
+    id: str
+    description: str | None = None
+    day0: datetime
+    personas: list[str]
+    steps: list[Step]
+
+    def times(self) -> list[datetime]:
+        return [resolve_time(s.at, self.day0) for s in self.steps]
+
+
+# ---------- release policy ----------
+
+SEVERITY = ["minor", "major", "critical"]
+CONFIDENCE = ["low", "medium", "high"]
+VERIFICATION = ["unverified", "partially_verified", "verified"]
+
+
+class Match(Strict):
+    """Matches one open issue. Every listed constraint must hold; an empty Match matches any issue."""
+    severity: list[Literal["minor", "major", "critical"]] | None = None
+    confidence_at_least: Literal["low", "medium", "high"] | None = None
+    verification: list[Literal["unverified", "partially_verified", "verified"]] | None = None
+    verification_not: list[Literal["unverified", "partially_verified", "verified"]] | None = None
+
+    def matches(self, issue: dict[str, str]) -> bool:
+        if self.severity is not None and issue["severity"] not in self.severity:
+            return False
+        if self.confidence_at_least is not None and \
+                CONFIDENCE.index(issue["confidence"]) < CONFIDENCE.index(self.confidence_at_least):
+            return False
+        if self.verification is not None and issue["verification"] not in self.verification:
+            return False
+        if self.verification_not is not None and issue["verification"] in self.verification_not:
+            return False
+        return True
+
+
+class PolicyRow(Strict):
+    recommendation: Literal["hold", "needs_owner_review", "ship_with_notes", "ship"]
+    text: str                            # shown verbatim on the decision bar
+    any_issue: list[Match] = Field(default_factory=list)   # row fires if ANY open issue matches ANY Match
+    no_open_issues: bool = False
+    otherwise: bool = False              # fires unconditionally (catch-all)
+
+
+class ReleasePolicy(Strict):
+    rows: list[PolicyRow]
+    source: Source | None = None
+
+    def evaluate(self, open_issues: list[dict[str, str]]) -> tuple[PolicyRow, int]:
+        """Top-down; the first row that fires wins. Issues whose verification failed are not open."""
+        for i, row in enumerate(self.rows):
+            if row.otherwise:
+                return row, i
+            if row.no_open_issues and not open_issues:
+                return row, i
+            if row.any_issue and any(m.matches(x) for x in open_issues for m in row.any_issue):
+                return row, i
+        raise ValueError("release policy is not exhaustive: no row fired")
+
+
+# ---------- the app ----------
+
+class Hooks(Strict):
+    reset: str | None = None
+    persona: str                         # creates the persona's account and trip
+    clock: str | None = None             # without it, time-triggered surfaces are 'not measured'
+    world: str | None = None             # seeds oracle state
+
+
+class App(Strict):
+    name: str
+    fictional: bool
+    data: Literal["synthetic", "real"]
+    base_url: str
+    release_env: str | None = None       # env var that selects the release, if the app is launched by us
+    releases: list[str] = Field(default_factory=list)
+    hooks: Hooks
+    adapter: str | None = None           # dotted path to the scenario-verb adapter (W4)
+
+
+# ---------- the contract ----------
+
+class Contract(Strict):
     rules: list[Rule]
     decisions: list[Decision]
     features: list[Feature]
     rubric: str
+    surfaces: list[Surface] = Field(default_factory=list)
+    oracles: list[Oracle] = Field(default_factory=list)
+    facts: list[Fact] = Field(default_factory=list)
+    state: list[StateVar] = Field(default_factory=list)
+    personas: list[Persona] = Field(default_factory=list)
+    scenarios: list[Scenario] = Field(default_factory=list)
+    policy: ReleasePolicy | None = None
+    app: App | None = None
 
     def rule(self, rule_id: str) -> Rule:
         return next(r for r in self.rules if r.id == rule_id)
@@ -101,12 +317,29 @@ class Contract(BaseModel):
     def actions(self) -> list[str]:
         return sorted({a for d in self.decisions for a in d.actions})
 
+    def persona(self, persona_id: str) -> Persona:
+        return next(p for p in self.personas if p.id == persona_id)
+
+    def scenario_for(self, persona_id: str) -> list[Scenario]:
+        return [s for s in self.scenarios if persona_id in s.personas]
+
+
+FILES = {   # section -> file; only the first four are required
+    "rules": "principles.yaml", "decisions": "decisions.yaml", "features": "features.yaml",
+    "surfaces": "surfaces.yaml", "oracles": "oracles.yaml", "facts": "facts.yaml", "state": "state.yaml",
+    "personas": "personas.yaml", "scenarios": "scenarios.yaml",
+}
+
 
 def load_contract(directory: Path) -> Contract:
-    read = lambda name: yaml.safe_load((directory / name).read_text())  # noqa: E731
-    return Contract(
-        rules=[Rule(**r) for r in read("principles.yaml")],
-        decisions=[Decision(**d) for d in read("decisions.yaml")],
-        features=[Feature(**f) for f in read("features.yaml")],
-        rubric=(directory / "rubric.md").read_text(),
-    )
+    def read(name: str):
+        p = directory / name
+        return yaml.safe_load(p.read_text()) if p.exists() else None
+
+    data: dict[str, Any] = {k: read(f) or [] for k, f in FILES.items()}
+    data["rubric"] = (directory / "rubric.md").read_text()
+    policy = read("release_policy.yaml")
+    data["policy"] = ReleasePolicy(**policy) if policy else None
+    app = read("app.yaml")
+    data["app"] = App(**app) if app else None
+    return Contract(**data)

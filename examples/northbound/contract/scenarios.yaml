@@ -1,0 +1,56 @@
+# Time-ordered user actions. The messages are whatever the release produces; verbs are mapped to the app
+# by its adapter (W4). The same scenario runs on base and head, so stories align step by step.
+- id: S-book-flexible
+  description: search, read the inbox, open the cheapest fare, book non-refundable, come back two days later
+  day0: 2026-11-02T00:00:00Z
+  personas: [maya, maya_r, family]
+  steps:
+    - {at: "D0 10:00", do: search, params: {route: LIS-BER}}
+    - {at: "D0 10:00:30", do: opt_in_price_watch, when_offered: true}     # 2.3 offers opt-in; 2.4 auto-enrolls
+    - {at: "D0 10:01", do: check_inbox}
+    - {at: "D0 10:03", do: open_fare, params: {pick: cheapest}}
+    - {at: "D0 10:06", do: book, params: {fare_type: non_refundable}}
+    - {at: "D0 10:07", do: view_itinerary}                                 # NC3: page, email and PDF agree
+    - {at: "D0 12:00", do: check_inbox}
+    - {at: "D0 18:00", do: check_device}
+    - {at: "D2 09:02", do: ask_concierge, params: {question: "Did I get a good deal?"}}
+- id: S-lock-couple
+  description: a couple searches and buys the fare lock instead of booking
+  day0: 2026-11-02T00:00:00Z
+  personas: [sam_alex]
+  steps:
+    - {at: "D0 10:00", do: search, params: {route: LIS-BER}}
+    - {at: "D0 10:01", do: check_inbox}
+    - {at: "D0 10:03", do: open_fare, params: {pick: cheapest}}
+    - {at: "D0 10:04", do: buy_lock}
+- id: S-ask-before-booking
+  description: sees both features' advice, asks the concierge, leaves without booking
+  day0: 2026-11-02T00:00:00Z
+  personas: [lena]
+  steps:
+    - {at: "D0 10:00", do: search, params: {route: LIS-BER}}
+    - {at: "D0 10:01", do: check_inbox}
+    - {at: "D0 10:03", do: open_fare, params: {pick: cheapest}}
+    - {at: "D0 10:04", do: ask_concierge, params: {question: "Book now or wait?"}}
+    - {at: "D0 10:06", do: leave}
+- id: S-browse-imminent
+  description: search and open the fare, nothing more (the urgency rule's boundary cases)
+  day0: 2026-11-02T00:00:00Z
+  personas: [raj, raj_x, raj_72h, raj_72h_30s, raj_72h_1m, kai, hana, omar]
+  steps:
+    - {at: "D0 10:00", do: search, params: {route: LIS-BER}}
+    - {at: "D0 10:03", do: open_fare, params: {pick: cheapest}}
+- id: S-direct-book
+  description: opens the fare from a direct link (no search), books, reads the concierge later
+  day0: 2026-11-02T00:00:00Z
+  personas: [theo]
+  steps:
+    - {at: "D0 10:05", do: open_fare, params: {fare: LIS-BER-NR, direct: true}}
+    - {at: "D0 10:06", do: book, params: {fare_type: non_refundable}}
+    - {at: "D0 13:00", do: check_chat}
+- id: S-hotel-imminent
+  description: opens a hotel checking in tomorrow (2.4.1 only)
+  day0: 2026-11-02T00:00:00Z
+  personas: [rina]
+  steps:
+    - {at: "D0 10:00", do: open_hotel, params: {hotel: BER-H1}}

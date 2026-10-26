@@ -53,7 +53,7 @@ def validity(e: Event, story: Story, contract: Contract) -> Live:
     pre = dec.precondition(x.action) if dec else {}
     ends: list[tuple[datetime, str]] = []
     for a in sorted((a for a in story.events if a.kind == "user_action" and a.at > e.at), key=lambda a: a.at):
-        if not holds(pre, story.state_at(a.at + timedelta(microseconds=1))):
+        if not holds(pre, story.state_at(a.at + timedelta(microseconds=1), contract.state)):
             ends.append((a.at, "action_rule"))
             break
     hours = contract.lifetime_hours(e.feature, e.channel)
@@ -106,17 +106,16 @@ def eval_actionable(rule: Rule, story: Story, contract: Contract) -> list[Entry]
             continue
         dec = contract.decision(e.extraction.decision)
         pre = dec.precondition(e.extraction.action) if dec else {}
-        status = "passed" if holds(pre, story.state_at(e.at)) else "violated"
+        status = "passed" if holds(pre, story.state_at(e.at, contract.state)) else "violated"
         out.append(Entry(rule.id, e.id, status))
     return out
 
 
-def eval_message_kind(rule: Rule, story: Story) -> list[Entry]:
+def eval_message_kind(rule: Rule, story: Story, contract: Contract) -> list[Entry]:
     """Forbid a message kind in a given state (e.g. retrospective messages once booked)."""
-    kind, state = rule.applies_to["message_kind"], rule.applies_to.get("state")
+    kind, state = rule.applies_to["message_kind"], rule.applies_to.get("state", {})
     return [Entry(rule.id, e.id, "violated") for e in story.messages()
-            if e.extraction.message_kind == kind
-            and (state is None or story.state_at(e.at).get("booking_status") == state)]
+            if e.extraction.message_kind == kind and holds(state, story.state_at(e.at, contract.state))]
 
 
 # ---------- conditional rules ----------
@@ -256,7 +255,7 @@ def evaluate(story: Story, contract: Contract, interpret: Interpreter) -> list[E
         elif r.kind == "universal" and must == "precondition_holds_at_shown_time":
             entries += eval_actionable(r, story, contract)
         elif r.kind == "universal" and "message_kind" in r.applies_to:
-            entries += eval_message_kind(r, story)
+            entries += eval_message_kind(r, story, contract)
         elif r.kind == "conditional":
             entries += eval_conditional(r, story)
         elif r.kind == "coherence":

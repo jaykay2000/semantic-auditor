@@ -1,0 +1,5 @@
+# Claim types a message can make, and the oracle field each is checked against (after extraction).
+- {id: units_left, unit: seats_or_rooms, oracle: inventory, field: seats_left}
+- {id: fee_total, unit: EUR, oracle: booking, field: charges}       # compared per transaction (U2)
+- {id: price_forecast, oracle: forecast, field: drop}
+- {id: refund_policy}                                                # no oracle: unverifiable, never "false"
