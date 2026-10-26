@@ -36,7 +36,7 @@ Everything on the screen serves one of those four, or the shipping decision. Any
 - Corner tag on every auditor screen: *built during the hackathon*. Northbound screens also carry *fictional app*; Finablo screens *app under audit*.
 
 ### Decision bar
-- **Recommendation** is exactly what the release policy computed (`Hold` / `Needs owner review` / `Ship with notes` / `Ship`), followed by the policy line that fired, verbatim ("any verified release-level issue new in head → Hold"). Never hand-set.
+- **Recommendation** is exactly what the release policy computed (`Hold` / `Needs owner review` / `Ship with notes` / `Ship`), followed by the policy line that fired, verbatim from `release_policy.yaml` (e.g. "an open issue is critical, or an open issue is not verified"). Never hand-set.
 - **Owner decision**: `pending` until the owner acts; then the disposition and who/when.
 
 ### Story: the time axis (decision)
@@ -65,7 +65,7 @@ Opens under the story when an issue is selected; the selected issue's events get
 - **Why**: one sentence assembled from the relation fields (actions, pair type, live intervals, missing reconciler), not free prose: "`wait_for_drop` (Price Watch, live since 10:00, not booked) and `lock_fare` (Fare Lock, 10:03) are compatible actions with a material tradeoff (lock 48 h vs drop window 14 days); nothing explained it before she booked at 10:06."
 - **Other rules on these moments**: every rule evaluated on the same events with its status (`P1 not applicable · suggest, no urgency cue`, `U1 passed · claims true`). This is what lets Raj's screen say "allowed".
 - **Severity │ Confidence │ Verification**: three separate boxes, never one colour.
-  - Severity: level + the factors that set it.
+  - Severity: `critical` / `major` / `minor` + the factors that set it (confidence is `high` / `medium` / `low`; the two scales never share words).
   - Confidence: level + its basis (model agreement, cross-model, lexicon agreement on strength cue).
   - Verification: the five steps with ✓ / ✗ / `not run` each: reproduced, evidence linked, cross-model, defended, oracle checked (facts only). Status word beside it (`verified`, `partially verified`…).
 - **Delta**: `new in 2.4` / `persists from 2.3` / `resolved`, with the features whose change produced it.
