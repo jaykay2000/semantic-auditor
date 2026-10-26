@@ -123,9 +123,21 @@ class Router:
             if self.max_usd is not None and self.spent_usd >= self.max_usd:
                 raise ModelError(f"budget exhausted: spent ${self.spent_usd:.4f} of ${self.max_usd}")
             t0 = time.monotonic()
-            resp = httpx.post(f"{PROVIDERS[provider]['base_url']}/chat/completions", json=body,
-                              headers={"Authorization": f"Bearer {self._key(provider)}"},
-                              timeout=timeout_s)
+            resp = None
+            for attempt in range(4):           # transient failures: timeouts, 429, 5xx
+                try:
+                    resp = httpx.post(f"{PROVIDERS[provider]['base_url']}/chat/completions", json=body,
+                                      headers={"Authorization": f"Bearer {self._key(provider)}"},
+                                      timeout=timeout_s)
+                except (httpx.TimeoutException, httpx.TransportError) as e:
+                    if attempt == 3:
+                        raise ModelError(f"{provider}/{model} transport error after retries: {e}") from e
+                    time.sleep(2 ** attempt * 2)
+                    continue
+                if resp.status_code in (429, 500, 502, 503, 504) and attempt < 3:
+                    time.sleep(2 ** attempt * 2)
+                    continue
+                break
             latency = time.monotonic() - t0
             if resp.status_code != 200:
                 raise ModelError(f"{provider}/{model} HTTP {resp.status_code}: {resp.text[:500]}")

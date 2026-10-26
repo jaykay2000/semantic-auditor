@@ -7,6 +7,15 @@ How the work runs:
 - Implementation agents work in their own worktrees.
 - Model calls made by the auditor itself use the Meta credits ($150, with a spend limit set).
 
+## Status
+
+| Item | State | Evidence |
+|---|---|---|
+| W0 | done: docs, critic pass, D11 approved | `docs/decisions.md` |
+| W1 | done: Muse Spark 1.3 / 1.2, structured output, images, tools verified ($0.06) | [evidence/w1-model-access.md](evidence/w1-model-access.md) |
+| W1b | **accepted**: 15 stories × 5 fresh runs exact; all stubs fail | [evidence/w1b-semantic-core.md](evidence/w1b-semantic-core.md) |
+| W3a | done: rule, decision and feature schema; Northbound contract | `examples/northbound/contract/` |
+
 ## The minimum compelling version (MCV)
 
 The MCV is everything the demo storyboard needs to be true ([06-demo-vision.md](06-demo-vision.md)). **Every item the storyboard marks "never cut" is P0.**

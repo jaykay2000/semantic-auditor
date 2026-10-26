@@ -1,0 +1,127 @@
+{
+ "story": {
+  "id": "sam_alex",
+  "release": "2.4",
+  "persona": "sam_alex",
+  "trip": {
+   "departure_at": "2026-12-14T08:00:00+00:00",
+   "change_window_hours": 24
+  },
+  "oracles": {
+   "inventory": 2,
+   "charges": {
+    "fee_total": 18
+   }
+  },
+  "events": [
+   {
+    "id": "a_search",
+    "at": "2026-11-02T10:00:00+00:00",
+    "kind": "user_action",
+    "action": "search",
+    "effects": {}
+   },
+   {
+    "id": "pw_card",
+    "at": "2026-11-02T10:00:05+00:00",
+    "kind": "message",
+    "feature": "price_watch",
+    "surface": "search_results",
+    "channel": "card",
+    "component": "flight",
+    "copy_key": "pw.card",
+    "text": "Prices on your dates are likely to drop over the next two weeks. We suggest waiting; we'll tell you when to book.",
+    "user_initiated": false
+   },
+   {
+    "id": "pw_email",
+    "at": "2026-11-02T10:01:00+00:00",
+    "kind": "message",
+    "feature": "price_watch",
+    "surface": "inbox",
+    "channel": "email",
+    "component": "flight",
+    "copy_key": "pw.card",
+    "text": "Prices on your dates are likely to drop over the next two weeks. We suggest waiting; we'll tell you when to book.",
+    "user_initiated": false
+   },
+   {
+    "id": "fl_banner",
+    "at": "2026-11-02T10:03:00+00:00",
+    "kind": "message",
+    "feature": "fare_lock",
+    "surface": "fare_detail",
+    "channel": "banner",
+    "component": "flight",
+    "copy_key": "fl.banner",
+    "text": "2 seats left at this fare. Lock it for 48 h for €9 total, for your whole booking.",
+    "user_initiated": false
+   },
+   {
+    "id": "a_buy_lock",
+    "at": "2026-11-02T10:04:00+00:00",
+    "kind": "user_action",
+    "action": "buy_lock",
+    "effects": {
+     "lock": "held"
+    }
+   },
+   {
+    "id": "fl_checkout",
+    "at": "2026-11-02T10:04:05+00:00",
+    "kind": "message",
+    "feature": "fare_lock",
+    "surface": "checkout",
+    "channel": "page",
+    "component": "flight",
+    "copy_key": "fl.checkout.lock",
+    "text": "Fare Lock (48 h): €18",
+    "user_initiated": false
+   }
+  ]
+ },
+ "expected": [
+  {
+   "rule": "U1",
+   "subject": "fl_banner",
+   "status": "passed"
+  },
+  {
+   "rule": "U2",
+   "subject": "fl_banner",
+   "status": "violated"
+  },
+  {
+   "rule": "U2",
+   "subject": "fl_checkout",
+   "status": "passed"
+  },
+  {
+   "rule": "U3",
+   "subject": "pw_card",
+   "status": "passed"
+  },
+  {
+   "rule": "U3",
+   "subject": "pw_email",
+   "status": "passed"
+  },
+  {
+   "rule": "U3",
+   "subject": "fl_banner",
+   "status": "passed"
+  },
+  {
+   "rule": "P2",
+   "subject": "fare_lock|price_watch@when_to_book",
+   "status": "violated",
+   "label": "unexplained_tradeoff"
+  },
+  {
+   "rule": "P3",
+   "subject": "story",
+   "status": "passed"
+  }
+ ],
+ "gold_reconciler": null
+}

@@ -37,9 +37,9 @@ The auditor finds those **semantic release issues**. It tells them apart from le
 
 | Kind | Example |
 |---|---|
-| Unexplained tradeoff (coherence) | Price Watch: "likely to drop, we'll tell you when to book" · Fare Lock: "2 seats left at this fare. Lock it for 48 h for €9". Both true and compatible, but nobody explains that the lock expires long before the drop window |
+| Unexplained tradeoff (coherence) | Price Watch: "likely to drop, we suggest waiting" · Fare Lock: "2 seats left at this fare. Lock it for 48 h for €9". Both true and compatible, but nobody explains that the lock expires long before the drop window |
 | Conflicting directives (coherence) | Price Watch: "wait" · Fare Lock's urgent variant: "Book now". Incompatible and unreconciled |
-| Stale guidance | after booking: "we'll tell you when to book" |
+| Stale guidance | after booking: "Keep waiting to book. We'll tell you when prices drop." |
 | Rule breach for this persona | urging immediate booking on a trip six months away, which the owner's rule forbids for non-imminent trips |
 | Attention load | four non-booking messages in 24 hours |
 

@@ -63,8 +63,10 @@ Explaining your own tradeoff never reconciles a conflict with someone else's adv
 
 | Decision | Actions | Incompatible pairs | Rationale |
 |---|---|---|---|
-| `when_to_book` | `book_now`, `lock_fare`, `wait_for_drop`, `set_alert` | **incompatible:** `book_now` ⟂ `wait_for_drop` (act now vs wait). **Material tradeoff (compatible):** `lock_fare` + `wait_for_drop`. A traveller *could* pay €9 to hold the fare while watching for a drop, but the lock costs money and expires after 48 h, while the forecast drop window is 14 days. Doing both is coherent only if someone explains that | — |
+| `when_to_book` | `book_now`, `lock_fare`, `wait_for_drop`, `set_alert`, `conditional` | **incompatible:** `book_now` ⟂ `wait_for_drop` (act now vs wait). **Material tradeoff (compatible):** `lock_fare` + `wait_for_drop`. A traveller *could* pay €9 to hold the fare while watching for a drop, but the lock costs money and expires after 48 h, while the forecast drop window is 14 days. Doing both is coherent only if someone explains that | — |
 | `fare_type` | `choose_refundable`, `choose_non_refundable`, `upgrade_to_refundable` | — | — |
+
+`conditional` means a message that lays out alternatives by the traveller's situation ("if you can move your dates…; if not…"). It never forms a competing pair. It is the typical *reconciling* message.
 
 Preconditions:
 - `book_now`, `lock_fare`, `wait_for_drop` and `set_alert` require `booking.status == not_booked`.
@@ -95,7 +97,7 @@ The model extracts strength **and the cue it relied on** (U-a, U-b or U-c, or no
 
 | Key | Feature | Copy |
 |---|---|---|
-| `pw.card` | Price Watch | "Prices on your dates are likely to drop over the next two weeks. We'll tell you when to book." |
+| `pw.card` | Price Watch | "Prices on your dates are likely to drop over the next two weeks. We suggest waiting; we'll tell you when to book." |
 | `pw.email.forecast` | Price Watch | the same message, by email |
 | `pw.email.after` | Price Watch | "Keep waiting to book. We'll tell you when prices drop." → `wait_for_drop`, **suggest**. Sent after booking (the bug), so its precondition `not_booked` is false |
 | `pw.push.moving` | Price Watch | "Prices on LIS→BER are moving." |
@@ -127,7 +129,7 @@ Each persona's **expected status vector** is committed as `tests/fixtures/storie
 | **Hana** (boundary) | fixed dates, departs in 6 months. Search (`pw.card.nodrop`), fare (`fl.banner.urgent`) | **P1 violated**: P1-E1 (a) `not_met` (≈ 4,380 h) |
 | **Omar** (boundary) | departs in 20 h; inventory shows 9. Search (`pw.card.nodrop`), fare (`fl.banner.urgent`, which says 2) | **U1 violated**; P1-E1 (b) `not_met` → **P1 violated** |
 | **Sam & Alex** (factual) | a couple, flexible. Search (`pw.card`), fare (`fl.banner`: €9 *total, for your whole booking*), **buy the lock**: `fl.checkout.lock` charges €18; the quote is unchanged | **U2 violated**: same travellers, same transaction (the lock purchase), unchanged quote, €9 shown vs €18 charged. **P2 violated** (`unexplained_tradeoff`), as for Maya |
-| **Theo** (negative, NC5) | books 10:06; at 13:00 the concierge sends `cg.upgrade` | U3 passed (within the change window); U4 not applicable (not retrospective) |
+| **Theo** (negative, NC5) | opens the fare from a direct link (no search, so no Price Watch enrolment), sees `fl.banner`, books non-refundable at 10:06; at 13:00 the concierge proactively sends `cg.upgrade` in-app (chat, not an outbound contact) | U3 passed (within the change window); U4 not applicable (not retrospective) |
 | NC3 | any booked persona | confirmation page, email and PDF repeat "booked": `duplicate_ok` |
 | NC4 | family of four vs solo | different totals: persona-specific facts |
 | **NC6** | Maya on **2.3**: opts in to Price Watch at search (2.3 opt-in step), gets the forecast alert, books | no competing directive (Fare Lock does not exist in 2.3); nothing raised |

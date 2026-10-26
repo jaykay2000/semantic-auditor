@@ -1,0 +1,76 @@
+{
+ "story": {
+  "id": "rina",
+  "release": "2.4.1",
+  "persona": "rina",
+  "trip": {
+   "departure_at": "2026-11-03T16:00:00+00:00",
+   "change_window_hours": 24
+  },
+  "oracles": {
+   "inventory": 1
+  },
+  "events": [
+   {
+    "id": "a_open_hotel",
+    "at": "2026-11-02T10:00:00+00:00",
+    "kind": "user_action",
+    "action": "open_hotel",
+    "effects": {}
+   },
+   {
+    "id": "fl_hotel",
+    "at": "2026-11-02T10:00:05+00:00",
+    "kind": "message",
+    "feature": "fare_lock",
+    "surface": "hotel_detail",
+    "channel": "banner",
+    "component": "hotel",
+    "copy_key": "fl.hotel.urgent",
+    "text": "Checking in soon: only 1 room left at this rate. Book now, or hold it for 12 h for €9 total if your plans might change.",
+    "user_initiated": false
+   }
+  ]
+ },
+ "expected": [
+  {
+   "rule": "U1",
+   "subject": "fl_hotel",
+   "status": "passed"
+  },
+  {
+   "rule": "U3",
+   "subject": "fl_hotel",
+   "status": "passed"
+  },
+  {
+   "rule": "P1",
+   "subject": "fl_hotel",
+   "status": "violated",
+   "conditions": [
+    [
+     "a",
+     "met"
+    ],
+    [
+     "b",
+     "met"
+    ],
+    [
+     "c",
+     "met"
+    ],
+    [
+     "scope",
+     "not_met"
+    ]
+   ]
+  },
+  {
+   "rule": "P3",
+   "subject": "story",
+   "status": "passed"
+  }
+ ],
+ "gold_reconciler": null
+}

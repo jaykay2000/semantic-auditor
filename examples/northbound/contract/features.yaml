@@ -1,0 +1,4 @@
+- {id: price_watch, default_lifetime_hours: {card: 2, email: 168, push: 24}}
+- {id: fare_lock, default_lifetime_hours: {banner: 2, page: 2}}
+- {id: concierge, default_lifetime_hours: {chat: 2, card: 2}}
+- {id: core, default_lifetime_hours: {page: 2, email: 168}}

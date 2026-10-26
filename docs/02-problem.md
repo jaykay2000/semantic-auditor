@@ -6,9 +6,9 @@ A **semantic release issue** is product behaviour that is acceptable feature by 
 
 | Kind | Shape | Northbound example |
 |---|---|---|
-| **Unexplained tradeoff** (coherence) | two features recommend *compatible* actions on the same decision, with a material tradeoff between them that nothing explains. Each message can be entirely true | Price Watch: "likely to drop, we'll tell you when to book" · Fare Lock: "2 seats left at this fare. Lock it for 48 h for €9". Lock and wait can coexist, but the €9 lock expires long before the 14-day drop window, and nobody says so |
+| **Unexplained tradeoff** (coherence) | two features recommend *compatible* actions on the same decision, with a material tradeoff between them that nothing explains. Each message can be entirely true | Price Watch: "likely to drop, we suggest waiting" · Fare Lock: "2 seats left at this fare. Lock it for 48 h for €9". Lock and wait can coexist, but the €9 lock expires long before the 14-day drop window, and nobody says so |
 | **Conflicting directives** (coherence) | two features recommend *incompatible* actions on the same decision while both are live, unreconciled | Price Watch: "wait" · Fare Lock (urgent variant): "Book now" |
-| **Stale guidance** | advice whose precondition is no longer true for this user | after booking: "we'll tell you when to book" |
+| **Stale guidance** | advice whose precondition is no longer true for this user | after booking: "Keep waiting to book. We'll tell you when prices drop." |
 | **Rule breach for this persona** | behaviour a conditional rule forbids, with no exception's conditions all met | urging immediate booking on a trip six months away |
 | **Attention load** | more demands on the user than the owner's rule allows | four non-booking messages in 24 hours |
 | **Fact divergence** | the same fact with different values on different surfaces | the lock is shown at €9, and a couple buying it is charged €18 |

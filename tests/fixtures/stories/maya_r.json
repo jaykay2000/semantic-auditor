@@ -1,0 +1,177 @@
+{
+ "story": {
+  "id": "maya_r",
+  "release": "2.4",
+  "persona": "maya",
+  "trip": {
+   "departure_at": "2026-12-14T08:00:00+00:00",
+   "change_window_hours": 24
+  },
+  "oracles": {
+   "inventory": 2
+  },
+  "events": [
+   {
+    "id": "a_search",
+    "at": "2026-11-02T10:00:00+00:00",
+    "kind": "user_action",
+    "action": "search",
+    "effects": {}
+   },
+   {
+    "id": "pw_card",
+    "at": "2026-11-02T10:00:05+00:00",
+    "kind": "message",
+    "feature": "price_watch",
+    "surface": "search_results",
+    "channel": "card",
+    "component": "flight",
+    "copy_key": "pw.card",
+    "text": "Prices on your dates are likely to drop over the next two weeks. We suggest waiting; we'll tell you when to book.",
+    "user_initiated": false
+   },
+   {
+    "id": "pw_email",
+    "at": "2026-11-02T10:01:00+00:00",
+    "kind": "message",
+    "feature": "price_watch",
+    "surface": "inbox",
+    "channel": "email",
+    "component": "flight",
+    "copy_key": "pw.card",
+    "text": "Prices on your dates are likely to drop over the next two weeks. We suggest waiting; we'll tell you when to book.",
+    "user_initiated": false
+   },
+   {
+    "id": "fl_banner",
+    "at": "2026-11-02T10:03:00+00:00",
+    "kind": "message",
+    "feature": "fare_lock",
+    "surface": "fare_detail",
+    "channel": "banner",
+    "component": "flight",
+    "copy_key": "fl.banner",
+    "text": "2 seats left at this fare. Lock it for 48 h for €9 total, for your whole booking.",
+    "user_initiated": false
+   },
+   {
+    "id": "a_book",
+    "at": "2026-11-02T10:06:00+00:00",
+    "kind": "user_action",
+    "action": "book",
+    "effects": {
+     "booking_status": "booked"
+    }
+   },
+   {
+    "id": "pw_after",
+    "at": "2026-11-02T12:00:00+00:00",
+    "kind": "message",
+    "feature": "price_watch",
+    "surface": "inbox",
+    "channel": "email",
+    "component": "flight",
+    "copy_key": "pw.email.after",
+    "text": "Keep waiting to book. We'll tell you when prices drop.",
+    "user_initiated": false
+   },
+   {
+    "id": "pw_push",
+    "at": "2026-11-02T18:00:00+00:00",
+    "kind": "message",
+    "feature": "price_watch",
+    "surface": "device",
+    "channel": "push",
+    "component": "flight",
+    "copy_key": "pw.push.moving",
+    "text": "Prices on LIS→BER are moving.",
+    "user_initiated": false
+   },
+   {
+    "id": "a_ask",
+    "at": "2026-11-04T09:02:00+00:00",
+    "kind": "user_action",
+    "action": "ask",
+    "effects": {}
+   },
+   {
+    "id": "cg_regret",
+    "at": "2026-11-04T09:02:10+00:00",
+    "kind": "message",
+    "feature": "concierge",
+    "surface": "chat",
+    "channel": "chat",
+    "component": "flight",
+    "copy_key": "cg.regret",
+    "text": "You should have booked a refundable fare.",
+    "user_initiated": true
+   },
+   {
+    "id": "cg_inline",
+    "at": "2026-11-02T10:03:05+00:00",
+    "kind": "message",
+    "feature": "concierge",
+    "surface": "fare_detail",
+    "channel": "card",
+    "component": "flight",
+    "copy_key": "cg.reconcile",
+    "text": "Prices on your dates are likely to drop, but this fare has 2 seats left. If you can move your dates, wait for the alert; if not, locking protects this price.",
+    "user_initiated": false
+   }
+  ]
+ },
+ "expected": [
+  {
+   "rule": "U1",
+   "subject": "fl_banner",
+   "status": "passed"
+  },
+  {
+   "rule": "U3",
+   "subject": "pw_card",
+   "status": "passed"
+  },
+  {
+   "rule": "U3",
+   "subject": "pw_email",
+   "status": "passed"
+  },
+  {
+   "rule": "U3",
+   "subject": "fl_banner",
+   "status": "passed"
+  },
+  {
+   "rule": "U3",
+   "subject": "pw_after",
+   "status": "violated"
+  },
+  {
+   "rule": "U4",
+   "subject": "cg_regret",
+   "status": "violated"
+  },
+  {
+   "rule": "P3",
+   "subject": "story",
+   "status": "violated"
+  },
+  {
+   "rule": "U1",
+   "subject": "cg_inline",
+   "status": "passed"
+  },
+  {
+   "rule": "U3",
+   "subject": "cg_inline",
+   "status": "passed"
+  },
+  {
+   "rule": "P2",
+   "subject": "fare_lock|price_watch@when_to_book",
+   "status": "passed",
+   "label": "explained_tradeoff"
+  }
+ ],
+ "gold_reconciler": "cg_inline"
+}

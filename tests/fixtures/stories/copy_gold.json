@@ -1,0 +1,167 @@
+{
+ "pw.card": {
+  "message_kind": "directive",
+  "decision": "when_to_book",
+  "action": "wait_for_drop",
+  "strength": "suggest",
+  "urgency_cue": "none",
+  "explains_own_tradeoff": false,
+  "claims": []
+ },
+ "pw.email.after": {
+  "message_kind": "directive",
+  "decision": "when_to_book",
+  "action": "wait_for_drop",
+  "strength": "suggest",
+  "urgency_cue": "none",
+  "explains_own_tradeoff": false,
+  "claims": []
+ },
+ "pw.push.moving": {
+  "message_kind": "information",
+  "decision": "none",
+  "action": "none",
+  "strength": "inform",
+  "urgency_cue": "none",
+  "explains_own_tradeoff": false,
+  "claims": []
+ },
+ "pw.card.nodrop": {
+  "message_kind": "information",
+  "decision": "none",
+  "action": "none",
+  "strength": "inform",
+  "urgency_cue": "none",
+  "explains_own_tradeoff": false,
+  "claims": []
+ },
+ "fl.banner": {
+  "message_kind": "directive",
+  "decision": "when_to_book",
+  "action": "lock_fare",
+  "strength": "suggest",
+  "urgency_cue": "none",
+  "explains_own_tradeoff": false,
+  "claims": [
+   {
+    "type": "units_left",
+    "value": 2,
+    "unit": "seats"
+   },
+   {
+    "type": "fee_total",
+    "value": 9,
+    "unit": "EUR"
+   }
+  ]
+ },
+ "fl.banner.urgent": {
+  "message_kind": "directive",
+  "decision": "when_to_book",
+  "action": "book_now",
+  "strength": "urge",
+  "urgency_cue": "U-a",
+  "explains_own_tradeoff": true,
+  "claims": [
+   {
+    "type": "units_left",
+    "value": 2,
+    "unit": "seats"
+   },
+   {
+    "type": "fee_total",
+    "value": 9,
+    "unit": "EUR"
+   }
+  ]
+ },
+ "fl.banner.urgent_bare": {
+  "message_kind": "directive",
+  "decision": "when_to_book",
+  "action": "book_now",
+  "strength": "urge",
+  "urgency_cue": "U-c",
+  "explains_own_tradeoff": false,
+  "claims": [
+   {
+    "type": "units_left",
+    "value": 2,
+    "unit": "seats"
+   }
+  ]
+ },
+ "fl.checkout.lock": {
+  "message_kind": "information",
+  "decision": "none",
+  "action": "none",
+  "strength": "inform",
+  "urgency_cue": "none",
+  "explains_own_tradeoff": false,
+  "claims": [
+   {
+    "type": "fee_total",
+    "value": 18,
+    "unit": "EUR"
+   }
+  ]
+ },
+ "fl.hotel.urgent": {
+  "message_kind": "directive",
+  "decision": "when_to_book",
+  "action": "book_now",
+  "strength": "urge",
+  "urgency_cue": "U-a",
+  "explains_own_tradeoff": true,
+  "claims": [
+   {
+    "type": "units_left",
+    "value": 1,
+    "unit": "rooms"
+   },
+   {
+    "type": "fee_total",
+    "value": 9,
+    "unit": "EUR"
+   }
+  ]
+ },
+ "cg.regret": {
+  "message_kind": "retrospective",
+  "decision": "fare_type",
+  "action": "choose_refundable",
+  "strength": "inform",
+  "urgency_cue": "none",
+  "explains_own_tradeoff": false,
+  "claims": []
+ },
+ "cg.reconcile": {
+  "message_kind": "directive",
+  "decision": "when_to_book",
+  "action": "conditional",
+  "strength": "suggest",
+  "urgency_cue": "none",
+  "explains_own_tradeoff": true,
+  "claims": [
+   {
+    "type": "units_left",
+    "value": 2,
+    "unit": "seats"
+   }
+  ]
+ },
+ "cg.upgrade": {
+  "message_kind": "directive",
+  "decision": "fare_type",
+  "action": "upgrade_to_refundable",
+  "strength": "urge",
+  "urgency_cue": "U-b",
+  "explains_own_tradeoff": false,
+  "claims": [
+   {
+    "type": "fee_total",
+    "value": 30,
+    "unit": "EUR"
+   }
+  ]
+ }
+}

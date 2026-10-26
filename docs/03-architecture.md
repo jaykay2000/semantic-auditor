@@ -186,7 +186,7 @@ An **episode** is one run of one scenario, for one persona, on one release:
   "objective": "lower price",
   "explains_own_tradeoff": false,              // P1-E1 (c): does the message weigh its OWN advice?
   "reconciles": [],                            // P2: ids of OTHER features' directives this message addresses
-  "evidence_span": "Prices on your dates are likely to drop over the next two weeks. We'll tell you when to book." }
+  "evidence_span": "Prices on your dates are likely to drop over the next two weeks. We suggest waiting; we'll tell you when to book." }
 ```
 
 `strength` follows the contract's **strength rubric** (inform / suggest / urge / require, defined operationally per product). `explains_own_tradeoff` and `reconciles` are deliberately separate fields: explaining your own tradeoff never reconciles a conflict with another feature's advice.

@@ -1,0 +1,88 @@
+{
+ "story": {
+  "id": "hana",
+  "release": "2.4",
+  "persona": "hana",
+  "trip": {
+   "departure_at": "2027-05-02T10:00:00+00:00",
+   "change_window_hours": 24
+  },
+  "oracles": {
+   "inventory": 2
+  },
+  "events": [
+   {
+    "id": "a_search",
+    "at": "2026-11-02T10:00:00+00:00",
+    "kind": "user_action",
+    "action": "search",
+    "effects": {}
+   },
+   {
+    "id": "pw_nodrop",
+    "at": "2026-11-02T10:00:05+00:00",
+    "kind": "message",
+    "feature": "price_watch",
+    "surface": "search_results",
+    "channel": "card",
+    "component": "flight",
+    "copy_key": "pw.card.nodrop",
+    "text": "Our forecast: prices on this trip are unlikely to drop before departure.",
+    "user_initiated": false
+   },
+   {
+    "id": "fl_urgent",
+    "at": "2026-11-02T10:03:00+00:00",
+    "kind": "message",
+    "feature": "fare_lock",
+    "surface": "fare_detail",
+    "channel": "banner",
+    "component": "flight",
+    "copy_key": "fl.banner.urgent",
+    "text": "Departing soon: only 2 seats left at this fare. Book now, or lock it for 12 h for €9 total if your plans might change.",
+    "user_initiated": false
+   }
+  ]
+ },
+ "expected": [
+  {
+   "rule": "U1",
+   "subject": "fl_urgent",
+   "status": "passed"
+  },
+  {
+   "rule": "U3",
+   "subject": "fl_urgent",
+   "status": "passed"
+  },
+  {
+   "rule": "P1",
+   "subject": "fl_urgent",
+   "status": "violated",
+   "conditions": [
+    [
+     "a",
+     "not_met"
+    ],
+    [
+     "b",
+     "met"
+    ],
+    [
+     "c",
+     "met"
+    ],
+    [
+     "scope",
+     "met"
+    ]
+   ]
+  },
+  {
+   "rule": "P3",
+   "subject": "story",
+   "status": "passed"
+  }
+ ],
+ "gold_reconciler": null
+}

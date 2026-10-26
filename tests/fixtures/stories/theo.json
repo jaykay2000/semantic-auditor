@@ -1,0 +1,79 @@
+{
+ "story": {
+  "id": "theo",
+  "release": "2.4",
+  "persona": "theo",
+  "trip": {
+   "departure_at": "2026-12-14T08:00:00+00:00",
+   "change_window_hours": 24
+  },
+  "oracles": {
+   "inventory": 2
+  },
+  "events": [
+   {
+    "id": "a_open",
+    "at": "2026-11-02T10:05:00+00:00",
+    "kind": "user_action",
+    "action": "open_fare",
+    "effects": {}
+   },
+   {
+    "id": "fl_banner",
+    "at": "2026-11-02T10:05:05+00:00",
+    "kind": "message",
+    "feature": "fare_lock",
+    "surface": "fare_detail",
+    "channel": "banner",
+    "component": "flight",
+    "copy_key": "fl.banner",
+    "text": "2 seats left at this fare. Lock it for 48 h for €9 total, for your whole booking.",
+    "user_initiated": false
+   },
+   {
+    "id": "a_book",
+    "at": "2026-11-02T10:06:00+00:00",
+    "kind": "user_action",
+    "action": "book",
+    "effects": {
+     "booking_status": "booked"
+    }
+   },
+   {
+    "id": "cg_upgrade",
+    "at": "2026-11-02T13:00:00+00:00",
+    "kind": "message",
+    "feature": "concierge",
+    "surface": "chat",
+    "channel": "chat",
+    "component": "flight",
+    "copy_key": "cg.upgrade",
+    "text": "You can still switch to a refundable fare for €30 until tomorrow 10:05.",
+    "user_initiated": false
+   }
+  ]
+ },
+ "expected": [
+  {
+   "rule": "U1",
+   "subject": "fl_banner",
+   "status": "passed"
+  },
+  {
+   "rule": "U3",
+   "subject": "fl_banner",
+   "status": "passed"
+  },
+  {
+   "rule": "U3",
+   "subject": "cg_upgrade",
+   "status": "passed"
+  },
+  {
+   "rule": "P3",
+   "subject": "story",
+   "status": "passed"
+  }
+ ],
+ "gold_reconciler": null
+}

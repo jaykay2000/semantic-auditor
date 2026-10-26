@@ -1,0 +1,15 @@
+- id: when_to_book
+  actions: [book_now, lock_fare, wait_for_drop, set_alert, conditional]
+  incompatible:
+    - {pair: [book_now, wait_for_drop], rationale: "act now vs wait"}
+  tradeoffs:
+    - {pair: [lock_fare, wait_for_drop], material: "the lock costs EUR 9 total and expires after 48 h; the forecast drop window is 14 days"}
+  never_pairs: [conditional]
+  decided_by: [book, buy_lock]
+  preconditions: {"*": {booking_status: not_booked}}
+- id: fare_type
+  actions: [choose_refundable, choose_non_refundable, upgrade_to_refundable]
+  preconditions:
+    choose_refundable: {booking_status: not_booked}
+    choose_non_refundable: {booking_status: not_booked}
+    upgrade_to_refundable: {within_change_window: true}

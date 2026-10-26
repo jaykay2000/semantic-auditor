@@ -1,0 +1,37 @@
+# Northbound rules: written draft approved as D11 (2026-10-26). Source of truth: examples/northbound/README.md
+- id: U1
+  kind: universal
+  text: Every scarcity, availability and policy claim matches our own data.
+  check: {claims: [units_left], must: match_oracle, oracle: inventory}
+- id: U2
+  kind: universal
+  text: For the same traveller, the same transaction and an unchanged price quote, every displayed fee matches the amount ultimately charged.
+  check: {claims: [fee_total], must: match_charge, charge: fee_total}
+- id: U3
+  kind: universal
+  text: Every recommendation we show is one the traveller can still act on.
+  check: {directives: all, must: precondition_holds_at_shown_time}
+- id: U4
+  kind: universal
+  text: After purchase, we never second-guess a completed choice. Offering an action the traveller can still take is not second-guessing.
+  applies_to: {message_kind: retrospective, state: booked}
+- id: P1
+  kind: conditional
+  text: We may always share true inventory information. We do not urge immediate booking, except for genuinely time-sensitive trips.
+  applies_to: {decision: when_to_book, strength: [urge, require]}
+  exceptions:
+    - id: P1-E1
+      conditions:
+        - {id: a, kind: data, test: time_until, trip_field: departure_at, hours: 72}
+        - {id: b, kind: data, test: claim_matches_oracle, claim: units_left, oracle: inventory}
+        - {id: c, kind: judged, field: explains_own_tradeoff}
+      scope: {features: [fare_lock], components: [flight], surfaces: [fare_detail, checkout]}
+      approved: {by: owner, date: "2026-10-26", expires: "2027-01-31"}
+- id: P2
+  kind: coherence
+  text: When more than one feature gives an active recommendation about the same decision, the product must reconcile incompatible actions, or explain the material tradeoffs between otherwise compatible actions, while both are live and before the traveller decides.
+  applies_to: {relation: competing_directives}
+- id: P3
+  kind: load
+  text: Beyond messages about the booking itself, we send a traveller at most 2 outbound contacts (email or push) in any 24 hours. In-app cards and user-initiated conversations are not contacts.
+  count: {channels: [email, push], exclude_topics: [booking], window_hours: 24, max: 2}
