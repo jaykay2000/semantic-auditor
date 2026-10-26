@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% from "macros.html" import slot %}
+{% block title %}Checkout · Northbound{% endblock %}
+{% block main %}
+<h1>Checkout</h1>
+{{ slot(slots, "summary") }}
+{{ slot(slots, "line") }}
+{{ slot(slots, "total") }}
+{{ slot(slots, "notice") }}
+{% if not blocked %}
+<form method="post" action="/checkout/{{ fare.id }}"><button type="submit">Book this fare</button></form>
+{% endif %}
+{% endblock %}

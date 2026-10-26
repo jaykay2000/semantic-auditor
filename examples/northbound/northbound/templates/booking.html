@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% from "macros.html" import slot %}
+{% block title %}Booking · Northbound{% endblock %}
+{% block main %}
+<h1>Booking confirmation</h1>
+{{ slot(slots, "summary") }}
+{{ slot(slots, "notice") }}
+<h2>Charges</h2>
+{{ slot(slots, "line") }}
+{{ slot(slots, "total") }}
+<p><a class="btn" href="/booking/{{ booking.id }}/itinerary.pdf">Download itinerary (PDF)</a></p>
+{% endblock %}

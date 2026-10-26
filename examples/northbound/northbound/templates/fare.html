@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% from "macros.html" import slot %}
+{% block title %}Fare · Northbound{% endblock %}
+{% block main %}
+<h1>Fare details</h1>
+{{ slot(slots, "summary") }}
+{{ slot(slots, "notice") }}
+{% endblock %}

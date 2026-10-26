@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% from "macros.html" import slot %}
+{% block title %}Search results · Northbound{% endblock %}
+{% block main %}
+<h1>Flights</h1>
+<form class="search" method="get" action="/search">
+  <label>From <input type="text" name="origin" value="{{ origin }}" size="4"></label>
+  <label>To <input type="text" name="destination" value="{{ destination }}" size="4"></label>
+  <label>Date <input type="text" name="date" value="{{ date }}" size="10"></label>
+  <button type="submit">Search</button>
+</form>
+{{ slot(slots, "summary") }}
+{{ slot(slots, "fare_row") }}
+{{ slot(slots, "notice") }}
+{% endblock %}
