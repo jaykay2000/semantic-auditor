@@ -40,7 +40,7 @@ The MCV is everything the demo storyboard needs to be true ([06-demo-vision.md](
 | **P0** | W9 | Issues: severity, confidence, verification; verifier; release policy; rejected list; `sra repro` | W8 | Oct 30 |
 | **P0** | W10b | Release Story UI build (to the approved wireframe) | W10a, W9 | Oct 30–31 |
 | **P0** | W11 | Dispositions → memory; 2.4.1 re-review | W9 | Oct 31 |
-| **P0** | W12 | Onboarding at demo depth: voice → principles draft → review page | W1, W3 | Oct 31 |
+| **P1** | W12 | Onboarding at demo depth: voice → principles draft → review page. A demo enhancement, not a prerequisite; the core runs on the written draft contract from W3 | W1, W3 | Nov 1–2 |
 | | | **Core feature freeze: Oct 31, end of day** | | |
 | **P1** | W13a | **Sealed benchmark** (a separate session): bench-01…06 + ground truth outside the repo; hashes committed to `bench/FROZEN.md` | W2 (2.3 exists) | Oct 28–31 |
 | **P1** | W13b | Baselines B-explore / B-judge / B-repeat; prompts frozen on 2.4; scoring; ablations; adjudication sheet | W9, W13a | Nov 1 |

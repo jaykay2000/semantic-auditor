@@ -9,7 +9,8 @@
 | 2026-10-26 | Solo entry (Indie Developer track) | owner |
 | 2026-10-26 | Skip Finablo's Sage chat surface | owner |
 | 2026-10-26 | Mobile is a generic adapter for later | owner |
-| 2026-10-26 | GitHub: the owner's personal account is acceptable (the rules only require a public repo); `finablo` is the fallback | owner |
+| 2026-10-26 | Name **Semantic Auditor** (CLI `semaudit`); license **Apache-2.0**; published under the **`finablo`** GitHub account, with only this repo made public | owner |
+| 2026-10-26 | Build priority: prove Maya's conflict detection and Raj's allowed exception first, using a **written draft** of the Northbound principles. Voice onboarding is a demo enhancement, recorded once the principles are final | owner |
 | 2026-10-26 | Push and publish only on the owner's word | owner standing rule |
 | 2026-10-26 | **Thesis:** the auditor reconstructs a user's experience across a release, finds conflicting behaviour and messages, and gives reproducible evidence for a shipping decision. The User Experience Story is the unit of analysis; fact comparison is one layer inside it | owner, after the external review |
 | 2026-10-26 | Severity, confidence and verification status are separate fields, never combined | owner |
@@ -28,9 +29,6 @@
 
 | # | Decision | Default and why |
 |---|---|---|
-| D1 | Public name | **"Semantic Auditor"**, with the `semaudit` CLI. "Release auditor" is taken on PyPI and npm; `semantic-release` is a well-known npm tool; `semantic-auditor` is free on PyPI. The docs keep "Semantic Release Auditor" until this is confirmed |
-| D2 | License | **Apache-2.0** (permissive, with a patent grant) |
-| D3 | GitHub username for the personal account | needed before publishing; `gh` on this machine is logged in as `finablo` |
 | D11 | Northbound principle wording (P1–P4, P1-E1) | **as in examples/northbound/README.md**; the owner records the voice note that produces them |
 | D12 | An independent human adjudicator for the subjective labels | **ask one person** for about 1 hour on Nov 1–2; otherwise report owner-only adjudication and say so |
 | D13 | Which Finablo commits for R1 and R2 | the planning agent finds the introducing commits; the owner confirms |
