@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% block main %}
+<h1>Northbound</h1>
+<p>Travel booking demo, release {{ release }}. {% if traveller %}Continue to <a href="/search">search</a>.{% else %}Create a traveller with POST /api/test/personas and set the cookie nb_traveller.{% endif %}</p>
+{% endblock %}

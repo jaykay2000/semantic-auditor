@@ -1,0 +1,21 @@
+{#- The ONLY way a message reaches a page. Stamps data-feature, data-message-key and data-shown-at. -#}
+{% macro message(m, tag="div") -%}
+<{{ tag }} class="msg msg-{{ m.channel }}" data-feature="{{ m.feature }}" data-message-key="{{ m.key }}" data-shown-at="{{ m.shown_at_iso }}">{{ m.text }}</{{ tag }}>
+{%- endmacro %}
+
+{% macro action(a) -%}
+{%- if a.method == "get" -%}
+<a class="btn" href="{{ a.url }}">{{ a.label }}</a>
+{%- else -%}
+<form method="post" action="{{ a.url }}">{% for k, v in (a.fields or {}).items() %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}<button type="submit">{{ a.label }}</button></form>
+{%- endif -%}
+{%- endmacro %}
+
+{% macro item(m, tag="div") -%}
+<div class="msg-wrap">{{ message(m, tag) }}{% if m.action %}{{ action(m.action) }}{% endif %}</div>
+{%- endmacro %}
+
+{% macro slot(slots, name) -%}
+{% for m in slots[name] %}{{ item(m) }}
+{% endfor %}
+{%- endmacro %}

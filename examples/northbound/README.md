@@ -40,6 +40,59 @@ Every rendered message carries `data-feature=<id>` and `data-message-key=<stable
 
 **State is derived, not stored on the persona.** A persona has a trip with `departure_at`. Time conditions compare **exact timestamps** (`trip.departure_at` − `message.shown_at`, at full clock precision). Nothing is rounded or truncated, so a departure 72 h 00 min 30 s away does **not** qualify as within 72 h.
 
+## Running Northbound
+
+```bash
+cd examples/northbound
+pip install -e '../..[demo]'          # fastapi, uvicorn, fpdf2 (plus the repo's own dependencies)
+./run.sh                              # = python3 -m uvicorn northbound.app:app --port 8080 (PORT=... to change)
+python3 -m pytest examples/northbound/tests    # from the repo root
+```
+
+| Env var | Default | Meaning |
+|---|---|---|
+| `NORTHBOUND_RELEASE` | `2.3` | release to run (read only in `northbound/config.py`) |
+| `NORTHBOUND_OUTBOX` | `examples/northbound/outbox/` (gitignored) | email and push file sinks |
+| `NORTHBOUND_TEST_HOOKS` | `1` | `1` mounts `/api/test/*` |
+
+**Pages** (plain HTML, no JS needed): `/search?origin=&destination=&date=` · `/fare/<fare_id>` · `/checkout/<fare_id>` (POST books) · `/booking/<id>` · `/booking/<id>/itinerary.pdf` · `/concierge` (chat; `POST /api/concierge {"text"}` for JSON). Fare ids are `LIS-BER-NR` (non-refundable, EUR 129 per traveller) and `LIS-BER-RF` (refundable, EUR 189), plus EUR 24 taxes and fees per traveller; switching to refundable within 24 h of booking costs EUR 30 (`POST /booking/<id>/upgrade`). The departure time is always the traveller's `trip.departure_at`; the search `date` is only echoed.
+
+**Identity:** cookie `nb_traveller=<id>`, or header `X-Traveller: <id>`, or query `?traveller=<id>` (header wins).
+
+**Hooks** (`/api/test/*`, simulated time only; nothing reads the wall clock):
+- `POST /api/test/personas {id, name, travellers: 1|2|4, flexible, trip: {origin, destination, departure_at}}` (ISO time with a zone)
+- `POST /api/test/clock {"advance": "30s"|"2h"|"1d2h"}` or `{"set": "<iso>"}`: runs every due job in due-time order; returns `{now, jobs_run}`. `GET` returns the time and pending jobs. The clock starts at D0 = `2026-11-02T10:00:00+00:00`.
+- `POST /api/test/world {"seats": {"LIS-BER-NR": 2}, "forecast": {"LIS-BER": {"drop": true, "window_days": 14}}}`
+- `POST /api/test/reset`: wipes travellers, bookings, jobs, message log, the outbox files and the clock.
+- `GET /api/test/messages?traveller=`: the server-side log of every message shown or sent (debug only, not an oracle).
+
+**Oracles** (read-only JSON, always mounted): `GET /api/oracle/booking?traveller=` (`status` `not_booked|booked`, `fare_type`, `departure_at`, `charges[]` in EUR cents with `what`, `transaction`, `quote_id`, `within_change_window`, `change_window_ends`) · `GET /api/oracle/inventory?fare=` (`seats_left`) · `GET /api/oracle/forecast?route=LIS-BER` (`drop`, `window_days`). The change window is 24 h from booking, inclusive, computed from the simulated clock.
+
+**Markers.** Every message on a page is rendered by ONE Jinja macro (`templates/macros.html`) and carries `data-feature`, `data-message-key` and `data-shown-at` (simulated ISO time). Emails and push notifications are JSON files, one per message, in `outbox/email/<message_id>.json` and `outbox/push/<message_id>.json`: `{message_id, to, subject, sent_at, headers: {"X-Feature", "X-Message-Key"}, text, html}`. The itinerary PDF lists its message keys in the PDF keywords and keeps its text extractable. Message ids (`m000001`, ...) are shared by the log and the sinks.
+
+**2.3 copy keys** (`northbound/copy.py` is the table; the canonical `pw.*` and `cg.*` texts above are used verbatim):
+
+| Feature | Keys |
+|---|---|
+| core | `core.results`, `core.results.fare`, `core.fare.summary`, `core.fare.policy.{non_refundable,refundable}`, `core.checkout.{fare,taxes,total,already,soldout}`, `core.confirmed`, `core.confirmed.{charge,total,fare_window,fare_closed,fare_refundable}`, `core.email.confirmation`, `core.pdf.{itinerary,charge,total}` |
+| price_watch | `pw.card.optin` (the 2.3 opt-in offer, a card on search results), `pw.card.watching`, `pw.email.forecast` (text = the `pw.card` copy), `pw.email.forecast.nodrop` (text = the `pw.card.nodrop` copy), plus `pw.card` and `pw.card.nodrop` as the canonical wording |
+| concierge | `cg.greeting`, `cg.answer.{status.none,status.booked,refund,deal.none,deal.booked,when,price_watch,fallback}` |
+
+2.3 has no Fare Lock and no `fl.*` keys, and Concierge 1.0 never produces `cg.regret`, `cg.reconcile` or `cg.upgrade`.
+
+### Adding a release
+
+A release is a module in `northbound/releases/` (file name: `2.4` -> `r2_4.py`, `2.4.1` -> `r2_4_1.py`, `bench-01` -> `bench_01.py`) that defines `RELEASE = Release(...)`: the ordered list of enabled feature modules, per-feature settings and copy overrides (or new keys). `load_release("2.3").derive("2.4", add=[...], remove=[...], settings={...}, copy={...})` builds one from another. Core never checks the release name.
+
+A feature is `northbound/features/<id>.py` (or any importable dotted path, listed in `features`) exposing `class Feature(BaseFeature)` with `id` (matches `contract/features.yaml`), `DEFAULTS`, `COPY` (extra keys) and these optional hooks, documented in `northbound/features/__init__.py`:
+
+- `messages_for(surface, ctx) -> [Message]`: what to show on `search_results | fare_detail | checkout | confirmation | chat`
+- `on_action(action, ctx, data) -> dict | None`: reacts to `search`, `open_fare`, `opt_in`, `book`, `upgrade`; may schedule or cancel jobs and send email/push; `{"error": ...}` refuses
+- `on_job(job, ctx)`: runs a due job with the clock at its due time
+- `concierge_reply(question, ctx) -> Message | None`
+
+`ctx` offers `now`, `traveller`, `booking`, `message(...)`, `send_email(...)`, `send_push(...)`, `schedule(feature, kind, delay=)`, `cancel_jobs(feature)` and `state_for(feature_id)`. Price Watch 1.0 implements only `mode: opt_in`; 2.4 extends or replaces that module for auto-enrol.
+
 ## Owner rules: written draft (the voice note comes later)
 
 | ID | Kind | Rule | Evaluated by |
@@ -101,7 +154,7 @@ The model extracts strength **and the cue it relied on** (U-a, U-b or U-c, or no
 | `pw.email.forecast` | Price Watch | the same message, by email |
 | `pw.email.after` | Price Watch | "Keep waiting to book. We'll tell you when prices drop." → `wait_for_drop`, **suggest**. Sent after booking (the bug), so its precondition `not_booked` is false |
 | `pw.push.moving` | Price Watch | "Prices on LIS→BER are moving." |
-| `pw.card.nodrop` | Price Watch | "Prices on this trip are unlikely to drop before departure." |
+| `pw.card.nodrop` | Price Watch | "Our forecast: prices on this trip are unlikely to drop before departure." |
 | `fl.banner` | Fare Lock | "2 seats left at this fare. Lock it for 48 h for €9 total, for your whole booking." → `lock_fare`, **suggest** (no cue). The fee claim is €9 per booking |
 | `fl.banner.urgent` | Fare Lock | "Departing soon: only 2 seats left at this fare. Book now, or lock it for 12 h for €9 total if your plans might change." → primary `book_now`, **urge** (cue U-a/U-c); secondary `lock_fare`; explains its own tradeoff |
 | `fl.banner.urgent_bare` | Fare Lock | "Only 2 seats left. Book now." → `book_now`, **urge** (U-c), no explanation |

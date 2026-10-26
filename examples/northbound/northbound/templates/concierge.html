@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% from "macros.html" import slot, item %}
+{% block title %}Concierge · Northbound{% endblock %}
+{% block main %}
+<h1>Concierge</h1>
+{{ slot(slots, "notice") }}
+{% for turn in history %}
+  {% if turn.who == "traveller" %}<div class="user-turn">{{ turn.text }}</div>{% else %}{{ item(turn.message) }}{% endif %}
+{% endfor %}
+<form method="post" action="/concierge"><label>Your question <input type="text" name="text" size="40"></label><button type="submit">Ask</button></form>
+{% endblock %}
