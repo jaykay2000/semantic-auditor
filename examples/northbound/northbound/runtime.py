@@ -18,21 +18,35 @@ from .clock import D0, Job, JobQueue, SimClock, iso, parse_duration, run_until
 from .config import Config
 from .copy import COPY, render
 from .features import BaseFeature, load_feature
-from .models import Booking, Charge, Fare, Message, Traveller, Trip
+from .models import Booking, Charge, Fare, Message, Stay, Traveller, Trip
 from .releases import Release, load_release
 
 DEFAULT_SEATS = 9
+DEFAULT_ROOMS = 5
 DEFAULT_FORECAST = {"drop": True, "window_days": 14}
 
 
 @dataclass
 class World:
-    """Oracle state the test hooks can set: seats left per fare, drop forecast per route."""
+    """Oracle state the test hooks can set: seats left per fare, rooms left per hotel, drop forecast per route.
+
+    `bucket_seats` is the seat count a PRODUCT surface may show for a fare bucket; it defaults to the real
+    inventory (`seats`) and the world hook can set it separately, so a release can show a count that differs
+    from the inventory oracle.
+    """
     seats: dict[str, int] = field(default_factory=dict)
+    bucket_seats: dict[str, int] = field(default_factory=dict)
+    rooms: dict[str, int] = field(default_factory=dict)
     forecasts: dict[str, dict[str, Any]] = field(default_factory=dict)
 
     def seats_left(self, fare_id: str) -> int:
         return self.seats.get(fare_id, DEFAULT_SEATS)
+
+    def bucket_left(self, fare_id: str) -> int:
+        return self.bucket_seats.get(fare_id, self.seats_left(fare_id))
+
+    def rooms_left(self, hotel_id: str) -> int:
+        return self.rooms.get(hotel_id, DEFAULT_ROOMS)
 
     def forecast(self, route: str) -> dict[str, Any]:
         return {"route": route, **self.forecasts.get(route, DEFAULT_FORECAST)}
@@ -93,10 +107,11 @@ class Runtime:
         return Ctx(self, traveller, **extra)
 
     # ---- travellers ------------------------------------------------------------------------------------
-    def create_traveller(self, tid: str, name: str, party: int, flexible: bool, trip: Trip) -> Traveller:
+    def create_traveller(self, tid: str, name: str, party: int, flexible: bool, trip: Trip,
+                         experiments: dict[str, Any] | None = None, stay: Stay | None = None) -> Traveller:
         if tid in self.travellers:
             raise DuplicateTraveller(tid)
-        t = self.travellers[tid] = Traveller(tid, name, party, flexible, trip)
+        t = self.travellers[tid] = Traveller(tid, name, party, flexible, trip, dict(experiments or {}), stay)
         return t
 
     def booking_of(self, traveller_id: str) -> Booking | None:
@@ -202,15 +217,29 @@ class Runtime:
         t = self.travellers[traveller_id]
         b = self.booking_of(traveller_id)
         if b is None:
-            return {"traveller": traveller_id, "status": "not_booked", "booking_id": None, "fare_type": None,
-                    "fare_id": None, "departure_at": iso(t.trip.departure_at), "booked_at": None,
-                    "change_window_ends": None, "within_change_window": False, "party": t.party,
-                    "charges": [], "total_cents": 0, "currency": "EUR"}
+            return self._with_extras(self.ctx(t), {
+                "traveller": traveller_id, "status": "not_booked", "booking_id": None, "fare_type": None,
+                "fare_id": None, "departure_at": iso(t.trip.departure_at), "booked_at": None,
+                "change_window_ends": None, "within_change_window": False, "party": t.party,
+                "charges": [], "total_cents": 0, "currency": "EUR"})
         ends, within = self.change_window(b)
-        return {"traveller": traveller_id, "status": "booked", "booking_id": b.id, "fare_type": b.fare_kind,
-                "fare_id": b.fare_id, "departure_at": iso(b.departure_at), "booked_at": iso(b.booked_at),
-                "change_window_ends": iso(ends), "within_change_window": within, "party": b.party,
-                "charges": [c.as_dict() for c in b.charges], "total_cents": b.total_cents, "currency": "EUR"}
+        return self._with_extras(self.ctx(t), {
+            "traveller": traveller_id, "status": "booked", "booking_id": b.id, "fare_type": b.fare_kind,
+            "fare_id": b.fare_id, "departure_at": iso(b.departure_at), "booked_at": iso(b.booked_at),
+            "change_window_ends": iso(ends), "within_change_window": within, "party": b.party,
+            "charges": [c.as_dict() for c in b.charges], "total_cents": b.total_cents, "currency": "EUR"})
+
+    def _with_extras(self, ctx: "Ctx", doc: dict[str, Any]) -> dict[str, Any]:
+        """Let features add charges (their own lines) and extra fields to the booking oracle."""
+        for f in self.features:
+            extra = f.oracle_extras(ctx)
+            if not extra:
+                continue
+            extra = dict(extra)
+            doc["charges"] = list(doc["charges"]) + list(extra.pop("charges", []))
+            doc["total_cents"] = sum(c["amount_cents"] for c in doc["charges"])
+            doc.update(extra)
+        return doc
 
 
 @dataclass
@@ -220,6 +249,7 @@ class Ctx:
     traveller: Traveller | None = None
     fare: Fare | None = None
     fares: list[Fare] = field(default_factory=list)
+    hotel: dict[str, str] | None = None  # the hotel page's hotel (see catalogue.hotel_by_id)
 
     @property
     def now(self) -> datetime:
@@ -233,13 +263,19 @@ class Ctx:
         """Per-traveller scratch state, private to the feature that asks."""
         return self.rt.fstate(feature_id, self.traveller.id)
 
+    def experiment(self, name: str, default: Any = None) -> Any:
+        """The traveller's arm for experiment `name` (set by the persona hook), or `default`."""
+        return self.traveller.experiments.get(name, default) if self.traveller else default
+
     def message(self, feature: str, key: str, surface: str, channel: str, *, slot: str = "notice",
-                action: dict[str, Any] | None = None, **params: Any) -> Message:
+                action: dict[str, Any] | None = None, component: str = "flight",
+                more_actions: list[dict[str, Any]] | None = None, **params: Any) -> Message:
         t = self.traveller
         base = {"party": party_label(t.party) if t else "", "travellers": t.party if t else "",
                 "upgrade_fee": money(self.rt.feature("core").settings["upgrade_fee_cents"])}
         text = render(self.rt.copy, key, **{**base, **params})
-        return Message(key, feature, surface, channel, text, self.now, t.id if t else None, slot, action)
+        return Message(key, feature, surface, channel, text, self.now, t.id if t else None, slot, action,
+                       component=component, more_actions=list(more_actions or []))
 
     def common_params(self) -> dict[str, Any]:
         t = self.traveller
@@ -247,6 +283,14 @@ class Ctx:
                 "destination_city": city(t.trip.destination), "departure": when(t.trip.departure_at)}
 
     # ---- sinks and jobs
+    def send_chat(self, feature: str, key: str, **params: Any) -> Message:
+        """Post an in-app message into the traveller's chat (a proactive tip). Never an email or push."""
+        msg = self.message(feature, key, "chat", "chat", **params)
+        self.rt.record([msg])
+        self.rt.chats.setdefault(self.traveller.id, []).append(
+            {"who": "concierge", "text": msg.text, "message": msg})
+        return msg
+
     def send_email(self, feature: str, key: str, **params: Any) -> Message:
         msg = self.message(feature, key, "inbox", "email", **params)
         self.rt.record([msg])

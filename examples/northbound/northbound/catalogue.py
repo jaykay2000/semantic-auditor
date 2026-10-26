@@ -19,6 +19,18 @@ _KINDS = {
 }
 
 
+HOTELS = {"LIS-H1": ("Hotel Alfama", "LIS"), "BER-H1": ("Hotel Mitte", "BER")}
+
+
+def hotel_by_id(hotel_id: str) -> dict[str, str] | None:
+    h = HOTELS.get(hotel_id.upper())
+    return {"id": hotel_id.upper(), "name": h[0], "city_code": h[1], "city": CITIES[h[1]]} if h else None
+
+
+def plural(n: int, word: str) -> str:
+    return f"{n} {word}" + ("" if n == 1 else "s")
+
+
 def city(code: str) -> str:
     return CITIES.get(code, code)
 

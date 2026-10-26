@@ -70,6 +70,39 @@ python3 -m pytest examples/northbound/tests    # from the repo root
 
 **Markers.** Every message on a page is rendered by ONE Jinja macro (`templates/macros.html`) and carries `data-feature`, `data-message-key` and `data-shown-at` (simulated ISO time). Emails and push notifications are JSON files, one per message, in `outbox/email/<message_id>.json` and `outbox/push/<message_id>.json`: `{message_id, to, subject, sent_at, headers: {"X-Feature", "X-Message-Key"}, text, html}`. The itinerary PDF lists its message keys in the PDF keywords and keeps its text extractable. Message ids (`m000001`, ...) are shared by the log and the sinks.
 
+### Northbound 2.4 and 2.4.1 (`NORTHBOUND_RELEASE=2.4` or `2.4.1`)
+
+Features in order: `core`, `price_watch` (2.0, auto-enrol), `fare_lock`, `concierge` (2.0). The three seeded bugs are **settings**, so 2.4.1 fixes them by settings only.
+
+| Setting | 2.4 | 2.4.1 | Meaning |
+|---|---|---|---|
+| `price_watch.mode` | `auto_enroll` | same | every searcher is enrolled; the 2.3 opt-in card does not exist |
+| `price_watch.forecast_email_delay` / `followup_email_delay` / `push_delay` | `1m` / `2h` / `8h` | same | after the search: `pw.email.forecast` (`.nodrop` when the forecast says no drop), `pw.email.after`, `pw.push.moving` (the last two only when the forecast says drop) |
+| `price_watch.stop_after_booking` | **False** (bug: follow-ups continue after booking) | **True** | fix 1 |
+| `fare_lock.urgent_targeting` | **`time_or_fixed_dates`** (bug: fixed dates alone trigger urgency) | same | `time_only` is the sane value |
+| `fare_lock.urgent_within_hours` | 72 | same | exact comparison `departure - now <= 72 h` |
+| `fare_lock.lock_fee_cents` / `lock_hours` / `urgent_lock_hours` | 900 / 48 / 12 | same | the lock fee shown as "EUR 9 total" |
+| `fare_lock.lock_fee_basis` | **`per_traveller`** (bug: a couple pays EUR 18) | **`per_booking`** | fix 2 |
+| `concierge.fare_detail_reconcile` | `experiment` (arm `fare_detail_reconcile`) | **`everyone`** | fix 3: `cg.reconcile` inline on the fare page, below the banner |
+| `concierge.upgrade_tip_delay` | `2h54m` | same | `cg.upgrade` in chat after a non-refundable booking, if the window is open (a 10:06 booking gets it at 13:00) |
+| `concierge.regret_answer` | True | **True** | "Did I get a good deal?" after a non-refundable booking -> `cg.regret` (the seeded U4 bug; not a 2.4.1 fix) |
+| `core.hotels`, `fare_lock.hotels` | False | **True** | the hotel page and `fl.hotel.urgent` (a new surface, not a fix) |
+
+`releases/r2_4_1.py` holds the owner's fix list: `APPLIED_FIXES` names the fixes applied (`price_watch_stops_after_booking`, `lock_fee_per_booking`, `reconcile_on_fare_detail_for_everyone`); adding or removing a name in that one list changes the disposition of one issue.
+
+**Experiment arms** are set per traveller by the persona hook: `"experiments": {"fl_urgent_copy": "bare"}` shows `fl.banner.urgent_bare` instead of `fl.banner.urgent`; `"experiments": {"fare_detail_reconcile": true}` shows `cg.reconcile` inline on the fare page in 2.4.
+
+**Fare Lock pages and endpoints.** The fare page shows `fl.banner` (or the urgent variants, see above), hidden once the traveller has booked or holds a lock on that fare. `POST /fare/<id>/lock` buys the lock (303 to `/checkout/<id>`, which shows `fl.checkout.lock`); 409 if booked, already locked or out of seats. The charge is its own `what: "fare_lock"` line in `GET /api/oracle/booking` `charges[]` (same `quote_id` as the fare; `total_cents` includes it) and the oracle gains `fare_lock: {fare_id, bought_at, held_until, hours, held}` (null when none). The lock holds 48 h, 12 h when bought in the urgent variant.
+
+**Hooks added for 2.4:**
+- persona: `"experiments": {...}`, `"stay": {"hotel": "LIS-H1", "check_in_at": "<iso>", "nights": 2, "rooms": 1}`; `flexible: false` marks fixed dates.
+- `POST /api/test/world {"bucket_seats": {"LIS-BER-NR": 2}}`: the seat count the banner shows, set apart from inventory (default: the inventory, so Omar is `seats` 9 and `bucket_seats` 2); `{"rooms": {"LIS-H1": 1}}`: hotel rooms left (default 5).
+- `GET /api/oracle/inventory?hotel=LIS-H1` -> `{hotel, rooms_left}` (exactly one of `?fare=` / `?hotel=`).
+- Hotels: `LIS-H1` (Hotel Alfama), `BER-H1` (Hotel Mitte). `GET /hotel/<id>` (2.4.1 only; surface `hotel_detail`, `data-component="hotel"`) shows `core.hotel.summary` and, when the traveller's stay checks in within 72 h (exact), `fl.hotel.urgent` with the rooms-left count from the hotel inventory. There is no hotel checkout or hold in the demo.
+- Every message carries `data-component` (`flight` or `hotel`) and a `component` field in the message log.
+
+**How to drive the personas** (all with `POST /api/test/personas` then real routes and `POST /api/test/clock`; `tests/test_release_2_4.py` has each one): Maya: search 10:00, fare 10:03, `POST /checkout/LIS-BER-NR` 10:06, ask at D2 09:02. Maya-R: the same with the `fare_detail_reconcile` arm. Lena: search, fare, ask "Book now or wait?" at 10:04. Raj / Raj-X / Raj@72h / +30 s / +1 m / Hana: `flexible: false`, no-drop forecast, departure 30 h / 30 h with the `bare` arm / 72 h / 72 h 30 s / 72 h 1 min after the 10:03 banner / 181 d. Kai and Omar: flexible, departure in 30 h / 20 h (Omar: `seats` 9, `bucket_seats` 2). Sam & Alex: `travellers: 2`, fare 10:03, `POST /fare/LIS-BER-NR/lock` 10:04. Theo: fare 10:05 with no search, book 10:06, clock to 13:00. Rina (2.4.1): `stay` check-in 30 h away, `rooms` 1 for `LIS-H1`, `GET /hotel/LIS-H1`.
+
 **2.3 copy keys** (`northbound/copy.py` is the table; the canonical `pw.*` and `cg.*` texts above are used verbatim):
 
 | Feature | Keys |
@@ -86,12 +119,14 @@ A release is a module in `northbound/releases/` (file name: `2.4` -> `r2_4.py`, 
 
 A feature is `northbound/features/<id>.py` (or any importable dotted path, listed in `features`) exposing `class Feature(BaseFeature)` with `id` (matches `contract/features.yaml`), `DEFAULTS`, `COPY` (extra keys) and these optional hooks, documented in `northbound/features/__init__.py`:
 
-- `messages_for(surface, ctx) -> [Message]`: what to show on `search_results | fare_detail | checkout | confirmation | chat`
+- `messages_for(surface, ctx) -> [Message]`: what to show on `search_results | fare_detail | checkout | confirmation | chat | hotel_detail`
 - `on_action(action, ctx, data) -> dict | None`: reacts to `search`, `open_fare`, `opt_in`, `book`, `upgrade`; may schedule or cancel jobs and send email/push; `{"error": ...}` refuses
 - `on_job(job, ctx)`: runs a due job with the clock at its due time
-- `concierge_reply(question, ctx) -> Message | None`
+- `concierge_reply(question, ctx) -> Message | None`: a chat answer, or None to pass; the first feature to answer wins
+- `routes(app, env)`: mounts extra HTTP routes (a new page surface, a purchase endpoint). `env` is `AppEnv` with `rt`, `templates`, `ctx_for(request, **kw)`, `page(request, template, ctx, surface, ...)` and `need_fare`
+- `oracle_extras(ctx) -> dict | None`: extra `charges[]` (each its own line; `total_cents` is recomputed) and extra fields for `GET /api/oracle/booking`
 
-`ctx` offers `now`, `traveller`, `booking`, `message(...)`, `send_email(...)`, `send_push(...)`, `schedule(feature, kind, delay=)`, `cancel_jobs(feature)` and `state_for(feature_id)`. Price Watch 1.0 implements only `mode: opt_in`; 2.4 extends or replaces that module for auto-enrol.
+`ctx` offers `now`, `traveller`, `booking`, `message(...)`, `send_email(...)`, `send_push(...)`, `schedule(feature, kind, delay=)`, `cancel_jobs(feature)` and `state_for(feature_id)`. Price Watch 1.0 (`features/price_watch.py`) implements only `mode: opt_in` and refuses any other mode. 2.4 uses `features/price_watch_v2.py`, which subclasses it (same feature id `price_watch`) and adds `mode: auto_enroll`; Concierge 2.0 is `features/concierge_v2.py` the same way. Extra `ctx` helpers: `ctx.experiment(name)` and `ctx.send_chat(feature, key)`.
 
 ## Owner rules: written draft (the voice note comes later)
 

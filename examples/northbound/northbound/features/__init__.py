@@ -19,6 +19,19 @@ Hooks (all optional; ctx is a northbound.runtime.Ctx):
       Runs a due job this feature scheduled, with the simulated clock set to the job's due time.
   concierge_reply(question, ctx) -> Message | None
       A chat answer, or None to pass. The first feature to answer wins.
+  routes(app, env)
+      Mount extra HTTP routes (a new page surface, a purchase endpoint). `app` is the FastAPI app; `env` is
+      northbound.app.AppEnv with: rt (the Runtime), templates, ctx_for(request, **kw) -> Ctx (401 without a
+      traveller), and page(request, template, ctx, surface, status=200, **extra) which collects every feature's
+      messages_for(surface) and renders them through the ONE message macro. A new surface needs a template that
+      extends base.html and prints slots with the `slot` macro, plus messages_for(surface, ctx) in the features
+      that speak there. Called once, after the core routes, in release order.
+  oracle_extras(ctx) -> dict | None
+      Extra content for GET /api/oracle/booking: "charges" (list of Charge.as_dict() rows, appended as their
+      own lines; total_cents is recomputed) and any other keys (merged in).
+
+Ctx helpers a feature may use: ctx.experiment(name) (the traveller's experiment arm), ctx.send_chat(feature, key)
+(an in-app chat message, logged and added to the chat history), plus the ones listed in the README.
 
 Class attributes: id (matches examples/northbound/contract/features.yaml), DEFAULTS (settings defaults, overridden
 by Release.settings[id]), COPY (extra copy keys this feature needs; merged into the copy table).
@@ -55,6 +68,12 @@ class BaseFeature:
         return None
 
     def concierge_reply(self, question: str, ctx) -> Message | None:
+        return None
+
+    def routes(self, app, env) -> None:
+        return None
+
+    def oracle_extras(self, ctx) -> dict[str, Any] | None:
         return None
 
 
