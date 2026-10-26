@@ -31,6 +31,8 @@ Finablo is a personal-finance web app. Its report, dashboard, PDF, export and AI
 - It never gets `CLAUDE.md`, `BUG-HISTORY.md`, `PLAN.md` or the handoff cards, all of which describe these bugs.
 - The input list and commit SHAs are recorded in the run.
 
+**Capturing R1.** The pending report state is transient. Run local Finablo with AI generation disabled (no API key), so the ranked-list path persists and can be captured, with no Claude spend.
+
 ## Constraints (carried from Finablo's own rules)
 
 - Local only; never `app.finablo.com`.

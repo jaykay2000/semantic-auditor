@@ -61,83 +61,89 @@ Code narrows the search space and makes everything reproducible. Models interpre
 
 The contract lives in the consumer's repo at `.semaudit/`. It is owner-approved, and every item records its source: a doc span, a transcript timestamp or a review click.
 
-```yaml
-# principles.yaml: three KINDS of rule, evaluated independently
-# (1) universal prohibitions: no exceptions, ever
-- id: U1
-  kind: universal
-  text: Every scarcity, price and policy claim matches our own data.
-  check: {claims: [seats_left, price, fee, policy], must: match_oracle}   # code
-  source: {kind: doc, file: northbound-principles-draft.md, at: "§1"}
+The schema is shown below as an excerpt. **Northbound's full rules, decision vocabulary, strength rubric, canonical copy and expected results live in one place, [examples/northbound/README.md](../examples/northbound/README.md).** This document defines the shapes, not the instance.
 
-# (2) conditional rules: forbidden by default, permitted only through a scoped exception
-- id: P1
+```yaml
+# principles.yaml: five KINDS, each evaluated independently
+- id: U1                       # universal: no exceptions, ever (code)
+  kind: universal
+  text: Every scarcity, availability and policy claim matches our own data.
+  check: {claims: [seats_left, availability, policy], must: match_oracle}
+  source: {kind: doc, file: northbound-rules-draft.md, at: "U1"}
+- id: U3                       # universal, about actionability (code: action preconditions)
+  kind: universal
+  text: Every recommendation we show is one the traveller can still act on.
+  check: {directives: all, must: precondition_holds_at_shown_time}
+- id: U4                       # universal, judged (model classifies 'retrospective'; verifier re-checks)
+  kind: universal
+  text: After purchase, we never second-guess a completed choice.
+  applies_to: {message.kind: retrospective, state: "booking.status == booked"}
+- id: P1                       # conditional: forbidden by default; permitted only via a scoped exception
   kind: conditional
-  text: >
-    We may always share verified inventory information. We do not urge immediate
-    action, except for genuinely time-sensitive trips.
-  tier: core                                   # core | standard
-  applies_to: {decision: when_to_book, directive.strength: [urge, require]}
+  text: We may always share true inventory information. We do not urge immediate booking, except for genuinely time-sensitive trips.
+  applies_to: {decision: when_to_book, directive.strength: [urge, require]}   # flights AND hotels
   exceptions:
     - id: P1-E1
-      conditions:                              # ALL must be met
-        - {id: a, data: "state.departure_in_h <= 72"}          # code. Fixed dates alone never qualify
-        - {id: b, data: "claim.seats_left == oracle.inventory"} # code
-        - {id: c, judged: explains_tradeoff}                   # model judges; verifier re-judges
-      scope: {features: [fare_lock], surfaces: [fare_detail, checkout]}
-      approved: {by: owner, on: 2026-10-27, expires: 2027-01-31}
-
-# (3) cross-feature coherence rules: about the RELATIONSHIP between messages
-- id: P2
+      conditions:              # ALL must be met
+        - {id: a, data: "derived.departure_in_min <= 4320"}      # 72 h, in whole minutes, derived from trip.departure_at at the time shown
+        - {id: b, data: "claim.seats_left == oracle.inventory"}
+        - {id: c, judged: directive.explains_own_tradeoff}
+      scope: {features: [fare_lock], components: [flight], surfaces: [fare_detail, checkout]}
+      approved: {by: owner, on: 2026-10-26, expires: 2027-01-31}
+- id: P2                       # coherence: about the RELATIONSHIP between features' messages
   kind: coherence
-  text: >
-    When more than one feature gives an active recommendation about the same user
-    decision, the product either presents a consistent recommendation or explains
-    the competing tradeoffs.
-  tier: core
-  applies_to: {relation: competing_directives}
-  satisfied_by: [consistent_recommendation, explained_tradeoff]
-  # no exceptions; an exception to a conditional rule never excuses a coherence rule
+  text: When more than one feature gives an active recommendation about the same decision, the product must reconcile incompatible actions, or explain the material tradeoffs between otherwise compatible actions, while both are live and before the traveller decides.
+  applies_to: {relation: competing_directives}       # pair type comes from decisions.yaml: incompatible | tradeoff
+  satisfied_by: {message.reconciles: "both directive ids", shown: "while both live, before the decision action"}
+- id: P3                       # load: a threshold (code)
+  kind: load
+  text: Beyond booking messages, at most 2 outbound contacts (email or push) in any 24 hours; user-initiated conversations do not count.
+  count: {channels: [email, push], exclude_topics: [booking], exclude: [user_initiated], window: 24h, max: 2}
 
-# features.yaml: who said it
-- id: fare_lock
-  release_introduced: "2.4"
-  attribution: {dom_attr: "data-feature=fare_lock", templates: ["email/fare_lock_*"]}
-
-# decisions.yaml: the user decisions the product guides, and which actions are incompatible
+# decisions.yaml: every action, its preconditions, and which pairs are incompatible (with a rationale)
 - id: when_to_book
-  actions: [book_now, wait_for_drop, set_alert]
-  incompatible: [[book_now, wait_for_drop]]
+  actions: [book_now, lock_fare, wait_for_drop, set_alert]
+  incompatible:                # P2 label if unreconciled: conflict
+    - {pair: [book_now, wait_for_drop], rationale: "act now vs wait"}
+  tradeoffs:                   # compatible, but material; P2 label if unexplained: unexplained_tradeoff
+    - {pair: [lock_fare, wait_for_drop], material: "the lock costs €9 and expires after 48 h; the forecast drop window is 14 days"}
+  preconditions: {"*": "booking.status == not_booked"}
 - id: fare_type
   actions: [choose_refundable, choose_non_refundable, upgrade_to_refundable]
   preconditions:
-    choose_refundable: {booking.status: not_booked}
-    upgrade_to_refundable: {booking.within_free_change_window: true}
+    choose_refundable: "booking.status == not_booked"
+    choose_non_refundable: "booking.status == not_booked"
+    upgrade_to_refundable: "booking.within_change_window"   # 24 h from booking, fee €30
 
-# personas.yaml: archetypes, axes, and the STATE each persona carries into a scenario
+# features.yaml: who said it, and how long its advice stands by default
+- id: price_watch
+  release_introduced: "2.3"
+  changed_in: "2.4"
+  attribution: {dom_attr: "data-feature=price_watch", headers: ["X-Feature: price_watch"]}
+  default_lifetime: {card: session, email: 7d, push: 24h}
+
+# personas.yaml: axes + a TRIP; time-dependent state is DERIVED per step, never stored
 - id: maya
   axes: {party: solo, budget: tight, date_flexibility: flexible, currency: EUR}
-  state: {departure_in_days: 42}
+  trip: {route: LIS-BER, departure_at: "D42 08:00"}
 - id: raj
   axes: {party: solo, budget: expense_account, date_flexibility: fixed}
-  state: {departure_in_hours: 30}
+  trip: {route: LIS-BER, departure_at: "D1 16:00"}      # 30 h after D0 10:00
 
-# scenarios.yaml: time-ordered scripts, the backbone of a story
+# scenarios.yaml: time-ordered user actions (the messages are what the app produces)
 - id: S-book-flexible
   steps:
-    - {at: "D0 10:00", do: search, route: LIS-BER}        # captures results incl. the Price Watch card
-    - {at: "D0 10:01", do: check_inbox}                    # captures the Price Watch email
-    - {at: "D0 10:03", do: open_fare, pick: cheapest}      # captures the Fare Lock banner
+    - {at: "D0 10:00", do: search}                    # captures results incl. the Price Watch card
+    - {at: "D0 10:01", do: check_inbox}
+    - {at: "D0 10:03", do: open_fare, pick: cheapest} # captures the Fare Lock banner
     - {at: "D0 10:05", do: checkout, fare: non_refundable}
     - {at: "D0 10:06", do: confirm}
-    - {at: "D0 12:00", do: advance_clock_and_check_inbox}  # time-triggered email, push
-    - {at: "D2 09:00", do: open_app}
+    - {at: "D0 12:00", do: advance_clock_and_check_inbox}
+    - {at: "D0 18:00", do: advance_clock_and_check_inbox}
     - {at: "D2 09:02", do: ask_concierge, q: "Did I get a good deal?"}
-  # fixture requirement (tested): on 2.4, the Price Watch "wait" message is captured BEFORE the Fare Lock banner
+  # tested fixture requirement: on 2.4 the Price Watch directive is captured before the Fare Lock banner
 
-# surfaces.yaml, facts.yaml (with oracles), rules.yaml (expressible checks): as before
-# release_policy.yaml: how severity x confidence x verification becomes a recommendation (L6)
-# dispositions/: owner decisions on past issues (L6 memory)
+# release_policy.yaml (L6) · dispositions/ (L6 memory) · surfaces.yaml · facts.yaml (+ oracles)
 ```
 
 Two hooks the consumer provides: a **persona hook** that creates the persona's account and state, and a **clock hook** that advances simulated time and fires time-based jobs (emails, pushes). Without a clock hook, time-triggered surfaces are reported as *not measured*. They are never silently skipped.
@@ -167,7 +173,8 @@ An **episode** is one run of one scenario, for one persona, on one release:
   - `contradicted`: the oracle disagrees. Only this status can raise a false-claim issue;
   - `unverifiable`: no oracle exists. Missing evidence is not evidence of falsehood, so this becomes an owner question (or a low-confidence note on an AI-generated surface), never a false claim.
 - **(b) Messages** — `{message_id, capture_id, locator, exact_text, feature_id, attribution{method: dom_attr | contract_map | release_diff | model, confidence}, claims[]}`.
-- **(c) Directives** — for any message that recommends something:
+- **(c) Message kind** — `information` · `directive` (recommends an action) · `retrospective` (judges a choice already made).
+- **(d) Directives** — for any message that recommends something:
 
 ```json
 { "decision": "when_to_book", "action": "wait_for_drop",
@@ -177,9 +184,12 @@ An **episode** is one run of one scenario, for one persona, on one release:
                "ends_on": [{"state": "booking.status == booked"}],
                "basis": ["action_rule"]},
   "objective": "lower price",
-  "explains_tradeoff": false,
-  "evidence_span": "Prices for LIS→BER may drop. We'll tell you when to book." }
+  "explains_own_tradeoff": false,              // P1-E1 (c): does the message weigh its OWN advice?
+  "reconciles": [],                            // P2: ids of OTHER features' directives this message addresses
+  "evidence_span": "Prices on your dates are likely to drop over the next two weeks. We'll tell you when to book." }
 ```
+
+`strength` follows the contract's **strength rubric** (inform / suggest / urge / require, defined operationally per product). `explains_own_tradeoff` and `reconciles` are deliberately separate fields: explaining your own tradeoff never reconciles a conflict with another feature's advice.
 
 Directives are extracted by Muse Spark Open, constrained to the contract's decision and action vocabulary. A directive outside that vocabulary is kept as `action: other` with free text, and becomes an onboarding question.
 
@@ -206,7 +216,8 @@ This is a small, explicit rule set, not a general temporal reasoner. The fixture
   "kind": "message",                           // message | user_action | state_change
   "surface": "price_watch_email", "feature": "price_watch",
   "message_id": "m19", "directive": {...},
-  "state_at_event": {"booking.status": "booked", "fare_type": "non_refundable", "departure_in_days": 42} }
+  "state_at_event": {"booking.status": "booked", "fare_type": "non_refundable",
+                     "derived": {"departure_in_min": 60360}} }   // derived by code from trip.departure_at
 ```
 
 The story is the single object that the relation layer, the issue evidence, the delta and the UI all read: one source of truth.
@@ -219,7 +230,7 @@ The story is the single object that the relation layer, the issue evidence, the 
 
 | Generator | Proposes a candidate when |
 |---|---|
-| `competing_directives` | two directives from **different features** share a decision, their actions are in the contract's `incompatible` set, and they overlap (validity rules above). Coherence rules (P2) apply to these |
+| `competing_directives` | two directives from **different features** share a decision, their action pair is listed in the contract as `incompatible` **or** as a material `tradeoff`, and they overlap (validity rules above). The pair type is carried into interpretation. Coherence rules (P2) apply to these |
 | `stale_guidance` | a directive's precondition is false in `state_at_event` (e.g. "choose refundable" after booking a non-refundable fare, outside the free-change window) |
 | `rule_applies` | an event matches a universal or conditional rule's `applies_to`. For conditional rules, its exceptions are evaluated (below) |
 | `attention_load` | more than *N* directive or marketing messages within window *W* (contract-set) |
@@ -231,28 +242,31 @@ The story is the single object that the relation layer, the issue evidence, the 
 
 | Label | Meaning | Becomes an issue? |
 |---|---|---|
-| `conflict` | the user receives incompatible guidance, or a principle is broken, and no exception applies | yes |
-| `unexplained_tradeoff` | both messages are individually legitimate, but the product never reconciles them for the user | yes, at lower severity, with a "explain the tradeoff" suggestion |
-| `explained_tradeoff` | both signals are present *and* the product helps the user weigh them | no (negative control) |
+| `conflict` | an **incompatible** pair that is not reconciled, or a broken rule with no applicable exception | yes |
+| `unexplained_tradeoff` | a **compatible** pair with a material tradeoff that nothing explains | yes. P2 is violated; severity is usually lower than a conflict, with an "explain the tradeoff" suggestion |
+| `explained_tradeoff` | a message that `reconciles` both directives is shown while both are live and before the user decides | no (negative control); listed under *not raised* with the reconciling message |
 | `exception_applies` | a scoped exception's conditions are all met | no; shown as "allowed by P1-E1" with each condition's result |
 | `compatible` / `duplicate_ok` | no conflict (e.g. a confirmation page and a confirmation email) | no |
 
 **Rule kinds are evaluated independently, in this order:**
-1. **Universal rules** (U1, U2): code checks, with no exceptions. A failure stands no matter what else holds.
-2. **Conditional rules** (P1, P3): the rule applies, then its exceptions are evaluated. Data conditions (`departure_in_h <= 72`, `seats_left == inventory`) are evaluated by **code** against state and oracles, giving *met*, *not_met* or *unknown*. Soft conditions (`explains_tradeoff`) are judged by the model and re-judged by the verifier. An exception applies only if **every** condition is *met*, and only inside its scope. An *unknown* condition lowers confidence; it never grants the exception.
-3. **Coherence rules** (P2): evaluated on `competing_directives` relations. Satisfied only by a consistent recommendation or an explained tradeoff.
+1. **Universal rules** (U1–U4): no exceptions. A failure stands no matter what else holds. U1 to U3 are code checks; U4 needs the model to classify a message as *retrospective*, which the verifier re-checks.
+2. **Conditional rules** (P1): the rule applies, then its exceptions are evaluated. Data conditions (`derived.departure_in_min <= 4320`, `seats_left == inventory`) are evaluated by **code** against derived state and oracles, giving *met*, *not_met* or *unknown*. Soft conditions (`explains_own_tradeoff`) are judged by the model and re-judged by the verifier. An exception applies only if **every** condition is *met*, and only inside its scope. An *unknown* condition lowers confidence; it never grants the exception.
+3. **Coherence rules** (P2): evaluated on `competing_directives` relations. Satisfied only by a consistent recommendation, or by a message that `reconciles` both directives while both are live and before the user decides.
+4. **Load rules** (P3): code counts.
+
+**One event, one rule per finding.** When two generators fire on the same event (for example a stale directive that is also retrospective), the issue carries both rule results but is counted once, under the rule the contract ranks first.
 
 **An exception to one rule never excuses another rule.** Kai (imminent trip, verified, explained urgency) is allowed under P1-E1, *and* still raised under P2 if Price Watch tells him to wait. Omar (imminent trip, false seat count) fails U1 *and* fails P1-E1 condition (b). Every story shows each rule's evaluation, including the ones that passed, so "why is Raj fine?" is answered on screen: P1 applies and P1-E1 is met; P2 has no competing directive.
 
 ## L5: Issues
 
 ```json
-{ "issue_id": "I-2.4-maya-01", "kind": "competing_directives",
+{ "issue_id": "I-2.4-maya-01", "kind": "competing_directives", "label": "unexplained_tradeoff",
   "release": "2.4", "base": "2.3", "delta": "new",          // new | changed | pre_existing | resolved
   "personas": ["maya"], "scenarios": ["S-book-flexible"],
   "events": ["e2", "e4"], "features": ["price_watch", "fare_lock"],
   "rules": [{"id": "P2", "kind": "coherence", "status": "violated",
-             "why": "wait_for_drop (live since D0 10:00) and lock_fare (D0 10:03) on when_to_book; no reconciliation shown"},
+             "why": "wait_for_drop (live since D0 10:00) and lock_fare (D0 10:03): a material tradeoff pair, nothing explains it"},
             {"id": "P1", "kind": "conditional", "status": "not_applicable", "why": "lock_fare strength = suggest"},
             {"id": "U1", "kind": "universal", "status": "passed", "why": "seats_left 2 == inventory 2; forecast matches oracle"}],
   "severity":     {"level": "major", "factors": {"decision_impact": "money", "principle_tier": "core",
@@ -261,7 +275,7 @@ The story is the single object that the relation layer, the issue evidence, the 
                    "label agreed by independent model", "defense failed", "no unknown conditions"]},
   "verification": {"status": "verified", "steps": {"reproduced": "pass", "evidence_linked": "pass",
                    "cross_model": "pass", "defended": "pass"}},
-  "repro": "semaudit repro I-2.4-maya-03",
+  "repro": "semaudit repro I-2.4-maya-01",
   "disposition": "open" }
 ```
 
@@ -282,10 +296,12 @@ The story is the single object that the relation layer, the issue evidence, the 
 
 | Recommendation | Rule |
 |---|---|
-| **Hold** | an open issue is `severity = critical` **and** `confidence ≥ medium` **and** `verification = verified` |
-| **Needs owner review** | an open critical issue is not verified, or has low confidence; or the open majors reach the policy threshold |
-| **Ship with notes** | only verified majors or minors are open |
-| **Ship** | nothing open |
+| **Hold** | any open issue with `severity = critical` **and** `confidence ≥ medium` **and** `verification = verified` |
+| **Needs owner review** | otherwise, any open issue that is critical (any confidence or verification), **or** any open issue that is not `verified` |
+| **Ship with notes** | otherwise, open issues exist, all of them verified and non-critical |
+| **Ship** | no open issues |
+
+The rows are evaluated top to bottom and are exhaustive: every combination of open issues lands in exactly one row. Issues whose verification `failed` are not open; they are on the *not raised* list.
 
 The owner's actual decision is recorded beside the recommendation, never overwriting it.
 
@@ -294,7 +310,7 @@ The owner's actual decision is recorded beside the recommendation, never overwri
 | Disposition | What is stored | Next release |
 |---|---|---|
 | **fix** | issue reference + expected resolution | the issue must come back `resolved`, or it is re-raised as `still_open` |
-| **accept as scoped exception** | a new or narrowed exception: conditions, scope (features, surfaces, personas), expiry, approver | applies only when *all* its conditions are met. A similar event outside the scope or conditions is raised, with the reason (e.g. Fare Lock's urgent variant in the hotel flow: "nearest exception P1-E1 does not apply: scope"; Hana: "condition (a) not met: departs in 4,320 h") |
+| **accept as scoped exception** | a new or narrowed exception: conditions, scope (features, surfaces, personas), expiry, approver | applies only when *all* its conditions are met. A similar event outside the scope or conditions is raised, with the reason (e.g. Fare Lock's urgent variant in the hotel flow: "nearest exception P1-E1 does not apply: scope"; Hana: "condition (a) not met: departs in ≈ 4,380 h") |
 | **not an issue** | reason + the exact relation signature (events, features, principle) | that exact signature is not re-raised; a variant is |
 | **expressible rule** | a deterministic check in `.semaudit/checks/` (fact equality, presence or absence under a condition, a precondition rule) | runs first after capture, with no model calls; it reports `could_not_measure` when a locator breaks |
 | **approved semantic expectation** | a natural-language expectation, approved and scoped ("Price Watch never messages a traveller after they book") | evaluated by the relation layer every release; not claimed to be deterministic |
@@ -305,7 +321,8 @@ The owner's actual decision is recorded beside the recommendation, never overwri
 |---|---|---|
 | `extractor` (messages, directives, claims) | **Muse Spark Open** (`meta-models/muse-spark-open-1026` on Modal/Baseten) | high volume, structured output |
 | `interpreter` (label relations; `model_open` pass) | **Muse Spark** (Meta Model API; latest official ID, to be verified) | the core judgement |
-| `cross_checker` (verification: re-extract and re-label) | the *other* model of the two | agreement across two different models is the point |
+| `cross_checker.extract` (re-extract directives) | **Muse Spark** (the extractor is Muse Spark Open) | agreement across two *different* models is the point |
+| `cross_checker.interpret` (re-label relations) | **Muse Spark Open** (the interpreter is Muse Spark) | likewise. If open-weights hosting is unavailable, two Muse Spark versions are used and every confidence basis records "reduced independence" |
 | `defender` (explain-it-away pass) | Muse Spark Open | independent of the interpreter |
 | `explorer` (journey repair, onboarding mapping) | Muse Spark with browser tools | |
 | `transcriber` (owner voice note) | **Muse Voice Transcribe** | |

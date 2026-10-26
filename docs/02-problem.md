@@ -6,13 +6,12 @@ A **semantic release issue** is product behaviour that is acceptable feature by 
 
 | Kind | Shape | Northbound example |
 |---|---|---|
-| Kind | Shape | Northbound example |
-|---|---|---|
-| **Competing directives** (coherence) | two features give incompatible recommendations on the same decision while both are live, and the product never reconciles them. Each message can be entirely true | Price Watch: "likely to drop, we'll tell you when to book" · Fare Lock: "2 seats left at this fare, lock it" |
+| **Unexplained tradeoff** (coherence) | two features recommend *compatible* actions on the same decision, with a material tradeoff between them that nothing explains. Each message can be entirely true | Price Watch: "likely to drop, we'll tell you when to book" · Fare Lock: "2 seats left at this fare. Lock it for 48 h for €9". Lock and wait can coexist, but the €9 lock expires long before the 14-day drop window, and nobody says so |
+| **Conflicting directives** (coherence) | two features recommend *incompatible* actions on the same decision while both are live, unreconciled | Price Watch: "wait" · Fare Lock (urgent variant): "Book now" |
 | **Stale guidance** | advice whose precondition is no longer true for this user | after booking: "we'll tell you when to book" |
 | **Rule breach for this persona** | behaviour a conditional rule forbids, with no exception's conditions all met | urging immediate booking on a trip six months away |
 | **Attention load** | more demands on the user than the owner's rule allows | four non-booking messages in 24 hours |
-| **Fact divergence** | the same fact with different values on different surfaces | lock fee €9 on the banner, €12 at checkout |
+| **Fact divergence** | the same fact with different values on different surfaces | the lock is shown at €9, and a couple buying it is charged €18 |
 | **False claim** | a claim contradicted by the product's own data (a claim with no data to check is *unverifiable*, not false) | "only 2 seats left" when inventory shows 9 |
 
 The first four are **release-level**: no single feature is wrong in isolation, and they are why the auditor exists. The last two are conventional factual defects, kept because they are the most objective evidence an experience contains. The demo presents them as such and never as the hero.

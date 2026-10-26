@@ -16,7 +16,7 @@ If the baseline matches or beats the auditor on a measure, we publish that too.
 |---|---|---|
 | **E1 Experience coverage** | **B-explore**: Muse Spark as a browser agent, given the contract docs, the owner rules, the persona and clock hooks, and the same tool-call, time and $ budget. **B-explore+scenarios**: the same agent, also given the auditor's scenario definitions | It reaches more of the issue-bearing (persona × scenario × surface × time) combinations, including time-triggered and post-action ones |
 | **E2 Judgment quality** | **B-judge-1**: Muse Spark, one long-context call, given **the auditor's own captured stories** (every capture in time order, with persona, state and feature labels), the rules with their exceptions, and the release notes, under a strong published prompt. **B-judge-N**: a **budget-matched multi-pass** baseline on the same input: per-persona passes, a self-critique pass and a consolidation pass, at the same $ as the auditor's interpretation plus verification | Higher precision and recall; a lower false-positive rate on negative controls; explanations whose every cited event really exists in the evidence |
-| **E3 Release reproducibility** | **B-repeat**: B-explore + B-judge-N as a one-off review, run *k* = 3 times per release | Stable issue sets across **fresh** runs; findings that replay on demand; correct attribution (new vs pre-existing, which feature); owner decisions respected on the next release |
+| **E3 Release reproducibility** | **B-repeat**: a one-off agentic review, i.e. B-explore followed by a multi-pass judge (same structure as B-judge-N) over **B-explore's own captures**, run *k* = 3 times per release | Stable issue sets across **fresh** runs; findings that replay on demand; correct attribution (new vs pre-existing, which feature) |
 
 E2 deliberately gives the baseline the auditor's coverage, so it measures *judgment* alone. E1 measures *coverage* alone. This separation is what keeps the comparison meaningful even if the baseline judges well.
 
@@ -37,7 +37,7 @@ E2 deliberately gives the baseline the auditor's coverage, so it measures *judgm
 | Fixture | Purpose | Used for headline numbers? |
 |---|---|---|
 | **Narrative**: Northbound 2.3 → 2.4 → 2.4.1 | the demo story; prompt development for both systems | **no** (labelled "dev" wherever shown) |
-| **Benchmark**: Northbound `bench-01 … bench-NN` | the frozen, unseen test set | **yes** |
+| **Benchmark**: Northbound `bench-01 … bench-03` | the frozen, unseen test set | **yes** |
 | **Real product**: Finablo historical releases | external validity | reported separately, with denominators |
 
 ### Freezing the benchmark
@@ -45,19 +45,30 @@ E2 deliberately gives the baseline the auditor's coverage, so it measures *judgm
 - A separate session builds `bench-NN` from 2.3. Each release has 2–4 new features, a mix of issue-bearing and negative-control interactions, and a ground-truth file `bench/ground_truth/bench-NN.yaml`.
 - Until scoring, the bench releases and ground truth live **outside the repo**. The **sha256 of each ground-truth file is committed** to `bench/FROZEN.md` before any system is run against it, so anyone can verify afterwards that nothing changed.
 - The session building the auditor never reads them, and issue descriptions are never in either system's context.
+- **Who writes the bench contracts.** The seeding session also writes each bench release's contract additions (features, decision vocabulary with incompatible and tradeoff pairs, scenarios), acting as the product owner. It writes them **as product policy first, committed and hashed before seeding any issue**, so that the vocabulary is generic ("lock and wait are a material tradeoff"), not a list of answers. Both the auditor and the baselines receive the same contract at run time; no developer of the auditor reads it.
 - **Stated limitation:** this is process-level independence, not full independence. One owner designed both. We say so in the README and the video.
 
 ### Target composition (to be confirmed by the seeding session)
 
 | | Count (target) |
 |---|---|
-| bench releases | 6 |
-| issue-bearing interactions | 24 (≥3 of each kind: competing directives between **true** messages, stale guidance, conditional-rule breach, attention load, fact divergence, false claim) |
-| **rule-boundary cases** | ≥ 6: an exception satisfied while a coherence rule is still violated (Kai pattern); an exception failing on a false claim (Omar pattern); a superficially qualifying attribute that is not the exception's condition (Hana pattern: fixed dates ≠ imminent); an exception used outside its scope |
-| **negative controls** | **≥ 18**, at least 3 per pattern: exception applies, explained tradeoff, duplicate_ok, persona-legitimate difference, actionable post-purchase offer, compatible-in-time (messages that would conflict but are never live together), unverifiable-but-not-false claim |
-| personas | 8 per release |
+| bench releases | 3 |
+| issue-bearing interactions | 15 (≥2 of each kind: conflicting directives, unexplained tradeoff, stale guidance, conditional-rule breach, attention load, fact divergence, false claim) |
+| **rule-boundary cases** | ≥ 6: an exception satisfied while a coherence rule is still violated (Kai pattern); an exception failing on a false claim (Omar pattern); a qualifying-looking attribute that is not the condition (Hana pattern); an exact threshold and threshold + 1 (Raj@72h pattern); an exception used outside its scope |
+| **negative controls** | **≥ 15**, at least 2 per pattern: exception applies; reconciled or explained tradeoff (with both features' recommendations present); duplicate_ok; persona-legitimate difference; actionable post-purchase offer; compatible-in-time; unverifiable-but-not-false claim; user-initiated conversation excluded from load |
+| personas | up to 8 per release |
 
 Negative controls are a first-class part of the test set, not a footnote. A system that raises everything scores perfect recall and fails here.
+
+## Matching rule (how a finding is scored)
+
+A finding **matches** a ground-truth item when all of these agree:
+- the persona (or one of the grouped personas);
+- the rule id;
+- the **label**, where it is part of the truth (`conflict` vs `unexplained_tradeoff` are scored as different answers);
+- the event set: for relations, the pair of features plus the decision; for single events, the feature, surface and message key.
+
+Each ground-truth item can be matched at most once. A finding that matches nothing is a false positive *unless* adjudication accepts it as a real, unseeded issue (see below). The matcher is a script in `bench/` that reads both systems' outputs in the same normalized format, so no finding is matched by hand. A baseline's free-text finding is normalized into that format by a fixed, published prompt, and its normalizations are kept for inspection.
 
 ## Ground truth and adjudication
 
@@ -65,18 +76,20 @@ Negative controls are a first-class part of the test set, not a footnote. A syst
 - **Subjective kinds** (competing directives, principle breach, tradeoff explained or not, attention load): the seeded label is a **hypothesis**. Every finding from either system, and every seeded item, is adjudicated by:
   - the **owner**, applying their own principles, and
   - **one independent human adjudicator**, if we can recruit one (open decision D12). They are given the principles and the evidence, and are blind to which system produced the finding.
+- **Blinding:** adjudication sheets are generated by script, with system names removed, findings re-worded into one neutral template and shuffled. The owner built the auditor and may still recognise its style, so we say so. Adjudication is spread over Nov 1–2.
 - We report agreement between the adjudicators (Cohen's κ), and score against the **owner's** labels, with the independent adjudicator's labels as a second line.
 - A finding the adjudicators deem real but unseeded counts as a **true positive** for whichever system found it, and is added to the denominator for both systems.
 
 ## Metrics
 
 **E1 Coverage**
-- Share of ground-truth issue-bearing combinations reached (an issue's events all captured).
+- Share of ground-truth issue-bearing combinations reached (an issue's events all captured). **Measurable for the baseline** because B-explore's browser tool is wrapped by the same capture adapter, so every page, email, push and chat it sees is logged as a capture in the same format.
 - Share of time-triggered and post-action events captured.
 - Cost and wall time.
 
 **E2 Judgment** (on identical stories)
 - Precision and recall overall and by kind, with denominators.
+- **Label accuracy** on coherence findings: `conflict` vs `unexplained_tradeoff` vs `explained_tradeoff`.
 - **False-positive rate on negative controls**, reported by pattern.
 - **Evidence support**: the share of findings in which every cited event, quote and value resolves to a real capture. A finding citing something that is not in the evidence counts as unsupported.
 - Severity agreement with the adjudicators (a separate axis, not part of precision).
@@ -86,9 +99,9 @@ Negative controls are a first-class part of the test set, not a footnote. A syst
 - Run-to-run stability: the mean Jaccard of issue sets across *k* = 3 **fresh** runs (cache disabled, extraction and interpretation re-run). Cached replays are reported separately as *replay determinism*, which demonstrates reproducibility of evidence, not stability of inference.
 - Replay success: the share of findings whose repro command reproduces them.
 - Attribution accuracy: new vs pre-existing, and the responsible features.
-- **Memory:** on 2.4.1 and on a bench "next release", the share of *fixed* issues correctly marked resolved, accepted exceptions correctly honoured, and out-of-scope variants correctly raised.
+- **Memory** (narrative fixture only, labelled *dev*): on 2.4.1, the share of *fixed* issues correctly marked resolved, accepted exceptions correctly honoured, and out-of-scope variants correctly raised. The benchmark has no "next release", so memory gets no headline number.
 
-**Ablations** (the auditor minus one part, all on the benchmark)
+**Ablations** (the auditor minus one part; 2 bench releases, 1 fresh run each. no-generators, no-exceptions and no-verifier are planned; no-delta and no-time run only if the budget allows)
 
 | Ablation | Removes |
 |---|---|

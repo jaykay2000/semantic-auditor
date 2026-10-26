@@ -4,7 +4,7 @@
 
 The Semantic Auditor **reconstructs what a particular user experiences across a release, identifies conflicting product behavior and messages, and gives the owner reproducible evidence to make a shipping decision.**
 
-Users don't experience features; they experience a release. Each feature can pass its own tests and say only true things, and together they can still tell one traveller to *wait for a price drop* (a correct forecast) and *lock this fare, only 2 seats left* (a correct seat count) in the same few minutes, without ever helping her decide. They can also second-guess a purchase she can no longer change.
+Users don't experience features; they experience a release. Each feature can pass its own tests and say only true things, and together they can still hand one traveller two different plans in the same few minutes: *wait for a price drop* (a correct forecast) and *lock this fare, 2 seats left* (a correct seat count). Nothing helps her weigh them. They can also second-guess a purchase she can no longer change.
 
 The auditor finds those **semantic release issues**. It tells them apart from legitimate tradeoffs and owner-approved exceptions. It gives the owner a release review: ranked issues, each with evidence that replays on demand, and a Ship / Hold recommendation.
 
@@ -37,7 +37,8 @@ The auditor finds those **semantic release issues**. It tells them apart from le
 
 | Kind | Example |
 |---|---|
-| Competing directives (coherence) | Price Watch: "likely to drop, we'll tell you when to book" · Fare Lock: "2 seats left at this fare, lock it". Both true, never reconciled |
+| Unexplained tradeoff (coherence) | Price Watch: "likely to drop, we'll tell you when to book" · Fare Lock: "2 seats left at this fare. Lock it for 48 h for €9". Both true and compatible, but nobody explains that the lock expires long before the drop window |
+| Conflicting directives (coherence) | Price Watch: "wait" · Fare Lock's urgent variant: "Book now". Incompatible and unreconciled |
 | Stale guidance | after booking: "we'll tell you when to book" |
 | Rule breach for this persona | urging immediate booking on a trip six months away, which the owner's rule forbids for non-imminent trips |
 | Attention load | four non-booking messages in 24 hours |
@@ -46,7 +47,7 @@ The auditor finds those **semantic release issues**. It tells them apart from le
 
 | Kind | Example |
 |---|---|
-| Fact divergence | lock fee €9 on the banner, €12 at checkout |
+| Fact divergence | the lock is shown at €9, and a couple buying it is charged €18 |
 | False claim | "only 2 seats left" when inventory shows 9 |
 
 What it deliberately **does not** raise:

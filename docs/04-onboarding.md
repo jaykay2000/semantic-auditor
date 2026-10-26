@@ -54,8 +54,10 @@ It asks the owner targeted questions to get there, including **boundary** questi
 **Example result (Northbound's written draft):**
 > **U1.** Every scarcity, price and policy claim matches our own data.
 > **P1.** We may always share verified inventory information. We do not urge immediate action, except for genuinely time-sensitive trips.
-> **P1-E1.** All of: departure within 72 h (fixed dates alone do not qualify); the seat claim matches inventory; the message explains the tradeoff. Scope: Fare Lock on fare detail and checkout. Expires 2027-01-31.
-> **P2.** When more than one feature gives an active recommendation about the same decision, the product presents a consistent recommendation or explains the competing tradeoffs.
+> **P1-E1.** All of: departure within 72 h of the message, measured in minutes (fixed dates alone do not qualify); the seat claim matches inventory; the message explains the tradeoff. Scope: Fare Lock on fare detail and checkout. Expires 2027-01-31.
+> **P2.** When more than one feature gives an active recommendation about the same decision, the product must reconcile incompatible actions, or explain the material tradeoffs between otherwise compatible actions.
+
+The owner also labels each pair of actions on a decision as **incompatible** (book now vs wait) or a **material tradeoff** (lock vs wait). That label decides whether an unexplained pair is a `conflict` or an `unexplained_tradeoff`, so the model is never forced to call compatible advice a contradiction.
 
 Each rule also gets a short list of **boundary cases** the owner confirms (the Maya / Raj / Kai / Hana / Omar table in [examples/northbound](../examples/northbound/README.md)). These become test fixtures.
 

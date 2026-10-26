@@ -4,105 +4,134 @@ A small, fictional travel-booking app built to be audited. **Northbound is not a
 
 It exists to make one capability visible: **several features, each telling the user something true, that together leave one traveller with guidance the owner would not sign.**
 
+This file is the **single source** for Northbound's rules, copy, personas and expected results. Other documents refer to it, and do not restate it.
+
 ## Releases (one naming scheme, used everywhere)
 
 | Release | Role | Contents |
 |---|---|---|
-| **2.3** | base | Core booking; Price Watch (opt-in alerts, before booking only); Concierge 1.0 (answers questions); confirmation page, email and PDF |
-| **2.4** | **narrative fixture**: the demo release | Three changes, each green on its own tests: **Fare Lock** (inventory notice + €9 lock offer; an urgent variant for imminent trips); **Price Watch auto-enroll** (every searcher gets a drop forecast; alerts keep running after booking); **Concierge 2.0** (proactive tips) |
-| **2.4.1** | memory fixture | Fixes for the issues the owner marked *fix*; also **extends Fare Lock to the hotel flow**, which is outside the scope of the approved exception |
-| **bench-01 … bench-NN** | **benchmark fixture** | Sealed releases built from 2.3 by a separate session ([docs/08-evaluation.md](../../docs/08-evaluation.md)). Never used for the narrative, and never read by the session building the auditor |
+| **2.3** | base | Core booking; Price Watch (opt-in alerts, before booking only); Concierge 1.0 (answers questions); confirmation page, email, PDF |
+| **2.4** | **narrative fixture**: the demo release | Three changes, each green on its own tests: **Fare Lock** (inventory notice + lock offer; an urgent variant for imminent trips); **Price Watch auto-enroll** (every searcher gets a drop forecast; its email and push alerts keep running after booking); **Concierge 2.0** (proactive tips) |
+| **2.4.1** | memory fixture | Fixes for the issues the owner marked *fix*; also **extends Fare Lock to hotels**, outside the scope of the approved exception |
+| **bench-01 … bench-03** | **benchmark fixture** | Sealed releases built from 2.3 by a separate session ([docs/08-evaluation.md](../../docs/08-evaluation.md)). Never used for the narrative, and never read by the session building the auditor |
 
 Selection: `NORTHBOUND_RELEASE=2.3|2.4|2.4.1|bench-NN`, read in one place (`config.py`).
 
-## Surfaces and hooks
+## Surfaces, oracles and hooks
 
 | Surface | Kind |
 |---|---|
-| Search results (with the Price Watch card), fare detail (with the Fare Lock banner), checkout, confirmation | web pages |
-| Confirmation email, Price Watch email, Fare Lock reminder | email (file sink `outbox/`) |
-| Push notifications | file sink `outbox/push/` |
+| Search results (Price Watch card), fare detail (Fare Lock banner), checkout, confirmation | web pages |
+| Confirmation email, Price Watch email | email (file sink `outbox/`) |
+| Price Watch push | file sink `outbox/push/` |
 | Itinerary | PDF |
 | Concierge | chat (deterministic templates; the optional LLM path is off for benchmarks) |
-| Booking, inventory, price-forecast APIs | JSON: the **oracles** |
 
-Every rendered message carries `data-feature=<id>` and `data-message-key=<stable key>`; email and push templates carry the same two headers. This is the attribution and event-identity path that a consumer's design system would provide.
+**Oracles (JSON):**
+- `booking`: status, fare type, `departure_at`, the fees charged, and the change window;
+- `inventory`: seats left at the fare;
+- `forecast`: the drop forecast and its window.
+
+Every rendered message carries `data-feature=<id>` and `data-message-key=<stable key>`; email and push templates carry the same two headers.
 
 **Hooks:**
-- `POST /api/test/personas` creates a traveller with axes and state.
+- `POST /api/test/personas` creates a traveller with axes and a trip.
 - `POST /api/test/clock {advance: "2h"}` advances simulated time and runs due jobs.
 
-## Owner rules: draft, written (the voice note comes later)
+**State is derived, not stored on the persona.** A persona has a trip with `departure_at`. The runner computes `departure_in_min` (whole minutes, so the 72-hour boundary is exact) at the simulated time each message is shown. Every rule reads that one name.
 
-The rules come in three kinds, because they fail in different ways:
+## Owner rules: written draft (the voice note comes later)
 
-| ID | Kind | Rule | Exceptions |
+| ID | Kind | Rule | Evaluated by |
 |---|---|---|---|
-| **U1** | universal prohibition | Every scarcity, price and policy claim matches our own data. | none, ever |
-| **U2** | universal prohibition | The price you see is the price you pay: every fee is shown before the traveller commits, identically on every surface. | none, ever |
-| **P1** | conditional (urgency) | We may always share verified inventory information. We do not *urge* immediate action, except for genuinely time-sensitive trips. | **P1-E1**: all of (a) departure within 72 h (fixed dates alone do **not** qualify); (b) the scarcity claim matches inventory; (c) the message explains the tradeoff. Scope: Fare Lock, on fare detail and checkout. |
-| **P2** | cross-feature coherence | When more than one feature gives an active recommendation about the same user decision, the product either presents a consistent recommendation or explains the competing tradeoffs. | none. P1-E1 permits urgency; it does **not** excuse incoherence |
-| **P3** | conditional (post-purchase) | After purchase we help travellers get the most from their booking. We do not second-guess a completed choice unless they can still act on it. | — |
-| **P4** | load | Beyond messages about the booking itself, we contact a traveller at most twice in 24 hours. | — |
+| **U1** | universal | Every scarcity, availability and policy claim matches our own data. | code: claim vs `inventory` / policy oracle |
+| **U2** | universal | For the same traveller, the same transaction and an unchanged price quote, every displayed fee matches the amount ultimately charged. | code: displayed fee vs `booking.charges` for that transaction |
+| **U3** | universal | Every recommendation we show is one the traveller can still act on. | code: the action's precondition at the time it is shown |
+| **U4** | universal | After purchase, we never second-guess a completed choice. Offering an action the traveller can still take is not second-guessing. | model classifies the message as *retrospective* or not; the verifier re-checks |
+| **P1** | conditional | We may always share true inventory information. We do not **urge** immediate booking, except for genuinely time-sensitive trips. | applies to directives on `when_to_book` (flights *and* hotels) with strength `urge` or `require` |
+| **P1-E1** | exception to P1 | Permitted when **all** hold: (a) `departure_in_min ≤ 4320`, i.e. within 72 h of the moment the message is shown (fixed dates alone never qualify); (b) the seat claim matches inventory; (c) the message **explains its own tradeoff** (book now vs keep flexibility). Scope: Fare Lock, *flight* fare detail and checkout. Expires 2027-01-31. | (a), (b) code; (c) model + verifier |
+| **P2** | coherence | When more than one feature gives an active recommendation about the same decision, the product must **reconcile incompatible actions**, or **explain the material tradeoffs between otherwise compatible actions**, while both are live and before the traveller decides. | generator (pair type from the vocabulary) + model (`reconciles`) |
+| **P3** | load | Beyond messages about the booking itself, we send a traveller at most **2 outbound contacts** (email or push) in any 24 hours. In-app cards and user-initiated conversations (the concierge answering a question) are not contacts. | code: count |
 
-**P2 is the release-level rule.** No single feature can break it on its own.
+**Two different "explanations", kept separate:**
+- `explains_own_tradeoff` is about the message itself (P1-E1 (c)).
+- `reconciles: [directive ids]` means the message addresses another feature's advice (P2).
 
-## Narrative fixture: what 2.4 is designed to contain
+Explaining your own tradeoff never reconciles a conflict with someone else's advice.
 
-This list is public because the demo is built on it. 2.4 results are therefore never presented as benchmark numbers.
+### Decision vocabulary (contract)
 
-### Hero: every individual message is true
-
-**Maya**: solo, flexible dates, tight budget, departs in 42 days. Scenario `S-book-flexible`:
-
-| Time | Event | Feature | True? |
+| Decision | Actions | Incompatible pairs | Rationale |
 |---|---|---|---|
-| D0 10:00 | searches LIS→BER | — | |
-| D0 10:00 | search-results card: *"Prices on your dates are likely to drop over the next two weeks. We'll tell you when to book."* (directive: `wait_for_drop`) | Price Watch | ✓ matches the forecast oracle |
-| D0 10:01 | Price Watch email, same message | Price Watch | ✓ |
-| D0 10:03 | fare-detail banner: *"Only 2 seats left at this fare. Lock it for 48 h for €9."* (directive: `lock_fare`, strength *suggest*) | Fare Lock | ✓ inventory = 2 |
-| D0 10:06 | books a non-refundable fare | — | |
-| D0 12:00 | Price Watch email: *"We'll tell you when to book."* | Price Watch | stale (she has booked) |
-| D2 09:02 | asks the concierge *"Did I get a good deal?"* → *"You should have booked a refundable fare."* | Concierge 2.0 | second-guesses a choice she can no longer change |
+| `when_to_book` | `book_now`, `lock_fare`, `wait_for_drop`, `set_alert` | **incompatible:** `book_now` ⟂ `wait_for_drop` (act now vs wait). **Material tradeoff (compatible):** `lock_fare` + `wait_for_drop`. A traveller *could* pay €9 to hold the fare while watching for a drop, but the lock costs money and expires after 48 h, while the forecast drop window is 14 days. Doing both is coherent only if someone explains that | — |
+| `fare_type` | `choose_refundable`, `choose_non_refundable`, `upgrade_to_refundable` | — | — |
 
-**Expected issues:**
-- **P2 coherence conflict (the hero).** `wait_for_drop` (live from 10:00 until she books) and `lock_fare` (10:03) address the same decision, `when_to_book`. Both are correct, and the product never reconciles them. It is *new in 2.4*: the features involved are Price Watch auto-enroll and Fare Lock.
-- **Stale guidance** at D0 12:00.
-- **P3 breach** at D2 09:02.
-- **P4 load**, if her messages exceed the limit.
+Preconditions:
+- `book_now`, `lock_fare`, `wait_for_drop` and `set_alert` require `booking.status == not_booked`.
+- `choose_*` requires `not_booked`.
+- `upgrade_to_refundable` requires `booking.within_change_window` (24 h from booking; fee €30).
 
-Fare Lock's message to Maya is information plus a suggestion, not urgency, so **P1 is not breached for Maya.** Her problem is the relationship between the two features, not either message alone.
+### Strength rubric: suggestion vs urging (operational, so P1 does not hinge on taste)
 
-### Secondary: the factual layer (conventional defects, shown as such)
+A directive is **`urge`** if **any** of these cues is present in the same message:
 
-| Case | Expected |
+| Cue | Examples |
 |---|---|
-| Every persona: the lock fee is €9 on the banner and €12 at checkout | **U2** fact divergence |
-| **Omar**: departs in 20 h; the urgent banner says *"2 seats left"*; inventory = 9 | **U1** false claim, *and* P1-E1 condition (b) fails, so P1 is breached. The exception never excuses a false claim |
+| U-a: an **immediacy** word attached to the action | "now", "today", "right away", "before it's gone", "don't miss" |
+| U-b: a **countdown** or a stated deadline of **≤ 24 h** attached to the primary action | "offer ends in 3 h", a countdown timer |
+| U-c: **scarcity coupled to an imperative** in the same sentence | "Only 2 seats left, book now" |
 
-### Rule-boundary cases (each must come out exactly as stated)
+Otherwise, the directive is classified as follows:
 
-| Case | Expected result | Why |
+| Strength | Test |
+|---|---|
+| `require` | the traveller cannot continue without acting |
+| `suggest` | an optional or conditional offer of an action, with none of the cues above: "Lock it for 48 h for €9", "You can still switch…" |
+| `inform` | states a fact and recommends no action: "2 seats left at this fare" on its own |
+
+The model extracts strength **and the cue it relied on** (U-a, U-b or U-c, or none). A code lexicon checks for the same cues independently. If the two disagree, confidence drops and the disagreement is recorded. Every canonical copy key below carries its expected strength.
+
+## Canonical copy (2.4); every document quotes from here
+
+| Key | Feature | Copy |
 |---|---|---|
-| **Maya**: flexible, conflicting advice, no explanation | raise **P2** | above |
-| **Raj**: departs in 30 h; urgent banner with verified scarcity and an explained tradeoff; Price Watch forecasts *no drop before departure* | **allowed**: P1 applies and **P1-E1** is satisfied (a ✓ b ✓ c ✓); **P2 not applicable**, because no competing recommendation is live | the urgency rule applies and is explicitly excepted; the story shows both evaluations |
-| **Kai**: departs in 30 h; same urgent banner, verified and explained; Price Watch *does* say "likely to drop, wait" | **allowed under P1-E1, but P2 raised** | an exception for urgency does not excuse the incoherence |
-| **Hana**: fixed dates, departs in 6 months; urgent banner | **P1 breach** | fixed dates are not time-sensitivity, so P1-E1 condition (a) fails |
-| **Omar** | **U1** (and P1 not excused) | above |
+| `pw.card` | Price Watch | "Prices on your dates are likely to drop over the next two weeks. We'll tell you when to book." |
+| `pw.email.forecast` | Price Watch | the same message, by email |
+| `pw.email.after` | Price Watch | "We'll tell you when to book." (sent after booking: the bug) |
+| `pw.push.moving` | Price Watch | "Prices on LIS→BER are moving." |
+| `pw.card.nodrop` | Price Watch | "Prices on this trip are unlikely to drop before departure." |
+| `fl.banner` | Fare Lock | "2 seats left at this fare. Lock it for 48 h for €9." → `lock_fare`, **suggest** (no cue) |
+| `fl.banner.urgent` | Fare Lock | "Departing soon: only 2 seats left at this fare. Book now, or lock it for 12 h for €9 if your plans might change." → primary `book_now`, **urge** (cue U-a/U-c); secondary `lock_fare`; explains its own tradeoff |
+| `fl.banner.urgent_bare` | Fare Lock | "Only 2 seats left. Book now." → `book_now`, **urge** (U-c), no explanation |
+| `fl.checkout.lock` | Fare Lock | lock checkout: "Fare Lock (48 h): €18" for a couple (the bug: €9 per traveller, while the banner said €9) |
+| `cg.regret` | Concierge 2.0 | "You should have booked a refundable fare." → retrospective |
+| `cg.reconcile` | Concierge 2.0 | "Prices on your dates are likely to drop, but this fare has 2 seats left. If you can move your dates, wait for the alert; if not, locking protects this price." → reconciles `pw.card` + `fl.banner` |
+| `cg.upgrade` | Concierge 2.0 | "You can still switch to a refundable fare for €30 until tomorrow 10:05." → suggest `upgrade_to_refundable` |
 
-### Negative controls (must **not** be raised)
+## Personas and expected results
 
-| ID | Case | Valid because |
+Each persona's **expected status vector** is committed as `tests/fixtures/stories/<persona>.expected.json`. It lists every rule × event (or event pair), with its status (`violated` / `passed` / `excepted` / `not_applicable`), and every exception condition (`met` / `not_met` / `unknown`). W1b and W8 compare exact sets. The table below summarizes them.
+
+| Persona | Trip and scenario | Expected |
 |---|---|---|
-| NC1 | **Raj** | the boundary table above |
-| NC2 | **Lena** (flexible) asks the concierge *"book now or wait?"* and gets both the drop forecast and the seat count | `explained_tradeoff`: it helps her weigh them against her flexibility, which satisfies P2 |
-| NC3 | Confirmation page, email and PDF all repeat "booked" | `duplicate_ok` (transactional) |
-| NC4 | A family of four's total differs from a solo traveller's | different trips: persona-specific facts |
-| NC5 | **Theo**, 3 h after booking: the concierge offers a switch to refundable *"for €30 until tomorrow 10:05"* | still actionable, with a deadline: P3 is satisfied |
-| NC6 | Maya on **2.3**: a Price Watch alert before booking | compatible: no competing directive is live |
+| **Maya** (hero) | solo, flexible, departs in 42 days. 10:00 search (`pw.card`), 10:01 `pw.email.forecast`, 10:03 fare (`fl.banner`), 10:06 books non-refundable **without** buying a lock, 12:00 `pw.email.after`, 18:00 `pw.push.moving`, D2 09:02 asks "Did I get a good deal?" → `cg.regret` | **P2 violated, labelled `unexplained_tradeoff`**: `wait_for_drop` (live since 10:00) and `lock_fare` (10:03) come from different features and are compatible actions with a material tradeoff, and nothing explains it. **U3 violated** at 12:00. **U4 violated** at D2. **P3 violated**: exactly 3 outbound contacts in 24 h (emails at 10:01 and 12:00, push at 18:00; the concierge conversation does not count). P1 not applicable (suggest, no cue). U1 passed. U2 not applicable (no lock purchased) |
+| **Maya-R** (negative) | as Maya, but 2.4's fare page shows `cg.reconcile` inline below the banner | P2 **passed** (reconciled while both live). The others as for Maya |
+| **Lena** (negative, NC2) | flexible, 42 days. Sees **both** features' recommendations, Price Watch (`pw.card`, `wait_for_drop`) and Fare Lock (`fl.banner`, `lock_fare`); then asks "Book now or wait?" and the concierge answers `cg.reconcile`, which `reconciles` both, while both are live and before she decides; she leaves without booking | P2 candidate generated, then **passed** (`explained_tradeoff`). Appears in the *not raised* list |
+| **Raj** (negative, NC1) | solo, departs in 30 h. Search (`pw.card.nodrop`), fare (`fl.banner.urgent`) | P1 applies, **P1-E1 met** (a ✓ b ✓ c ✓) → **excepted**. P2 **not applicable** (no competing directive). Nothing raised |
+| **Raj-X** (positive) | as Raj, with `fl.banner.urgent_bare` | **P1 violated**: P1-E1 (c) `not_met` |
+| **Raj@72h** (boundary) | as Raj, but departure is **exactly 72 h 00 min** after the banner is shown | P1-E1 (a) **met** (≤ 72 h): excepted |
+| **Raj@72h+1m** (boundary) | departure 72 h **01 min** after the banner | P1-E1 (a) **not_met**: **P1 violated** |
+| **Kai** (boundary) | departs in 30 h. Search (`pw.card`, the forecast says drop), fare (`fl.banner.urgent`) | P1 **excepted** (P1-E1 met). **P2 violated, labelled `conflict`**: `book_now` ⟂ `wait_for_drop` are incompatible, and `explains_own_tradeoff` ≠ `reconciles` |
+| **Hana** (boundary) | fixed dates, departs in 6 months. Search (`pw.card.nodrop`), fare (`fl.banner.urgent`) | **P1 violated**: P1-E1 (a) `not_met` (≈ 4,380 h) |
+| **Omar** (boundary) | departs in 20 h; inventory shows 9. Search (`pw.card.nodrop`), fare (`fl.banner.urgent`, which says 2) | **U1 violated**; P1-E1 (b) `not_met` → **P1 violated** |
+| **Sam & Alex** (factual) | a couple, flexible. Search (`pw.card`), fare (`fl.banner`, €9), **buy the lock**: `fl.checkout.lock` charges €18; the quote is unchanged | **U2 violated**: same travellers, same transaction (the lock purchase), unchanged quote, €9 shown vs €18 charged. **P2 violated** (`unexplained_tradeoff`), as for Maya |
+| **Theo** (negative, NC5) | books 10:06; at 13:00 the concierge sends `cg.upgrade` | U3 passed (within the change window); U4 not applicable (not retrospective) |
+| NC3 | any booked persona | confirmation page, email and PDF repeat "booked": `duplicate_ok` |
+| NC4 | family of four vs solo | different totals: persona-specific facts |
+| **NC6** | Maya on **2.3**: opts in to Price Watch at search (2.3 opt-in step), gets the forecast alert, books | no competing directive (Fare Lock does not exist in 2.3); nothing raised |
 
 ## Memory fixture: what 2.4.1 tests
 
 - Issues marked *fix* come back `resolved`.
-- An exception the owner accepts during the 2.4 review is honoured inside its scope only.
-- Fare Lock's urgent variant on the **hotel** flow is outside P1-E1's scope (Fare Lock on fare detail and checkout only). It is raised with *"nearest exception does not apply: scope"*.
+- An exception the owner accepts during the 2.4 review is honoured, inside its scope only.
+- Fare Lock's urgent banner on a **hotel** for a flexible traveller is P1-applicable (`when_to_book` covers hotels) but outside P1-E1's scope (flights only). It is raised with *"nearest exception does not apply: scope"*.
