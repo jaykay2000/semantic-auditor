@@ -66,7 +66,7 @@ The riskiest *reasoning* step, relation interpretation, is de-risked first by W1
 ## W1b: semantic core proof (specification)
 
 **Input.** Hand-authored stories in `tests/fixtures/stories/`:
-- Maya, Maya-R, Lena, Raj, Raj-X, Raj@72h, Raj@72h+1m, Kai, Hana, Omar, Sam & Alex, Theo, and the 2.3 Maya (NC6).
+- Maya, Maya-R, Lena, Raj, Raj-X, Raj@72h, Raj@72h+30s, Raj@72h+1m, Kai, Hana, Omar, Sam & Alex, Theo, Rina (2.4.1), and the 2.3 Maya (NC6).
 - Each holds the persona's trip, time-ordered events with **raw message text** (the canonical copy keys), feature, surface, time, user actions and oracle values.
 - **Directive fields are not authored.** Strength, decision, action, `explains_own_tradeoff`, `reconciles` and message kind are **extracted by the model from the text**, which is the hard part being tested.
 
@@ -100,7 +100,7 @@ These are estimates until W1 measures real costs; the allocation is re-set on Oc
 
 | Item | Estimate |
 |---|---|
-| W1b: 13 stories × 5 runs | ≤ $7 |
+| W1b: 15 stories × 5 runs | ≤ $8 |
 | Development iterations | ≤ $25 |
 | The auditor on 3 bench releases × 3 fresh runs | ≤ $18 |
 | B-judge-1 (3 × 3) | ≤ $5 |
@@ -109,7 +109,7 @@ These are estimates until W1 measures real costs; the allocation is re-set on Oc
 | B-explore+scenarios (2 × 1) | ≤ $6 |
 | Ablations: no-generators, no-exceptions, no-verifier (2 releases × 1 run) | ≤ $12 |
 | Finablo | ≤ $10 |
-| **Reserve** | **≥ $22** |
+| **Reserve** | **≥ $21** |
 
 If open-weights credits are not granted, the extractor, defender and cross-checker roles move to Muse Spark. The Contributor endpoint is used only for fictional data, and every confidence basis records "reduced independence".
 

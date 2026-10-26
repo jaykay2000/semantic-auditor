@@ -85,8 +85,8 @@ The schema is shown below as an excerpt. **Northbound's full rules, decision voc
   exceptions:
     - id: P1-E1
       conditions:              # ALL must be met
-        - {id: a, data: "derived.departure_in_min <= 4320"}      # 72 h, in whole minutes, derived from trip.departure_at at the time shown
-        - {id: b, data: "claim.seats_left == oracle.inventory"}
+        - {id: a, data: "trip.departure_at - message.shown_at <= 72h"}   # exact timestamps; never rounded or truncated
+        - {id: b, data: "claim.units_left == oracle.inventory"}          # seats or rooms
         - {id: c, judged: directive.explains_own_tradeoff}
       scope: {features: [fare_lock], components: [flight], surfaces: [fare_detail, checkout]}
       approved: {by: owner, on: 2026-10-26, expires: 2027-01-31}
@@ -106,7 +106,7 @@ The schema is shown below as an excerpt. **Northbound's full rules, decision voc
   incompatible:                # P2 label if unreconciled: conflict
     - {pair: [book_now, wait_for_drop], rationale: "act now vs wait"}
   tradeoffs:                   # compatible, but material; P2 label if unexplained: unexplained_tradeoff
-    - {pair: [lock_fare, wait_for_drop], material: "the lock costs €9 and expires after 48 h; the forecast drop window is 14 days"}
+    - {pair: [lock_fare, wait_for_drop], material: "the lock costs €9 total and expires after 48 h; the forecast drop window is 14 days"}
   preconditions: {"*": "booking.status == not_booked"}
 - id: fare_type
   actions: [choose_refundable, choose_non_refundable, upgrade_to_refundable]
@@ -217,7 +217,7 @@ This is a small, explicit rule set, not a general temporal reasoner. The fixture
   "surface": "price_watch_email", "feature": "price_watch",
   "message_id": "m19", "directive": {...},
   "state_at_event": {"booking.status": "booked", "fare_type": "non_refundable",
-                     "derived": {"departure_in_min": 60360}} }   // derived by code from trip.departure_at
+                     "derived": {"time_to_departure": "P41DT20H"}} }   // derived by code from exact timestamps
 ```
 
 The story is the single object that the relation layer, the issue evidence, the delta and the UI all read: one source of truth.
@@ -250,7 +250,7 @@ The story is the single object that the relation layer, the issue evidence, the 
 
 **Rule kinds are evaluated independently, in this order:**
 1. **Universal rules** (U1–U4): no exceptions. A failure stands no matter what else holds. U1 to U3 are code checks; U4 needs the model to classify a message as *retrospective*, which the verifier re-checks.
-2. **Conditional rules** (P1): the rule applies, then its exceptions are evaluated. Data conditions (`derived.departure_in_min <= 4320`, `seats_left == inventory`) are evaluated by **code** against derived state and oracles, giving *met*, *not_met* or *unknown*. Soft conditions (`explains_own_tradeoff`) are judged by the model and re-judged by the verifier. An exception applies only if **every** condition is *met*, and only inside its scope. An *unknown* condition lowers confidence; it never grants the exception.
+2. **Conditional rules** (P1): the rule applies, then its exceptions are evaluated. Data conditions (`departure_at − shown_at ≤ 72 h` on exact timestamps, `units_left == inventory`) are evaluated by **code** against derived state and oracles, giving *met*, *not_met* or *unknown*. Soft conditions (`explains_own_tradeoff`) are judged by the model and re-judged by the verifier. An exception applies only if **every** condition is *met*, and only inside its scope. An *unknown* condition lowers confidence; it never grants the exception.
 3. **Coherence rules** (P2): evaluated on `competing_directives` relations. Satisfied only by a consistent recommendation, or by a message that `reconciles` both directives while both are live and before the user decides.
 4. **Load rules** (P3): code counts.
 

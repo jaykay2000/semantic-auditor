@@ -34,13 +34,13 @@
 | 2026-10-26 | Critic pass (fix-first) folded in: full action vocabulary and preconditions; one derived time field (`departure_in_min`); per-rule negative controls; W1b extracts from raw text and compares exact expected status vectors, with stub interpreters that must fail; `explains_own_tradeoff` separate from `reconciles`; stale guidance and post-purchase moved to universal rules U3/U4; load rule counts outbound contacts only; cross-checks use the other model per stage; exhaustive release policy; benchmark cut to 3 sealed releases with a scripted matcher | critic, adopted |
 | 2026-10-26 | P2 distinguishes `conflict` (incompatible actions, unreconciled) from `unexplained_tradeoff` (compatible actions with a material, unexplained tradeoff). Maya's lock-vs-wait pair is a tradeoff; Kai's book-now-vs-wait pair is a conflict. The owner labels action pairs in the contract | third review, adopted |
 | 2026-10-26 | U2 compares displayed fee vs amount charged for the same traveller, transaction and quote; tested with Sam & Alex buying the lock | third review, adopted |
+| 2026-10-26 | **D11 approved**: Northbound rules (U1–U4, P1–P3, P1-E1), action-pair labels and persona expectations in examples/northbound/README.md, with four fixture corrections: explicit stale copy ("Keep waiting to book"); €9 is the total booking fee; Rina's hotel case meets every P1-E1 condition and fails only on scope; exact-timestamp 72 h comparison (Raj@72h+30s). No further design review before W1b | owner |
 | 2026-10-26 | Urgency is classified by explicit cues (immediacy word, ≤24 h deadline, scarcity + imperative), cross-checked by a code lexicon; the 72 h boundary is exact to the minute | third review, adopted |
 
 ## Open: owner to decide (defaults in bold)
 
 | # | Decision | Default and why |
 |---|---|---|
-| D11 | Northbound rule wording (U1–U4, P1–P3, P1-E1), the action-pair labels and the boundary-case table | **as in examples/northbound/README.md** (written draft); the owner confirms before W1b runs. A voice note is recorded later, once the rules are final, to test onboarding |
 | D12 | An independent human adjudicator for the subjective labels | **ask one person** for about 1 hour on Nov 1–2; otherwise report owner-only adjudication and say so |
 | D13 | Which Finablo commits for R1 and R2 | the planning agent finds the introducing commits; the owner confirms |
 | D14 | Open-weights hosting credits (Modal / Baseten) | **apply today**; if they are not granted, the fallback is in the plan |
