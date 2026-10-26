@@ -24,12 +24,19 @@
 | 2026-10-26 | Three Meta models: Muse Spark, Muse Spark Open, Muse Voice Transcribe. SAM 3.1 and others are out of the MCV | external review, adopted |
 | 2026-10-26 | Finablo runs use synthetic profiles and Standard-mode endpoints only; Contributor mode only for fictional data | external review, adopted |
 | 2026-10-26 | The demo script does not predetermine issue counts, severities or benchmark numbers | external review, adopted |
+| 2026-10-27 | Hero conflict uses only **true** messages; the false seat count and fee mismatch are shown separately as the factual layer | second review, adopted |
+| 2026-10-27 | Three rule kinds evaluated independently: universal (no exceptions), conditional (scoped exceptions), coherence (P2). An exception to one rule never excuses another. "Time-sensitive" = departs within 72 h; fixed dates alone never qualify | second review, adopted |
+| 2026-10-27 | Directive validity: text deadline, action precondition, feature default lifetime or supersession; an unknown end is explicit, never "forever" | second review, adopted |
+| 2026-10-27 | Semantic core proven first (W1b) on hand-authored stories, with real model interpretation | second review, adopted |
+| 2026-10-27 | Claims are `supported` / `contradicted` / `unverifiable`; only contradicted claims raise false-claim issues | second review, adopted |
+| 2026-10-27 | Benchmark additions: B-explore+scenarios (scenarios counted as setup), a budget-matched multi-pass B-judge-N, fresh runs vs cached replay, a corrected no-generators ablation | second review, adopted |
+| 2026-10-27 | Finablo historical runs: no voice note; persona discovery reported as blind discovery vs given a target persona | second review, adopted |
 
 ## Open: owner to decide (defaults in bold)
 
 | # | Decision | Default and why |
 |---|---|---|
-| D11 | Northbound principle wording (P1–P4, P1-E1) | **as in examples/northbound/README.md**; the owner records the voice note that produces them |
+| D11 | Northbound rule wording (U1, U2, P1–P4, P1-E1) and the boundary-case table | **as in examples/northbound/README.md** (written draft); the owner confirms before W1b runs. A voice note is recorded later, once the rules are final, to test onboarding |
 | D12 | An independent human adjudicator for the subjective labels | **ask one person** for about 1 hour on Nov 1–2; otherwise report owner-only adjudication and say so |
 | D13 | Which Finablo commits for R1 and R2 | the planning agent finds the introducing commits; the owner confirms |
 | D14 | Open-weights hosting credits (Modal / Baseten) | **apply today**; if they are not granted, the fallback is in the plan |

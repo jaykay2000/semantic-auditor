@@ -2,7 +2,7 @@
 
 ## Thesis
 
-> **The Semantic Release Auditor reconstructs what a particular user experiences across a release, identifies conflicting product behavior and messages, and gives the owner reproducible evidence to make a shipping decision.**
+> **The Semantic Auditor reconstructs what a particular user experiences across a release, identifies conflicting product behavior and messages, and gives the owner reproducible evidence to make a shipping decision.**
 
 ## The shift
 
@@ -14,7 +14,7 @@ They are not always bugs. Two messages that look contradictory can be a legitima
 
 ## What it does
 
-1. **Learns the owner's intent.** It turns "we never pressure travellers" into an operational rule with testable conditions and scoped exceptions, and the owner approves it.
+1. **Learns the owner's intent.** It turns "we never pressure travellers" into operational rules of three kinds: universal prohibitions (never state a false claim), conditional rules with scoped exceptions (urgency only for imminent trips, with verified, explained scarcity), and cross-feature coherence rules (features that advise on the same decision must agree or explain the tradeoff). The owner approves them.
 2. **Reconstructs each user's experience.** It drives personas through time-ordered scenarios on both releases, and records every message, its feature, the user's actions and the user's state.
 3. **Finds conflicts in that story.** Code proposes candidate conflicts (competing advice on the same decision, guidance that went stale after the user acted, rule conditions, message load, facts that disagree), and a model interprets each one against the owner's rules and exceptions.
 4. **Separates conflicts from legitimate differences:** an approved exception, an explained tradeoff, messages never live at the same time, a persona's own facts.
@@ -23,7 +23,7 @@ They are not always bugs. Two messages that look contradictory can be a legitima
 
 ## Where it sits
 
-Tests check that features work. LLM evals check single AI answers. Visual tools check pixels. Agentic QA platforms increasingly explore apps autonomously and keep a product knowledge base. The Semantic Release Auditor focuses on one distinct objective: **release-level, persona-specific semantic coherence, judged against owner-approved intent, with reproducible evidence.** It is designed to sit alongside those tools, not to replace them.
+Tests check that features work. LLM evals check single AI answers. Visual tools check pixels. Agentic QA platforms increasingly explore apps autonomously and keep a product knowledge base. The Semantic Auditor focuses on one distinct objective: **release-level, persona-specific semantic coherence, judged against owner-approved intent, with reproducible evidence.** It is designed to sit alongside those tools, not to replace them.
 
 ## Why a system and not a prompt
 

@@ -11,7 +11,7 @@ Event: **Meta Global AI Developer Hackathon** (Cerebral Valley). Source: the par
 | **Demo must only highlight what was built during the hackathon.** Failing to identify original contributions means disqualification at the judges' discretion. | The video says on screen that Finablo is the *app under audit*, not the submission. Every feature shown is from this repo. |
 | **Must use Meta models**: Muse Spark series, Muse Wonder, Muse Image, Muse Voice Transcribe, SAM 3.1 via the Meta Model API; open weights Muse Glimmer and Muse Spark Open; Muse Code. | Three models, each with a distinct, essential role (README): Muse Spark, Muse Spark Open, Muse Voice Transcribe. Depth over breadth; no shallow integrations. |
 | **Open-weights model ID**: use `meta-models/muse-spark-open-1026` (not the one in the docs). | Pinned in model config. |
-| **Banned / anti-projects**: medical advice, basic RAG, simple image analyzers, etc. | sra is developer tooling. The demo target is a travel app; Finablo is personal finance. |
+| **Banned / anti-projects**: medical advice, basic RAG, simple image analyzers, etc. | semaudit is developer tooling. The demo target is a travel app; Finablo is personal finance. |
 | **Team size** up to 4; solo allowed. | Solo, Indie Developer track. |
 | **Submission**: Wed **Nov 4, 9:00 PM ET**, via the CV platform. Public repo, accessible video link, all contributors listed. | Internal deadline: submit by **Nov 4, 12:00 PM ET**. |
 | **3-minute demo video**: a primary judging artifact, together with code and the live product. | Demo designed first ([docs/06-demo-vision.md](docs/06-demo-vision.md)). A sample run report is hosted publicly as the "live product". |
@@ -24,7 +24,7 @@ Event: **Meta Global AI Developer Hackathon** (Cerebral Valley). Source: the par
 | Impact | 30% | Any team shipping multi-feature, multi-surface or AI-written experiences ships these issues. Shown on a demo app and validated on a real product (Finablo). |
 | Use of Meta AI tooling | 25% | Muse Spark interprets experience conflicts against owner rules; Muse Spark Open extracts at volume and independently cross-checks (two-model agreement is a verification signal); Muse Voice Transcribe turns spoken intent into principles. |
 | Technical depth | 20% | Time-ordered experience stories, code-generated conflict candidates plus model interpretation, operational principles with scoped exceptions, three separate status axes, verification, release delta, scoped memory, and a fair benchmark with negative controls and ablations. |
-| Demo | 25% | The Release Story as the hero screen: one user's experience, the conflict, the owner's rule, the exception that makes another user's identical message valid, a live repro, and honest measured results. |
+| Demo | 25% | The Release Story as the hero screen: one user's experience, the conflict, the owner's rule, the exception that makes another user's urgent message valid, and the rule it does not excuse, a live repro, and honest measured results. |
 
 Bonus prizes in reach: **Best Build on Meta Open Weight Models** ($10K), **Best Agentic Use-Case** ($5K), **Community Vote**, **Most Viral** (X post).
 

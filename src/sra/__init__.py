@@ -1,1 +1,0 @@
-"""Semantic Release Auditor."""

@@ -6,21 +6,22 @@ A **semantic release issue** is product behaviour that is acceptable feature by 
 
 | Kind | Shape | Northbound example |
 |---|---|---|
-| **Competing directives** | two features give incompatible advice on the same decision, live at the same time | Price Watch: "wait for a drop" · Fare Lock: "only 2 seats, lock now" |
+| Kind | Shape | Northbound example |
+|---|---|---|
+| **Competing directives** (coherence) | two features give incompatible recommendations on the same decision while both are live, and the product never reconciles them. Each message can be entirely true | Price Watch: "likely to drop, we'll tell you when to book" · Fare Lock: "2 seats left at this fare, lock it" |
 | **Stale guidance** | advice whose precondition is no longer true for this user | after booking: "we'll tell you when to book" |
-| **Principle breach** | behaviour the owner's rule forbids for this persona, with no exception applying | scarcity pressure on a flexible traveller |
-| **Unexplained tradeoff** | two legitimate signals the product never reconciles for the user | "prices may drop" and "seats are limited", side by side with no help |
+| **Rule breach for this persona** | behaviour a conditional rule forbids, with no exception's conditions all met | urging immediate booking on a trip six months away |
 | **Attention load** | more demands on the user than the owner's rule allows | four non-booking messages in 24 hours |
 | **Fact divergence** | the same fact with different values on different surfaces | lock fee €9 on the banner, €12 at checkout |
-| **Unsupported assertion** | a claim that the product's own data does not back | "only 2 seats left" when inventory shows 9 |
+| **False claim** | a claim contradicted by the product's own data (a claim with no data to check is *unverifiable*, not false) | "only 2 seats left" when inventory shows 9 |
 
-The last two are the classic cross-surface bugs. They remain in scope because they are the most objective evidence an experience can contain. The first five are why the auditor exists.
+The first four are **release-level**: no single feature is wrong in isolation, and they are why the auditor exists. The last two are conventional factual defects, kept because they are the most objective evidence an experience contains. The demo presents them as such and never as the hero.
 
 ## Why they escape QA
 
 1. **Each feature passes on its own.** Its tests, evals and reviews look at it in isolation.
-2. **They depend on order and state.** "Wait" and "book now" conflict only when both are live; "book refundable" is only wrong *after* a non-refundable booking.
-3. **They depend on the persona.** The same banner is right for Raj and wrong for Maya.
+2. **They depend on order and state.** "Wait" and "lock now" conflict only when both are live; "book refundable" is only wrong *after* a non-refundable booking.
+3. **They depend on the persona.** The same urgent banner is fine for a traveller departing tomorrow and a breach for one departing in six months.
 4. **They depend on intent.** Whether something is a conflict or a legitimate tradeoff is the owner's call, and rarely written down operationally.
 5. **No one sees the whole story.** Emails, pushes and PDFs live outside the app, and AI copy differs per user at runtime.
 

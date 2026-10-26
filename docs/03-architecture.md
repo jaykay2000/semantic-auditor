@@ -2,7 +2,7 @@
 
 ## Product thesis (the architecture serves this sentence)
 
-> **The Semantic Release Auditor reconstructs what a particular user experiences across a release, identifies conflicting product behavior and messages, and gives the owner reproducible evidence to make a shipping decision.**
+> **The Semantic Auditor reconstructs what a particular user experiences across a release, identifies conflicting product behavior and messages, and gives the owner reproducible evidence to make a shipping decision.**
 
 The **unit of analysis is the User Experience Story**: one persona's time-ordered experience of one release, across features and surfaces. Checking that facts agree across surfaces is still part of the system, but as one layer inside the story rather than as the product.
 
@@ -59,27 +59,45 @@ Code narrows the search space and makes everything reproducible. Models interpre
 
 ## L0: the Product Contract
 
-The contract lives in the consumer's repo at `.sra/`. It is owner-approved, and every item records its source: a doc span, a transcript timestamp or a review click.
+The contract lives in the consumer's repo at `.semaudit/`. It is owner-approved, and every item records its source: a doc span, a transcript timestamp or a review click.
 
 ```yaml
-# principles.yaml: operational, conditional, with scoped exceptions
+# principles.yaml: three KINDS of rule, evaluated independently
+# (1) universal prohibitions: no exceptions, ever
+- id: U1
+  kind: universal
+  text: Every scarcity, price and policy claim matches our own data.
+  check: {claims: [seats_left, price, fee, policy], must: match_oracle}   # code
+  source: {kind: doc, file: northbound-principles-draft.md, at: "§1"}
+
+# (2) conditional rules: forbidden by default, permitted only through a scoped exception
 - id: P1
+  kind: conditional
   text: >
-    We do not manufacture scarcity or use urgency to pressure flexible travellers.
-    For genuinely time-sensitive trips, we may communicate verified inventory
-    constraints and explain the tradeoff.
-  source: {kind: voice_note, file: owner-2026-10-28.m4a, at: "0:12-0:31"}
+    We may always share verified inventory information. We do not urge immediate
+    action, except for genuinely time-sensitive trips.
   tier: core                                   # core | standard
-  applies_to: {decision: when_to_book, directive.urgency: [high]}
-  violated_when: {persona.date_flexibility: flexible}
+  applies_to: {decision: when_to_book, directive.strength: [urge, require]}
   exceptions:
     - id: P1-E1
-      when: {trip.time_sensitive: true}        # derived from state: departure_in_h <= 72 OR dates_fixed
-      requires:
-        - {claim: seats_left, verified_against: inventory}   # code: claim == oracle
-        - {judged: explains_tradeoff}                        # model judges, verifier checks
+      conditions:                              # ALL must be met
+        - {id: a, data: "state.departure_in_h <= 72"}          # code. Fixed dates alone never qualify
+        - {id: b, data: "claim.seats_left == oracle.inventory"} # code
+        - {id: c, judged: explains_tradeoff}                   # model judges; verifier re-judges
       scope: {features: [fare_lock], surfaces: [fare_detail, checkout]}
-      approved: {by: owner, on: 2026-10-28, expires: 2027-01-31}
+      approved: {by: owner, on: 2026-10-27, expires: 2027-01-31}
+
+# (3) cross-feature coherence rules: about the RELATIONSHIP between messages
+- id: P2
+  kind: coherence
+  text: >
+    When more than one feature gives an active recommendation about the same user
+    decision, the product either presents a consistent recommendation or explains
+    the competing tradeoffs.
+  tier: core
+  applies_to: {relation: competing_directives}
+  satisfied_by: [consistent_recommendation, explained_tradeoff]
+  # no exceptions; an exception to a conditional rule never excuses a coherence rule
 
 # features.yaml: who said it
 - id: fare_lock
@@ -107,13 +125,15 @@ The contract lives in the consumer's repo at `.sra/`. It is owner-approved, and 
 # scenarios.yaml: time-ordered scripts, the backbone of a story
 - id: S-book-flexible
   steps:
-    - {at: "D0 10:00", do: search, route: LIS-BER}
-    - {at: "D0 10:03", do: open_fare, pick: cheapest}
+    - {at: "D0 10:00", do: search, route: LIS-BER}        # captures results incl. the Price Watch card
+    - {at: "D0 10:01", do: check_inbox}                    # captures the Price Watch email
+    - {at: "D0 10:03", do: open_fare, pick: cheapest}      # captures the Fare Lock banner
     - {at: "D0 10:05", do: checkout, fare: non_refundable}
     - {at: "D0 10:06", do: confirm}
-    - {at: "D0 12:00", do: advance_clock}       # time-triggered email, push
-    - {at: "D1 09:00", do: open_app}
-    - {at: "D1 09:02", do: ask_concierge, q: "Did I get a good deal?"}
+    - {at: "D0 12:00", do: advance_clock_and_check_inbox}  # time-triggered email, push
+    - {at: "D2 09:00", do: open_app}
+    - {at: "D2 09:02", do: ask_concierge, q: "Did I get a good deal?"}
+  # fixture requirement (tested): on 2.4, the Price Watch "wait" message is captured BEFORE the Fare Lock banner
 
 # surfaces.yaml, facts.yaml (with oracles), rules.yaml (expressible checks): as before
 # release_policy.yaml: how severity x confidence x verification becomes a recommendation (L6)
@@ -127,12 +147,25 @@ Two hooks the consumer provides: a **persona hook** that creates the persona's a
 An **episode** is one run of one scenario, for one persona, on one release:
 `Episode{release, persona, scenario, seed, steps[seq, sim_time, action, captures[], state_snapshot]}`.
 - Captures use the format of the first version: DOM text and element boxes, screenshot, raw payload, URL, build id.
+- **Locators are source-specific**, so evidence can be checked for every kind of surface, not just web pages:
+
+  | Source | Locator |
+  |---|---|
+  | web page | CSS selector + bounding box + DOM text span |
+  | email | message id + MIME part + character span |
+  | push | notification id + field |
+  | PDF | page + bounding box + text-layer span |
+  | JSON / API | JSON path |
+  | chat | turn index + character span |
 - A **state snapshot** is read from the contract's oracles after each step: booking status, fare type, departure time, seats left, the price on record.
 - Recorded journeys are replayed deterministically. An agent (Muse Spark with browser tools) **repairs** a step only when it breaks, and logs the repair.
 
 ## L2: Evidence
 
-- **(a) Claims** — unchanged: `{fact, value, unit, qualifiers, locator, extractor, confidence}`, normalized and compared with oracles.
+- **(a) Claims** — `{fact, value, unit, qualifiers, locator, extractor, confidence}`, normalized and compared with oracles **after extraction**. Each claim gets one of three statuses:
+  - `supported`: the oracle agrees;
+  - `contradicted`: the oracle disagrees. Only this status can raise a false-claim issue;
+  - `unverifiable`: no oracle exists. Missing evidence is not evidence of falsehood, so this becomes an owner question (or a low-confidence note on an AI-generated surface), never a false claim.
 - **(b) Messages** — `{message_id, capture_id, locator, exact_text, feature_id, attribution{method: dom_attr | contract_map | release_diff | model, confidence}, claims[]}`.
 - **(c) Directives** — for any message that recommends something:
 
@@ -140,7 +173,9 @@ An **episode** is one run of one scenario, for one persona, on one release:
 { "decision": "when_to_book", "action": "wait_for_drop",
   "strength": "suggest",                       // inform | suggest | urge | require
   "urgency": {"level": "low", "deadline": null, "reason_given": "prices on this route may drop"},
-  "validity": {"precondition": {"booking.status": "not_booked"}, "until": null},
+  "validity": {"from": "D0 10:00", "until": "unknown",
+               "ends_on": [{"state": "booking.status == booked"}],
+               "basis": ["action_rule"]},
   "objective": "lower price",
   "explains_tradeoff": false,
   "evidence_span": "Prices for LIS→BER may drop. We'll tell you when to book." }
@@ -148,19 +183,35 @@ An **episode** is one run of one scenario, for one persona, on one release:
 
 Directives are extracted by Muse Spark Open, constrained to the contract's decision and action vocabulary. A directive outside that vocabulary is kept as `action: other` with free text, and becomes an onboarding question.
 
+### Validity: when a directive is "live"
+
+A directive is live from the moment it is shown until the **earliest** of these:
+
+1. **Explicit text**: a deadline the message states ("lock it for 48 h", "until departure"). Basis: `text`.
+2. **Action rules**: the contract's precondition for the action stops holding (`wait_for_drop` and `lock_fare` require `booking.status == not_booked`). Basis: `action_rule`.
+3. **Feature default lifetime**: from `features.yaml` (e.g. a banner is live while it is on screen plus that session; an email for 7 days; a push for 24 h). Basis: `feature_default`.
+4. **Superseded**: the same feature later issues a different directive on the same decision. Basis: `superseded`.
+
+If none of these gives an end, `until` is **`unknown`**, never "forever". Two directives **overlap** when the later one is shown while the earlier one is live, and both preconditions hold at that moment. An overlap that depends on an `unknown` end is still proposed as a candidate, but it is marked `validity_unknown`, which lowers confidence and becomes an owner question ("how long should a Price Watch email's advice stand?").
+
+This is a small, explicit rule set, not a general temporal reasoner. The fixtures test it: in Maya's story, the "wait" directive (10:00) is live at 10:03 because she has not booked and the email's default lifetime has not passed.
+
 ## L3: The User Experience Story
 
 `Story{release, persona, scenario, events[], state_timeline[]}`, where each event is:
 
 ```json
-{ "event_id": "e7", "seq": 7, "sim_time": "D0 12:00",
+{ "event_id": "e7", "event_key": "price_watch/price_watch_email/pw.wait_v2/when_to_book#1",
+  "seq": 7, "sim_time": "D0 12:00",
   "kind": "message",                           // message | user_action | state_change
   "surface": "price_watch_email", "feature": "price_watch",
   "message_id": "m19", "directive": {...},
   "state_at_event": {"booking.status": "booked", "fare_type": "non_refundable", "departure_in_days": 42} }
 ```
 
-The story is the single object that the relation layer, the issue evidence, the delta and the UI all read (⭐ one source of truth).
+The story is the single object that the relation layer, the issue evidence, the delta and the UI all read: one source of truth.
+
+**Stable event identity.** `event_key` = feature / surface / message key / decision / occurrence index within the scenario. The message key comes from the app (`data-message-key`, email or push template id) where it exists. Otherwise it is a normalized text-template signature, and alignment is then marked *fuzzy*.
 
 ## L4: Relations
 
@@ -168,12 +219,12 @@ The story is the single object that the relation layer, the issue evidence, the 
 
 | Generator | Proposes a candidate when |
 |---|---|
-| `competing_directives` | two directives share a decision, their actions are in the contract's `incompatible` set, and their validity windows overlap in story time |
+| `competing_directives` | two directives from **different features** share a decision, their actions are in the contract's `incompatible` set, and they overlap (validity rules above). Coherence rules (P2) apply to these |
 | `stale_guidance` | a directive's precondition is false in `state_at_event` (e.g. "choose refundable" after booking a non-refundable fare, outside the free-change window) |
-| `principle_condition` | an event matches a principle's `applies_to` and the persona or state matches `violated_when` |
+| `rule_applies` | an event matches a universal or conditional rule's `applies_to`. For conditional rules, its exceptions are evaluated (below) |
 | `attention_load` | more than *N* directive or marketing messages within window *W* (contract-set) |
 | `fact_divergence` | the claim layer finds the same fact with different values (first-version logic) |
-| `unsupported_assertion` | a claim disagrees with its oracle, or has none (e.g. "only 2 seats left" vs an inventory of 9) |
+| `false_claim` | a claim is `contradicted` by its oracle (e.g. "only 2 seats left" vs an inventory of 9). `unverifiable` claims go to owner questions instead |
 | `model_open` | the model reads the whole story and proposes a relation none of the above produced. Kept, but starts at lower confidence, and its vocabulary gaps become onboarding questions |
 
 **Interpretation (model).** Each candidate relation, with its events, evidence spans, applicable principles and exceptions, and the persona and state, goes to Muse Spark with a structured-output schema:
@@ -186,35 +237,44 @@ The story is the single object that the relation layer, the issue evidence, the 
 | `exception_applies` | a scoped exception's conditions are all met | no; shown as "allowed by P1-E1" with each condition's result |
 | `compatible` / `duplicate_ok` | no conflict (e.g. a confirmation page and a confirmation email) | no |
 
-**Exception evaluation is split.** Data conditions (`trip.time_sensitive`, `persona.date_flexibility`, `seats_left == inventory`) are evaluated by **code** against the state and oracles, giving *met*, *not_met* or *unknown* for each. Soft conditions (`explains_tradeoff`) are judged by the model and re-judged by the verifier. An exception applies only if every condition is *met*. An *unknown* condition lowers confidence; it does not grant the exception.
+**Rule kinds are evaluated independently, in this order:**
+1. **Universal rules** (U1, U2): code checks, with no exceptions. A failure stands no matter what else holds.
+2. **Conditional rules** (P1, P3): the rule applies, then its exceptions are evaluated. Data conditions (`departure_in_h <= 72`, `seats_left == inventory`) are evaluated by **code** against state and oracles, giving *met*, *not_met* or *unknown*. Soft conditions (`explains_tradeoff`) are judged by the model and re-judged by the verifier. An exception applies only if **every** condition is *met*, and only inside its scope. An *unknown* condition lowers confidence; it never grants the exception.
+3. **Coherence rules** (P2): evaluated on `competing_directives` relations. Satisfied only by a consistent recommendation or an explained tradeoff.
+
+**An exception to one rule never excuses another rule.** Kai (imminent trip, verified, explained urgency) is allowed under P1-E1, *and* still raised under P2 if Price Watch tells him to wait. Omar (imminent trip, false seat count) fails U1 *and* fails P1-E1 condition (b). Every story shows each rule's evaluation, including the ones that passed, so "why is Raj fine?" is answered on screen: P1 applies and P1-E1 is met; P2 has no competing directive.
 
 ## L5: Issues
 
 ```json
-{ "issue_id": "I-2.4-maya-03", "kind": "competing_directives",
+{ "issue_id": "I-2.4-maya-01", "kind": "competing_directives",
   "release": "2.4", "base": "2.3", "delta": "new",          // new | changed | pre_existing | resolved
-  "personas": ["maya", "lena"], "scenarios": ["S-book-flexible"],
-  "events": ["e4", "e7"], "features": ["fare_lock", "price_watch"],
-  "principles": [{"id": "P1", "status": "violated"}],
-  "exceptions_considered": [{"id": "P1-E1", "conditions": {"trip.time_sensitive": "not_met"}}],
+  "personas": ["maya"], "scenarios": ["S-book-flexible"],
+  "events": ["e2", "e4"], "features": ["price_watch", "fare_lock"],
+  "rules": [{"id": "P2", "kind": "coherence", "status": "violated",
+             "why": "wait_for_drop (live since D0 10:00) and lock_fare (D0 10:03) on when_to_book; no reconciliation shown"},
+            {"id": "P1", "kind": "conditional", "status": "not_applicable", "why": "lock_fare strength = suggest"},
+            {"id": "U1", "kind": "universal", "status": "passed", "why": "seats_left 2 == inventory 2; forecast matches oracle"}],
   "severity":     {"level": "major", "factors": {"decision_impact": "money", "principle_tier": "core",
                    "reach": "2/8 personas, core booking journey", "timing": "pre-purchase", "recoverable": true}},
   "confidence":   {"level": "high", "basis": ["directives extracted by 2 models agree",
                    "label agreed by independent model", "defense failed", "no unknown conditions"]},
   "verification": {"status": "verified", "steps": {"reproduced": "pass", "evidence_linked": "pass",
                    "cross_model": "pass", "defended": "pass"}},
-  "repro": "sra repro I-2.4-maya-03",
+  "repro": "semaudit repro I-2.4-maya-03",
   "disposition": "open" }
 ```
 
 **Three fields, never combined:**
 - **Severity**: how bad it is *if real*. Factors: decision impact (money, time, irreversible), principle tier, reach (personas × journeys), timing (before or after the user commits), recoverability. Levels: critical, major, minor.
 - **Confidence**: how likely it is to be real by the owner's standards. Basis: evidence type (a measured fact is stronger than an interpreted directive), agreement between the two extraction models, agreement on the label, the defense outcome, and any *unknown* exception conditions. Levels: high, medium, low.
-- **Verification status**: which checks have actually been run, and their outcomes. Steps: `reproduced` (the episode is re-run and the same events appear), `evidence_linked` (every cited event resolves to a capture, a locator and an exact quote that matches the DOM text), `cross_model` (an independent model reaches the same label), `defended` (the defense pass could not explain it away), and `oracle_checked` (fact kinds only). Statuses: `unverified`, `partially_verified`, `verified`, `failed` (`not_reproducible` or `disputed`).
+- **Verification status**: which checks have actually been run, and their outcomes. Steps: `reproduced` (the episode is re-run and the same events appear), `evidence_linked` (every cited event resolves through its source-specific locator to the exact quoted text), `cross_model` (an independent model reaches the same label), `defended` (the defense pass could not explain it away), and `oracle_checked` (fact kinds only). Statuses: `unverified`, `partially_verified`, `verified`, `failed` (`not_reproducible` or `disputed`).
+
+**What "verified" means, and does not mean.** Verified means the evidence was reproduced and resolves exactly, and the judgment was independently re-reached by a second model that also failed to explain it away. It does **not** mean a subjective product judgment is objectively true. That is the owner's call, and it is what the owner disposition records. Objective kinds (false claim, fact divergence) are additionally `oracle_checked`.
 
 **Release notes** are used to attribute changes to features and to aim personas at what changed. A change being *intended* never by itself excuses a conflict; only an approved, scoped exception does.
 
-**Delta.** The same scenario runs on the base release. Events are aligned by feature, surface, message template and order. Each issue is classified *new*, *changed*, *pre_existing* or *resolved*, and the story diff shows events added, removed and changed.
+**Delta.** The same scenario runs on the base release, and events are aligned by `event_key`. Events with no partner are explicitly **unmatched**: `added` in head or `removed` from base, never force-paired. Fuzzy alignments, which fall back to template signature and order, are marked as such and lower the delta's confidence. Each issue is classified *new*, *changed*, *pre_existing* or *resolved*, and the story diff shows events added, removed and changed.
 
 ## L6: Decision and memory
 
@@ -234,9 +294,9 @@ The owner's actual decision is recorded beside the recommendation, never overwri
 | Disposition | What is stored | Next release |
 |---|---|---|
 | **fix** | issue reference + expected resolution | the issue must come back `resolved`, or it is re-raised as `still_open` |
-| **accept as scoped exception** | a new or narrowed exception: conditions, scope (features, surfaces, personas), expiry, approver | applies only when *all* its conditions are met. A similar event outside the scope (Maya under Raj's exception) is raised, with "nearest exception P1-E1 does not apply: date_flexibility = flexible" |
+| **accept as scoped exception** | a new or narrowed exception: conditions, scope (features, surfaces, personas), expiry, approver | applies only when *all* its conditions are met. A similar event outside the scope or conditions is raised, with the reason (e.g. Fare Lock's urgent variant in the hotel flow: "nearest exception P1-E1 does not apply: scope"; Hana: "condition (a) not met: departs in 4,320 h") |
 | **not an issue** | reason + the exact relation signature (events, features, principle) | that exact signature is not re-raised; a variant is |
-| **expressible rule** | a deterministic check in `.sra/checks/` (fact equality, presence or absence under a condition, a precondition rule) | runs first after capture, with no model calls; it reports `could_not_measure` when a locator breaks |
+| **expressible rule** | a deterministic check in `.semaudit/checks/` (fact equality, presence or absence under a condition, a precondition rule) | runs first after capture, with no model calls; it reports `could_not_measure` when a locator breaks |
 | **approved semantic expectation** | a natural-language expectation, approved and scoped ("Price Watch never messages a traveller after they book") | evaluated by the relation layer every release; not claimed to be deterministic |
 
 ## Model roles and data policy
@@ -250,13 +310,13 @@ The owner's actual decision is recorded beside the recommendation, never overwri
 | `explorer` (journey repair, onboarding mapping) | Muse Spark with browser tools | |
 | `transcriber` (owner voice note) | **Muse Voice Transcribe** | |
 
-**Data policy per target** (`sra.toml`): each target declares `data: synthetic | real`. Real or customer data may only be routed to Standard-mode endpoints. Contributor-mode endpoints, which may use prompts for training, are allowed only for fictional targets such as Northbound. Finablo runs use synthetic profiles only.
+**Data policy per target** (`semaudit.toml`): each target declares `data: synthetic | real`. Real or customer data may only be routed to Standard-mode endpoints. Contributor-mode endpoints, which may use prompts for training, are allowed only for fictional targets such as Northbound. Finablo runs use synthetic profiles only.
 
 ## Pipeline order (L1 → L7)
 
 1. Materialize personas → run scenarios on base and head → captures + state (**capture first**).
-2. Deterministic, model-free: run `.sra/checks/`; compare facts with oracles; evaluate data conditions.
-3. Extraction (model): messages, directives, claims. Cached by content hash, so unchanged captures cost nothing.
+2. Deterministic, model-free: run the existing locator-based checks in `.semaudit/checks/`; evaluate the data conditions that depend only on state.
+3. Extraction (model): messages, directives, claims. Cached by content hash, so unchanged captures cost nothing. Then, in code, compare the newly extracted claims with oracles (`supported` / `contradicted` / `unverifiable`) and evaluate the data conditions that depend on claims.
 4. Build stories; align base and head.
 5. Generators → candidates (code). Interpretation of the candidates only (model), plus one `model_open` pass per story.
 6. Issues → verifier → severity, confidence and verification computed independently.
@@ -265,9 +325,9 @@ The owner's actual decision is recorded beside the recommendation, never overwri
 
 ## Kept from the first version
 
-`sra.adapters`, `sra.models` (router, cache, ledger), `sra.contract` (extended), the facts/oracles/claims parts of `sra.extract` and `sra.graph`, `sra.report`, the run directory layout, and the exit codes (`0` ship, `1` issues need a decision, `2` could not measure).
+`semaudit.adapters`, `semaudit.models` (router, cache, ledger), `semaudit.contract` (extended), the facts/oracles/claims parts of `semaudit.extract` and `semaudit.graph`, `semaudit.report`, the run directory layout, and the exit codes (`0` ship, `1` issues need a decision, `2` could not measure).
 
-New packages: `sra.story` (episodes, events, stories, alignment), `sra.relate` (generators, interpretation, exceptions), `sra.decide` (severity, confidence, verification, policy, dispositions). `sra.check` becomes the home of the deterministic checks only; `sra.ratchet` merges into `sra.decide`.
+New packages: `semaudit.story` (episodes, events, stories, alignment), `semaudit.relate` (generators, interpretation, exceptions), `semaudit.decide` (severity, confidence, verification, policy, dispositions). `semaudit.check` becomes the home of the deterministic checks only; `semaudit.ratchet` merges into `semaudit.decide`.
 
 ## Tech stack
 

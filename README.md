@@ -1,12 +1,10 @@
-# Semantic Release Auditor
-
-> Working name. The public name is pending (likely **Semantic Auditor**); see [docs/decisions.md](docs/decisions.md).
+# Semantic Auditor
 
 **Every feature passed. The release still failed its users.**
 
-The Semantic Release Auditor **reconstructs what a particular user experiences across a release, identifies conflicting product behavior and messages, and gives the owner reproducible evidence to make a shipping decision.**
+The Semantic Auditor **reconstructs what a particular user experiences across a release, identifies conflicting product behavior and messages, and gives the owner reproducible evidence to make a shipping decision.**
 
-Users don't experience features; they experience a release. Each feature in a release can pass its own tests and evals, and together they can still tell one traveller to *wait for a price drop* and *book now, only 2 seats left* on the same afternoon. They can second-guess a purchase the traveller can no longer change, or apply urgency to exactly the people the product promised not to pressure.
+Users don't experience features; they experience a release. Each feature can pass its own tests and say only true things, and together they can still tell one traveller to *wait for a price drop* (a correct forecast) and *lock this fare, only 2 seats left* (a correct seat count) in the same few minutes, without ever helping her decide. They can also second-guess a purchase she can no longer change.
 
 The auditor finds those **semantic release issues**. It tells them apart from legitimate tradeoffs and owner-approved exceptions. It gives the owner a release review: ranked issues, each with evidence that replays on demand, and a Ship / Hold recommendation.
 
@@ -35,17 +33,31 @@ The auditor finds those **semantic release issues**. It tells them apart from le
 
 ## What it looks for
 
+**Release-level issues** (no single feature is wrong; the experience is):
+
 | Kind | Example |
 |---|---|
-| Competing directives | Price Watch: "wait for a drop" · Fare Lock: "only 2 seats, lock now" |
+| Competing directives (coherence) | Price Watch: "likely to drop, we'll tell you when to book" · Fare Lock: "2 seats left at this fare, lock it". Both true, never reconciled |
 | Stale guidance | after booking: "we'll tell you when to book" |
-| Principle breach | scarcity pressure on a flexible traveller, against the owner's rule |
-| Unexplained tradeoff | "prices may drop" and "seats are limited", never reconciled for the user |
+| Rule breach for this persona | urging immediate booking on a trip six months away, which the owner's rule forbids for non-imminent trips |
 | Attention load | four non-booking messages in 24 hours |
-| Fact divergence | lock fee €9 on the banner, €12 at checkout |
-| Unsupported assertion | "only 2 seats left" when inventory shows 9 |
 
-And what it deliberately **does not** raise: an approved exception whose conditions are all met (the same banner for a traveller departing tomorrow, with real seat counts and the tradeoff explained), an explained tradeoff, messages that are never live at the same time, persona-specific facts, transactional repetition, and actionable post-purchase offers.
+**Factual issues** (the conventional layer, still checked):
+
+| Kind | Example |
+|---|---|
+| Fact divergence | lock fee €9 on the banner, €12 at checkout |
+| False claim | "only 2 seats left" when inventory shows 9 |
+
+What it deliberately **does not** raise:
+- urgency that an approved exception permits, with every condition met (departs within 72 h, seat count true, tradeoff explained);
+- an explained tradeoff;
+- messages that are never live at the same time;
+- persona-specific facts;
+- transactional repetition;
+- actionable post-purchase offers.
+
+An exception to one rule never excuses another: permitted urgency can still be raised for incoherence.
 
 ## Documents
 
@@ -71,7 +83,7 @@ Also: [Decisions](docs/decisions.md) · [Hackathon compliance and provenance](HA
 ## Layout
 
 ```
-src/sra/      adapters · models · contract · onboard · explore · extract · graph (claims)
+src/semaudit/      adapters · models · contract · onboard · explore · extract · graph (claims)
               · story · relate · check (deterministic) · verify · decide · report · bench
 examples/     Northbound: a fictional multi-feature travel app (2.3 / 2.4 / 2.4.1)
 bench/        frozen-fixture protocol, baselines, results

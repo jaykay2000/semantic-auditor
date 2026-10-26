@@ -7,7 +7,7 @@ Finablo is a personal-finance web app. Its report, dashboard, PDF, export and AI
 | Thing | Location |
 |---|---|
 | The auditor | this repo, installed into Finablo's dev environment as a package |
-| Finablo's contract | `.sra/` in Finablo's own private repo |
+| Finablo's contract | `.semaudit/` in Finablo's own private repo |
 | Run artifacts | outside both repos (a local evidence folder) |
 | This note | generic adoption steps only |
 
@@ -15,8 +15,8 @@ Finablo is a personal-finance web app. Its report, dashboard, PDF, export and AI
 
 1. Boot two releases locally (base and head) on two ports.
 2. Provide a persona hook (Finablo: the guest assessment API plus the dev-only login-code endpoint, local only) and, where available, a clock hook.
-3. Onboard: `sra onboard --url … --docs … --voice …`. The owner reviews, and the contract is committed in the app's repo.
-4. Review a release: `sra review --base … --head … --notes …`.
+3. Onboard: `semaudit onboard --url … --docs … --voice …`. The owner reviews, and the contract is committed in the app's repo.
+4. Review a release: `semaudit review --base … --head … --notes …`.
 
 ## Hackathon evaluation (see [docs/08-evaluation.md](../../docs/08-evaluation.md))
 
@@ -26,7 +26,8 @@ Finablo is a personal-finance web app. Its report, dashboard, PDF, export and AI
 | **R2** | experience-level: the dashboard hero's on-pace framing beside a new card's urgent directive | shown **only if it survives contextual adjudication**, because "ahead overall, with one urgent task" can be legitimate |
 
 **Blindness:**
-- The auditor gets only `VISION.md` and the principles as they existed **before** the release, an owner voice note, synthetic personas, and the two builds.
+- The auditor gets only `VISION.md` and the principles as they existed **before** the release, synthetic personas, and the two builds. **No voice note:** one recorded now is not contemporaneous knowledge.
+- Personas come from the auditor's normal generation over the contract's axes and thresholds. If the 61-year-old is not generated that way and has to be supplied, the result is reported as *detection given a target persona*, not *blind discovery*. The two claims are reported separately.
 - It never gets `CLAUDE.md`, `BUG-HISTORY.md`, `PLAN.md` or the handoff cards, all of which describe these bugs.
 - The input list and commit SHAs are recorded in the run.
 

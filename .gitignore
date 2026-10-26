@@ -3,6 +3,6 @@
 __pycache__/
 *.pyc
 runs/
-.sra-cache/
+.semaudit-cache/
 examples/northbound/outbox/
 .DS_Store

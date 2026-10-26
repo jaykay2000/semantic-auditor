@@ -7,7 +7,7 @@ bench/
   FROZEN.md        sha256 of each sealed ground-truth file, committed BEFORE any system runs on it
   ground_truth/    empty until scoring; sealed files are kept outside the repo until then
   conditions/      configs and frozen prompts for every condition:
-                   sra-full · B-explore · B-judge · B-repeat · ablations
+                   semaudit-full · B-explore · B-judge · B-repeat · ablations
   adjudication/    blind adjudication sheets (owner, independent adjudicator), with κ
   results/<date>/  scores, every finding from every system (false positives included),
                    costs, input hashes

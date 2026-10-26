@@ -15,9 +15,9 @@ The MCV is everything the demo storyboard needs to be true ([06-demo-vision.md](
 5. **Stories**: time-ordered events, base ↔ head alignment and delta.
 6. **Relations**: code generators, model interpretation, and exception evaluation (data conditions in code, soft conditions judged).
 7. **Issues**: severity, confidence and verification as three separate fields; a verifier; a policy-based recommendation; a rejected list.
-8. **Release Story UI** (the hero screen), plus `sra repro`.
+8. **Release Story UI** (the hero screen), plus `semaudit repro`.
 9. **Memory**: dispositions, scoped exceptions and the 2.4.1 re-review.
-10. **Onboarding (demo depth)**: voice note → drafted P1 / P1-E1 → review page → approved contract.
+10. **Onboarding (demo depth)**: written rules → review page → approved contract; voice-to-draft is an enhancement on top.
 11. **Benchmark**: a sealed fixture, B-explore / B-judge / B-repeat, scoring and adjudication ([08-evaluation.md](08-evaluation.md)).
 12. **Finablo**: a contract from dated inputs, with R1 (and R2 if it survives adjudication).
 
@@ -28,16 +28,17 @@ The MCV is everything the demo storyboard needs to be true ([06-demo-vision.md](
 | P | ID | Work item | Depends on | Day |
 |---|---|---|---|---|
 | **P0** | W0 | Foundation: these docs coherent; open decisions in decisions.md settled; one critic pass over the docs | — | Oct 26 |
+| **P0** | **W1b** | **Semantic core proof, before any app exists.** Hand-authored structured stories (JSON) for Maya, Raj, Kai, Hana, Omar and Lena, plus the 2.3 Maya story, with their events, state, validity, rules and exceptions. Run the real generators and real Muse Spark interpretation on them, 5 fresh runs. **Acceptance: the right issue for the right reason.** Maya: P2 coherence from the two true directives; a false-claim error does not count. Raj: P1-E1 met, P2 not applicable, nothing raised. Kai: P1-E1 met, P2 raised. Hana: P1 breach on condition (a). Omar: U1, and P1-E1 fails on (b). Lena: explained tradeoff, not raised. Stable across all 5 runs. These stories become permanent test fixtures (`tests/fixtures/stories/`); the rest of the build exists to produce the same structures from real captures | W1, W3 (rule schema) | **Oct 27–28** |
 | **P0** | W1 | **Model access, verified by calls, not assumed**. Muse Spark: latest official ID, image input, structured output, tool calling, Standard vs Contributor endpoints, real token costs on a sample capture. Muse Spark Open on Modal and/or Baseten. Muse Voice Transcribe | credits | Oct 27 AM |
 | **P0** | W2 | Northbound 2.3 with the persona and clock hooks, oracles and `data-feature` attribution | — | Oct 27 |
-| **P0** | W3 | Contract schema (Pydantic) + Northbound reference contract (P1–P4, P1-E1, decisions, scenarios) | — | Oct 27–28 |
+| **P0** | W3 | Contract schema (Pydantic): rule kinds (universal / conditional / coherence), exceptions, decisions, validity rules, scenarios. The rule part lands first (Oct 27) because W1b needs it. Northbound reference contract (U1, U2, P1–P4, P1-E1) | — | Oct 27–28 |
 | **P0** | W10a | **Release Story design**: design spec → wireframe → **owner approval** (it gates W10b) | W3 shape | Oct 27–28 |
 | **P0** | W4 | Scenario runner: episodes, captures, state snapshots, journey repair | W2, W3 | Oct 28 |
 | **P0** | W5 | Northbound 2.4 and 2.4.1 | W2 | Oct 28 |
 | **P0** | W6 | Extraction: messages, directives, claims, attribution; cache; ledger | W1, W4 | Oct 28–29 |
 | **P0** | W7 | Stories, alignment, delta | W6 | Oct 29 |
 | **P0** | W8 | Generators, interpretation, exception evaluation, `model_open` pass | W7 | Oct 29–30 |
-| **P0** | W9 | Issues: severity, confidence, verification; verifier; release policy; rejected list; `sra repro` | W8 | Oct 30 |
+| **P0** | W9 | Issues: severity, confidence, verification; verifier; release policy; rejected list; `semaudit repro` | W8 | Oct 30 |
 | **P0** | W10b | Release Story UI build (to the approved wireframe) | W10a, W9 | Oct 30–31 |
 | **P0** | W11 | Dispositions → memory; 2.4.1 re-review | W9 | Oct 31 |
 | **P1** | W12 | Onboarding at demo depth: voice → principles draft → review page. A demo enhancement, not a prerequisite; the core runs on the written draft contract from W3 | W1, W3 | Nov 1–2 |
@@ -45,17 +46,17 @@ The MCV is everything the demo storyboard needs to be true ([06-demo-vision.md](
 | **P1** | W13a | **Sealed benchmark** (a separate session): bench-01…06 + ground truth outside the repo; hashes committed to `bench/FROZEN.md` | W2 (2.3 exists) | Oct 28–31 |
 | **P1** | W13b | Baselines B-explore / B-judge / B-repeat; prompts frozen on 2.4; scoring; ablations; adjudication sheet | W9, W13a | Nov 1 |
 | **P1** | W14 | Finablo: dated inputs, contract, owner review, R1 + R2 runs, adjudication | W9, W12 | Nov 2 |
-| **P0** | W15 | Packaging: README quickstart, `sra demo`, static hosted report, license, public repo (on the owner's word) | all P0 | Nov 3 |
+| **P0** | W15 | Packaging: README quickstart, `semaudit demo`, static hosted report, license, public repo (on the owner's word) | all P0 | Nov 3 |
 | **P0** | W16 | Video: record, review against the storyboard, re-record; submit | W15 | Nov 3–4 |
 | **P2** | — | Autonomous mapping of unknown apps · SAM 3.1 grounding · iOS adapter · GitHub Action | — | after |
 
-**Critical path:** W1 → W4 → W6 → W7 → W8 → W9 → W10b → W16. Its riskiest link is W8, the relation interpretation. W8 gets one day of slack, which is the reason the freeze is Oct 31 and not Nov 1.
+**Critical path:** W1 → W4 → W6 → W7 → W8 → W9 → W10b → W16. Its riskiest link, relation interpretation, is **de-risked first** by W1b on hand-authored stories, so by Oct 28 we know whether the core reasoning works, before capture and extraction are built. W8 then only has to reproduce W1b's results from real captures. If W1b fails, the plan changes on day 2, not day 5.
 
 ## Quality gates per work item
 
 - Each item gets its own tests. Guards are mutation-checked: delete the code a test guards, and the test must go red.
 - W6 is accepted when directive extraction on the 2.4 narrative captures matches the reference labels on ≥ 90% of directives (decision + action + urgency).
-- W8 is accepted when, on the narrative fixture, **every** narrative negative control (NC1–NC6) is *not* raised and every seeded narrative issue is raised. This is development evidence, not a benchmark claim.
+- W8 is accepted when the W1b fixtures still pass **from real captures**: on the narrative fixture, every negative control (NC1–NC6) is *not* raised, every boundary case comes out exactly as tabled in `examples/northbound`, and every seeded issue is raised **for the stated rule and reason**. This is development evidence, not a benchmark claim.
 - W9 is accepted when severity, confidence and verification can each be shown to change independently. Test cases: high severity with low confidence; high confidence with an unverified status.
 - W10b is accepted when a viewer who has not heard the narration can state the four things in the screen spec. The check: the owner watches a silent screen recording.
 
@@ -88,7 +89,7 @@ The Standard-mode price for Muse Spark ($1.25 / $4.25 per million input / output
 
 ## Cut order
 
-1. B-explore is reduced to 2 bench releases.
+1. B-explore is reduced to 2 bench releases; B-explore+scenarios to 1.
 2. Ablations are reduced to no-exceptions and no-verifier.
 3. The 2.4.1 hotel-scope moment is cut (fixed → resolved is kept).
 4. Finablo R2 is cut.

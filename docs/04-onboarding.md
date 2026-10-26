@@ -11,7 +11,9 @@
 | Owner voice note (2–5 min) or typed answers | recommended | principles, conditions, exceptions, persona hints |
 | Feature list: release notes, a flag registry or design-system attribution | recommended | feature attribution |
 
-**Leakage control for evaluations:** when onboarding is used to *test* the auditor on a historical release, it may only see inputs that existed **before** that release. Any doc that describes the bug being tested is excluded, and the input list with its commit SHAs is recorded in the run (see [08-evaluation.md](08-evaluation.md)).
+**Leakage control for evaluations:** when onboarding is used to *test* the auditor on a historical release, it may only see inputs that existed **before** that release. Any doc that describes the bug being tested is excluded, and so is a voice note recorded today, which is not contemporaneous knowledge. The input list with its commit SHAs is recorded in the run (see [08-evaluation.md](08-evaluation.md)).
+
+**Voice is optional.** The auditor's core runs on a written principles draft. The voice step is an onboarding convenience and a demo enhancement.
 
 ## Steps
 
@@ -38,20 +40,27 @@ The model proposes, each item with its provenance and a confidence:
 - `principles.yaml`: drafts from the intent statements.
 
 ### 4. Sharpen principles (the step that matters most)
-Owners speak in absolutes ("we never pressure travellers"). An absolute principle cannot tell Maya's case from Raj's, so the auditor turns each one into an **operational principle**:
-- **applies_to:** which decisions, directives or surfaces it governs;
-- **violated_when:** persona and state conditions, as data;
-- **exceptions:** each with conditions (data or judged), a scope (features, surfaces, personas), an approver and an expiry.
+Owners speak in absolutes ("we never pressure travellers"). An absolute rule cannot tell an acceptable message from an unacceptable one, so the auditor splits each intent statement into operational rules of **three kinds**:
 
-It asks the owner targeted questions to get there:
-> "You said you never pressure travellers. Fare Lock shows 'only 2 seats left'. Is that ever acceptable, for example for a trip departing within days, if the seat count is real? Should the banner then also explain the tradeoff?"
+| Kind | Meaning | Exceptions? |
+|---|---|---|
+| **Universal prohibition** | never true to break, for anyone (e.g. "never state a scarcity claim our data doesn't support") | none |
+| **Conditional rule** | forbidden by default; permitted only through a scoped exception whose conditions are data (checked by code) or judged (checked by model and verifier) | scoped, with expiry and approver |
+| **Coherence rule** | about the *relationship* between features (e.g. "features that advise on the same decision must agree or explain the tradeoff") | none; an exception to another rule never excuses it |
 
-**Example result:**
-> **P1.** We do not manufacture scarcity or use urgency to pressure flexible travellers. For genuinely time-sensitive trips, we may communicate verified inventory constraints and explain the tradeoff.
-> **P1-E1.** Applies when the trip departs within 72 h or its dates are fixed, *and* the seats-left claim matches inventory, *and* the tradeoff is explained. Scope: Fare Lock on fare detail and checkout. Expires 2027-01-31.
+It asks the owner targeted questions to get there, including **boundary** questions:
+> "You said you never pressure travellers. Fare Lock shows '2 seats left'. Is sharing a true seat count always fine? When, if ever, may it urge booking now: a trip within days? What about fixed dates six months away? Must the banner explain the tradeoff?"
+
+**Example result (Northbound's written draft):**
+> **U1.** Every scarcity, price and policy claim matches our own data.
+> **P1.** We may always share verified inventory information. We do not urge immediate action, except for genuinely time-sensitive trips.
+> **P1-E1.** All of: departure within 72 h (fixed dates alone do not qualify); the seat claim matches inventory; the message explains the tradeoff. Scope: Fare Lock on fare detail and checkout. Expires 2027-01-31.
+> **P2.** When more than one feature gives an active recommendation about the same decision, the product presents a consistent recommendation or explains the competing tradeoffs.
+
+Each rule also gets a short list of **boundary cases** the owner confirms (the Maya / Raj / Kai / Hana / Omar table in [examples/northbound](../examples/northbound/README.md)). These become test fixtures.
 
 ### 5. Owner review
-`sra contract review` renders one HTML page:
+`semaudit contract review` renders one HTML page:
 - each principle in plain English, with its conditions as a checklist and its source (the audio timestamp plays the clip);
 - each exception with its scope;
 - each decision's actions and incompatibilities;
@@ -74,7 +83,7 @@ After every review:
 ## Output
 
 ```
-.sra/
+.semaudit/
   product.yaml            name, summary, sources
   principles.yaml         operational principles + scoped exceptions (with audio/doc provenance)
   features.yaml

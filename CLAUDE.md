@@ -1,12 +1,12 @@
-# Semantic Release Auditor: working rules for agents
+# Semantic Auditor: working rules for agents
 
 Read [README.md](README.md), [HACKATHON.md](HACKATHON.md), [docs/03-architecture.md](docs/03-architecture.md) and [docs/07-implementation-plan.md](docs/07-implementation-plan.md) first. The unit of analysis is the **User Experience Story**; fact comparison is one layer inside it.
 
 ## Hard rules
 
 - **New work only.** Never copy code from Finablo (`~/Documents/src/finlearn`) or any other private repo into this one. Ideas are fine; record them in the HACKATHON.md provenance ledger.
-- **No consumer specifics in `src/sra/`.** Anything Finablo- or Northbound-specific goes in that app's `.sra/` contract, or in `examples/` / `integrations/`. If the core needs an `if app == …`, the contract schema is missing a concept.
-- **Roles, not models.** Call `sra.models.complete(role=…)`. Never name a model ID outside `sra.toml` / `sra/models/`.
+- **No consumer specifics in `src/semaudit/`.** Anything Finablo- or Northbound-specific goes in that app's `.semaudit/` contract, or in `examples/` / `integrations/`. If the core needs an `if app == …`, the contract schema is missing a concept.
+- **Roles, not models.** Call `semaudit.models.complete(role=…)`. Never name a model ID outside `semaudit.toml` / `semaudit/models/`.
 - **Deterministic where possible.** Joins, normalization, arithmetic, diffs, conditions and deterministic checks are code. Models extract and judge.
 - **Severity, confidence and verification are separate fields.** Never derive one from another or merge them in the UI. A check that cannot measure exits 2, never 0.
 - **Nothing suppresses broadly.** Owner "accept" creates a scoped, expiring exception; a deterministic check only for an expressible rule.
