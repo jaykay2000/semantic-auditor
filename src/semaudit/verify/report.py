@@ -19,7 +19,7 @@ from semaudit.decide.pipeline import evaluate_release
 from semaudit.models.router import ModelError, Router
 from semaudit.report import manifest as mf
 from semaudit.report.review import outcome_of
-from semaudit.verify.steps import confidence_of, same_family, step_evidence, verification_status
+from semaudit.verify.steps import confidence_of, one_family, step_evidence, verification_status
 
 
 class CannotVerify(RuntimeError):
@@ -75,7 +75,7 @@ def verify_report(review_path: Path, *, root: Path | None = None) -> list[str]:
     for iid in sorted(set(recorded) - set(derived)):
         problems.append(f"{iid}: in the review but not re-derived from the episodes")
     stories = {p: s for p, (s, _) in h.results.items()}
-    reduced = same_family(router, "extractor", "cross_checker_extract") if m["verifier"]["models"] else False
+    reduced = one_family(router) if m["verifier"]["models"] else False
     for iid in sorted(set(recorded) & set(derived)):
         d, i = recorded[iid], derived[iid]
         if _row(i) != _row_of(d):

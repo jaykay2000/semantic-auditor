@@ -62,8 +62,8 @@ def prompt_digests(contract: Contract) -> dict[str, str]:
 
 
 def _same_family(router) -> bool:
-    from semaudit.verify.steps import same_family
-    return same_family(router, "extractor", "cross_checker_extract")
+    from semaudit.verify.steps import one_family
+    return one_family(router)
 
 
 def episode_digests(run_dir: Path, releases: list[str]) -> dict[str, str]:

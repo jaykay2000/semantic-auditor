@@ -223,3 +223,25 @@ def test_the_policy_names_the_issues_that_made_its_row_fire():
     assert row.recommendation == "needs_owner_review" and p.fired_by(row, xs[2:]) == [0]
     row, _ = p.evaluate(xs[:1])
     assert row.otherwise and p.fired_by(row, xs[:1]) == []                 # a catch-all names no issue
+
+
+class _Roles:
+    def __init__(self, **models):
+        from semaudit.models.router import DEFAULT_ROLES
+        self.roles = {r: dict(spec) for r, spec in DEFAULT_ROLES.items()}
+        for role, model in models.items():
+            self.roles[role]["model"] = model
+
+
+def test_model_family_ignores_the_provider_prefix_and_fails_closed():
+    from semaudit.verify.steps import model_family, one_family
+    assert model_family({"model": "meta-models/muse-spark-open-1026"}) == model_family({"model": "muse-spark-1.3"})
+    assert model_family({"model": "some-new-model"}) is None
+    assert one_family(_Roles())                                                   # today: all Muse Spark
+    open_ = "meta-models/muse-spark-open-1026"                                    # Muse Spark Open is the same family
+    assert one_family(_Roles(cross_checker_extract=open_, cross_checker_interpret=open_, defender=open_))
+    other = "claude-sonnet-5-5"
+    assert one_family(_Roles(cross_checker_extract=other))                        # interpretation still same family
+    assert one_family(_Roles(cross_checker_extract=other, cross_checker_interpret=other,
+                             defender="unknown-model"))                           # unrecognised: not independent
+    assert not one_family(_Roles(cross_checker_extract=other, cross_checker_interpret=other, defender=other))

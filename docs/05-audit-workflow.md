@@ -62,7 +62,7 @@ For each issue, the applicable steps are run and recorded:
 
 Each step yields a **verification status** (`unverified` → `partially_verified` → `verified`, or `failed`: `not_reproducible` or `disputed`). The steps also feed confidence. Failed candidates go to the **not raised** list with their reasons. They are shown, not hidden.
 
-*Verified* means the evidence reproduced and resolves exactly, and an independent model re-reached the judgment and could not explain it away. It does not make a subjective product judgment objectively true; that is the owner's decision.
+*Verified* means the evidence reproduced and resolves exactly, and a second model re-reached the judgment and could not explain it away. Today that model is the same family as the reader, so it is a second pass, not independent agreement, and confidence is capped at medium. It does not make a subjective product judgment objectively true; that is the owner's decision.
 
 ### 9. Recommend and report
 - `release_policy.yaml` turns (severity, confidence, verification) into the recommendation. This is a rule, not a model opinion.

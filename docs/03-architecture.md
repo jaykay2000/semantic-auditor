@@ -282,7 +282,7 @@ The story is the single object that the relation layer, the issue evidence, the 
   "severity":     {"level": "major", "factors": {"decision_impact": "money", "principle_tier": "core",
                    "reach": "2/8 personas, core booking journey", "timing": "pre-purchase", "recoverable": true}},
   "confidence":   {"level": "high", "basis": ["directives extracted by 2 models agree",
-                   "label agreed by independent model", "defense failed", "no unknown conditions"]},
+                   "label agreed by an independent model family", "defense failed", "no unknown conditions"]},
   "verification": {"status": "verified", "steps": {"reproduced": "pass", "evidence_linked": "pass",
                    "cross_model": "pass", "defended": "pass"}},
   "repro": "semaudit repro I-2.4-maya-01",
@@ -294,7 +294,7 @@ The story is the single object that the relation layer, the issue evidence, the 
 - **Confidence**: how likely it is to be real by the owner's standards. Basis: evidence type (a measured fact is stronger than an interpreted directive), agreement between the two extraction models, agreement on the label, the defense outcome, and any *unknown* exception conditions. Levels: high, medium, low.
 - **Verification status**: which checks have actually been run, and their outcomes. Steps: `reproduced` (the episode is re-run and the same events appear), `evidence_linked` (every cited event resolves through its source-specific locator to the exact quoted text), `cross_model` (a second model reaches the same label; when it is the same model family as the reader, the review records `verifier.independence: one_family` and the page and confidence call it a second pass, not independent agreement), `defended` (the defense pass could not explain it away), and `oracle_checked` (fact kinds only). Statuses: `unverified`, `partially_verified`, `verified`, `failed` (`not_reproducible` or `disputed`).
 
-**What "verified" means, and does not mean.** Verified means the evidence was reproduced and resolves exactly, and the judgment was independently re-reached by a second model that also failed to explain it away. It does **not** mean a subjective product judgment is objectively true. That is the owner's call, and it is what the owner disposition records. Objective kinds (false claim, fact divergence) are additionally `oracle_checked`.
+**What "verified" means, and does not mean.** Verified means the evidence was reproduced and resolves exactly, and the judgment was re-reached by a second model that also failed to explain it away. When that model is the same family as the reader (today: Muse Spark 1.2 checking 1.3), this is a second pass, not independent agreement, and confidence is capped at medium. It does **not** mean a subjective product judgment is objectively true. That is the owner's call, and it is what the owner disposition records. Objective kinds (false claim, fact divergence) are additionally `oracle_checked`.
 
 **Release notes** are used to attribute changes to features and to aim personas at what changed. A change being *intended* never by itself excuses a conflict; only an approved, scoped exception does.
 
@@ -333,15 +333,18 @@ applied in its manifest, so repro and verify-report replay exactly those. The la
 on `muse-spark-1.3`, `cross_checker_extract`, `cross_checker_interpret` and `defender` on `muse-spark-1.2`.
 Open-weights hosting (Modal / Baseten) is not set up and voice onboarding is not built. Because every role is one
 model family, cross-model agreement is recorded as reduced independence and **caps confidence at medium**. The
-table below is the target routing once Muse Spark Open is hosted.
+table below is the target routing once Muse Spark Open is hosted. ⚠️ Muse Spark Open is the **same family** as
+Muse Spark, so this target is still a second pass and the cap still applies: `verify/steps.py::one_family` treats
+the verifier as independent only when every verifier role is a known, different family from the role it checks.
+Lifting the cap needs a model from another family (an owner decision, with its own spend).
 
 | Role | Model (target) | Notes |
 |---|---|---|
 | `extractor` (messages, directives, claims) | **Muse Spark Open** (`meta-models/muse-spark-open-1026` on Modal/Baseten) | high volume, structured output |
 | `interpreter` (label relations; `model_open` pass) | **Muse Spark** (Meta Model API; latest official ID, to be verified) | the core judgement |
-| `cross_checker.extract` (re-extract directives) | **Muse Spark** (the extractor is Muse Spark Open) | agreement across two *different* models is the point |
-| `cross_checker.interpret` (re-label relations) | **Muse Spark Open** (the interpreter is Muse Spark) | likewise. If open-weights hosting is unavailable, two Muse Spark versions are used and every confidence basis records "reduced independence" |
-| `defender` (explain-it-away pass) | Muse Spark Open | independent of the interpreter |
+| `cross_checker.extract` (re-extract directives) | **Muse Spark** (the extractor is Muse Spark Open) | a different model, same family: a second pass |
+| `cross_checker.interpret` (re-label relations) | **Muse Spark Open** (the interpreter is Muse Spark) | likewise, same family. If open-weights hosting is unavailable, two Muse Spark versions are used; either way every confidence basis records "reduced independence" |
+| `defender` (explain-it-away pass) | Muse Spark Open | a different model from the interpreter, same family |
 | `explorer` (journey repair, onboarding mapping) | Muse Spark with browser tools | |
 | `transcriber` (owner voice note) | **Muse Voice Transcribe** | |
 

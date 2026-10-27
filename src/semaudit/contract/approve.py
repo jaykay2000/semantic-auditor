@@ -27,32 +27,39 @@ class Item:
     id: str
     obj: Any             # the pydantic model (or list of them, for whole-section items)
     digest: str
+    content: Any = None  # exactly what `digest` hashes; the review page shows it, so nothing approved is unseen
+
+
+_RULE_EXCLUDE = frozenset({"exceptions"})
+
+
+def hashed_content(obj: Any, exclude: frozenset = frozenset()) -> Any:
+    """The exact content an approval pins: every field except `source` (and, for a rule, its exceptions)."""
+    if isinstance(obj, list):
+        return [hashed_content(x, exclude) for x in obj]
+    if isinstance(obj, str):
+        return obj
+    return obj.model_dump(mode="json", exclude={"source", *exclude})
 
 
 def _digest(obj: Any, exclude: frozenset = frozenset()) -> str:
-    def dump(o):
-        if isinstance(o, list):
-            return [dump(x) for x in o]
-        if isinstance(o, str):
-            return o
-        return o.model_dump(mode="json", exclude={"source", *exclude})
-    return hashlib.sha256(json.dumps(dump(obj), sort_keys=True).encode()).hexdigest()[:16]
+    return hashlib.sha256(json.dumps(hashed_content(obj, exclude), sort_keys=True).encode()).hexdigest()[:16]
 
 
 def rule_digest(r: Any) -> str:
     """A rule's own content. Its exceptions are approved as separate items, so adding or narrowing one (an owner
     `accept`) does not unapprove the rule; removing one only makes the contract stricter."""
-    return _digest(r, frozenset({"exceptions"}))
+    return _digest(r, _RULE_EXCLUDE)
 
 
 def items(c: Contract) -> list[Item]:
     out: list[Item] = []
 
-    def add(section: str, id: str, obj: Any, digest: str | None = None):
-        out.append(Item(f"{section}:{id}", section, id, obj, digest or _digest(obj)))
+    def add(section: str, id: str, obj: Any, exclude: frozenset = frozenset()):
+        out.append(Item(f"{section}:{id}", section, id, obj, _digest(obj, exclude), hashed_content(obj, exclude)))
 
     for r in c.rules:
-        add("rule", r.id, r, rule_digest(r))
+        add("rule", r.id, r, _RULE_EXCLUDE)
         for e in r.exceptions:
             add("exception", e.id, e)
     for d in c.decisions:

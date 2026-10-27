@@ -110,11 +110,13 @@ Also: [Decisions](docs/decisions.md) · [Hackathon compliance and provenance](HA
 | Role | Model today | Planned |
 |---|---|---|
 | Extract messages, directives and claims; interpret candidate conflicts against owner principles | **Muse Spark 1.3** (Meta Model API) | extraction on **Muse Spark Open** (open weights) |
-| Independent cross-check and defense of every issue occurrence | **Muse Spark 1.2** | **Muse Spark Open**, so agreement is across model families |
+| Second-pass cross-check of, and argument against, every issue occurrence | **Muse Spark 1.2** | **Muse Spark Open** (still the same family) |
 | Turn the owner's spoken intent into draft principles | not built | **Muse Voice Transcribe** |
 
 Every role is called through `semaudit.models` by name, never by model ID. While all roles are one model family,
-the verifier records "reduced independence" and caps confidence at medium.
+the verifier records "reduced independence" and caps confidence at medium: a second model's agreement is a second
+pass, not independent agreement. Muse Spark Open is the same family too; only a model from another family lifts
+the cap.
 
 ## Layout
 

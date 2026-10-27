@@ -318,9 +318,31 @@ def confidence_of(issue: Issue, steps: dict[str, dict], contract: Contract,
     return {"level": level, "basis": basis}
 
 
-def same_family(router: Router, a: str, b: str) -> bool:
-    fam = lambda role: "-".join(router.roles[role]["model"].split("-")[:2])  # noqa: E731
-    return fam(a) == fam(b)
+# A model name's family, by its name with any provider prefix ("meta-models/") removed. A role may also set
+# `family` in semaudit.toml. An unrecognised model has no family, and is never counted as independent.
+_FAMILIES = (("muse-spark", "meta-muse-spark"), ("llama", "meta-llama"), ("claude", "anthropic-claude"),
+             ("gpt", "openai-gpt"), ("gemini", "google-gemini"))
+
+# Each verifier role and the role whose work it checks.
+VERIFIER_PAIRS = (("cross_checker_extract", "extractor"), ("cross_checker_interpret", "interpreter"),
+                  ("defender", "interpreter"))
+
+
+def model_family(spec: dict) -> str | None:
+    if spec.get("family"):
+        return str(spec["family"])
+    name = str(spec.get("model", "")).rsplit("/", 1)[-1].lower()
+    return next((fam for prefix, fam in _FAMILIES if name.startswith(prefix)), None)
+
+
+def one_family(router: Router) -> bool:
+    """True unless EVERY verifier role is a known model family different from the role it checks. Fails closed: one
+    shared or unrecognised family anywhere means a second model's agreement is a second pass, not independent."""
+    for checker, checked in VERIFIER_PAIRS:
+        a, b = model_family(router.roles[checker]), model_family(router.roles[checked])
+        if a is None or b is None or a == b:
+            return True
+    return False
 
 
 def verify(issue: Issue, stories: dict[str, Story], episodes: dict[str, Episode], run_dir: Path,
@@ -339,4 +361,4 @@ def verify(issue: Issue, stories: dict[str, Story], episodes: dict[str, Episode]
     issue.verification = verification_status(steps)
     issue.confidence = confidence_of(issue, steps, contract,
                                      reduced_independence=bool(router) and models
-                                     and same_family(router, "extractor", "cross_checker_extract"))
+                                     and one_family(router))

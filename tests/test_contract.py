@@ -167,3 +167,28 @@ def test_review_page_shows_every_rule_and_exception_condition():
 def test_interactive_review_page_has_approve_forms():
     page = render(C, {}, interactive=True)
     assert page.count('action="/approve"') == len(items(C)) + 1  # one per item + approve all
+
+
+def test_page_shows_p2_severity_for_each_label():
+    """P2's approval hash includes its per-label severity, so the card must show both levels, not the fallback alone."""
+    import re
+    page = render(C, {}, interactive=False)
+    card = page[page.index('id="rule-P2"'):page.index('id="rule-P3"')]
+    pill = re.search(r"severity if violated: ([^<]*)</span>", card).group(1)
+    assert "conflict: critical" in pill and "unexplained tradeoff: major" in pill
+
+
+def test_every_approval_item_shows_exactly_the_content_its_hash_pins():
+    """A sweep, not a list: every item approval pins appears on the page with its hash and its full hashed content,
+    so nothing the owner approves is only summarized. Fields are checked as rendered YAML leaves."""
+    import html as h
+    page = h.unescape(render(C, {}, interactive=False))
+    its = items(C)
+    assert len(its) == 43
+    for i in its:
+        anchor = f'id="exact-{i.key.replace(":", "-")}"'
+        assert anchor in page, i.key
+        block = page[page.index(anchor):]
+        block = block[:block.index("</details>")]
+        assert i.digest in block, i.key
+        assert yaml.safe_dump(i.content, sort_keys=False, allow_unicode=True, width=100) in block, i.key

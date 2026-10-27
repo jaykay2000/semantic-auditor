@@ -24,6 +24,8 @@ h1{margin:0;font-size:22px} h2{margin:8px 0 0;font-size:13px;letter-spacing:.06e
 .box{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:#FAFAF7}
 table{border-collapse:collapse;width:100%;font-size:13px} th,td{text-align:left;padding:7px 8px;border-top:1px solid var(--line);vertical-align:top} th{color:var(--ink2);font-weight:600;border-top:none}
 button{font:600 13px Inter,sans-serif;padding:7px 12px;border-radius:7px;border:1px solid var(--ink);background:var(--ink);color:#fff;cursor:pointer}
+details.exact{font-size:12px;color:var(--ink2)} details.exact summary{cursor:pointer}
+details.exact pre{margin:6px 0 0;padding:10px;background:#FAFAF7;border:1px solid var(--line);border-radius:6px;white-space:pre-wrap;word-break:break-word;color:var(--ink)}
 .problems{border-color:#E9B8A5;background:#FFF7F3}
 @media (max-width:640px){.cond{grid-template-columns:46px 1fr}}
 </style>
@@ -31,12 +33,14 @@ button{font:600 13px Inter,sans-serif;padding:7px 12px;border-radius:7px;border:
 <body>
 {% macro state(key) -%}
   <span class="row" style="gap:8px">
+    <a class="muted" style="font-size:12px" href="#exact-{{ key|replace(':', '-') }}">exact content</a>
     <span class="st {{ status[key] }}">{{ status[key] }}{% if status[key] == "approved" %} · {{ approvals[key].by }} {{ approvals[key].date }}{% endif %}</span>
     {% if interactive and status[key] != "approved" %}
     <form method="post" action="/approve" style="margin:0"><input type="hidden" name="key" value="{{ key }}"><button type="submit">Approve</button></form>
     {% endif %}
   </span>
 {%- endmacro %}
+
 <main id="top">
   <div class="row spread">
     <div>
@@ -63,7 +67,7 @@ button{font:600 13px Inter,sans-serif;padding:7px 12px;border-radius:7px;border:
   {% for r in c.rules %}
   <section class="card" id="rule-{{ r.id }}">
     <div class="row spread">
-      <div class="row"><strong class="mono" style="font-size:15px">{{ r.id }}</strong><span class="pill">{{ r.kind }}</span><span class="pill">severity if violated: {{ r.severity }}</span></div>
+      <div class="row"><strong class="mono" style="font-size:15px">{{ r.id }}</strong><span class="pill">{{ r.kind }}</span><span class="pill">severity if violated: {% if r.severity_by_label %}{% for lbl, lvl in r.severity_by_label.items() %}{{ lbl|replace("_", " ") }}: {{ lvl }}{% if not loop.last %} · {% endif %}{% endfor %}{% else %}{{ r.severity }}{% endif %}</span></div>
       {{ state("rule:" ~ r.id) }}
     </div>
     <div class="quote">“{{ r.text }}”</div>
@@ -161,6 +165,14 @@ button{font:600 13px Inter,sans-serif;padding:7px 12px;border-radius:7px;border:
     <div class="muted">{% for o in c.oracles %}<code>{{ o.endpoint }}</code>{% if not loop.last %} · {% endif %}{% endfor %}</div>{% endif %}
     {% if c.app %}<div class="row spread" style="margin-top:8px"><b>App and hooks</b>{{ state("app:" ~ c.app.name) }}</div>
     <div class="muted">{{ c.app.base_url }} · releases {{ c.app.releases|join(", ") }} · persona {{ c.app.hooks.persona }} · clock {{ c.app.hooks.clock or "none (time-triggered surfaces not measured)" }}</div>{% endif %}
+  </div>
+
+  <h2 id="exact">Exact content of every approval item</h2>
+  <div class="card">
+    <span class="muted">Each approval pins exactly this content, by the hash shown. The cards above summarize it; this is what you approve. Any change to it makes the item read “changed”.</span>
+    {% for key, (digest, text) in exact.items() %}
+    <details class="exact" id="exact-{{ key|replace(':', '-') }}"><summary><span class="mono">{{ key }}</span> · <span class="mono">{{ digest }}</span> · <span class="st {{ status[key] }}">{{ status[key] }}</span></summary><pre class="mono">{{ text }}</pre></details>
+    {% endfor %}
   </div>
 </main>
 </body>

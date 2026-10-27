@@ -11,6 +11,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs
 
+import yaml
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from .approve import approve, items, load_approvals, status_of, summary
@@ -56,8 +57,10 @@ def evaluated_by(r: Rule) -> str:
 def render(c: Contract, approvals: dict, interactive: bool = False, problems: list[str] | None = None) -> str:
     its = items(c)
     status = {i.key: status_of(i, approvals) for i in its}
+    # the exact content each approval pins, as YAML, so the owner never approves a field the cards only summarize
+    exact = {i.key: (i.digest, yaml.safe_dump(i.content, sort_keys=False, allow_unicode=True, width=100)) for i in its}
     return _env.get_template("review.html.j2").render(
-        c=c, status=status, approvals=approvals, counts=summary(c, approvals), interactive=interactive,
+        c=c, status=status, exact=exact, approvals=approvals, counts=summary(c, approvals), interactive=interactive,
         problems=problems or [], describe=describe_condition, evaluated_by=evaluated_by,
         unapproved=[k for k, s in status.items() if s != "approved"])
 
