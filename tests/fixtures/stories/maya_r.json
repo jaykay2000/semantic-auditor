@@ -189,5 +189,9 @@
    "label": "explained_tradeoff"
   }
  ],
- "gold_reconciler": "cg_inline"
+ "gold_reconciler": "cg_inline",
+ "gold_addresses": [
+  "wait_for_drop",
+  "lock_fare"
+ ]
 }

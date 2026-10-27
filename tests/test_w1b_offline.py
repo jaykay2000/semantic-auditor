@@ -36,7 +36,11 @@ def gold_interpreter(raw):
 
     def interpret(story, cand, contract):
         assert p2 is not None, f"unexpected P2 candidate {cand.subject} in {story.id}"
-        return {"label": p2["label"], "reconciling_event_id": raw.get("gold_reconciler"), "rationale": "gold"}
+        # gold says what the reconciler addresses; for Kai 2.4.1 the label it would need is explained_tradeoff,
+        # and code must still reject it because the message never addresses book_now
+        label = "explained_tradeoff" if raw.get("gold_reconciler") else p2["label"]
+        return {"label": label, "reconciling_event_id": raw.get("gold_reconciler"),
+                "addresses_actions": raw.get("gold_addresses", []), "rationale": "gold"}
     return interpret
 
 
@@ -48,7 +52,7 @@ def test_code_layer_matches_expected(name):
 
 
 def test_fixture_count():
-    assert len(NAMES) == 16
+    assert len(NAMES) == 17
 
 
 def test_late_reconciler_is_not_accepted():
@@ -70,7 +74,9 @@ from semaudit.relate.rules import p2_candidates, validity  # noqa: E402
 
 
 def labeller(label, rid=None):
-    return lambda story, cand, contract: {"label": label, "reconciling_event_id": rid or "", "rationale": "t"}
+    return lambda story, cand, contract: {"label": label, "reconciling_event_id": rid or "", "rationale": "t",
+                                          "addresses_actions": sorted({x.extraction.action for p in cand.pairs
+                                                                       for x in p})}
 
 
 def test_reconciler_after_both_directives_expired_does_not_clear_p2():

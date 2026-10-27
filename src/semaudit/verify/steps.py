@@ -85,14 +85,9 @@ def step_reproduced(issue: Issue, stories: dict[str, Story], repro: dict[str, St
     return {"result": "fail" if missing else "pass", "detail": missing or "same events, same text, same time"}
 
 
-def step_cross_model(issue: Issue, stories: dict[str, Story], contract: Contract, router: Router, *,
-                     fresh: bool) -> dict:
-    """Independent re-derivation: the other model re-extracts every cited message (and, for coherence issues,
-    re-labels the candidate); the rules then run again on that reading. Passes only if the same violation
-    (rule, subject, and label for P2) comes out again. Agreement with the first model is not the test."""
+def _cross_one(issue: Issue, o, story: Story, contract: Contract, router: Router, *, fresh: bool) -> tuple[bool, str]:
     from semaudit.relate.rules import evaluate
-    o = issue.occurrences[0]
-    story = stories[o.persona].model_copy(deep=True)
+    story = story.model_copy(deep=True)
     cited = [e for e in cited_events(o.entry, story) if e.kind == "message"]
     msgs = [{"feature": e.feature, "channel": e.channel, "text": e.text} for e in cited]
     other = extract_unique(msgs, contract, router, fresh=fresh, role="cross_checker_extract") if msgs else {}
@@ -103,24 +98,32 @@ def step_cross_model(issue: Issue, stories: dict[str, Story], contract: Contract
         if diffs:
             changed.append(f"{e.id}: {', '.join(f'{f} {getattr(e.extraction, f)}->{getattr(x, f)}' for f in diffs)}")
         e.extraction = x
-    interp = model_interpreter(router, fresh=fresh, rng=random.Random(f"x:{issue.id}"), role="cross_checker_interpret")
+    interp = model_interpreter(router, fresh=fresh, rng=random.Random(f"x:{issue.id}:{o.persona}"),
+                               role="cross_checker_interpret")
     again = [x for x in evaluate(story, contract, interp)
              if x.rule == issue.rule and x.status == "violated"
              and (x.subject == o.entry.subject or issue.rule_kind != "coherence" and x.subject in o.events)]
     same = [x for x in again if issue.rule_kind != "coherence" or x.label == o.entry.label]
     if same:
-        return {"result": "pass", "detail": "re-derived with the other model" + (f" (reading differs: {changed})"
-                                                                                if changed else "")}
-    why = f"other model's reading does not produce this violation; {changed or 'same reading'}"
-    if again and not same:
-        why = f"re-derived with a different label: {again[0].label}"
-    return {"result": "fail", "detail": why}
+        return True, "re-derived" + (f" (reading differs: {changed})" if changed else "")
+    if again:
+        return False, f"re-derived with a different label: {again[0].label}"
+    return False, f"the other model's reading does not produce this violation; {changed or 'same reading'}"
 
 
-def step_defended(issue: Issue, stories: dict[str, Story], contract: Contract, router: Router, *,
-                  fresh: bool) -> dict:
-    o = issue.occurrences[0]
-    story = stories[o.persona]
+def step_cross_model(issue: Issue, stories: dict[str, Story], contract: Contract, router: Router, *,
+                     fresh: bool) -> dict:
+    """Independent re-derivation, for EVERY occurrence: the other model re-extracts each cited message (and, for
+    coherence issues, re-labels the candidate); the rules then run again on that reading. Passes only if the
+    same violation (rule, subject, and label for P2) comes out again for every persona the issue groups."""
+    per = {o.persona: _cross_one(issue, o, stories[o.persona], contract, router, fresh=fresh)
+           for o in issue.occurrences}
+    ok = all(v for v, _ in per.values())
+    return {"result": "pass" if ok else "fail", "detail": {p: d for p, (_, d) in per.items()},
+            "occurrences": {p: "pass" if v else "fail" for p, (v, _) in per.items()}}
+
+
+def _defend_one(issue: Issue, o, story: Story, contract: Contract, router: Router, *, fresh: bool) -> tuple[bool, str]:
     rule = contract.rule(issue.rule)
     payload = {
         "issue": {"rule": rule.id, "rule_text": rule.text, "label": issue.label, "why": issue.why,
@@ -134,8 +137,18 @@ def step_defended(issue: Issue, stories: dict[str, Story], contract: Contract, r
     r = router.complete("defender", [{"role": "system", "content": DEFENSE_INSTRUCTIONS},
                                      {"role": "user", "content": json.dumps(payload, ensure_ascii=False, indent=1)}],
                         schema=DEFENSE_SCHEMA, schema_name="defense", fresh=fresh)
-    holds = not r.parsed["defense_succeeds"]
-    return {"result": "pass" if holds else "fail", "detail": r.parsed["strongest_defense"][:400]}
+    return not r.parsed["defense_succeeds"], r.parsed["strongest_defense"][:400]
+
+
+def step_defended(issue: Issue, stories: dict[str, Story], contract: Contract, router: Router, *,
+                  fresh: bool) -> dict:
+    """The defender argues each occurrence away on that persona's own story; the issue holds only if every
+    occurrence survives its defense."""
+    per = {o.persona: _defend_one(issue, o, stories[o.persona], contract, router, fresh=fresh)
+           for o in issue.occurrences}
+    ok = all(v for v, _ in per.values())
+    return {"result": "pass" if ok else "fail", "detail": {p: d for p, (_, d) in per.items()},
+            "occurrences": {p: "pass" if v else "fail" for p, (v, _) in per.items()}}
 
 
 def step_oracle(issue: Issue, stories: dict[str, Story], contract: Contract) -> dict:
@@ -205,7 +218,10 @@ def confidence_of(issue: Issue, steps: dict[str, dict], contract: Contract,
     elif cm == "not_run" or df == "not_run" or unknown:
         level = "medium"
     if reduced_independence and cm != "not_run":
-        basis.append("reduced independence: the cross-check model is from the same family")
+        basis.append("reduced independence: extractor, cross-checker and defender are one model family")
+        if level == "high":                       # agreement within one family is corroboration, not proof
+            level = "medium"
+            basis.append("capped at medium until an independent model family agrees")
     return {"level": level, "basis": basis}
 
 

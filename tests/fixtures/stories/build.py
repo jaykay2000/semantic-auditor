@@ -78,11 +78,17 @@ FL_URGENT = msg("fl_urgent", t(minutes=3), "fare_lock", "fare_detail", "banner",
 BOOK = act("a_book", t(minutes=6), "book", booking_status="booked")
 
 
+# Which recommended actions each reconciling copy addresses (gold, hand-read from the text). cg.reconcile weighs
+# waiting against locking; it says nothing about "Book now", so it cannot reconcile wait vs book_now (Kai).
+RECONCILES = {"cg.reconcile": ["wait_for_drop", "lock_fare"]}
+
+
 def story(id, persona, departure, oracles, events, expected, release="2.4", reconciler=None):
+    key = next((e["copy_key"] for e in events if e["id"] == reconciler), None) if reconciler else None
     return {"story": {"id": id, "release": release, "persona": persona,
                       "context": {"departure_at": departure},
                       "truth": oracles, "events": events},
-            "expected": expected, "gold_reconciler": reconciler}
+            "expected": expected, "gold_reconciler": reconciler, "gold_addresses": RECONCILES.get(key, [])}
 
 
 MAYA_EVENTS = [SEARCH, PW_CARD, PW_EMAIL, FL_BANNER, BOOK,
@@ -138,6 +144,15 @@ STORIES = {
     "kai": story("kai", "kai", t(hours=30), {"units_left": 2}, [SEARCH, PW_CARD, PW_EMAIL, FL_URGENT],
                  [ok("U1", "fl_urgent"), ok("U3", "pw_card"), ok("U3", "pw_email"), ok("U3", "fl_urgent"), exc("P1", "fl_urgent", ALL_MET),
                   bad("P2", P2I, label="conflict"), ok("P3", "story")]),
+    # 2.4.1: the reconcile message is shown to Kai too, but it weighs waiting against LOCKING; Kai's pair is
+    # waiting against BOOKING NOW, which it never addresses. The conflict stays open (audit P1, owner ruling).
+    "kai_241": story("kai_241", "kai", t(hours=30), {"units_left": 2},
+                     [SEARCH, PW_CARD, PW_EMAIL, FL_URGENT,
+                      msg("cg_inline", t(minutes=3, seconds=5), "concierge", "fare_detail", "card", "cg.reconcile")],
+                     [ok("U1", "fl_urgent"), ok("U1", "cg_inline"), ok("U3", "pw_card"), ok("U3", "pw_email"),
+                      ok("U3", "fl_urgent"), ok("U3", "cg_inline"), exc("P1", "fl_urgent", ALL_MET),
+                      bad("P2", P2I, label="conflict"), ok("P3", "story")],
+                     release="2.4.1", reconciler="cg_inline"),
     "hana": story("hana", "hana", t(days=181), {"units_left": 2}, [SEARCH, PW_NODROP, PW_NODROP_EMAIL, FL_URGENT],
                   [ok("U1", "fl_urgent"), ok("U3", "fl_urgent"),
                    bad("P1", "fl_urgent", conditions=[["a", "not_met"], ["b", "met"], ["c", "met"], ["scope", "met"], ["expiry", "met"]]),

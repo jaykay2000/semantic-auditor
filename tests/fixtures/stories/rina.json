@@ -75,5 +75,6 @@
    "status": "passed"
   }
  ],
- "gold_reconciler": null
+ "gold_reconciler": null,
+ "gold_addresses": []
 }

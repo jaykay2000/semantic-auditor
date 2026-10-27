@@ -324,7 +324,7 @@ function detail(p) {
   for (const o of (i.other_rules || [])) { const k = `${o.rule} ${o.status.replace('_', ' ')}${o.label ? ' (' + o.label.replace(/_/g, ' ') + ')' : ''}`; (grouped[k] = grouped[k] || []).push(markOf[o.subject] || ''); }
   const others = Object.entries(grouped).map(([k, ms]) => `${esc(k)}${ms.filter(Boolean).length ? ' · ' + ms.filter(Boolean).join(', ') : ''}`).join(' &nbsp;|&nbsp; ');
   const vs = i.verification.steps || {};
-  const vline = Object.entries(vs).map(([k, v]) => `<span title="${esc(typeof v.detail === 'string' ? v.detail : JSON.stringify(v.detail))}">${{pass: '✓', fail: '✗', not_run: '○', not_applicable: '–'}[v.result]} ${esc(k.replace(/_/g, ' '))}</span>`).join(' · ');
+  const vline = Object.entries(vs).map(([k, v]) => `<span title="${esc(typeof v.detail === 'string' ? v.detail : JSON.stringify(v.detail))}">${{pass: '✓', fail: '✗', not_run: '○', not_applicable: '–'}[v.result]} ${esc(k.replace(/_/g, ' '))}${v.occurrences ? ` (${Object.values(v.occurrences).filter(x => x === 'pass').length}/${Object.keys(v.occurrences).length} personas)` : ''}</span>`).join(' · ');
   const sevF = i.severity.factors || {};
   return `<section class="detail" aria-label="Issue detail">
     <div class="row spread" style="align-items:baseline"><div class="row" style="align-items:baseline"><h2 style="margin:0;font-size:18px">${esc(issueTitle(i))}${i.features.length > 1 ? ' between ' + i.features.map(f => esc(FNAME[f] || f)).join(' and ') : ''}</h2><span class="mono muted" style="font-size:12px">${esc(i.id)}</span></div>

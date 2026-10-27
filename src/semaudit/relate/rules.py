@@ -232,7 +232,13 @@ def eval_p2(rule: Rule, story: Story, contract: Contract, interpret: Interpreter
         verdict = interpret(story, cand, contract)
         label = verdict["label"]
         rid = verdict.get("reconciling_event_id")
+        downgrade = None
         if label == "explained_tradeoff" and not reconciler_is_timely(story, cand, rid, contract):
+            downgrade = "the reconciling message was not shown while both were live and before the decision"
+        elif label == "explained_tradeoff" and not reconciler_addresses_pair(cand, verdict.get("addresses_actions")):
+            downgrade = (f"the reconciling message addresses {sorted(verdict.get('addresses_actions') or [])}, "
+                         f"not both actions of the pair")
+        if downgrade:
             label = "conflict" if cand.pair_kind == "incompatible" else "unexplained_tradeoff"
         status = "violated" if label in ("conflict", "unexplained_tradeoff") else "passed"
         bases = {i: lv.basis for i, lv in cand.lives.items()}
@@ -240,10 +246,18 @@ def eval_p2(rule: Rule, story: Story, contract: Contract, interpret: Interpreter
                          meta={"liveness": bases, "unknown_validity": "unknown" in bases.values(),
                                "reconciler": rid or None, "pairs": [[x.id, y.id] for x, y in cand.pairs],
                                "decision": cand.decision, "pair_kind": cand.pair_kind,
-                               "material": cand.material,
+                               "material": cand.material, "reconciler_rejected": downgrade,
+                               "addresses_actions": verdict.get("addresses_actions"),
                                "live_until": {i: (lv.end.isoformat() if lv.end else None)
                                               for i, lv in cand.lives.items()}}))
     return out
+
+
+def reconciler_addresses_pair(cand: PairCandidate, addressed) -> bool:
+    """A reconciler must address both recommended actions of at least one candidate pair (an explanation of a
+    different pair of options, or of one side, does not reconcile this one)."""
+    got = set(addressed or [])
+    return any({a.extraction.action, b.extraction.action} <= got for a, b in cand.pairs)
 
 
 def reconciler_is_timely(story: Story, cand: PairCandidate, rid: str | None, contract: Contract) -> bool:

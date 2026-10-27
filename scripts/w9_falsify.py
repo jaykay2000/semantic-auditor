@@ -5,6 +5,8 @@
 3. A fabricated P2 issue on Lena, whose tradeoff the concierge reconciled in time
                                                         -> the defender explains it away; confidence low.
 4. A fabricated U4 issue on a plain confirmation        -> the defender explains it away; confidence low.
+5. A real P2 group with a false occurrence added (Lena, reconciled in time)
+                                                        -> the per-occurrence checks catch Lena; confidence low.
 Run: python3 scripts/w9_falsify.py --run runs/w6 --max-usd 0.3
 """
 import argparse
@@ -85,6 +87,14 @@ def main():
     print("4 planted U4 on a confirmation ->", f4.verification["status"], "| confidence", f4.confidence["level"],
           "|", f4.verification["steps"]["defended"]["detail"][:160])
     ok &= f4.confidence["level"] == "low"
+    # 5. a false second occurrence inside an otherwise valid group
+    hero5 = copy.deepcopy(next(i for i in build_issues("2.4", h.results, c) if i.rule == "P2" and i.label == "unexplained_tradeoff"))
+    hero5.occurrences.append(copy.deepcopy(f3.occurrences[0]))
+    verify(hero5, stories, h.episodes, a.run, c, router, repro=stories, fresh=False)
+    occ = {k: v.get("occurrences") for k, v in hero5.verification["steps"].items() if v.get("occurrences")}
+    print("5 false occurrence in a real group ->", hero5.verification["status"], "| confidence",
+          hero5.confidence["level"], "|", occ)
+    ok &= hero5.confidence["level"] == "low" and any(v.get("lena") == "fail" for v in occ.values())
     print(f"spent ${router.spent_usd:.3f}")
     print("VERIFIER BITES" if ok else "VERIFIER DOES NOT BITE")
     return 0 if ok else 1

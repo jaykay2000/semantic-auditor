@@ -100,3 +100,33 @@ def test_policy_recommendation_follows_the_three_fields():
     assert rec("critical", "low", "verified") == "needs_owner_review"         # confidence alone moves it
     assert rec("critical", "high", "partially_verified") == "needs_owner_review"   # verification alone
     assert rec("major", "high", "verified") == "ship_with_notes"              # severity alone
+
+
+def test_same_family_corroboration_is_capped_at_medium():
+    i, s = issue(), steps()
+    assert confidence_of(i, s, C)["level"] == "high"
+    capped = confidence_of(i, s, C, reduced_independence=True)
+    assert capped["level"] == "medium" and any("capped at medium" in b for b in capped["basis"])
+    assert confidence_of(i, steps(defended=FAIL), C, reduced_independence=True)["level"] == "low"
+
+
+class _FailingRouter:
+    roles = {"extractor": {"model": "m-a-1"}, "cross_checker_extract": {"model": "m-a-2"}}
+
+    def complete(self, *a, **k):
+        from semaudit.models.router import ModelError
+        raise ModelError("budget exhausted: spent $1.0000 of $1.0")
+
+
+def test_a_model_failure_during_verification_is_not_a_verified_issue(tmp_path):
+    """Budget exhaustion or an API error mid-verification must surface (review exits 2), never pass."""
+    import pytest
+    from semaudit.models.router import ModelError
+    from semaudit.verify.steps import verify
+    from semaudit.story.model import Story
+    i = issue()
+    i.occurrences[0].entry.meta["pairs"] = []
+    with pytest.raises(ModelError):
+        verify(i, {"maya": Story(id="x", release="2.4", persona="maya", events=[])}, {}, tmp_path, C,
+               _FailingRouter(), repro=None)
+    assert i.verification == {}                    # nothing was recorded as verified

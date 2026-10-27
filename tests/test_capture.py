@@ -430,6 +430,7 @@ from semaudit.story.build import story_from_episode  # noqa: E402
 
 sys.path.insert(0, str(ROOT / "tests" / "fixtures"))
 from extraction_gold import gold_for  # noqa: E402
+from stories.build import RECONCILES  # noqa: E402
 
 _C = _load_contract(CONTRACT)
 _C_DIR = CONTRACT
@@ -568,7 +569,9 @@ def _gold_results(run, release):
             fe = next(x for x in fx["story"]["events"] if x["id"] == fx["gold_reconciler"])
             rec = next(e.id for e in s.messages() if e.copy_key == fe["copy_key"])
         label = p2["label"] if p2 else ("explained_tradeoff" if release == "2.4.1" else "compatible")
-        interp = lambda st, c, k, label=label, rec=rec: {"label": label, "reconciling_event_id": rec, "rationale": "g"}  # noqa
+        adds = RECONCILES.get(next((e.copy_key for e in s.messages() if e.id == rec), ""), [])
+        interp = lambda st, c, k, label=label, rec=rec, adds=adds: {"label": label, "reconciling_event_id": rec,  # noqa
+                                                                     "addresses_actions": adds, "rationale": "g"}
         out[persona] = (s, _evaluate(s, _C, interp))
     return out
 
@@ -598,6 +601,9 @@ def test_delta_2_4_to_2_4_1_resolves_the_fixes_and_flags_rina(run):
     resolved = {i.id for i in apply_delta(head, base, set(_gold_results(run, "2.4")), measured)[0]}
     assert {"I-2.4-U3-price-watch-pw-email-after", "I-2.4-P3-story", "I-2.4-U2-fare-lock-fl-banner",
             "I-2.4-P2-fare-lock-price-watch-unexplained-tradeoff"} <= resolved
+    kai = next(i for i in head if i.rule == "P2" and i.label == "conflict")      # not reconciled by cg.reconcile
+    assert kai.personas == ["kai"] and kai.delta == "pre_existing"
+    assert "I-2.4-P2-fare-lock-price-watch-conflict" not in resolved
     rina = next(i for i in head if i.personas == ["rina"])
     assert rina.delta == "new" and "nearest exception P1-E1 does not apply: scope" in rina.why
     assert next(i for i in head if i.rule == "U4").delta == "pre_existing"

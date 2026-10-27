@@ -124,5 +124,9 @@
    "status": "passed"
   }
  ],
- "gold_reconciler": "cg_answer"
+ "gold_reconciler": "cg_answer",
+ "gold_addresses": [
+  "wait_for_drop",
+  "lock_fare"
+ ]
 }
