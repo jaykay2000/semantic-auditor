@@ -88,6 +88,8 @@ def main() -> int:
     ap.add_argument("--run", type=Path, required=True)
     ap.add_argument("--runs", type=int, default=5)
     ap.add_argument("--max-usd", type=float, required=True)
+    ap.add_argument("--cached-extraction", action="store_true",
+                    help="reuse cached extraction (unchanged inputs); interpretation is still fresh every run")
     args = ap.parse_args()
     contract = load_contract(ROOT / "examples" / "northbound" / "contract")
     router = Router(root=ROOT, max_usd=args.max_usd)
@@ -115,7 +117,7 @@ def main() -> int:
             e.extraction = Extraction(**(x.model_dump() | (mutate or {})))
 
     for run in range(args.runs):
-        ext = extract_unique(msgs, contract, router, fresh=True)
+        ext = extract_unique(msgs, contract, router, fresh=not args.cached_extraction)
         ext0 = ext0 or ext
         row = {}
         for (rel, per), (s, exp, cov, hf) in sorted(cases.items()):

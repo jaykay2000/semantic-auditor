@@ -21,6 +21,17 @@ class Extraction(BaseModel):
     claims: list[dict[str, Any]] = Field(default_factory=list)
 
 
+class Evidence(BaseModel):
+    """Where a message event was observed: enough to re-find the exact text in the stored capture."""
+    episode: str                         # release/persona/scenario
+    step: int                            # 1-based step of the scenario
+    capture_id: str
+    element: int                         # index into the capture's elements
+    locator: dict[str, Any]              # source-specific: css + span, message_id + part + span, turn + span ...
+    capture_sha256: dict[str, str] = Field(default_factory=dict)   # role -> digest of the stored artifact
+    attribution: dict[str, Any] = Field(default_factory=dict)      # how the feature was attributed
+
+
 class Event(BaseModel):
     id: str
     at: datetime
@@ -36,6 +47,7 @@ class Event(BaseModel):
     action: str | None = None           # user actions: search, book, buy_lock, ask, opt_in ...
     effects: dict[str, Any] = Field(default_factory=dict)   # state changes caused by a user action
     extraction: Extraction | None = None
+    evidence: Evidence | None = None    # None only for hand-authored stories; captured stories always carry it
 
 
 class Story(BaseModel):

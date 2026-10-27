@@ -472,3 +472,39 @@ def test_alignment_never_pairs_across_slots(run):
         if p.status == "fuzzy":
             x, y = be[p.base], he[p.head]
             assert (x.feature, x.surface, x.channel, x.at) == (y.feature, y.surface, y.channel, y.at)
+
+
+# ------------------------------------------------------------- evidence lineage (audit P0): fails closed
+import shutil as _shutil  # noqa: E402
+
+from semaudit.verify.evidence import resolve  # noqa: E402
+
+
+def test_every_captured_message_resolves_to_its_exact_capture(run, runner):
+    ep = run("2.4", "maya")
+    story = story_from_episode(ep, _C)
+    results = [resolve(e, ep, runner.run_dir) for e in story.messages()]
+    assert results and all(ok for ok, _ in results), [r for r in results if not r[0]]
+    assert all(e.evidence.step and e.evidence.capture_id and e.evidence.locator for e in story.messages())
+
+
+def test_evidence_fails_closed_on_tampering(run, runner, tmp_path):
+    ep = run("2.4", "maya")
+    story = story_from_episode(ep, _C)
+    banner = next(e for e in story.messages() if e.copy_key == "fl.banner")
+    altered = banner.model_copy(deep=True)
+    altered.text = banner.text.replace("2 seats", "3 seats")
+    assert resolve(altered, ep, runner.run_dir) == (False, "quoted text differs from the captured element")
+    gone = banner.model_copy(deep=True)
+    gone.evidence.capture_id = "no.such.capture"
+    assert not resolve(gone, ep, runner.run_dir)[0]
+    # a stored artifact edited after capture
+    copy = tmp_path / "run"
+    _shutil.copytree(runner.run_dir, copy)
+    cap = next(c for c in ep.captures() if c.id == banner.evidence.capture_id)
+    dom = copy / cap.files["dom"]
+    dom.write_text(dom.read_text().replace("2 seats", "2 seat"))
+    assert resolve(banner, ep, copy) == (False, "artifact dom changed since capture")
+    no_ev = banner.model_copy(deep=True)
+    no_ev.evidence = None
+    assert resolve(no_ev, ep, runner.run_dir) == (False, "no evidence recorded")

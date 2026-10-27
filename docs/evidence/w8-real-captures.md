@@ -39,3 +39,23 @@ removed. 2.4 → 2.4.1: the stale email and push removed, the reconcile message 
 - Development set; same author for copy, rubric, gold and vectors. The sealed benchmark is the honest test.
 - A job-sent message at exactly the second of a user action is treated as after the action.
 - Issue-level delta (new / pre-existing / resolved), severity, confidence and verification are W9.
+
+## External audit (2026-10-26) and what changed
+An independent review found three P0s. All were checked against the code; two were defects and were fixed
+before W9, the third is the W9/W10b plan itself.
+
+| Finding | Verdict | Change |
+|---|---|---|
+| No end-to-end path (issues → verification → policy → review.json → Release Story → repro) | agreed; this is W9 + W10b | conceptual work frozen until that path runs on Northbound |
+| Evidence lineage lost at episode → story | **defect** | every captured message event now carries `evidence`: episode, step, capture id, element index, source locator, artifact digests, attribution method. `semaudit.verify.evidence.resolve` fails closed: missing capture, moved element, altered quote, edited artifact or a quote absent from the stored DOM/JSON all fail. All 436 captured impressions resolve |
+| A reconciler after both directives expired still cleared P2 | **defect, reproduced** | a reconciler counts only if some pair's directives are BOTH live at that moment and the decision has not been made |
+| Exception expiry ignored | **defect** | `expiry` is evaluated (inclusive of the expiry date) and reported beside a, b, c and scope |
+| A past departure satisfied "≤ 72 h" | **defect** | the gap must be ≥ 0 and ≤ 72 h |
+| Incompatible and tradeoff pairs judged as one candidate | **defect** | one candidate per feature pair, decision **and** pair kind (`…@when_to_book:tradeoff` / `:incompatible`) |
+| No supersession | **defect** | a later directive from the same feature on the same decision ends the earlier one (`superseded`) |
+| Unknown validity treated as live with no penalty | partly | the end stays `None` (never "forever"); every P2 entry now records each directive's liveness basis and an `unknown_validity` flag for W9's confidence |
+| Text deadlines not read ("until tomorrow 10:06") | **deferred** | needs an extraction field and a model re-run; no hero case depends on it. Recorded in `validity()` |
+
+Each fix has an adversarial test, and each test was mutation-checked (re-introducing the bug turns it red).
+After the fixes the free dry run stayed 31/31, and W8 was re-run with fresh interpretation on 5 runs (cached,
+unchanged extraction): **31/31 × 5, stubs fail, $0.30**.

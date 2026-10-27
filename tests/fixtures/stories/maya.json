@@ -163,7 +163,7 @@
   },
   {
    "rule": "P2",
-   "subject": "fare_lock|price_watch@when_to_book",
+   "subject": "fare_lock|price_watch@when_to_book:tradeoff",
    "status": "violated",
    "label": "unexplained_tradeoff"
   }

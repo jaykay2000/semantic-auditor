@@ -32,7 +32,8 @@ COPY = {
     "cg.upgrade": "You can still switch to a refundable fare for €30 until tomorrow 10:06.",
 }
 
-P2 = "fare_lock|price_watch@when_to_book"
+P2 = "fare_lock|price_watch@when_to_book:tradeoff"
+P2I = "fare_lock|price_watch@when_to_book:incompatible"
 
 
 def t(minutes=0, seconds=0, days=0, hours=0):
@@ -65,7 +66,7 @@ def exc(rule, subject, conditions):
     return {"rule": rule, "subject": subject, "status": "excepted", "conditions": conditions}
 
 
-ALL_MET = [["a", "met"], ["b", "met"], ["c", "met"], ["scope", "met"]]
+ALL_MET = [["a", "met"], ["b", "met"], ["c", "met"], ["scope", "met"], ["expiry", "met"]]
 SEARCH = act("a_search", t(), "search")
 PW_CARD = msg("pw_card", t(seconds=5), "price_watch", "search_results", "card", "pw.card")
 PW_EMAIL = msg("pw_email", t(minutes=1), "price_watch", "inbox", "email", "pw.card")
@@ -119,7 +120,7 @@ STORIES = {
                    [SEARCH, PW_NODROP, PW_NODROP_EMAIL, msg("fl_bare", t(minutes=3), "fare_lock", "fare_detail", "banner",
                                            "fl.banner.urgent_bare")],
                    [ok("U1", "fl_bare"), ok("U3", "fl_bare"),
-                    bad("P1", "fl_bare", conditions=[["a", "met"], ["b", "met"], ["c", "not_met"], ["scope", "met"]]),
+                    bad("P1", "fl_bare", conditions=[["a", "met"], ["b", "met"], ["c", "not_met"], ["scope", "met"], ["expiry", "met"]]),
                     ok("P3", "story")]),
     "raj_72h": story("raj_72h", "raj", t(minutes=3, hours=72), {"units_left": 2}, [SEARCH, PW_NODROP, PW_NODROP_EMAIL, FL_URGENT],
                      [ok("U1", "fl_urgent"), ok("U3", "fl_urgent"), exc("P1", "fl_urgent", ALL_MET),
@@ -127,23 +128,23 @@ STORIES = {
     "raj_72h_30s": story("raj_72h_30s", "raj", t(minutes=3, seconds=30, hours=72), {"units_left": 2},
                          [SEARCH, PW_NODROP, PW_NODROP_EMAIL, FL_URGENT],
                          [ok("U1", "fl_urgent"), ok("U3", "fl_urgent"),
-                          bad("P1", "fl_urgent", conditions=[["a", "not_met"], ["b", "met"], ["c", "met"], ["scope", "met"]]),
+                          bad("P1", "fl_urgent", conditions=[["a", "not_met"], ["b", "met"], ["c", "met"], ["scope", "met"], ["expiry", "met"]]),
                           ok("P3", "story")]),
     "raj_72h_1m": story("raj_72h_1m", "raj", t(minutes=4, hours=72), {"units_left": 2},
                         [SEARCH, PW_NODROP, PW_NODROP_EMAIL, FL_URGENT],
                         [ok("U1", "fl_urgent"), ok("U3", "fl_urgent"),
-                         bad("P1", "fl_urgent", conditions=[["a", "not_met"], ["b", "met"], ["c", "met"], ["scope", "met"]]),
+                         bad("P1", "fl_urgent", conditions=[["a", "not_met"], ["b", "met"], ["c", "met"], ["scope", "met"], ["expiry", "met"]]),
                          ok("P3", "story")]),
     "kai": story("kai", "kai", t(hours=30), {"units_left": 2}, [SEARCH, PW_CARD, PW_EMAIL, FL_URGENT],
                  [ok("U1", "fl_urgent"), ok("U3", "pw_card"), ok("U3", "pw_email"), ok("U3", "fl_urgent"), exc("P1", "fl_urgent", ALL_MET),
-                  bad("P2", P2, label="conflict"), ok("P3", "story")]),
+                  bad("P2", P2I, label="conflict"), ok("P3", "story")]),
     "hana": story("hana", "hana", t(days=181), {"units_left": 2}, [SEARCH, PW_NODROP, PW_NODROP_EMAIL, FL_URGENT],
                   [ok("U1", "fl_urgent"), ok("U3", "fl_urgent"),
-                   bad("P1", "fl_urgent", conditions=[["a", "not_met"], ["b", "met"], ["c", "met"], ["scope", "met"]]),
+                   bad("P1", "fl_urgent", conditions=[["a", "not_met"], ["b", "met"], ["c", "met"], ["scope", "met"], ["expiry", "met"]]),
                    ok("P3", "story")]),
     "omar": story("omar", "omar", t(hours=20), {"units_left": 9}, [SEARCH, PW_NODROP, PW_NODROP_EMAIL, FL_URGENT],
                   [bad("U1", "fl_urgent"), ok("U3", "fl_urgent"),
-                   bad("P1", "fl_urgent", conditions=[["a", "met"], ["b", "not_met"], ["c", "met"], ["scope", "met"]]),
+                   bad("P1", "fl_urgent", conditions=[["a", "met"], ["b", "not_met"], ["c", "met"], ["scope", "met"], ["expiry", "met"]]),
                    ok("P3", "story")]),
     "sam_alex": story("sam_alex", "sam_alex", t(days=42, hours=-2), {"units_left": 2, "fee_total": 18},
                       [SEARCH, PW_CARD, PW_EMAIL, FL_BANNER, act("a_buy_lock", t(minutes=4), "buy_lock", lock="held"),
@@ -161,7 +162,7 @@ STORIES = {
                    msg("fl_hotel", t(seconds=5), "fare_lock", "hotel_detail", "banner", "fl.hotel.urgent",
                        component="hotel")],
                   [ok("U1", "fl_hotel"), ok("U3", "fl_hotel"),
-                   bad("P1", "fl_hotel", conditions=[["a", "met"], ["b", "met"], ["c", "met"], ["scope", "not_met"]]),
+                   bad("P1", "fl_hotel", conditions=[["a", "met"], ["b", "met"], ["c", "met"], ["scope", "not_met"], ["expiry", "met"]]),
                    ok("P3", "story")], release="2.4.1"),
     # 2.4.1 memory fixture: the three fixes are in (follow-ups stop at booking, the reconcile message is shown
     # to everyone, the lock fee is per booking); the concierge's regret was not on the fix list.

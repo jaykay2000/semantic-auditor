@@ -97,12 +97,16 @@
     [
      "scope",
      "met"
+    ],
+    [
+     "expiry",
+     "met"
     ]
    ]
   },
   {
    "rule": "P2",
-   "subject": "fare_lock|price_watch@when_to_book",
+   "subject": "fare_lock|price_watch@when_to_book:incompatible",
    "status": "violated",
    "label": "conflict"
   },

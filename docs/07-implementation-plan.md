@@ -22,7 +22,7 @@ How the work runs:
 | W4 | **built**: scenario runner (`semaudit capture`): launches each release, drives every persona's scenario in Chromium on simulated time through the adapter, writes episodes (steps, captures with source-specific locators, oracle state); 15 stories match the hand-authored fixtures; deterministic; mutation-checked ($0 of Meta budget) | `src/semaudit/capture/`, `src/semaudit/story/episode.py`, `examples/northbound/adapter.py`, `tests/test_capture.py` |
 | W6 | **accepted**: extraction from real captures, 55/55 distinct messages exact on 3/3 fresh repeats ($0.36) | [evidence/w6-extraction.md](evidence/w6-extraction.md) |
 | W7 | **built**: base ↔ head alignment by event key; explicit added/removed; marked fuzzy pairs | `src/semaudit/story/align.py` |
-| W8 | **accepted**: real captures → stories → rules + P2 interpretation; 31/31 stories × 5 fresh runs; stubs fail ($0.56) | [evidence/w8-real-captures.md](evidence/w8-real-captures.md) |
+| W8 | **accepted**: real captures → stories → rules + P2 interpretation; 31/31 × 5 fresh runs; stubs fail ($0.56). Re-accepted after the external audit fixes (lineage, liveness, expiry, pair kinds, supersession): 31/31 × 5 ($0.30) | [evidence/w8-real-captures.md](evidence/w8-real-captures.md) |
 
 ## The minimum compelling version (MCV)
 

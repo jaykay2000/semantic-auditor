@@ -24,6 +24,7 @@ class Entry:
     label: str | None = None         # P2 only
     conditions: tuple = ()           # (("a","met"), ...) for exception evaluations
     note: str = field(default="", compare=False)
+    meta: dict = field(default_factory=dict, compare=False, hash=False)   # e.g. liveness bases, for confidence
 
     def key(self) -> tuple:
         return (self.rule, self.subject, self.status, self.label, self.conditions)
@@ -47,11 +48,18 @@ def holds(pre: dict[str, Any], state: dict[str, Any]) -> bool:
 
 
 def validity(e: Event, story: Story, contract: Contract) -> Live:
-    """Live from shown time until the earliest of: precondition fails, default lifetime."""
+    """Live from shown time until the earliest of: the action's precondition fails, the feature's default
+    lifetime for that channel, or a later directive from the same feature on the same decision supersedes it.
+    A deadline stated in the text is NOT read yet (needs an extraction field); with no end found the end is
+    None with basis 'unknown', which confidence must treat as weaker evidence, never as 'forever'."""
     x = e.extraction
     dec = contract.decision(x.decision)
     pre = dec.precondition(x.action) if dec else {}
     ends: list[tuple[datetime, str]] = []
+    later = [m for m in story.messages() if m.at > e.at and m.feature == e.feature and is_directive(m)
+             and m.extraction.decision == x.decision]
+    if later:
+        ends.append((min(m.at for m in later), "superseded"))
     for a in sorted((a for a in story.events if a.kind == "user_action" and a.at > e.at), key=lambda a: a.at):
         if not holds(pre, story.state_at(a.at + timedelta(microseconds=1), contract.state)):
             ends.append((a.at, "action_rule"))
@@ -130,7 +138,8 @@ def condition_value(cond, e: Event, story: Story) -> str:
         if dep is None:
             return "unknown"
         dep = datetime.fromisoformat(dep) if isinstance(dep, str) else dep
-        return "met" if dep - e.at <= timedelta(hours=cond.hours) else "not_met"   # exact timestamps
+        gap = dep - e.at                                                            # exact timestamps
+        return "met" if timedelta(0) <= gap <= timedelta(hours=cond.hours) else "not_met"   # past: not "soon"
     if cond.test == "claim_matches_oracle":
         claims = [c for c in e.extraction.claims if c["type"] == cond.claim]
         truth = story.truth_at(cond.claim, e.at, e.feature)
@@ -138,6 +147,15 @@ def condition_value(cond, e: Event, story: Story) -> str:
             return "unknown"
         return "met" if all(c["value"] == truth for c in claims) else "not_met"
     return "unknown"
+
+
+def expiry_value(ex, e: Event) -> str:
+    """An exception applies only to messages shown on or before its expiry date (inclusive, UTC)."""
+    exp = ex.approved.get("expires")
+    if not exp:
+        return "unknown"
+    end = datetime.fromisoformat(str(exp)).replace(tzinfo=e.at.tzinfo) + timedelta(days=1)
+    return "met" if e.at < end else "not_met"
 
 
 def in_scope(scope: dict, e: Event) -> bool:
@@ -155,7 +173,8 @@ def eval_conditional(rule: Rule, story: Story) -> list[Entry]:
         status, conds = "violated", ()
         for ex in rule.exceptions:
             values = tuple((c.id, condition_value(c, e, story)) for c in ex.conditions)
-            values += (("scope", "met" if in_scope(ex.scope, e) else "not_met"),)
+            values += (("scope", "met" if in_scope(ex.scope, e) else "not_met"),
+                       ("expiry", expiry_value(ex, e)))
             conds = values
             if all(v == "met" for _, v in values):
                 status = "excepted"
@@ -173,11 +192,12 @@ class PairCandidate:
     pair_kind: str                    # incompatible | tradeoff
     pairs: list[tuple[Event, Event]]  # every overlapping directive pair for this subject
     material: str
+    lives: dict = field(default_factory=dict)   # event id -> Live
 
 
 def p2_candidates(story: Story, contract: Contract) -> list[PairCandidate]:
     lives = [validity(e, story, contract) for e in story.messages() if is_directive(e)]
-    found: dict[str, PairCandidate] = {}
+    found: dict[str, PairCandidate] = {}   # one candidate per feature pair, decision AND pair kind
     for a, b in combinations(lives, 2):
         xa, xb = a.event.extraction, b.event.extraction
         if a.event.feature == b.event.feature or xa.decision != xb.decision:
@@ -192,13 +212,12 @@ def p2_candidates(story: Story, contract: Contract) -> list[PairCandidate]:
         if not live_at(first, second.start):
             continue
         feats = "|".join(sorted((a.event.feature, b.event.feature)))
-        subject = f"{feats}@{xa.decision}"
+        subject = f"{feats}@{xa.decision}:{kind}"
         pt = dec.pair_type(xa.action, xb.action)
         cand = found.setdefault(subject, PairCandidate(subject, xa.decision, kind, [],
                                                        pt.material or pt.rationale or ""))
-        if kind == "incompatible":
-            cand.pair_kind = "incompatible"
         cand.pairs.append((first.event, second.event))
+        cand.lives.update({first.event.id: first, second.event.id: second})
     return list(found.values())
 
 
@@ -214,21 +233,28 @@ def eval_p2(rule: Rule, story: Story, contract: Contract, interpret: Interpreter
         if label == "explained_tradeoff" and not reconciler_is_timely(story, cand, rid, contract):
             label = "conflict" if cand.pair_kind == "incompatible" else "unexplained_tradeoff"
         status = "violated" if label in ("conflict", "unexplained_tradeoff") else "passed"
-        out.append(Entry(rule.id, cand.subject, status, label=label, note=verdict.get("rationale", "")[:300]))
+        bases = {i: lv.basis for i, lv in cand.lives.items()}
+        out.append(Entry(rule.id, cand.subject, status, label=label, note=verdict.get("rationale", "")[:300],
+                         meta={"liveness": bases, "unknown_validity": "unknown" in bases.values(),
+                               "reconciler": rid or None}))
     return out
 
 
 def reconciler_is_timely(story: Story, cand: PairCandidate, rid: str | None, contract: Contract) -> bool:
-    """A reconciling message counts only while both directives are live and before the decision."""
+    """A reconciling message counts only if, for some candidate pair, it is shown while BOTH directives are
+    still live and no later than the decision that settles it."""
     if not rid:
         return False
     ev = next((e for e in story.events if e.id == rid), None)
     if ev is None:
         return False
-    first, second = cand.pairs[0]
     dec = contract.decision(cand.decision)
-    decided = story.first_action_after(second.at, dec.decided_by if dec else [])
-    return ev.at >= second.at and (decided is None or ev.at <= decided)
+    for a, b in cand.pairs:
+        la, lb = cand.lives[a.id], cand.lives[b.id]
+        decided = story.first_action_after(b.at, dec.decided_by if dec else [])
+        if live_at(la, ev.at) and live_at(lb, ev.at) and (decided is None or ev.at <= decided):
+            return True
+    return False
 
 
 # ---------- load (P3) ----------

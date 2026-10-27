@@ -13,7 +13,7 @@ from typing import Any
 
 from semaudit.contract.schema import Contract, Fact, resolve_time
 from semaudit.story.episode import Episode, OracleReading
-from semaudit.story.model import Event, Story
+from semaudit.story.model import Event, Evidence, Story
 
 CHANNEL_ATTRS = ("data-channel",)
 KIND_CHANNEL = {"email": "email", "push": "push", "chat": "chat", "pdf": "pdf"}
@@ -77,10 +77,15 @@ def story_from_episode(ep: Episode, contract: Contract) -> Story:
         prev = cap.elements[m["element"] - 1] if m["element"] > 0 else None
         initiated = bool(user_turn and prev and all(prev.attrs.get(k) == v for k, v in user_turn.items()))
         feat = features.get(m["feature"])
+        el = cap.elements[m["element"]]
+        attr_src = "dom_attr" if cap.kind in ("web", "chat") else "header"
+        evidence = Evidence(episode=ep.id, step=m["step"], capture_id=cap.id, element=m["element"],
+                            locator=el.locator, capture_sha256=dict(cap.sha256),
+                            attribution={"method": attr_src, "confidence": 1.0})
         events.append(Event(
             id=eid, at=at, kind="message", feature=m["feature"], surface=cap.surface, channel=channel,
             component=m["component"] or persona.trip.component, topic=feat.topic if feat else None,
-            user_initiated=initiated, copy_key=m["key"], text=m["text"]))
+            user_initiated=initiated, copy_key=m["key"], text=m["text"], evidence=evidence))
 
     events.sort(key=lambda e: (e.at, 0 if e.kind == "user_action" else 1))
     snaps = [snapshot(scenario.day0, ep.initial_state, contract)] if ep.initial_state else []
