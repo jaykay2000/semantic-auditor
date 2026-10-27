@@ -23,7 +23,8 @@ class FakeRouter:
 
     def complete(self, role, messages, **kw):
         self.calls.append((role, messages, kw))
-        return type("R", (), {"parsed": {"findings": self.answer}, "cost_usd": 0.01})()
+        return type("R", (), {"parsed": {"findings": self.answer}, "cost_usd": 0.01, "cached": False,
+                              "raw": {"choices": [{"finish_reason": "stop"}]}})()
 
 
 GOOD = {"personas": ["kai"], "rule": "P2", "label": "conflict", "severity": "critical", "confidence": "high",
@@ -64,7 +65,20 @@ def test_multi_pass_runs_one_pass_per_persona_then_critique_and_consolidation():
     systems = [m[0]["content"] for _, m, _ in r.calls]
     assert all(judge.prompt("judge_persona") == s for s in systems[:len(stories)])
     assert systems[-2:] == [judge.prompt("judge_critique"), judge.prompt("judge_consolidate")]
-    assert fs.cost_usd == pytest.approx(0.01 * (len(stories) + 2))
+    assert fs.cost_usd == fs.cost_if_fresh_usd == pytest.approx(0.01 * (len(stories) + 2))
+    assert fs.fresh is True and fs.truncated is False
+
+
+def test_a_cache_hit_spends_nothing_and_marks_the_run_not_fresh():
+    class Cached(FakeRouter):
+        def complete(self, role, messages, **kw):
+            r = super().complete(role, messages, **kw)
+            r.cached = True
+            r.raw = {"choices": [{"finish_reason": "length"}]}
+            return r
+    fs, _ = judge.judge_one(judge.stories_for(RUN, "2.4", C), C, Cached([]), release="2.4")
+    assert fs.cost_usd == 0.0 and fs.cost_if_fresh_usd == 0.01 and fs.cached_calls == 1
+    assert fs.fresh is False and fs.truncated is True
 
 
 def test_every_prompt_carries_the_common_instructions():

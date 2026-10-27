@@ -46,3 +46,21 @@ negative_controls, `pattern` = the issue kind or the docs/08 negative-control pa
 target, attention-load items → a story target, other items → an event target per event (first in `target`,
 the rest in `also_targets`), `objective`, `severity`, and attribution (`delta`, `features`). Evidence blocks are
 dropped. `truth.personas` lists the personas whose head episodes were measured.
+
+## Scoring additions after the Oct 27 audit
+
+- **Evidence support is strict.** Every persona a finding names must have at least one cited event; every cited
+  event must exist in the captured stories; a cited *message* needs a non-empty quote found verbatim in its text
+  (user actions have no text and need only exist).
+- **Every proportion is reported with its raw counts and a 95% Wilson interval** (precision, recall, the
+  negative-control false-positive rate overall and per pattern). Small denominators read as small.
+- **Attribution (E3)** is scored over matched units whose truth carries a `delta`: is the finding's
+  new / changed / existing right, and does it name every responsible feature. A system that reports no delta is
+  shown as not reporting, not as wrong.
+- **Freshness and cost.** `cost_usd` is what was actually spent (a cache hit costs 0); `cost_if_fresh_usd` is the
+  comparable figure. Stability (Jaccard) refuses any run that was not fully fresh.
+- **Adjudication.** Pre-adjudication scores treat seeded subjective items as hypotheses and are labelled so.
+  Headline scores come only after `apply_verdicts`: a seeded item judged not real leaves the denominator, an
+  unseeded finding judged real joins every system's denominator, and all systems are rescored against the same
+  adjudicated truth. Sheet evidence is the sorted union of every source's citations, or, for a seeded item no
+  system raised, the captured events its target names.

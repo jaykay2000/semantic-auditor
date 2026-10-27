@@ -103,19 +103,42 @@ def _to_findings(items: list[dict], prefix: str) -> list[dict]:
     return out
 
 
-def _call(router: Router, system: str, payload: dict, *, fresh: bool) -> tuple[list[dict], float]:
+class Tally:
+    """Spend as the benchmark reports it: dollars actually spent (a cache hit spends nothing), the same calls'
+    cost if made fresh (the comparable figure), how many were replayed, and whether any output was truncated."""
+    def __init__(self):
+        self.spent = self.if_fresh = 0.0
+        self.calls = self.cached = 0
+        self.truncated = False
+
+    def add(self, r) -> None:
+        c = r.cost_usd or 0.0
+        self.calls += 1
+        self.if_fresh += c
+        if getattr(r, "cached", False):
+            self.cached += 1
+        else:
+            self.spent += c
+        finish = ((getattr(r, "raw", None) or {}).get("choices") or [{}])[0].get("finish_reason")
+        self.truncated = self.truncated or finish == "length"
+
+
+def _call(router: Router, system: str, payload: dict, *, fresh: bool, tally: Tally) -> list[dict]:
     r = router.complete(ROLE, [{"role": "system", "content": system},
                                {"role": "user", "content": json.dumps(payload, ensure_ascii=False, default=str)}],
                         schema=SCHEMA, schema_name="findings", fresh=fresh)
-    return r.parsed["findings"], (r.cost_usd or 0.0)
+    tally.add(r)
+    return (r.parsed or {}).get("findings", [])
 
 
 def judge_one(stories: dict[str, Story], contract: Contract, router: Router, *, release: str,
               fresh: bool = False, run: str = "1") -> tuple[Findings, list[str]]:
     payload = {"release": release, "contract": render_contract(contract),
                "stories": [render_story(s) for _, s in sorted(stories.items())]}
-    items, cost = _call(router, prompt("judge_one"), payload, fresh=fresh)
-    return _validated("B-judge-1", release, run, items, cost, 1)
+    tally = Tally()
+    router.tag = f"B-judge-1:{release}:{run}"
+    items = _call(router, prompt("judge_one"), payload, fresh=fresh, tally=tally)
+    return _validated("B-judge-1", release, run, items, tally)
 
 
 def judge_multi(stories: dict[str, Story], contract: Contract, router: Router, *, release: str,
@@ -123,22 +146,20 @@ def judge_multi(stories: dict[str, Story], contract: Contract, router: Router, *
     """Per-persona passes, then self-critique over all candidates, then consolidation. Every pass sees the full
     contract; the critique and consolidation passes also see every story, so nothing is judged blind."""
     con, all_stories = render_contract(contract), [render_story(s) for _, s in sorted(stories.items())]
-    candidates, cost, calls = [], 0.0, 0
+    tally, candidates = Tally(), []
+    router.tag = f"B-judge-N:{release}:{run}"
     for persona, s in sorted(stories.items()):
-        items, c = _call(router, prompt("judge_persona"),
-                         {"release": release, "contract": con, "story": render_story(s)}, fresh=fresh)
-        candidates += items
-        cost, calls = cost + c, calls + 1
-    kept, c = _call(router, prompt("judge_critique"),
-                    {"release": release, "contract": con, "stories": all_stories, "candidates": candidates},
-                    fresh=fresh)
-    final, c2 = _call(router, prompt("judge_consolidate"),
-                      {"release": release, "contract": con, "findings": kept}, fresh=fresh)
-    return _validated("B-judge-N", release, run, final, cost + c + c2, calls + 2)
+        candidates += _call(router, prompt("judge_persona"),
+                            {"release": release, "contract": con, "story": render_story(s)}, fresh=fresh, tally=tally)
+    kept = _call(router, prompt("judge_critique"),
+                 {"release": release, "contract": con, "stories": all_stories, "candidates": candidates},
+                 fresh=fresh, tally=tally)
+    final = _call(router, prompt("judge_consolidate"),
+                  {"release": release, "contract": con, "findings": kept}, fresh=fresh, tally=tally)
+    return _validated("B-judge-N", release, run, final, tally)
 
 
-def _validated(system: str, release: str, run: str, items: list[dict], cost: float,
-               calls: int) -> tuple[Findings, list[str]]:
+def _validated(system: str, release: str, run: str, items: list[dict], tally: Tally) -> tuple[Findings, list[str]]:
     """Findings that do not fit the format are dropped and listed, never repaired: repairing a baseline's
     output by hand would be the scorer judging on its behalf."""
     from pydantic import ValidationError
@@ -151,4 +172,5 @@ def _validated(system: str, release: str, run: str, items: list[dict], cost: flo
         except ValidationError as e:
             dropped.append(f"{f['id']}: {e.errors()[0]['msg']}")
     return Findings(system=system, release=release, run=run, findings=ok, dropped=dropped,
-                    cost_usd=round(cost, 6), calls=calls), dropped
+                    cost_usd=round(tally.spent, 6), cost_if_fresh_usd=round(tally.if_fresh, 6), calls=tally.calls,
+                    cached_calls=tally.cached, fresh=tally.cached == 0, truncated=tally.truncated), dropped

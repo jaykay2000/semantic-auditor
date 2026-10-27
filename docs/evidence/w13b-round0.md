@@ -6,21 +6,29 @@ hand-written status vectors (`bench/dev/northbound-2.4.truth.json`, 16 issue uni
 
 | System | TP | FP | FN | Precision | Recall | $ | calls |
 |---|---|---|---|---|---|---|---|
-| auditor (semaudit-full, cached review) | 16 | 0 | 0 | 1.00 | 1.00 | 0.41 | many |
+| auditor (semaudit-full, cached review) | 16 | 0 | 0 | 1.00 | 1.00 | not measured fresh* | many |
 | B-judge-1, run 1 | 15 | 0 | 1 | 1.00 | 0.94 | 0.10 | 1 |
 | B-judge-1, run 2 (fresh) | 14 | 0 | 2 | 1.00 | 0.88 | 0.10 | 1 |
 | B-judge-1, run 3 (fresh) | 15 | 0 | 1 | 1.00 | 0.94 | 0.10 | 1 |
 | B-judge-N | 16 | 2 | 0 | 0.89 | 1.00 | 0.52 | 17 |
 
+\* **Corrected after the Oct 27 audit.** This row first said $0.41. That figure was reconstructed by hand from an
+earlier run's printout; the cached review records `cost_usd: 0.0`, because a replay spends nothing. The
+auditor's comparable cost needs fresh full reviews, which have not been run. Likewise the next bullet first said
+the auditor's fresh runs were "exact 5 of 5 (W8)": W8 re-ran the semantic core (extraction + interpretation) on
+the same captures, not full audits including verification, so it does not establish full-pipeline stability.
+And with 16 issue units and 6 negative controls, 0/6 vs 2/6 is not a precision result: the 95% intervals overlap.
+
 - B-judge-1 missed U2 (fee displayed vs fee charged, Sam & Alex) in 2 of 3 runs, and U4 (second-guessing after
-  booking, Maya and Maya-R) in 1 of 3. Run-to-run Jaccard over the 3 fresh runs: **0.87**. The auditor's fresh
-  runs on the same captures were exact 5 of 5 (W8).
+  booking, Maya and Maya-R) in 1 of 3. Run-to-run Jaccard over the 3 fresh runs: **0.87**. The auditor's
+  semantic core was exact on 5 of 5 fresh runs over the same captures (W8); full-audit stability is not yet
+  measured.
 - B-judge-N found all 16 but raised the two **explained-tradeoff negative controls** (Lena, Maya-R) as
   unexplained tradeoffs: it grouped them with Maya into one finding and did not credit the reconciler.
 - Every baseline finding cited real events with verbatim quotes (evidence support 1.00).
 
 **What this means.** On judgment over identical captured stories, on the fixture the auditor was built on, one
-Muse Spark call comes close at a quarter of the cost. The protocol anticipated this (docs/08: "if the baseline
+Muse Spark call comes close at a fraction of the cost (the exact ratio waits for fresh auditor runs). The protocol anticipated this (docs/08: "if the baseline
 matches or beats the auditor on a measure, we publish that too"). The auditor's measurable advantages here are
 stability (exact vs 0.87) and the negative controls the multi-pass baseline fails; the sealed bench, with more
 boundary cases and negative controls, is where the comparison counts.

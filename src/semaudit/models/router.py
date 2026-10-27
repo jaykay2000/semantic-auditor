@@ -86,6 +86,8 @@ class Router:
         self.max_usd = max_usd
         self.spent_usd = 0.0
         self.offline = offline            # cache only: a miss is an error, never a model call
+        self.tag: str | None = None       # the run/condition each ledger row belongs to (benchmark accounting)
+        self.usage: dict[str, dict[str, float]] = {}   # role -> calls, cached, spent, if_fresh, tokens
 
     def _key(self, provider: str) -> str:
         env = PROVIDERS[provider]["key_env"]
@@ -158,9 +160,25 @@ class Router:
         cost = self._cost(model, usage)
         if not cached and cost is not None:
             self.spent_usd += cost
+        u = self.usage.setdefault(role, {"calls": 0, "cached": 0, "spent_usd": 0.0, "if_fresh_usd": 0.0,
+                                         "prompt_tokens": 0, "completion_tokens": 0})
+        u["calls"] += 1
+        u["cached"] += int(cached)
+        u["if_fresh_usd"] += cost or 0.0
+        u["spent_usd"] += 0.0 if cached else (cost or 0.0)
+        u["prompt_tokens"] += usage.get("prompt_tokens", 0)
+        u["completion_tokens"] += usage.get("completion_tokens", 0)
         self._log(role, model, usage, cost, cached, latency, digest)
         result = Result(role, model, content, parsed, usage, cost, cached, latency, raw)
         return result
+
+    def accounting(self) -> dict:
+        """Spend for this router's lifetime: actually spent (cache hits cost 0) vs. the same calls made fresh."""
+        tot = {k: sum(u[k] for u in self.usage.values()) for k in ("calls", "cached", "spent_usd", "if_fresh_usd")}
+        return {"tag": self.tag, "fresh": tot["cached"] == 0 and tot["calls"] > 0,
+                **{k: round(v, 6) if isinstance(v, float) else v for k, v in tot.items()},
+                "by_role": {r: {k: round(v, 6) if isinstance(v, float) else v for k, v in u.items()}
+                            for r, u in sorted(self.usage.items())}}
 
     @staticmethod
     def _cost(model: str, usage: dict) -> float | None:
@@ -174,4 +192,5 @@ class Router:
         with self.ledger_path.open("a") as f:
             f.write(json.dumps({"ts": time.time(), "role": role, "model": model, "usage": usage,
                                 "cost_usd": cost, "priced": cost is not None, "cached": cached,
-                                "latency_s": round(latency, 2), "digest": digest[:16]}) + "\n")
+                                "latency_s": round(latency, 2), "digest": digest[:16],
+                                **({"tag": self.tag} if self.tag else {})}) + "\n")

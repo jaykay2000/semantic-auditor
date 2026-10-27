@@ -26,6 +26,7 @@ def run_review(contract_dir: Path, base: str, head: str, *, run_id: str, runs_di
     recorded = mem.snapshot(contract_dir)
     contract = load_contract(contract_dir, memory=recorded["issues"])
     router = Router(root=root or Path.cwd(), max_usd=max_usd)
+    router.tag = f"semaudit-full:{base}-{head}:{run_id}"
     run_dir = runs_dir / run_id
     if not (reuse and (run_dir / "episodes" / base).exists() and (run_dir / "episodes" / head).exists()):
         with Runner(contract_dir, runs_dir=runs_dir, run_id=run_id) as r:

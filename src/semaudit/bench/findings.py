@@ -63,6 +63,8 @@ class Finding(BaseModel):
     why: str = ""
     cited: list[Cited] = Field(default_factory=list)
     secondary: bool = False  # the auditor's "also violated" on an event another rule already owns
+    delta: Literal["new", "changed", "existing"] | None = None   # attribution, when the system reports it
+    features: list[str] = Field(default_factory=list)              # the features it holds responsible
 
 
 class Findings(BaseModel):
@@ -72,8 +74,12 @@ class Findings(BaseModel):
     findings: list[Finding]
     dropped: list[str] = Field(default_factory=list)   # findings the format could not express; each one is
                                                        # scored as a false positive, never repaired
-    cost_usd: float | None = None
+    cost_usd: float | None = None      # dollars actually spent producing these findings (cache hits cost 0)
+    cost_if_fresh_usd: float | None = None   # what the same calls cost when made fresh (the comparable figure)
     calls: int | None = None
+    cached_calls: int | None = None
+    fresh: bool | None = None          # every model call was made fresh; stability inputs must be fresh
+    truncated: bool = False            # a call hit its output limit; scored as returned, never re-run
 
 
 class TruthItem(BaseModel):
@@ -129,9 +135,11 @@ def from_review(review: dict, *, system: str = "semaudit-full", run: str = "1") 
                  for o in i["occurrences"] for eid in o["events"]]
         first = i["occurrences"][0]
         target = _target(i["rule_kind"], i["signature"], [idx[(first["persona"], eid)] for eid in first["events"]])
+        delta = {"new": "new", "pre_existing": "existing", "changed": "changed"}.get(i.get("delta"))
         out.append(Finding(id=i["id"], personas=sorted({o["persona"] for o in i["occurrences"]}), rule=i["rule"],
                            label=i.get("label"), target=target, severity=i["severity"]["level"],
-                           confidence=i["confidence"]["level"], why=i.get("why", ""), cited=cited))
+                           confidence=i["confidence"]["level"], why=i.get("why", ""), cited=cited,
+                           delta=delta, features=i.get("features", [])))
         also: dict[str, list[dict]] = {}
         for o in i["occurrences"]:
             for a in o.get("also", []):

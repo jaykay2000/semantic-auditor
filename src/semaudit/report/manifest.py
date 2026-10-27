@@ -84,6 +84,10 @@ def build(contract_dir: Path, contract: Contract, run_dir: Path, base: str, head
         "episodes": episode_digests(run_dir, [base, head]),
         "repro_run": repro_run,
         "models": {role: spec["model"] for role, spec in router.roles.items()} if router else {},
+        # every role's full setting (provider, model, reasoning effort), and what this run actually spent vs.
+        # what the same calls cost fresh: a cached replay is not a fresh run, and says so
+        "model_settings": {role: dict(spec) for role, spec in router.roles.items()} if router else {},
+        "spend": router.accounting() if router else None,
         "prompts": prompt_digests(contract),
         "verifier": {"models": models, "per_occurrence": True,
                      # one family: the second model's agreement is a second pass, not independent agreement

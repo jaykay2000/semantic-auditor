@@ -1,0 +1,54 @@
+# Every benchmark condition: what it is, its settings, and whether it is BUILT. Frozen by hash before any
+# sealed run (bench/conditions/FROZEN-CONDITIONS.md). A condition marked built = false cannot be run and
+# its evaluation is reported "not measured", never estimated.
+
+[semaudit-full]
+built = true
+evaluations = ["E2", "E3"]
+command = "semaudit review --contract <bench contract> --base 2.3 --head <bench-NN> --max-usd <cap> --fresh"
+roles = "the router defaults (src/semaudit/models/router.py DEFAULT_ROLES), recorded per review in manifest.model_settings"
+cost_reported = ["judgement: extractor + interpreter + cross-checkers + defender, spent fresh", "end to end", "replay"]
+
+[B-judge-1]
+built = true
+evaluations = ["E2"]
+role = "interpreter"                 # same model and reasoning effort as the auditor's interpreter
+prompts = ["prompts/_common.md", "prompts/judge_one.md"]
+budget = "not matched: one call. Reported as a cost-effectiveness baseline, never as budget-matched"
+capacity = "if the single call's output is truncated (finish_reason = length) the findings are scored as returned and the run is flagged truncated; it is never split or re-run, because splitting is B-judge-N"
+
+[B-judge-N]
+built = true
+evaluations = ["E2"]
+role = "interpreter"
+prompts = ["prompts/_common.md", "prompts/judge_persona.md", "prompts/judge_critique.md", "prompts/judge_consolidate.md"]
+budget = "MATCHED, rule declared before measurement: its fresh cost on the dev fixture must land within +-15% of the auditor's MEDIAN fresh judgement cost over 3 fresh full reviews of the same release; the pass plan (persona-pass reasoning effort) is chosen on dev to meet it, then frozen. NOT YET MEASURED: no fresh auditor reviews exist."
+
+[B-explore]
+built = false
+evaluations = ["E1"]
+note = "owner ruling Oct 27: built after E2/E3, time-boxed to Oct 30; otherwise E1 is reported not measured"
+
+[B-explore-scenarios]
+built = false
+evaluations = ["E1"]
+
+[B-repeat]
+built = false
+evaluations = ["E3"]
+note = "defined as B-explore + the B-judge-N structure over B-explore's own captures, so it depends on B-explore"
+
+[ablation.no-exceptions]
+built = false
+
+[ablation.no-verifier]
+built = false
+
+[ablation.no-generators]
+built = false
+
+[tuning]
+fixture = "Northbound 2.4 (dev), truth bench/dev/northbound-2.4.truth.json"
+max_rounds = 2                       # owner approved up to 8; the audit asked for a predeclared maximum of 2
+stop_rule = "stop after a round whose prompt change moves no unit on the dev truth, or after round 2"
+record = "runs/w13b-tune/round-<n>/summary.json, with every prompt's sha256"
