@@ -1,0 +1,542 @@
+{
+ "release": "2.4",
+ "items": [
+  {
+   "id": "hana-2",
+   "kind": "issue",
+   "personas": [
+    "hana"
+   ],
+   "rule": "P1",
+   "label": null,
+   "target": {
+    "kind": "event",
+    "features": [],
+    "decision": null,
+    "feature": "fare_lock",
+    "surface": "fare_detail",
+    "message_key": "fl.banner.urgent"
+   },
+   "also_targets": [],
+   "pattern": null,
+   "objective": false,
+   "severity": null,
+   "delta": null,
+   "features": []
+  },
+  {
+   "id": "kai-4",
+   "kind": "negative_control",
+   "personas": [
+    "kai"
+   ],
+   "rule": "P1",
+   "label": null,
+   "target": {
+    "kind": "event",
+    "features": [],
+    "decision": null,
+    "feature": "fare_lock",
+    "surface": "fare_detail",
+    "message_key": "fl.banner.urgent"
+   },
+   "also_targets": [],
+   "pattern": "exception_applies",
+   "objective": false,
+   "severity": null,
+   "delta": null,
+   "features": []
+  },
+  {
+   "id": "kai-5",
+   "kind": "issue",
+   "personas": [
+    "kai"
+   ],
+   "rule": "P2",
+   "label": "conflict",
+   "target": {
+    "kind": "relation",
+    "features": [
+     "fare_lock",
+     "price_watch"
+    ],
+    "decision": "when_to_book",
+    "feature": null,
+    "surface": null,
+    "message_key": null
+   },
+   "also_targets": [],
+   "pattern": null,
+   "objective": false,
+   "severity": null,
+   "delta": null,
+   "features": []
+  },
+  {
+   "id": "lena-6",
+   "kind": "negative_control",
+   "personas": [
+    "lena"
+   ],
+   "rule": "P2",
+   "label": "explained_tradeoff",
+   "target": {
+    "kind": "relation",
+    "features": [
+     "fare_lock",
+     "price_watch"
+    ],
+    "decision": "when_to_book",
+    "feature": null,
+    "surface": null,
+    "message_key": null
+   },
+   "also_targets": [],
+   "pattern": "explained_tradeoff",
+   "objective": false,
+   "severity": null,
+   "delta": null,
+   "features": []
+  },
+  {
+   "id": "maya-4",
+   "kind": "issue",
+   "personas": [
+    "maya"
+   ],
+   "rule": "U3",
+   "label": null,
+   "target": {
+    "kind": "event",
+    "features": [],
+    "decision": null,
+    "feature": "price_watch",
+    "surface": "inbox",
+    "message_key": "pw.email.after"
+   },
+   "also_targets": [],
+   "pattern": null,
+   "objective": false,
+   "severity": null,
+   "delta": null,
+   "features": []
+  },
+  {
+   "id": "maya-6",
+   "kind": "issue",
+   "personas": [
+    "maya"
+   ],
+   "rule": "U4",
+   "label": null,
+   "target": {
+    "kind": "event",
+    "features": [],
+    "decision": null,
+    "feature": "concierge",
+    "surface": "chat",
+    "message_key": "cg.regret"
+   },
+   "also_targets": [],
+   "pattern": null,
+   "objective": false,
+   "severity": null,
+   "delta": null,
+   "features": []
+  },
+  {
+   "id": "maya-7",
+   "kind": "issue",
+   "personas": [
+    "maya"
+   ],
+   "rule": "P3",
+   "label": null,
+   "target": {
+    "kind": "story",
+    "features": [],
+    "decision": null,
+    "feature": null,
+    "surface": null,
+    "message_key": null
+   },
+   "also_targets": [],
+   "pattern": null,
+   "objective": false,
+   "severity": null,
+   "delta": null,
+   "features": []
+  },
+  {
+   "id": "maya-8",
+   "kind": "issue",
+   "personas": [
+    "maya"
+   ],
+   "rule": "P2",
+   "label": "unexplained_tradeoff",
+   "target": {
+    "kind": "relation",
+    "features": [
+     "fare_lock",
+     "price_watch"
+    ],
+    "decision": "when_to_book",
+    "feature": null,
+    "surface": null,
+    "message_key": null
+   },
+   "also_targets": [],
+   "pattern": null,
+   "objective": false,
+   "severity": null,
+   "delta": null,
+   "features": []
+  },
+  {
+   "id": "maya_r-4",
+   "kind": "issue",
+   "personas": [
+    "maya_r"
+   ],
+   "rule": "U3",
+   "label": null,
+   "target": {
+    "kind": "event",
+    "features": [],
+    "decision": null,
+    "feature": "price_watch",
+    "surface": "inbox",
+    "message_key": "pw.email.after"
+   },
+   "also_targets": [],
+   "pattern": null,
+   "objective": false,
+   "severity": null,
+   "delta": null,
+   "features": []
+  },
+  {
+   "id": "maya_r-6",
+   "kind": "issue",
+   "personas": [
+    "maya_r"
+   ],
+   "rule": "U4",
+   "label": null,
+   "target": {
+    "kind": "event",
+    "features": [],
+    "decision": null,
+    "feature": "concierge",
+    "surface": "chat",
+    "message_key": "cg.regret"
+   },
+   "also_targets": [],
+   "pattern": null,
+   "objective": false,
+   "severity": null,
+   "delta": null,
+   "features": []
+  },
+  {
+   "id": "maya_r-7",
+   "kind": "issue",
+   "personas": [
+    "maya_r"
+   ],
+   "rule": "P3",
+   "label": null,
+   "target": {
+    "kind": "story",
+    "features": [],
+    "decision": null,
+    "feature": null,
+    "surface": null,
+    "message_key": null
+   },
+   "also_targets": [],
+   "pattern": null,
+   "objective": false,
+   "severity": null,
+   "delta": null,
+   "features": []
+  },
+  {
+   "id": "maya_r-10",
+   "kind": "negative_control",
+   "personas": [
+    "maya_r"
+   ],
+   "rule": "P2",
+   "label": "explained_tradeoff",
+   "target": {
+    "kind": "relation",
+    "features": [
+     "fare_lock",
+     "price_watch"
+    ],
+    "decision": "when_to_book",
+    "feature": null,
+    "surface": null,
+    "message_key": null
+   },
+   "also_targets": [],
+   "pattern": "explained_tradeoff",
+   "objective": false,
+   "severity": null,
+   "delta": null,
+   "features": []
+  },
+  {
+   "id": "omar-0",
+   "kind": "issue",
+   "personas": [
+    "omar"
+   ],
+   "rule": "U1",
+   "label": null,
+   "target": {
+    "kind": "event",
+    "features": [],
+    "decision": null,
+    "feature": "fare_lock",
+    "surface": "fare_detail",
+    "message_key": "fl.banner.urgent"
+   },
+   "also_targets": [],
+   "pattern": null,
+   "objective": true,
+   "severity": null,
+   "delta": null,
+   "features": []
+  },
+  {
+   "id": "omar-2",
+   "kind": "issue",
+   "personas": [
+    "omar"
+   ],
+   "rule": "P1",
+   "label": null,
+   "target": {
+    "kind": "event",
+    "features": [],
+    "decision": null,
+    "feature": "fare_lock",
+    "surface": "fare_detail",
+    "message_key": "fl.banner.urgent"
+   },
+   "also_targets": [],
+   "pattern": null,
+   "objective": false,
+   "severity": null,
+   "delta": null,
+   "features": []
+  },
+  {
+   "id": "raj-2",
+   "kind": "negative_control",
+   "personas": [
+    "raj"
+   ],
+   "rule": "P1",
+   "label": null,
+   "target": {
+    "kind": "event",
+    "features": [],
+    "decision": null,
+    "feature": "fare_lock",
+    "surface": "fare_detail",
+    "message_key": "fl.banner.urgent"
+   },
+   "also_targets": [],
+   "pattern": "exception_applies",
+   "objective": false,
+   "severity": null,
+   "delta": null,
+   "features": []
+  },
+  {
+   "id": "raj_72h-2",
+   "kind": "negative_control",
+   "personas": [
+    "raj_72h"
+   ],
+   "rule": "P1",
+   "label": null,
+   "target": {
+    "kind": "event",
+    "features": [],
+    "decision": null,
+    "feature": "fare_lock",
+    "surface": "fare_detail",
+    "message_key": "fl.banner.urgent"
+   },
+   "also_targets": [],
+   "pattern": "exception_applies",
+   "objective": false,
+   "severity": null,
+   "delta": null,
+   "features": []
+  },
+  {
+   "id": "raj_72h_1m-2",
+   "kind": "issue",
+   "personas": [
+    "raj_72h_1m"
+   ],
+   "rule": "P1",
+   "label": null,
+   "target": {
+    "kind": "event",
+    "features": [],
+    "decision": null,
+    "feature": "fare_lock",
+    "surface": "fare_detail",
+    "message_key": "fl.banner.urgent"
+   },
+   "also_targets": [],
+   "pattern": null,
+   "objective": false,
+   "severity": null,
+   "delta": null,
+   "features": []
+  },
+  {
+   "id": "raj_72h_30s-2",
+   "kind": "issue",
+   "personas": [
+    "raj_72h_30s"
+   ],
+   "rule": "P1",
+   "label": null,
+   "target": {
+    "kind": "event",
+    "features": [],
+    "decision": null,
+    "feature": "fare_lock",
+    "surface": "fare_detail",
+    "message_key": "fl.banner.urgent"
+   },
+   "also_targets": [],
+   "pattern": null,
+   "objective": false,
+   "severity": null,
+   "delta": null,
+   "features": []
+  },
+  {
+   "id": "raj_x-2",
+   "kind": "issue",
+   "personas": [
+    "raj_x"
+   ],
+   "rule": "P1",
+   "label": null,
+   "target": {
+    "kind": "event",
+    "features": [],
+    "decision": null,
+    "feature": "fare_lock",
+    "surface": "fare_detail",
+    "message_key": "fl.banner.urgent_bare"
+   },
+   "also_targets": [],
+   "pattern": null,
+   "objective": false,
+   "severity": null,
+   "delta": null,
+   "features": []
+  },
+  {
+   "id": "sam_alex-1",
+   "kind": "issue",
+   "personas": [
+    "sam_alex"
+   ],
+   "rule": "U2",
+   "label": null,
+   "target": {
+    "kind": "event",
+    "features": [],
+    "decision": null,
+    "feature": "fare_lock",
+    "surface": "fare_detail",
+    "message_key": "fl.banner"
+   },
+   "also_targets": [],
+   "pattern": null,
+   "objective": true,
+   "severity": null,
+   "delta": null,
+   "features": []
+  },
+  {
+   "id": "sam_alex-6",
+   "kind": "issue",
+   "personas": [
+    "sam_alex"
+   ],
+   "rule": "P2",
+   "label": "unexplained_tradeoff",
+   "target": {
+    "kind": "relation",
+    "features": [
+     "fare_lock",
+     "price_watch"
+    ],
+    "decision": "when_to_book",
+    "feature": null,
+    "surface": null,
+    "message_key": null
+   },
+   "also_targets": [],
+   "pattern": null,
+   "objective": false,
+   "severity": null,
+   "delta": null,
+   "features": []
+  },
+  {
+   "id": "theo-2",
+   "kind": "negative_control",
+   "personas": [
+    "theo"
+   ],
+   "rule": "U3",
+   "label": null,
+   "target": {
+    "kind": "event",
+    "features": [],
+    "decision": null,
+    "feature": "concierge",
+    "surface": "chat",
+    "message_key": "cg.upgrade"
+   },
+   "also_targets": [],
+   "pattern": "actionable_post_purchase",
+   "objective": false,
+   "severity": null,
+   "delta": null,
+   "features": []
+  }
+ ],
+ "source": "dev: tests/fixtures/stories expected vectors (hand-written, W1b); not a headline number",
+ "personas": [
+  "hana",
+  "kai",
+  "lena",
+  "maya",
+  "maya_r",
+  "omar",
+  "raj",
+  "raj_72h",
+  "raj_72h_1m",
+  "raj_72h_30s",
+  "raj_x",
+  "sam_alex",
+  "theo"
+ ]
+}

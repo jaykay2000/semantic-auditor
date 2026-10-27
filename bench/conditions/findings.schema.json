@@ -1,0 +1,251 @@
+{
+ "$defs": {
+  "Cited": {
+   "properties": {
+    "persona": {
+     "title": "Persona",
+     "type": "string"
+    },
+    "event_id": {
+     "title": "Event Id",
+     "type": "string"
+    },
+    "quote": {
+     "default": "",
+     "title": "Quote",
+     "type": "string"
+    }
+   },
+   "required": [
+    "persona",
+    "event_id"
+   ],
+   "title": "Cited",
+   "type": "object"
+  },
+  "Finding": {
+   "properties": {
+    "id": {
+     "title": "Id",
+     "type": "string"
+    },
+    "personas": {
+     "items": {
+      "type": "string"
+     },
+     "title": "Personas",
+     "type": "array"
+    },
+    "rule": {
+     "title": "Rule",
+     "type": "string"
+    },
+    "label": {
+     "anyOf": [
+      {
+       "enum": [
+        "conflict",
+        "unexplained_tradeoff",
+        "explained_tradeoff"
+       ],
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Label"
+    },
+    "target": {
+     "$ref": "#/$defs/Target"
+    },
+    "severity": {
+     "anyOf": [
+      {
+       "enum": [
+        "minor",
+        "major",
+        "critical"
+       ],
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Severity"
+    },
+    "confidence": {
+     "anyOf": [
+      {
+       "enum": [
+        "low",
+        "medium",
+        "high"
+       ],
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Confidence"
+    },
+    "why": {
+     "default": "",
+     "title": "Why",
+     "type": "string"
+    },
+    "cited": {
+     "items": {
+      "$ref": "#/$defs/Cited"
+     },
+     "title": "Cited",
+     "type": "array"
+    },
+    "secondary": {
+     "default": false,
+     "title": "Secondary",
+     "type": "boolean"
+    }
+   },
+   "required": [
+    "id",
+    "personas",
+    "rule",
+    "target"
+   ],
+   "title": "Finding",
+   "type": "object"
+  },
+  "Target": {
+   "properties": {
+    "kind": {
+     "enum": [
+      "relation",
+      "event",
+      "story"
+     ],
+     "title": "Kind",
+     "type": "string"
+    },
+    "features": {
+     "items": {
+      "type": "string"
+     },
+     "title": "Features",
+     "type": "array"
+    },
+    "decision": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Decision"
+    },
+    "feature": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Feature"
+    },
+    "surface": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Surface"
+    },
+    "message_key": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Message Key"
+    }
+   },
+   "required": [
+    "kind"
+   ],
+   "title": "Target",
+   "type": "object"
+  }
+ },
+ "properties": {
+  "system": {
+   "title": "System",
+   "type": "string"
+  },
+  "release": {
+   "title": "Release",
+   "type": "string"
+  },
+  "run": {
+   "default": "1",
+   "title": "Run",
+   "type": "string"
+  },
+  "findings": {
+   "items": {
+    "$ref": "#/$defs/Finding"
+   },
+   "title": "Findings",
+   "type": "array"
+  },
+  "cost_usd": {
+   "anyOf": [
+    {
+     "type": "number"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Cost Usd"
+  },
+  "calls": {
+   "anyOf": [
+    {
+     "type": "integer"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Calls"
+  }
+ },
+ "required": [
+  "system",
+  "release",
+  "findings"
+ ],
+ "title": "Findings",
+ "type": "object"
+}

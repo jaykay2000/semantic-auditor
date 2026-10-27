@@ -1,0 +1,132 @@
+{
+ "release": "2.4.1",
+ "items": [
+  {
+   "id": "kai-6",
+   "kind": "negative_control",
+   "personas": [
+    "kai"
+   ],
+   "rule": "P1",
+   "label": null,
+   "target": {
+    "kind": "event",
+    "features": [],
+    "decision": null,
+    "feature": "fare_lock",
+    "surface": "fare_detail",
+    "message_key": "fl.banner.urgent"
+   },
+   "also_targets": [],
+   "pattern": "exception_applies",
+   "objective": false,
+   "severity": null,
+   "delta": null,
+   "features": []
+  },
+  {
+   "id": "kai-7",
+   "kind": "issue",
+   "personas": [
+    "kai"
+   ],
+   "rule": "P2",
+   "label": "conflict",
+   "target": {
+    "kind": "relation",
+    "features": [
+     "fare_lock",
+     "price_watch"
+    ],
+    "decision": "when_to_book",
+    "feature": null,
+    "surface": null,
+    "message_key": null
+   },
+   "also_targets": [],
+   "pattern": null,
+   "objective": false,
+   "severity": null,
+   "delta": null,
+   "features": []
+  },
+  {
+   "id": "maya-7",
+   "kind": "issue",
+   "personas": [
+    "maya"
+   ],
+   "rule": "U4",
+   "label": null,
+   "target": {
+    "kind": "event",
+    "features": [],
+    "decision": null,
+    "feature": "concierge",
+    "surface": "chat",
+    "message_key": "cg.regret"
+   },
+   "also_targets": [],
+   "pattern": null,
+   "objective": false,
+   "severity": null,
+   "delta": null,
+   "features": []
+  },
+  {
+   "id": "maya-8",
+   "kind": "negative_control",
+   "personas": [
+    "maya"
+   ],
+   "rule": "P2",
+   "label": "explained_tradeoff",
+   "target": {
+    "kind": "relation",
+    "features": [
+     "fare_lock",
+     "price_watch"
+    ],
+    "decision": "when_to_book",
+    "feature": null,
+    "surface": null,
+    "message_key": null
+   },
+   "also_targets": [],
+   "pattern": "explained_tradeoff",
+   "objective": false,
+   "severity": null,
+   "delta": null,
+   "features": []
+  },
+  {
+   "id": "rina-2",
+   "kind": "issue",
+   "personas": [
+    "rina"
+   ],
+   "rule": "P1",
+   "label": null,
+   "target": {
+    "kind": "event",
+    "features": [],
+    "decision": null,
+    "feature": "fare_lock",
+    "surface": "hotel_detail",
+    "message_key": "fl.hotel.urgent"
+   },
+   "also_targets": [],
+   "pattern": null,
+   "objective": false,
+   "severity": null,
+   "delta": null,
+   "features": []
+  }
+ ],
+ "source": "dev: tests/fixtures/stories expected vectors (hand-written, W1b); not a headline number",
+ "personas": [
+  "kai",
+  "maya",
+  "rina"
+ ]
+}

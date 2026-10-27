@@ -1,0 +1,237 @@
+{
+ "$defs": {
+  "Target": {
+   "properties": {
+    "kind": {
+     "enum": [
+      "relation",
+      "event",
+      "story"
+     ],
+     "title": "Kind",
+     "type": "string"
+    },
+    "features": {
+     "items": {
+      "type": "string"
+     },
+     "title": "Features",
+     "type": "array"
+    },
+    "decision": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Decision"
+    },
+    "feature": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Feature"
+    },
+    "surface": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Surface"
+    },
+    "message_key": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Message Key"
+    }
+   },
+   "required": [
+    "kind"
+   ],
+   "title": "Target",
+   "type": "object"
+  },
+  "TruthItem": {
+   "properties": {
+    "id": {
+     "title": "Id",
+     "type": "string"
+    },
+    "kind": {
+     "enum": [
+      "issue",
+      "negative_control"
+     ],
+     "title": "Kind",
+     "type": "string"
+    },
+    "personas": {
+     "items": {
+      "type": "string"
+     },
+     "title": "Personas",
+     "type": "array"
+    },
+    "rule": {
+     "title": "Rule",
+     "type": "string"
+    },
+    "label": {
+     "anyOf": [
+      {
+       "enum": [
+        "conflict",
+        "unexplained_tradeoff",
+        "explained_tradeoff"
+       ],
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Label"
+    },
+    "target": {
+     "$ref": "#/$defs/Target"
+    },
+    "also_targets": {
+     "items": {
+      "$ref": "#/$defs/Target"
+     },
+     "title": "Also Targets",
+     "type": "array"
+    },
+    "pattern": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Pattern"
+    },
+    "objective": {
+     "default": false,
+     "title": "Objective",
+     "type": "boolean"
+    },
+    "severity": {
+     "anyOf": [
+      {
+       "enum": [
+        "minor",
+        "major",
+        "critical"
+       ],
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Severity"
+    },
+    "delta": {
+     "anyOf": [
+      {
+       "enum": [
+        "new",
+        "changed",
+        "existing"
+       ],
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Delta"
+    },
+    "features": {
+     "items": {
+      "type": "string"
+     },
+     "title": "Features",
+     "type": "array"
+    }
+   },
+   "required": [
+    "id",
+    "kind",
+    "personas",
+    "rule",
+    "target"
+   ],
+   "title": "TruthItem",
+   "type": "object"
+  }
+ },
+ "properties": {
+  "release": {
+   "title": "Release",
+   "type": "string"
+  },
+  "items": {
+   "items": {
+    "$ref": "#/$defs/TruthItem"
+   },
+   "title": "Items",
+   "type": "array"
+  },
+  "source": {
+   "default": "",
+   "title": "Source",
+   "type": "string"
+  },
+  "personas": {
+   "anyOf": [
+    {
+     "items": {
+      "type": "string"
+     },
+     "type": "array"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Personas"
+  }
+ },
+ "required": [
+  "release",
+  "items"
+ ],
+ "title": "Truth",
+ "type": "object"
+}
