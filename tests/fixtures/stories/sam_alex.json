@@ -7,11 +7,9 @@
    "departure_at": "2026-12-14T08:00:00+00:00",
    "change_window_hours": 24
   },
-  "oracles": {
-   "inventory": 2,
-   "charges": {
-    "fee_total": 18
-   }
+  "truth": {
+   "units_left": 2,
+   "fee_total": 18
   },
   "events": [
    {

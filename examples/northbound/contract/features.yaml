@@ -2,6 +2,7 @@
   name: Core booking
   release_introduced: "1.0"
   attribution: {dom_attr: "data-feature=core", headers: ["X-Feature: core"]}
+  topic: booking                      # messages about the booking itself; P3 does not count them
   default_lifetime_hours: {page: 2, email: 168}
 - id: price_watch
   name: Price Watch

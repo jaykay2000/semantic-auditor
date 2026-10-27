@@ -43,8 +43,21 @@ class Story(BaseModel):
     release: str
     persona: str
     trip: dict[str, Any]                 # departure_at (exact), component, party ...
-    oracles: dict[str, Any]              # inventory, charges ...
+    truth: dict[str, Any] = Field(default_factory=dict)   # fact id -> true value (hand-authored stories)
+    snapshots: list[dict[str, Any]] = Field(default_factory=list)  # [{at, truth: {fact: value}}] from captures
     events: list[Event]
+
+    def truth_at(self, fact: str, t: datetime) -> Any:
+        """The fact's true value in force at t: the latest snapshot taken at or before t, else the static truth."""
+        snaps = [x for x in self.snapshots if _dt(x["at"]) <= t and fact in x["truth"]]
+        if snaps:
+            return max(snaps, key=lambda x: _dt(x["at"]))["truth"][fact]
+        return self.truth.get(fact)
+
+    def final_truth(self, fact: str) -> Any:
+        """The fact's value at the end of the story (e.g. what was ultimately charged)."""
+        snaps = [x for x in self.snapshots if fact in x["truth"]]
+        return max(snaps, key=lambda x: _dt(x["at"]))["truth"][fact] if snaps else self.truth.get(fact)
 
     def messages(self) -> list[Event]:
         return [e for e in self.events if e.kind == "message"]
@@ -77,6 +90,10 @@ class Story(BaseModel):
         acts = set(actions)
         times = [e.at for e in self.events if e.kind == "user_action" and e.action in acts and e.at > t]
         return min(times) if times else None
+
+
+def _dt(v) -> datetime:
+    return datetime.fromisoformat(v) if isinstance(v, str) else v
 
 
 def load_story(path: Path) -> Story:

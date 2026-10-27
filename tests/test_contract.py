@@ -66,7 +66,7 @@ def test_boundary_departures_are_exact():
     ("scenarios.yaml", lambda s: s[0]["personas"].append("ghost"), "unknown persona 'ghost'"),
     ("scenarios.yaml", lambda s: s[0]["steps"].reverse(), "not in time order"),
     ("personas.yaml", lambda p: p.append({**p[0], "id": "orphan"}), "persona orphan: in no scenario"),
-    ("facts.yaml", lambda f: f[0].update(oracle="crystal_ball"), "unknown oracle 'crystal_ball'"),
+    ("facts.yaml", lambda f: f[0]["sources"][0].update(oracle="crystal_ball"), "unknown oracle 'crystal_ball'"),
 ])
 def test_validation_catches(copy, name, mutate, expect):
     edit(copy, name, mutate)
@@ -115,7 +115,7 @@ def test_every_single_issue_lands_in_exactly_one_recommendation():
 
 def story_booked_at(t):
     return Story(id="s", release="2.4", persona="p", trip={"departure_at": D0, "change_window_hours": 24},
-                 oracles={}, events=[Event(id="b", at=t, kind="user_action", action="book")])
+                 events=[Event(id="b", at=t, kind="user_action", action="book")])
 
 
 def test_state_model_drives_booking_and_change_window():

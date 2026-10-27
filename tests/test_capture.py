@@ -395,3 +395,41 @@ def test_cli_capture_writes_episodes_and_exits_0(tmp_path):
 def test_cli_capture_exits_2_when_something_could_not_be_measured(tmp_path):
     r = _cli(tmp_path, "--release", "2.4", "--persona", "rina")               # no hotel page before 2.4.1
     assert r.returncode == 2 and "not measured" in r.stdout and "404" in r.stdout
+
+
+# ------------------------------------------------------------------------------- W6: episode -> story (no model)
+from semaudit.contract.schema import load_contract as _load_contract  # noqa: E402
+from semaudit.story.build import story_from_episode  # noqa: E402
+
+sys.path.insert(0, str(ROOT / "tests" / "fixtures"))
+from extraction_gold import gold_for  # noqa: E402
+
+_C = _load_contract(CONTRACT)
+
+
+def test_story_from_maya_episode_orders_attributes_and_marks_initiative(run):
+    s = story_from_episode(run("2.4", "maya"), _C)
+    by = {e.id: e for e in s.messages()}
+    assert by["pw.email.forecast"].channel == "email" and by["pw.push.moving"].channel == "push"
+    assert by["pw.card"].channel not in (None, "page") and by["fl.banner"].channel not in (None, "page")
+    assert by["cg.regret"].user_initiated and not by["cg.upgrade"].user_initiated
+    assert by["cg.upgrade"].at == when("2026-11-02T13:00:00+00:00")
+    assert all(e.topic == "booking" for e in s.messages() if e.feature == "core")
+    assert [e.at for e in s.events] == sorted(e.at for e in s.events)
+    assert [e.action for e in s.events if e.kind == "user_action"][:3] == ["search", "check_inbox", "open_fare"]
+
+
+def test_story_truth_is_read_at_the_time_shown(run):
+    s = story_from_episode(run("2.4", "maya"), _C)
+    banner = next(e for e in s.messages() if e.copy_key == "fl.banner")
+    assert s.truth_at("units_left", banner.at) == 2                      # before she books
+    assert s.final_truth("units_left") == 1                              # after: her seat is gone
+    lock = story_from_episode(run("2.4", "sam_alex"), _C)
+    assert lock.final_truth("fee_total") == 18                           # 2 x EUR 9, the per-traveller bug
+    assert lock.truth_at("fee_total", next(e for e in lock.messages() if e.copy_key == "fl.banner").at) is None
+
+
+def test_every_captured_message_has_hand_authored_gold(run):
+    for persona in PARITY_24:
+        for e in story_from_episode(run("2.4", persona), _C).messages():
+            assert gold_for(e.copy_key, e.text) is not None, f"{persona}: no gold for {e.copy_key}"

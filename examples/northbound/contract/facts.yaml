@@ -1,5 +1,10 @@
-# Claim types a message can make, and the oracle field each is checked against (after extraction).
-- {id: units_left, unit: seats_or_rooms, oracle: inventory, field: seats_left}       # hotels: room_inventory.rooms_left
-- {id: fee_total, unit: EUR, oracle: booking, field: charges}       # compared per transaction (U2)
-- {id: price_forecast, oracle: forecast, field: drop}
-- {id: refund_policy}                                                # no oracle: unverifiable, never "false"
+# Claim types a message can make, and where each one's true value is read (the first source that reads).
+# Truth is taken from the state snapshot in force when the message was shown, never a later one.
+- id: units_left
+  unit: seats_or_rooms
+  sources: [{oracle: inventory, field: seats_left}, {oracle: room_inventory, field: rooms_left}]
+- id: fee_total
+  unit: EUR
+  sources: [{oracle: booking, field: charges, where: {what: fare_lock}, take: amount_cents, scale: 0.01}]
+- id: fee_per_traveller                 # no oracle: unverifiable, never "false"
+  unit: EUR

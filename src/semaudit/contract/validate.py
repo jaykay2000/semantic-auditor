@@ -86,8 +86,11 @@ def validate(c: Contract) -> list[str]:
                 need("action", a, set(d.actions), f"decision {d.id} pair")
 
     for f in c.facts:
-        if f.oracle:
-            need("oracle", f.oracle, oracles, f"fact {f.id}")
+        for src in f.sources:
+            need("oracle", src.oracle, oracles, f"fact {f.id}")
+            o = next((o for o in c.oracles if o.id == src.oracle), None)
+            if o and src.field not in o.fields:
+                p.append(f"fact {f.id}: oracle {src.oracle} has no field {src.field!r}")
 
     scheduled = set()
     for sc in c.scenarios:

@@ -7,8 +7,8 @@
    "departure_at": "2026-11-03T06:00:00+00:00",
    "change_window_hours": 24
   },
-  "oracles": {
-   "inventory": 9
+  "truth": {
+   "units_left": 9
   },
   "events": [
    {

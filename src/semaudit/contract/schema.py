@@ -108,6 +108,7 @@ class Feature(Strict):
     release_introduced: str | None = None
     changed_in: list[str] = Field(default_factory=list)
     attribution: dict[str, Any] = Field(default_factory=dict)    # dom_attr / headers the app stamps
+    topic: str | None = None             # e.g. booking: excluded from load counts
     default_lifetime_hours: dict[str, float] = Field(default_factory=dict)
     source: Source | None = None
 
@@ -121,6 +122,7 @@ class Surface(Strict):
     reached_by: str | None = None        # scenario verb that brings the user here
     message_selector: str | None = None  # web: elements that carry messages
     sink: str | None = None              # email/push: where the app writes messages
+    user_turn: dict[str, str] = Field(default_factory=dict)   # chat: attrs marking the user's own turn
 
 
 class Oracle(Strict):
@@ -131,12 +133,20 @@ class Oracle(Strict):
     fields: dict[str, str] = Field(default_factory=dict)   # name -> JSON path in the response
 
 
+class FactSource(Strict):
+    """Where a fact's true value is read: an oracle field, optionally one item of a list field."""
+    oracle: str
+    field: str
+    where: dict[str, Any] = Field(default_factory=dict)   # list field: pick the item whose keys match
+    take: str | None = None                              # list field: the value to take from that item
+    scale: float = 1.0                                   # e.g. 0.01 for cents -> EUR
+
+
 class Fact(Strict):
-    """A kind of claim a message can make, and the oracle field it is checked against."""
+    """A kind of claim a message can make, and where its true value comes from (first source that reads)."""
     id: str
     unit: str | None = None
-    oracle: str | None = None            # oracle id; None means claims of this fact are unverifiable
-    field: str | None = None
+    sources: list[FactSource] = Field(default_factory=list)   # empty: claims of this fact are unverifiable
 
 
 # ---------- derived state ----------

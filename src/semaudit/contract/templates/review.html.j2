@@ -140,7 +140,7 @@ button{font:600 13px Inter,sans-serif;padding:7px 12px;border-radius:7px;border:
     {% if c.state %}<div class="row spread"><b>Derived state</b>{{ state("state:all") }}</div>
     <div class="muted">{% for v in c.state %}<code>{{ v.id }}</code>{% if v.kind == "window" %}: true for {{ v.hours|int }} h after {{ v.opens_on }}{% else %}: {{ v.initial }}{% for a, val in v.set_by.items() %} → {{ val }} on {{ a }}{% endfor %}{% endif %}{% if not loop.last %} · {% endif %}{% endfor %}</div>{% endif %}
     {% if c.facts %}<div class="row spread" style="margin-top:8px"><b>Facts and oracles</b>{{ state("facts:all") }}</div>
-    <div class="muted">{% for f in c.facts %}<code>{{ f.id }}</code> → {{ f.oracle ~ "." ~ f.field if f.oracle else "no oracle (unverifiable, never false)" }}{% if not loop.last %} · {% endif %}{% endfor %}</div>{% endif %}
+    <div class="muted">{% for f in c.facts %}<code>{{ f.id }}</code> → {% if f.sources %}{% for src in f.sources %}{{ src.oracle }}.{{ src.field }}{% if src.where %}[{% for k, v in src.where.items() %}{{ k }}={{ v }}{% endfor %}].{{ src.take }}{% endif %}{% if not loop.last %} or {% endif %}{% endfor %}{% else %}no oracle (unverifiable, never false){% endif %}{% if not loop.last %} · {% endif %}{% endfor %}</div>{% endif %}
     {% if c.surfaces %}<div class="row spread" style="margin-top:8px"><b>Surfaces</b>{{ state("surfaces:all") }}</div>
     <div class="muted">{% for s in c.surfaces %}<code>{{ s.id }}</code> {{ s.kind }}{% if not loop.last %} · {% endif %}{% endfor %}</div>{% endif %}
     {% if c.oracles %}<div class="row spread" style="margin-top:8px"><b>Oracle endpoints</b>{{ state("oracles:all") }}</div>

@@ -153,8 +153,8 @@
   "message_kind": "directive",
   "decision": "fare_type",
   "action": "upgrade_to_refundable",
-  "strength": "urge",
-  "urgency_cue": "U-b",
+  "strength": "suggest",
+  "urgency_cue": "none",
   "explains_own_tradeoff": false,
   "claims": [
    {

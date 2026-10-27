@@ -74,26 +74,26 @@ def live_at(live: Live, t: datetime) -> bool:
 def eval_match_oracle(rule: Rule, story: Story) -> list[Entry]:
     """Claims of the given types must equal the named oracle; a missing oracle is unverifiable, not false."""
     out = []
-    truth = story.oracles.get(rule.check["oracle"])
     for e in story.messages():
         for c in e.extraction.claims:
             if c["type"] not in rule.check["claims"]:
                 continue
+            truth = story.truth_at(c["type"], e.at)
             if truth is None:
                 continue                      # unverifiable: an owner question, never a violation
             status = "passed" if c["value"] == truth else "violated"
-            out.append(Entry(rule.id, e.id, status, note=f"claim {c['value']} vs {rule.check['oracle']} {truth}"))
+            out.append(Entry(rule.id, e.id, status, note=f"claim {c['value']} vs true {c['type']} {truth}"))
     return out
 
 
 def eval_match_charge(rule: Rule, story: Story) -> list[Entry]:
-    charged = story.oracles.get("charges", {}).get(rule.check["charge"])
-    if charged is None:                   # no transaction in this story: not applicable
-        return []
     out = []
     for e in story.messages():
         for c in e.extraction.claims:
             if c["type"] in rule.check["claims"]:
+                charged = story.final_truth(rule.check["charge"])   # the amount ultimately charged
+                if charged is None:       # no transaction in this story: not applicable
+                    continue
                 status = "passed" if c["value"] == charged else "violated"
                 out.append(Entry(rule.id, e.id, status, note=f"shown {c['value']} vs charged {charged}"))
     return out
@@ -132,7 +132,7 @@ def condition_value(cond, e: Event, story: Story) -> str:
         return "met" if dep - e.at <= timedelta(hours=cond.hours) else "not_met"   # exact timestamps
     if cond.test == "claim_matches_oracle":
         claims = [c for c in e.extraction.claims if c["type"] == cond.claim]
-        truth = story.oracles.get(cond.oracle)
+        truth = story.truth_at(cond.claim, e.at)
         if not claims or truth is None:
             return "unknown"
         return "met" if all(c["value"] == truth for c in claims) else "not_met"

@@ -1,6 +1,6 @@
 {#- The ONLY way a message reaches a page. Stamps data-feature, data-message-key and data-shown-at. -#}
 {% macro message(m, tag="div") -%}
-<{{ tag }} class="msg msg-{{ m.channel }}" data-feature="{{ m.feature }}" data-message-key="{{ m.key }}" data-shown-at="{{ m.shown_at_iso }}" data-component="{{ m.component }}">{{ m.text }}</{{ tag }}>
+<{{ tag }} class="msg msg-{{ m.channel }}" data-feature="{{ m.feature }}" data-message-key="{{ m.key }}" data-shown-at="{{ m.shown_at_iso }}" data-component="{{ m.component }}" data-channel="{{ m.channel }}">{{ m.text }}</{{ tag }}>
 {%- endmacro %}
 
 {% macro action(a) -%}

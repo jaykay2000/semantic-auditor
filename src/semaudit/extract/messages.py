@@ -30,7 +30,7 @@ def extraction_schema(contract: Contract) -> dict:
             "explains_own_tradeoff": {"type": "boolean"},
             "claims": {"type": "array", "items": {
                 "type": "object", "additionalProperties": False, "required": ["type", "value", "unit"],
-                "properties": {"type": {"type": "string", "enum": ["units_left", "fee_total", "fee_per_traveller"]},
+                "properties": {"type": {"type": "string", "enum": [f.id for f in contract.facts] or ["none"]},
                                "value": {"type": "number"}, "unit": {"type": "string"}}}},
         },
     }
@@ -51,4 +51,30 @@ def extract_story(story: Story, contract: Contract, router: Router, *, fresh: bo
     missing = {m.id for m in msgs} - set(out)
     if missing:
         raise ValueError(f"extraction missing ids: {sorted(missing)}")
+    return out
+
+
+def extract_unique(messages: list[dict], contract: Contract, router: Router, *, fresh: bool = False,
+                   role: str = "extractor", batch: int = 25) -> dict[tuple[str, str, str], Extraction]:
+    """Extract each distinct (feature, channel, text) once, in batches. Identical text gets an identical answer.
+
+    The rubric classifies every message independently, so a message's extraction never depends on which
+    story it appears in; deduplicating across stories is the same task at a fraction of the cost.
+    """
+    uniq = sorted({(m["feature"] or "", m["channel"] or "", m["text"]) for m in messages})
+    out: dict[tuple[str, str, str], Extraction] = {}
+    for i in range(0, len(uniq), batch):
+        chunk = uniq[i:i + batch]
+        listing = [{"id": f"m{j}", "feature": f, "channel": c, "text": t} for j, (f, c, t) in enumerate(chunk)]
+        prompt = ("Classify every message below independently, using the rubric. Return one entry per id.\n"
+                  + json.dumps(listing, ensure_ascii=False, indent=1))
+        r = router.complete(role, [{"role": "system", "content": contract.rubric},
+                                   {"role": "user", "content": prompt}],
+                            schema=extraction_schema(contract), schema_name="extraction", fresh=fresh)
+        rows = {row["id"]: row for row in r.parsed["messages"]}
+        missing = [x["id"] for x in listing if x["id"] not in rows]
+        if missing:
+            raise ValueError(f"extraction missing ids: {missing}")
+        for x, key in zip(listing, chunk):
+            out[key] = Extraction(**{k: v for k, v in rows[x["id"]].items() if k != "id"})
     return out
