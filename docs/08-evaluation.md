@@ -68,7 +68,7 @@ A finding **matches** a ground-truth item when all of these agree:
 - the **label**, where it is part of the truth (`conflict` vs `unexplained_tradeoff` are scored as different answers);
 - the event set: for relations, the pair of features plus the decision; for single events, the feature, surface and message key.
 
-Each ground-truth item can be matched at most once. A finding that matches nothing is a false positive *unless* adjudication accepts it as a real, unseeded issue (see below). The matcher is a script in `bench/` that reads both systems' outputs in the same normalized format, so no finding is matched by hand. A baseline's free-text finding is normalized into that format by a fixed, published prompt, and its normalizations are kept for inspection.
+Each ground-truth item can be matched at most once. A finding that matches nothing is a false positive *unless* adjudication accepts it as a real, unseeded issue (see below). The matcher is a script in `bench/` that reads both systems' outputs in the same normalized format, so no finding is matched by hand. **Owner ruling (Oct 27): the judge baselines answer directly in that format** under a strict schema (with a free-text `why`), instead of free text normalized by a second prompt, so no conversion step can lose a baseline's finding. A finding that does not fit the format is dropped and listed, never repaired. The exact rule, including scoring per persona-occurrence so grouping is neutral, is in `bench/conditions/FORMAT.md`.
 
 ## Ground truth and adjudication
 
