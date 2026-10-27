@@ -1,0 +1,143 @@
+"""Assemble a release review: issues, verification, policy, not-raised list and the per-persona stories (W9).
+
+Writes runs/<id>/review.json, the single input of the Release Story page (docs/design/release-story.md).
+"""
+
+from __future__ import annotations
+
+import json
+from dataclasses import asdict
+from datetime import datetime
+from pathlib import Path
+from typing import Any
+
+from semaudit.contract.schema import Contract
+from semaudit.decide.issues import Issue, apply_delta, build_issues
+from semaudit.decide.pipeline import ReleaseEval
+from semaudit.relate.rules import validity
+from semaudit.story.align import align
+from semaudit.story.model import Story
+
+CLEARED_LABELS = {"explained_tradeoff", "compatible"}
+
+
+def not_raised(head: ReleaseEval, failed: list[Issue], contract: Contract) -> list[dict]:
+    out = []
+    for persona, (story, entries) in sorted(head.results.items()):
+        by = {e.id: e for e in story.events}
+        for e in entries:
+            if e.status == "excepted":
+                out.append({"persona": persona, "rule": e.rule, "subjects": [e.subject], "status": "excepted",
+                            "label": None, "conditions": [list(c) for c in e.conditions],
+                            "reason": "exception applies: " + ", ".join(f"({c}) {v}" for c, v in e.conditions)})
+            elif e.rule == contract.rules_of("coherence")[0].id and e.status == "passed" and e.label in CLEARED_LABELS:
+                rid = e.meta.get("reconciler")
+                when = f" by {rid} at {by[rid].at:%H:%M:%S}" if rid in by else ""
+                out.append({"persona": persona, "rule": e.rule, "subjects": [e.subject], "status": "passed",
+                            "label": e.label, "conditions": [],
+                            "reason": f"{e.label.replace('_', ' ')}{when}, while both were live and before deciding"})
+    for i in failed:
+        out.append({"persona": ",".join(i.personas), "rule": i.rule, "subjects": [i.id], "status": "not_raised",
+                    "label": i.label, "conditions": [],
+                    "reason": f"verification failed: {i.verification['reason']}"})
+    return out
+
+
+def persona_view(persona: str, story: Story, base: Story | None, contract: Contract, ev: ReleaseEval) -> dict:
+    diff = align(base, story) if base else None
+    steps = [{"step_id": f"s{st.seq:02d}", "at": st.at.isoformat(), "do": st.do, "status": st.status}
+             for st in ev.episodes[persona].steps]
+    events = []
+    for e in story.events:
+        row: dict[str, Any] = {"id": e.id, "at": e.at.isoformat(), "kind": e.kind}
+        if e.kind == "user_action":
+            row["action"] = e.action
+        else:
+            live = validity(e, story, contract) if e.extraction and e.extraction.message_kind == "directive" else None
+            row.update(feature=e.feature, surface=e.surface, channel=e.channel, text=e.text, message_key=e.copy_key,
+                       extraction=e.extraction.model_dump() if e.extraction else None,
+                       evidence=e.evidence.model_dump() if e.evidence else None,
+                       live_until=(live.end.isoformat() if live and live.end else None) if live else None,
+                       live_basis=live.basis if live else None)
+            row["step_id"] = f"s{e.evidence.step:02d}" if e.evidence else None
+        if diff:
+            row["delta"] = diff.head_status(e.id)
+            row["base_event"] = diff.base_of(e.id)
+        events.append(row)
+    persona_c = contract.persona(persona)
+    view = {"id": persona, "name": persona_c.name, "party": persona_c.party, "trip": {
+        "departure_at": story.trip["departure_at"].isoformat() if hasattr(story.trip["departure_at"], "isoformat")
+        else story.trip["departure_at"], "flexible": persona_c.trip.flexible, "component": persona_c.trip.component,
+        "route": persona_c.trip.route or persona_c.trip.hotel},
+        "steps": steps, "events": events,
+        "state": [{"at": s["at"].isoformat() if hasattr(s["at"], "isoformat") else s["at"], "truth": s["truth"]}
+                  for s in story.snapshots]}
+    if diff:
+        view["removed_from_base"] = [{"id": b.id, "at": b.at.isoformat(), "feature": b.feature, "text": b.text}
+                                     for b in base.events if b.id in diff.removed]
+    return view
+
+
+def issue_dict(i: Issue, stories: dict[str, Story], contract: Contract) -> dict:
+    rule = contract.rule(i.rule)
+    o = i.occurrences[0]
+    return {
+        "id": i.id, "layer": i.layer, "rule": i.rule, "rule_kind": i.rule_kind, "label": i.label,
+        "personas": i.personas, "features": i.features, "delta": i.delta, "delta_basis": i.delta_basis,
+        "why": i.why, "rule_text": rule.text, "rule_source": rule.source.model_dump() if rule.source else None,
+        "conditions": [list(c) for c in o.entry.conditions],
+        "occurrences": [{"persona": x.persona, "events": x.events, "timing": x.timing,
+                         "also": [asdict(a) | {"conditions": [list(c) for c in a.conditions]} for a in x.also]}
+                        for x in i.occurrences],
+        "severity": i.severity, "confidence": i.confidence, "verification": i.verification,
+        "repro": f"semaudit repro {i.id}",
+    }
+
+
+def other_rules(i: Issue, results: dict[str, tuple[Story, list]]) -> list[dict]:
+    """Every rule evaluated on the issue's cited events (first occurrence): passes and exceptions included."""
+    o = i.occurrences[0]
+    story, entries = results[o.persona]
+    cited = set(o.events)
+    return [{"rule": e.rule, "subject": e.subject, "status": e.status, "label": e.label,
+             "conditions": [list(c) for c in e.conditions]}
+            for e in entries if e.subject in cited and (e.rule, e.status) != (i.rule, "violated")]
+
+
+def assemble(base: ReleaseEval, head: ReleaseEval, contract: Contract, verified: list[Issue],
+             resolved: list[Issue], spent_usd: float) -> dict:
+    open_issues = [i for i in verified if i.verification.get("status") != "failed"]
+    failed = [i for i in verified if i.verification.get("status") == "failed"]
+    row, idx = contract.policy.evaluate([{"severity": i.severity["level"], "confidence": i.confidence["level"],
+                                          "verification": i.verification["status"]} for i in open_issues])
+    stories = {p: s for p, (s, _) in head.results.items()}
+    base_stories = {p: s for p, (s, _) in base.results.items()}
+    issues = []
+    for i in open_issues:
+        d = issue_dict(i, stories, contract)
+        d["other_rules"] = other_rules(i, head.results)
+        issues.append(d)
+    return {
+        "schema": "semaudit.review/1",
+        "generated_at_sim": None,
+        "release": {"base": base.release, "head": head.release},
+        "app": contract.app.model_dump() if contract.app else None,
+        "policy": {"recommendation": row.recommendation, "row": idx + 1, "rule_fired": row.text},
+        "owner_decision": {"status": "pending"},
+        "issues": issues,
+        "resolved": [issue_dict(i, base_stories, contract) for i in resolved],
+        "not_raised": not_raised(head, failed, contract),
+        "not_measured": {"base": base.not_measured, "head": head.not_measured},
+        "personas": [persona_view(p, s, base_stories.get(p), contract, head) for p, s in sorted(stories.items())],
+        "cost_usd": round(spent_usd, 4),
+        "written_at": datetime.utcnow().isoformat(timespec="seconds") + "Z",
+    }
+
+
+def write(review: dict, path: Path) -> Path:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(review, indent=1, ensure_ascii=False, default=str))
+    return path
+
+
+__all__ = ["assemble", "write", "build_issues", "apply_delta"]

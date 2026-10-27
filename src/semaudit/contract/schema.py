@@ -61,6 +61,7 @@ class Rule(Strict):
     check: dict[str, Any] = Field(default_factory=dict)
     count: dict[str, Any] = Field(default_factory=dict)
     exceptions: list[ExceptionRule] = Field(default_factory=list)
+    severity: Literal["minor", "major", "critical"] = "major"   # owner-set base level of a violation
     source: Source | None = None
 
 
@@ -260,8 +261,23 @@ class PolicyRow(Strict):
     otherwise: bool = False              # fires unconditionally (catch-all)
 
 
+class Escalation(Strict):
+    """Raise an issue's severity when it reaches enough people at a moment that matters."""
+    text: str
+    reach_at_least: int | None = None                        # distinct personas affected
+    timing: Literal["before_decision", "after_decision"] | None = None
+    rule_kinds: list[str] = Field(default_factory=list)      # empty: any kind
+    raise_by: int = 1
+
+    def applies(self, reach: int, timing: str, rule_kind: str) -> bool:
+        return ((self.reach_at_least is None or reach >= self.reach_at_least)
+                and (self.timing is None or timing == self.timing)
+                and (not self.rule_kinds or rule_kind in self.rule_kinds))
+
+
 class ReleasePolicy(Strict):
     rows: list[PolicyRow]
+    escalation: list[Escalation] = Field(default_factory=list)
     source: Source | None = None
 
     def evaluate(self, open_issues: list[dict[str, str]]) -> tuple[PolicyRow, int]:

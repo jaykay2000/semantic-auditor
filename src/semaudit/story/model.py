@@ -19,6 +19,7 @@ class Extraction(BaseModel):
     urgency_cue: str
     explains_own_tradeoff: bool
     claims: list[dict[str, Any]] = Field(default_factory=list)
+    normalized: str | None = None        # set when code overruled a field the contract determines
 
 
 class Evidence(BaseModel):

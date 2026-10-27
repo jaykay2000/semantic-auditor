@@ -14,3 +14,7 @@ rows:
   - recommendation: ship_with_notes
     text: "open issues exist; all are verified and non-critical"
     otherwise: true
+escalation:
+  - text: "reaches two or more travellers before they decide: one level up"
+    reach_at_least: 2
+    timing: before_decision

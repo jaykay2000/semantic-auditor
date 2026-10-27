@@ -91,5 +91,89 @@ def capture_cmd(contract_dir: Path = typer.Option(..., "--contract", exists=True
     raise typer.Exit(2 if problems else 0)
 
 
+@app.command("review")
+def review_cmd(contract_dir: Path = typer.Option(..., "--contract", exists=True, file_okay=False),
+               base: str = typer.Option(..., "--base"), head: str = typer.Option(..., "--head"),
+               max_usd: float = typer.Option(..., "--max-usd", help="spend cap for every model call in this review"),
+               run_id: str = typer.Option(None, "--run-id"), runs_dir: Path = typer.Option(Path("runs"), "--runs-dir"),
+               reuse: bool = typer.Option(False, "--reuse", help="reuse captures already in the run directory"),
+               fresh: bool = typer.Option(False, "--fresh", help="ignore the model cache")):
+    """Review a release against its base: issues, verification, recommendation. Writes review-<base>-<head>.json.
+
+    Exit 0: recommendation is ship; 1: anything else needs the owner; 2: could not measure.
+    """
+    import json
+    import time
+    from .decide.run import run_review
+    from .models.router import ModelError
+    run_id = run_id or f"review-{time.strftime('%Y%m%dT%H%M%S')}"
+    try:
+        path = run_review(contract_dir, base, head, run_id=run_id, runs_dir=runs_dir, max_usd=max_usd,
+                          reuse=reuse, fresh=fresh)
+    except ModelError as e:
+        typer.echo(f"cannot measure: {e}", err=True)
+        raise typer.Exit(2)
+    r = json.loads(path.read_text())
+    typer.echo(f"{base} -> {head}: {r['policy']['recommendation'].upper()}  ({r['policy']['rule_fired']})")
+    for i in r["issues"]:
+        v = i["verification"]["status"]
+        typer.echo(f"  {i['id']:52} {i['severity']['level']:8} conf {i['confidence']['level']:6} {v:18} "
+                   f"{i['delta']:12} {', '.join(i['personas'])}")
+    for i in r["resolved"]:
+        typer.echo(f"  resolved: {i['id']}")
+    typer.echo(f"not raised: {len(r['not_raised'])} · spent ${r['cost_usd']:.3f} · {path}")
+    raise typer.Exit(0 if r["policy"]["recommendation"] == "ship" else 1)
+
+
+@app.command("repro")
+def repro_cmd(issue_id: str = typer.Argument(..., help="e.g. I-2.4-P2-fare-lock-price-watch-unexplained-tradeoff"),
+              review: Path = typer.Option(None, "--review", help="review JSON (default: the newest under runs/)"),
+              contract_dir: Path = typer.Option(Path("examples/northbound/contract"), "--contract"),
+              runs_dir: Path = typer.Option(Path("runs"), "--runs-dir")):
+    """Re-capture the issue's personas on the head release and check every cited moment appears again.
+
+    Exit 0: reproduced; 1: an event did not come back (or came back different); 2: could not measure.
+    """
+    import json
+    import time
+    from .capture import LaunchError, Runner
+    from .contract.schema import load_contract
+    from .story.build import story_from_episode
+    review = review or max(runs_dir.glob("*/review-*.json"), key=lambda p: p.stat().st_mtime, default=None)
+    if review is None or not review.exists():
+        typer.echo("no review found", err=True)
+        raise typer.Exit(2)
+    r = json.loads(review.read_text())
+    issue = next((i for i in r["issues"] + r["resolved"] if i["id"] == issue_id), None)
+    if issue is None:
+        typer.echo(f"{issue_id} not in {review}", err=True)
+        raise typer.Exit(2)
+    head = r["release"]["base"] if issue in r["resolved"] else r["release"]["head"]
+    views = {p["id"]: {e["id"]: e for e in p["events"]} for p in r["personas"]}
+    contract = load_contract(contract_dir)
+    personas = sorted({o["persona"] for o in issue["occurrences"]})
+    typer.echo(f"{issue_id}: re-capturing {', '.join(personas)} on {head}")
+    try:
+        with Runner(contract_dir, runs_dir=runs_dir, run_id=f"repro-{time.strftime('%Y%m%dT%H%M%S')}") as run:
+            fresh = {ep.persona: story_from_episode(ep, contract) for ep in run.capture(head, personas)}
+    except LaunchError as e:
+        typer.echo(f"cannot measure: {e}", err=True)
+        raise typer.Exit(2)
+    ok = True
+    for o in issue["occurrences"]:
+        for eid in o["events"]:
+            want = views.get(o["persona"], {}).get(eid)
+            if want is None or want["kind"] != "message":
+                continue
+            got = [e for e in fresh[o["persona"]].messages()
+                   if e.copy_key == want["message_key"] and e.feature == want["feature"]
+                   and e.text == want["text"] and e.at.isoformat() == want["at"]]
+            ok &= bool(got)
+            typer.echo(f"  {'✓' if got else '✗'} {o['persona']} {want['at'][11:19]} {want['feature']}: "
+                       f"\"{want['text'][:70]}\"")
+    typer.echo("REPRODUCED" if ok else "NOT REPRODUCED")
+    raise typer.Exit(0 if ok else 1)
+
+
 if __name__ == "__main__":
     app()

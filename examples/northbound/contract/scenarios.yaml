@@ -22,7 +22,7 @@
     - {at: "D0 10:00", do: search, params: {route: LIS-BER}}
     - {at: "D0 10:01", do: check_inbox}
     - {at: "D0 10:03", do: open_fare, params: {pick: cheapest}}
-    - {at: "D0 10:04", do: buy_lock}
+    - {at: "D0 10:04", do: buy_lock, when_offered: true}                 # Fare Lock exists from 2.4
 - id: S-ask-before-booking
   description: sees both features' advice, asks the concierge, leaves without booking
   day0: 2026-11-02T00:00:00Z
@@ -53,4 +53,4 @@
   day0: 2026-11-02T00:00:00Z
   personas: [rina]
   steps:
-    - {at: "D0 10:00", do: open_hotel, params: {hotel: LIS-H1}}
+    - {at: "D0 10:00", do: open_hotel, params: {hotel: LIS-H1}, when_offered: true}   # hotels from 2.4.1

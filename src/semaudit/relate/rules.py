@@ -236,7 +236,11 @@ def eval_p2(rule: Rule, story: Story, contract: Contract, interpret: Interpreter
         bases = {i: lv.basis for i, lv in cand.lives.items()}
         out.append(Entry(rule.id, cand.subject, status, label=label, note=verdict.get("rationale", "")[:300],
                          meta={"liveness": bases, "unknown_validity": "unknown" in bases.values(),
-                               "reconciler": rid or None}))
+                               "reconciler": rid or None, "pairs": [[x.id, y.id] for x, y in cand.pairs],
+                               "decision": cand.decision, "pair_kind": cand.pair_kind,
+                               "material": cand.material,
+                               "live_until": {i: (lv.end.isoformat() if lv.end else None)
+                                              for i, lv in cand.lives.items()}}))
     return out
 
 
@@ -268,7 +272,8 @@ def eval_load(rule: Rule, story: Story) -> list[Entry]:
     for i, start in enumerate(contacts):
         inside = [e for e in contacts[i:] if e.at - start.at < window]
         if len(inside) > c["max"]:
-            return [Entry(rule.id, "story", "violated", note=",".join(e.id for e in inside))]
+            return [Entry(rule.id, "story", "violated", note=",".join(e.id for e in inside),
+                          meta={"events": [e.id for e in inside], "count": len(inside), "max": c["max"]})]
     return [Entry(rule.id, "story", "passed")]
 
 

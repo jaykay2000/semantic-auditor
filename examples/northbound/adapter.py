@@ -156,6 +156,8 @@ class Adapter:
     def verb_open_hotel(self, step: Step, s: Session) -> StepResult:
         hotel = step.params.get("hotel") or s.persona.trip.hotel
         resp = s.page.goto(f"/hotel/{hotel}")
+        if resp is not None and resp.status == 404:        # the release has no hotel pages: not offered
+            return StepResult(offered=False)
         return StepResult(landed="hotel_detail", error=_http_error(resp, f"hotel {hotel}"))
 
     def _open_chat(self, s: Session) -> str | None:

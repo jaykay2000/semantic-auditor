@@ -63,7 +63,7 @@ button{font:600 13px Inter,sans-serif;padding:7px 12px;border-radius:7px;border:
   {% for r in c.rules %}
   <section class="card" id="rule-{{ r.id }}">
     <div class="row spread">
-      <div class="row"><strong class="mono" style="font-size:15px">{{ r.id }}</strong><span class="pill">{{ r.kind }}</span></div>
+      <div class="row"><strong class="mono" style="font-size:15px">{{ r.id }}</strong><span class="pill">{{ r.kind }}</span><span class="pill">severity if violated: {{ r.severity }}</span></div>
       {{ state("rule:" ~ r.id) }}
     </div>
     <div class="quote">“{{ r.text }}”</div>
@@ -131,6 +131,7 @@ button{font:600 13px Inter,sans-serif;padding:7px 12px;border-radius:7px;border:
   <h2>Release policy</h2>
   <section class="card">
     <div class="row spread"><span class="muted">Evaluated top to bottom; the first row that fires is the recommendation. Exhaustive by construction.</span>{{ state("policy:release") }}</div>
+    {% for e in c.policy.escalation %}<div class="muted">Severity escalation: {{ e.text }}</div>{% endfor %}
     <table>{% for row in c.policy.rows %}<tr><td class="mono" style="width:30px">{{ loop.index }}</td><td style="width:190px"><b>{{ row.recommendation|replace("_", " ")|capitalize }}</b></td><td>{{ row.text }}</td></tr>{% endfor %}</table>
   </section>
   {% endif %}

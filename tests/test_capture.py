@@ -220,10 +220,11 @@ def test_when_offered_is_done_on_2_3_and_skipped_on_2_4(run):
     assert old.status == "done" and new.status == "skipped_not_offered" and new.captures == [] and new.error is None
 
 
-def test_a_surface_the_release_does_not_have_is_recorded_as_failed_not_absent(run):
+def test_a_surface_the_release_does_not_offer_is_recorded_as_not_offered(run):
+    """The contract marks open_hotel 'only if offered': on 2.4 there are no hotel pages, recorded explicitly."""
     ep = run("2.4", "rina")                                                     # hotels arrive in 2.4.1
     (st,) = ep.steps
-    assert st.status == "failed" and "404" in st.error
+    assert st.status == "skipped_not_offered" and st.captures == []
     assert not [m for m in ep.messages() if m["feature"] == "fare_lock"]
 
 
@@ -392,9 +393,35 @@ def test_cli_capture_writes_episodes_and_exits_0(tmp_path):
     assert Episode.read(tmp_path / "cli" / "episodes" / "2.4" / "theo__S-direct-book.json").persona == "theo"
 
 
+def _contract_copy(tmp_path, edit):
+    import shutil
+    import yaml
+    d = tmp_path / "contract"
+    shutil.copytree(CONTRACT, d)
+    app = yaml.safe_load((d / "app.yaml").read_text())
+    app["launch"]["cwd"] = str(CONTRACT.parent)
+    app["adapter"] = str(CONTRACT.parent / "adapter.py")
+    (d / "app.yaml").write_text(yaml.safe_dump(app))
+    data = yaml.safe_load((d / "scenarios.yaml").read_text())
+    edit(data)
+    (d / "scenarios.yaml").write_text(yaml.safe_dump(data, sort_keys=False))
+    return d
+
+
 def test_cli_capture_exits_2_when_something_could_not_be_measured(tmp_path):
-    r = _cli(tmp_path, "--release", "2.4", "--persona", "rina")               # no hotel page before 2.4.1
-    assert r.returncode == 2 and "not measured" in r.stdout and "404" in r.stdout
+    """Without 'only if offered', the same missing hotel page is a step that could not run: exit 2."""
+    def required(sc):
+        for s in sc:
+            for st in s["steps"]:
+                st.pop("when_offered", None)
+    d = _contract_copy(tmp_path, required)
+    import os
+    import subprocess
+    env = {**os.environ, "PYTHONPATH": str(ROOT / "src")}
+    r = subprocess.run([sys.executable, "-m", "semaudit.cli", "capture", "--contract", str(d), "--runs-dir",
+                        str(tmp_path), "--run-id", "cli", "--release", "2.4", "--persona", "rina"],
+                       capture_output=True, text=True, env=env, cwd=ROOT)
+    assert r.returncode == 2 and "not measured" in r.stdout and "not offered" in r.stdout
 
 
 # ------------------------------------------------------------------------------- W6: episode -> story (no model)
@@ -508,3 +535,67 @@ def test_evidence_fails_closed_on_tampering(run, runner, tmp_path):
     no_ev = banner.model_copy(deep=True)
     no_ev.evidence = None
     assert resolve(no_ev, ep, runner.run_dir) == (False, "no evidence recorded")
+
+
+# ---------------------------------------------------- W9: issues from real captures (gold extraction, no model)
+from semaudit.decide.issues import apply_delta, build_issues  # noqa: E402
+from semaudit.relate.rules import evaluate as _evaluate  # noqa: E402
+from semaudit.story.model import Extraction as _Extraction  # noqa: E402
+
+ALL = [p.id for p in _C.personas]
+
+
+def _gold_results(run, release):
+    """Every measured persona on a release, with gold extraction and the fixture's P2 label (no model)."""
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import json as _json
+
+    import w8_run as W
+    out = {}
+    for persona in ALL:
+        ep = run(release, persona)
+        if any(s.status == "failed" for s in ep.steps):
+            continue
+        s = story_from_episode(ep, _C)
+        for e in s.messages():
+            e.extraction = _Extraction(**gold_for(e.copy_key, e.text))
+        name = W.fixture_name(release, persona)
+        fx = _json.loads((W.FIX / f"{name}.json").read_text()) if name else {"expected": []}
+        p2 = next((x for x in fx["expected"] if x["rule"] == "P2"), None)
+        rec = next((e.id for e in s.messages() if e.copy_key == "cg.reconcile"), "")   # gold: it reconciles
+        if fx.get("gold_reconciler"):
+            fe = next(x for x in fx["story"]["events"] if x["id"] == fx["gold_reconciler"])
+            rec = next(e.id for e in s.messages() if e.copy_key == fe["copy_key"])
+        label = p2["label"] if p2 else ("explained_tradeoff" if release == "2.4.1" else "compatible")
+        interp = lambda st, c, k, label=label, rec=rec: {"label": label, "reconciling_event_id": rec, "rationale": "g"}  # noqa
+        out[persona] = (s, _evaluate(s, _C, interp))
+    return out
+
+
+def test_issues_on_2_4_are_the_accepted_violations_grouped(run):
+    issues = {i.id: i for i in build_issues("2.4", _gold_results(run, "2.4"), _C)}
+    expect = {
+        "I-2.4-P2-fare-lock-price-watch-unexplained-tradeoff": (["family", "maya", "sam_alex"], "critical"),
+        "I-2.4-P2-fare-lock-price-watch-conflict": (["kai"], "major"),
+        "I-2.4-P1-fare-lock-fl-banner-urgent-a": (["hana", "raj_72h_1m", "raj_72h_30s"], "critical"),
+        "I-2.4-P1-fare-lock-fl-banner-urgent-bare-c": (["raj_x"], "major"),
+        "I-2.4-U1-fare-lock-fl-banner-urgent": (["omar"], "major"),
+        "I-2.4-U2-fare-lock-fl-banner": (["sam_alex"], "major"),
+        "I-2.4-U3-price-watch-pw-email-after": (["family", "maya", "maya_r"], "minor"),
+        "I-2.4-U4-concierge-cg-regret": (["family", "maya", "maya_r"], "minor"),
+        "I-2.4-P3-story": (["family", "maya", "maya_r"], "minor"),
+    }
+    assert {k: (i.personas, i.severity["level"]) for k, i in issues.items()} == expect
+    omar = issues["I-2.4-U1-fare-lock-fl-banner-urgent"].occurrences[0]
+    assert [a.rule for a in omar.also] == ["P1"]          # one event, one issue: U1 first, P1 carried
+
+
+def test_delta_2_4_to_2_4_1_resolves_the_fixes_and_flags_rina(run):
+    head = build_issues("2.4.1", _gold_results(run, "2.4.1"), _C)
+    base = build_issues("2.4", _gold_results(run, "2.4"), _C)
+    resolved = {i.id for i in apply_delta(head, base, set(_gold_results(run, "2.4")))}
+    assert {"I-2.4-U3-price-watch-pw-email-after", "I-2.4-P3-story", "I-2.4-U2-fare-lock-fl-banner",
+            "I-2.4-P2-fare-lock-price-watch-unexplained-tradeoff"} <= resolved
+    rina = next(i for i in head if i.personas == ["rina"])
+    assert rina.delta == "new" and "nearest exception P1-E1 does not apply: scope" in rina.why
+    assert next(i for i in head if i.rule == "U4").delta == "pre_existing"

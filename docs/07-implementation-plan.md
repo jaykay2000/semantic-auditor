@@ -23,6 +23,7 @@ How the work runs:
 | W6 | **accepted**: extraction from real captures, 55/55 distinct messages exact on 3/3 fresh repeats ($0.36) | [evidence/w6-extraction.md](evidence/w6-extraction.md) |
 | W7 | **built**: base ↔ head alignment by event key; explicit added/removed; marked fuzzy pairs | `src/semaudit/story/align.py` |
 | W8 | **accepted**: real captures → stories → rules + P2 interpretation; 31/31 × 5 fresh runs; stubs fail ($0.56). Re-accepted after the external audit fixes (lineage, liveness, expiry, pair kinds, supersession): 31/31 × 5 ($0.30) | [evidence/w8-real-captures.md](evidence/w8-real-captures.md) |
+| W9 | **accepted**: `semaudit review` end to end (capture → stories → issues → re-capture → verify → policy → review.json) and `semaudit repro`; 2.3→2.4 Hold with 9 verified issues; 2.4→2.4.1 resolves the fixes and raises Rina on scope; verifier rejects 4/4 planted issues (~$0.79) | [evidence/w9-review.md](evidence/w9-review.md) |
 
 ## The minimum compelling version (MCV)
 
@@ -102,6 +103,41 @@ The riskiest *reasoning* step, relation interpretation, is de-risked first by W1
 **Acceptance.** All stories match on 5 of 5 fresh runs, and all three stubs fail.
 
 **If it fails:** on Oct 28 we change the representation (rubric, schema, candidate framing), not the timeline.
+
+## W9: issues, verification, policy, review.json, repro (specification)
+
+The first end-to-end path. Northbound only; no new concepts until it runs:
+`capture base + head → stories → rules → issues → verify → policy → review.json → semaudit repro`.
+
+- **Issues.** A violated entry becomes an issue. Violations with the same signature (rule, feature(s), message
+  key or P2 subject, failing exception conditions) are grouped across personas into one issue with its reach.
+  If one event violates several rules, the issue is counted once under the rule the contract lists first and
+  carries the others.
+- **Delta.** Base stories are evaluated too. Each head issue is `new` or `pre_existing`; a base issue with no head
+  counterpart is `resolved`.
+- **Severity** (code, from the contract, never a model): each rule declares a base level; the release policy's
+  escalation rules raise it (default: reach ≥ 2 personas and before the user's decision → one level up).
+  Factors are recorded: rule, base, reach, timing, escalation applied.
+- **Confidence** (code, from a basis list): evidence kind (measured vs interpreted), cross-model extraction
+  agreement on the cited messages, cross-model label agreement (P2), the defense outcome, unknown validity or
+  unknown conditions. High: everything run agrees and nothing is unknown; medium: something not run or unknown;
+  low: a disagreement or a successful defense.
+- **Verification** (steps actually run, each pass / fail / not_run): `reproduced` (re-capture the persona's
+  scenario, the same events appear with the same text), `evidence_linked` (fails closed), `cross_model`
+  (the other model re-extracts the cited messages and, for P2, re-labels), `defended` (the defender cannot
+  explain it away), `oracle_checked` (fact rules only). Status: verified / partially_verified / unverified /
+  failed (`not_reproducible`, `disputed`). Failed issues are not open; they go on the not-raised list.
+- **Not raised.** Every candidate cleared and why: explained tradeoffs (with the reconciler), exceptions applied
+  (with conditions), failed verifications.
+- **Recommendation** from `release_policy.yaml` over the open issues, with the row text verbatim.
+- **Outputs.** `runs/<id>/review.json` in the shape the approved Release Story spec names; `semaudit review`
+  and `semaudit repro <issue-id>`.
+
+**Acceptance.** On Northbound 2.3 → 2.4: the issues are exactly the violated entries W8 accepted, grouped;
+severity, confidence and verification are each shown (by tests) to change while the other two stay fixed;
+every issue is reproduced and evidence-linked; `repro` re-finds the hero issue from a fresh capture;
+2.4 → 2.4.1 marks the fixed issues `resolved` and raises Rina's hotel urgency with
+"nearest exception P1-E1 does not apply: scope". Budget ≤ $2.
 
 ## Quality gates per work item
 
