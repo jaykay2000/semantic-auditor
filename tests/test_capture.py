@@ -433,3 +433,40 @@ def test_every_captured_message_has_hand_authored_gold(run):
     for persona in PARITY_24:
         for e in story_from_episode(run("2.4", persona), _C).messages():
             assert gold_for(e.copy_key, e.text) is not None, f"{persona}: no gold for {e.copy_key}"
+
+
+# ------------------------------------------------------------------------------- W7: base <-> head alignment
+from semaudit.story.align import align  # noqa: E402
+
+
+def _non_core(ids):
+    return sorted(i for i in ids if not i.startswith(("core.", "a")))
+
+
+def test_maya_diff_2_3_to_2_4(run):
+    d = align(story_from_episode(run("2.3", "maya"), _C), story_from_episode(run("2.4", "maya"), _C))
+    assert _non_core(d.added) == ["cg.upgrade", "fl.banner", "pw.email.after", "pw.push.moving"]
+    assert _non_core(d.removed) == ["pw.card.watching"]
+    fuzzy = {(p.base, p.head) for p in d.pairs if p.status == "fuzzy"}
+    assert fuzzy == {("pw.card.optin", "pw.card"), ("cg.answer.deal.booked", "cg.regret")}
+    assert d.head_status("pw.email.forecast") == "unchanged"
+
+
+def test_maya_diff_2_4_to_2_4_1_shows_the_fixes(run):
+    d = align(story_from_episode(run("2.4", "maya"), _C), story_from_episode(run("2.4.1", "maya"), _C))
+    assert _non_core(d.removed) == ["pw.email.after", "pw.push.moving"]
+    assert _non_core(d.added) == ["cg.reconcile"]
+
+
+def test_alignment_never_pairs_across_slots(run):
+    """Every head event is paired or added exactly once; fuzzy pairs share feature, surface, channel and time."""
+    b, h = story_from_episode(run("2.3", "maya"), _C), story_from_episode(run("2.4", "maya"), _C)
+    d = align(b, h)
+    heads = [p.head for p in d.pairs] + d.added
+    assert sorted(heads) == sorted(e.id for e in h.events)
+    assert sorted([p.base for p in d.pairs] + d.removed) == sorted(e.id for e in b.events)
+    be, he = {e.id: e for e in b.events}, {e.id: e for e in h.events}
+    for p in d.pairs:
+        if p.status == "fuzzy":
+            x, y = be[p.base], he[p.head]
+            assert (x.feature, x.surface, x.channel, x.at) == (y.feature, y.surface, y.channel, y.at)
