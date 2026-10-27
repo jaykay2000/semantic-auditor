@@ -38,10 +38,10 @@ def test_severity_is_the_rules_own_level_and_moves_only_with_it():
     r = C.rule("P2")
     one = severity_of(r, [occ("maya", "before_decision")])
     many = severity_of(r, [occ(p, "before_decision") for p in ("maya", "lena", "kai", "raj")])
-    assert one["level"] == many["level"] == r.severity == "major"       # test-persona count never raises it
+    assert one["level"] == many["level"] == r.severity == "critical"    # test-persona count never moves it
     assert many["factors"]["tested_personas"] == 4
-    critical = r.model_copy(update={"severity": "critical"})            # the owner changes the rule
-    assert severity_of(critical, [occ("maya", "before_decision")])["level"] == "critical"
+    minor = r.model_copy(update={"severity": "minor"})                  # the owner changes the rule
+    assert severity_of(minor, [occ("maya", "before_decision")])["level"] == "minor"
     i = issue()
     s = steps()
     assert confidence_of(i, s, C) == confidence_of(i, s, C) and verification_status(s)["status"] == "verified"
@@ -58,7 +58,7 @@ def test_confidence_moves_alone_with_unknown_validity():
     assert confidence_of(known, s, C)["level"] == "high"
     assert confidence_of(unknown, s, C)["level"] == "medium"
     assert verification_status(s)["status"] == "verified"                 # verification unchanged
-    assert severity_of(C.rule("P2"), [occ("maya", "before_decision")])["level"] == "major"   # severity unchanged
+    assert severity_of(C.rule("P2"), [occ("maya", "before_decision")])["level"] == "critical"   # severity unchanged
 
 
 def test_verification_moves_alone_when_reproduction_did_not_run():

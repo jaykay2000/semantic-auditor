@@ -579,8 +579,8 @@ def _gold_results(run, release):
 def test_issues_on_2_4_are_the_accepted_violations_grouped(run):
     issues = {i.id: i for i in build_issues("2.4", _gold_results(run, "2.4"), _C)}
     expect = {
-        "I-2.4-P2-fare-lock-price-watch-unexplained-tradeoff": (["family", "maya", "sam_alex"], "major"),
-        "I-2.4-P2-fare-lock-price-watch-conflict": (["kai"], "major"),
+        "I-2.4-P2-fare-lock-price-watch-unexplained-tradeoff": (["family", "maya", "sam_alex"], "critical"),
+        "I-2.4-P2-fare-lock-price-watch-conflict": (["kai"], "critical"),
         "I-2.4-P1-fare-lock-fl-banner-urgent-a": (["hana", "raj_72h_1m", "raj_72h_30s"], "major"),
         "I-2.4-P1-fare-lock-fl-banner-urgent-bare-c": (["raj_x"], "major"),
         "I-2.4-U1-fare-lock-fl-banner-urgent": (["omar"], "major"),

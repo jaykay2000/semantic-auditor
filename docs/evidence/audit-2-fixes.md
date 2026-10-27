@@ -22,6 +22,9 @@ core change.
 - **W8:** 32 real captured stories × 5 fresh runs exact (18 against fixtures, 14 negative controls); all stubs fail ($0.54).
 - **2.3 → 2.4** (`runs/e2e-2`): 9 issues, all verified, confidence medium (capped: one model family). Outcome
   **provisional**; the policy would say **ship with notes** (row 4), because with escalation removed nothing is critical.
+  *Superseded Oct 27:* the owner set P2 to `critical`; regenerated from cache at $0, the 2.4 policy now says **hold**
+  (row 1: both P2 issues critical, verified, medium). On 2.4.1 Kai's P2 is critical but partially verified, so it
+  says **needs owner review** (row 2). Both reviews pass `semaudit verify-report`.
 - **2.4 → 2.4.1** (`runs/e2e-3`): 4 issues resolved (U2, P2 tradeoff, U3, P3); Rina raised new on scope; Kai's
   conflict pre-existing, **partially verified, low confidence**: the defender (Muse Spark 1.2) argues the reconcile
   message covers "Book now", the interpreter (1.3) says it does not on 5/5 runs. The policy would say needs owner review.
@@ -40,7 +43,6 @@ code applies from the contract's definitions.
 
 1. **Approve the contract** (`semaudit contract review examples/northbound/contract`, then approve): until then every
    recommendation is provisional.
-2. **P2's severity:** it is `major`. If an unexplained tradeoff before a decision should block a release, set it to
-   `critical` in `principles.yaml` (P1(a) likewise).
+2. **P2's severity:** ~~it is `major`~~ **decided Oct 27: `critical`** (owner). P1(a) stays `major`.
 3. **Kai on 2.4.1:** a short blind human judgement of whether the reconcile message reconciles "wait" against
    "Book now".

@@ -40,7 +40,7 @@
 - id: P2
   title: "Advice that does not agree"
   kind: coherence
-  severity: major
+  severity: critical
   text: When more than one feature gives an active recommendation about the same decision, the product must reconcile incompatible actions, or explain the material tradeoffs between otherwise compatible actions, while both are live and before the traveller decides.
   applies_to: {relation: competing_directives}
 - id: P3
