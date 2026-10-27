@@ -50,7 +50,7 @@ def test_northbound_contract_is_complete_and_valid():
 
 def test_boundary_departures_are_exact():
     banner = resolve_time("D0 10:03", D0)
-    gap = {p: resolve_time(C.persona(p).trip.departure_at, D0) - banner for p in ("raj_72h", "raj_72h_30s", "raj_72h_1m")}
+    gap = {p: resolve_time(C.persona(p).context["departure_at"], D0) - banner for p in ("raj_72h", "raj_72h_30s", "raj_72h_1m")}
     assert gap == {"raj_72h": timedelta(hours=72), "raj_72h_30s": timedelta(hours=72, seconds=30),
                    "raj_72h_1m": timedelta(hours=72, minutes=1)}
 
@@ -114,7 +114,7 @@ def test_every_single_issue_lands_in_exactly_one_recommendation():
 # ---------- derived state comes from the contract ----------
 
 def story_booked_at(t):
-    return Story(id="s", release="2.4", persona="p", trip={"departure_at": D0, "change_window_hours": 24},
+    return Story(id="s", release="2.4", persona="p", context={"departure_at": D0},
                  events=[Event(id="b", at=t, kind="user_action", action="book")])
 
 
@@ -159,7 +159,7 @@ def test_review_page_shows_every_rule_and_exception_condition():
     page = render(C, {}, interactive=False)
     for r in C.rules:
         assert f'id="rule-{r.id}"' in page
-    assert "≤ 72 h, on exact timestamps" in page and "explains own tradeoff" in page
+    assert "between 0 and 72 h, on exact timestamps" in page and "explains own tradeoff" in page
     assert "fare_lock" in page and "expires 2027-01-31" in page
     assert 'action="/approve"' not in page                      # static page is read-only
 

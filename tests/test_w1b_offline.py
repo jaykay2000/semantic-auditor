@@ -94,7 +94,7 @@ def test_reconciler_while_both_live_clears_p2():
 
 def test_departure_in_the_past_is_not_within_72h():
     story, raw = load("raj")
-    story.trip["departure_at"] = (story.events[0].at - timedelta(hours=1)).isoformat()
+    story.context["departure_at"] = (story.events[0].at - timedelta(hours=1)).isoformat()
     p1 = next(e for e in evaluate(story, CONTRACT, gold_interpreter(raw)) if e.rule == "P1")
     assert p1.status == "violated" and ("a", "not_met") in p1.conditions
 

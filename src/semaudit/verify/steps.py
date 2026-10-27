@@ -45,10 +45,10 @@ DEFENSE_SCHEMA = {
 }
 
 DEFENSE_INSTRUCTIONS = """You are the product team defending a release against one reported issue.
-Using ONLY the owner's rules and exceptions given and the messages the traveller actually saw, make the
+Using ONLY the owner's rules and exceptions given and the messages the user actually saw, make the
 strongest honest case that this is NOT a violation (an exception applies, the cited messages do not say what
 the report claims, the timing is different, the rule does not apply to this case). Write that defense first.
-Then set defense_succeeds: true if your defense shows the rule is NOT broken by what the traveller actually
+Then set defense_succeeds: true if your defense shows the rule is NOT broken by what the user actually
 saw; false if the violation still holds despite your best defense. Do not invent messages, rules or facts."""
 
 

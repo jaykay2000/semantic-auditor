@@ -25,7 +25,7 @@ def describe_condition(c: Condition) -> str:
     if c.kind == "judged":
         return f"the message {c.field.replace('_', ' ')} (judged by the model, re-checked by the verifier)"
     if c.test == "time_until":
-        return f"trip {c.trip_field.replace('_', ' ')} − message shown ≤ {c.hours:g} h, on exact timestamps"
+        return f"{c.context_field.replace('_', ' ')} − message shown between 0 and {c.hours:g} h, on exact timestamps"
     if c.test == "claim_matches_oracle":
         return f"the {c.claim.replace('_', ' ')} claim matches the {c.oracle} oracle"
     return f"{c.test}"

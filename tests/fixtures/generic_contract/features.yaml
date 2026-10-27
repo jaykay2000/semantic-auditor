@@ -1,0 +1,2 @@
+- {id: nudges, name: Nudges}
+- {id: core, name: Accounts, core: true}

@@ -120,7 +120,7 @@ def eval_actionable(rule: Rule, story: Story, contract: Contract) -> list[Entry]
 
 
 def eval_message_kind(rule: Rule, story: Story, contract: Contract) -> list[Entry]:
-    """Forbid a message kind in a given state (e.g. retrospective messages once booked)."""
+    """Forbid a message kind in a given state (e.g. retrospective messages once the user has committed)."""
     kind, state = rule.applies_to["message_kind"], rule.applies_to.get("state", {})
     return [Entry(rule.id, e.id, "violated") for e in story.messages()
             if e.extraction.message_kind == kind
@@ -134,7 +134,7 @@ def condition_value(cond, e: Event, story: Story) -> str:
         v = getattr(e.extraction, cond.field)
         return "met" if v else "not_met"
     if cond.test == "time_until":
-        dep = story.trip.get(cond.trip_field)
+        dep = story.context.get(cond.context_field)
         if dep is None:
             return "unknown"
         dep = datetime.fromisoformat(dep) if isinstance(dep, str) else dep
@@ -193,6 +193,7 @@ class PairCandidate:
     pairs: list[tuple[Event, Event]]  # every overlapping directive pair for this subject
     material: str
     lives: dict = field(default_factory=dict)   # event id -> Live
+    rule: str = ""                    # the coherence rule this candidate is judged under
 
 
 def p2_candidates(story: Story, contract: Contract) -> list[PairCandidate]:
@@ -227,6 +228,7 @@ Interpreter = Callable[[Story, PairCandidate, Contract], dict]
 def eval_p2(rule: Rule, story: Story, contract: Contract, interpret: Interpreter) -> list[Entry]:
     out = []
     for cand in p2_candidates(story, contract):
+        cand.rule = rule.id
         verdict = interpret(story, cand, contract)
         label = verdict["label"]
         rid = verdict.get("reconciling_event_id")

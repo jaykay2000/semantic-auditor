@@ -9,8 +9,7 @@
 <style>
 :root{
   --ground:#F6F6F3;--panel:#fff;--ink:#15171C;--ink2:#5B606B;--ink3:#8A8F98;--line:#E2E2DC;--line2:#ECECE6;
-  --pw:#2563C9;--pwbg:#EAF1FC;--pwln:#BCD0F2;--fl:#0E7C70;--flbg:#E3F4F1;--flln:#A9DBD3;
-  --cg:#6D46B8;--cgbg:#F0EBFA;--cgln:#D2C3EE;--core:#5B606B;--corebg:#F0F0EE;--coreln:#DADAD4;
+  --corebg:#F0F0EE;
   --crit:#8E2F0E;--critbg:#FBE4DA;--maj:#7A4E00;--majbg:#FCEFD6;--min:#5E5638;--minbg:#F3F0E6;
   --ok:#1F5130;--okbg:#E2F1E6;--okln:#B8D9C2;
 }
@@ -50,9 +49,6 @@ select{font:500 13px Inter,sans-serif;padding:7px 10px;border-radius:7px;border:
 .act{font-size:13px;font-weight:600}
 .msg{font-size:12.5px;line-height:1.35;border-radius:8px;padding:7px 8px;border:1px solid;cursor:pointer;text-align:left;background:none;width:100%;color:var(--ink)}
 .msg .meta{font-size:11px;color:var(--ink2);display:flex;gap:6px;align-items:center;margin-bottom:2px;flex-wrap:wrap}
-.f-price_watch{background:var(--pwbg);border-color:var(--pwln)}.f-fare_lock{background:var(--flbg);border-color:var(--flln)}
-.f-concierge{background:var(--cgbg);border-color:var(--cgln)}.f-core{background:var(--corebg);border-color:var(--coreln)}
-.c-price_watch{background:var(--pw)}.c-fare_lock{background:var(--fl)}.c-concierge{background:var(--cg)}.c-core{background:var(--core)}
 .msg.sel{box-shadow:0 0 0 3px var(--ink)}
 .msg.ghost{opacity:.5;border-style:dashed;background:#FAFAF7}
 .mark{font-weight:700;color:var(--ink)}
@@ -93,7 +89,19 @@ const $ = (s, el = document) => el.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const SEV = ['critical','major','minor'];
 const FNAME = Object.fromEntries((R.features || []).map(f => [f.id, f.name]));
-const LANES = [...(R.features || []).map(f => f.id).filter(f => f !== 'core'), 'core'];
+const CORE = new Set((R.features || []).filter(f => f.core).map(f => f.id));
+const LANES = [...(R.features || []).map(f => f.id).filter(f => !CORE.has(f)), ...CORE];
+// Lane colours are assigned in the contract's feature order; the core flow is neutral.
+const PALETTE = [['#2563C9', '#EAF1FC', '#BCD0F2'], ['#0E7C70', '#E3F4F1', '#A9DBD3'], ['#6D46B8', '#F0EBFA', '#D2C3EE'],
+  ['#9A5B13', '#FBF0E1', '#EBCFA8'], ['#B03A62', '#FBE8EF', '#EDBFCF'], ['#5E6B1F', '#F1F4E1', '#D3DBA8']];
+const COLOR = {};
+LANES.filter(f => !CORE.has(f)).forEach((f, i) => { COLOR[f] = PALETTE[i % PALETTE.length]; });
+CORE.forEach(f => { COLOR[f] = ['#5B606B', '#F0F0EE', '#DADAD4']; });
+const cls = f => String(f).replace(/[^A-Za-z0-9_-]/g, '_');
+document.head.insertAdjacentHTML('beforeend', `<style>${Object.entries(COLOR).map(([f, [ink, bg, ln]]) =>
+  `.f-${cls(f)}{background:${bg};border-color:${ln}}.c-${cls(f)}{background:${ink}}`).join('')}</style>`);
+const ink = f => (COLOR[f] || ['#5B606B'])[0];
+const RTITLE = Object.fromEntries((R.rules || []).map(r => [r.id, r.title]));
 const personas = Object.fromEntries(R.personas.map(p => [p.id, p]));
 const issuesFor = pid => R.issues.filter(i => i.layer === 'release' && i.personas.includes(pid));
 const t = iso => iso ? new Date(iso) : null;
@@ -112,7 +120,7 @@ const heroPersona = top ? ((top.personas.find(pid => (personas[pid] || {}).role 
 const state = { persona: heroPersona, mode: 'head', issue: top ? top.id : null, notRaisedOpen: false };
 
 // Columns: the hero's scenario steps plus the current persona's, both releases. Switching persona keeps the
-// hero's columns, so Raj's banner sits where Maya's banner sat.
+// hero's columns, so another persona's message sits where the hero's sat.
 let colTimes = [];
 const stepsOf = p => p ? [...p.steps, ...(p.base_steps || [])].map(s => s.at) : [];
 const setColumns = pid => { colTimes = [...new Set([...stepsOf(personas[heroPersona]), ...stepsOf(personas[pid])])].sort((a, b) => t(a) - t(b)); };
@@ -136,21 +144,17 @@ function chips(i) {
 function issueTitle(i) {
   const L = {unexplained_tradeoff: 'Unexplained tradeoff', conflict: 'Conflicting advice'};
   if (i.label && L[i.label]) return L[i.label];
-  const T = {U1: 'False claim', U2: 'Fee shown ≠ fee charged', U3: 'Guidance the traveller cannot act on', U4: 'Second-guessing a purchase', P1: 'Urgency outside the exception', P3: 'Too many contacts'};
-  return T[i.rule] || i.rule;
+  return RTITLE[i.rule] || i.rule;
 }
 
 function header(p) {
-  const party = p.party > 1 ? `party of ${p.party}` : 'solo';
-  const days = (t(p.trip.departure_at) - t(p.steps[0].at)) / 36e5;
-  const away = days >= 48 ? `departs in ${Math.round(days / 24)} days` : `departs in ${Math.round(days)} hours`;
   const fict = R.app && R.app.fictional;
   const opts = R.personas.map(x => `<option value="${x.id}" ${x.id === p.id ? 'selected' : ''}>${esc(x.name)} (${x.id}) · ${issuesFor(x.id).length} issue${issuesFor(x.id).length === 1 ? '' : 's'}</option>`).join('');
   const b = R.release.base, h = R.release.head;
   return `<div class="row spread">
     <div style="display:flex;flex-direction:column;gap:4px">
       <div class="row" style="align-items:baseline"><h1 style="margin:0;font-size:22px">${esc(p.name)}</h1>
-        <span class="muted" style="font-size:14px">${party} · ${p.trip.flexible ? 'flexible dates' : 'fixed dates'} · ${esc(p.trip.route || '')} · <span title="${esc(p.trip.departure_at)}">${away}</span></span></div>
+        <span class="muted" style="font-size:14px">${(p.summary || []).map(esc).join(' · ')}</span></div>
       <div class="row" style="gap:6px"><span class="tag">built during the hackathon</span><span class="tag">${R.app ? esc(R.app.name) : ''} · ${fict ? 'fictional app' : 'app under audit'}</span><span class="tag">review ${esc(b)} → ${esc(h)}</span></div>
     </div>
     <div class="row">
@@ -174,7 +178,7 @@ function card(e, opts) {
   const mark = opts.marks && opts.marks[e.id];
   const badge = opts.badge ? `<span class="badge b-${opts.badge}">${{added: '+ added', changed: '~ changed', fuzzy: '≈ changed', unchanged: '=', removed: '− removed'}[opts.badge]}</span>` : '';
   const ex = e.text.length > 64 ? e.text.slice(0, 62) + '…' : e.text;
-  return `<button class="msg f-${e.feature} ${mark ? 'sel' : ''} ${opts.ghost ? 'ghost' : ''}" data-ev="${esc(e.id)}" data-ghost="${opts.ghost ? 1 : ''}" title="${esc(e.message_key)} · ${esc(e.text)}">
+  return `<button class="msg f-${cls(e.feature)} ${mark ? 'sel' : ''} ${opts.ghost ? 'ghost' : ''}" data-ev="${esc(e.id)}" data-ghost="${opts.ghost ? 1 : ''}" title="${esc(e.message_key)} · ${esc(e.text)}">
     <div class="meta">${mark ? `<span class="mark">${mark}</span>` : ''}${badge}<span>${esc(e.channel)} · ${hm(e.at)}</span></div>${esc(ex)}</button>`;
 }
 
@@ -201,14 +205,14 @@ function storyGrid(p, mode, marks) {
   for (const f of LANES) {
     const mine = events.filter(e => e.kind === 'message' && e.feature === f);
     const ghosts = mode === 'diff' ? base.filter(e => e.kind === 'message' && e.feature === f) : [];
-    if (!mine.length && !ghosts.length && f === 'core') continue;
-    html += `<div class="lane" style="grid-row:${row}"><span class="dot c-${f}"></span>${esc(FNAME[f] || f)}</div>`;
+    if (!mine.length && !ghosts.length && CORE.has(f)) continue;
+    html += `<div class="lane" style="grid-row:${row}"><span class="dot c-${cls(f)}"></span>${esc(FNAME[f] || f)}</div>`;
     for (let k = 0; k < n; k++) {
       const here = mine.filter(e => colOf(e.at) === k);
       const ghostsHere = ghosts.filter(e => colOf(e.at) === k);
       let inner = '';
       if (mode === 'diff') inner += ghostsHere.map(e => card(e, {ghost: true, badge: (p.removed_from_base || []).includes(e.id) ? 'removed' : null})).join('');
-      const limit = f === 'core' ? 1 : 99;
+      const limit = CORE.has(f) ? 1 : 99;
       inner += here.slice(0, limit).map(e => card(e, {marks, badge: mode === 'diff' ? e.delta : null})).join('');
       if (here.length > limit) inner += `<button class="more" data-expand="${f}:${k}">+ ${here.length - limit} more</button>`;
       html += `<div class="cell" style="grid-row:${row};grid-column:${k + 2}" data-cell="${f}:${k}">${inner}</div>`;
@@ -223,7 +227,7 @@ function storyGrid(p, mode, marks) {
   ss.forEach(s => { const l = label(s.state); const k = colOf(s.at); if (!segs.length || segs[segs.length - 1].l !== l) segs.push({l, from: k}); });
   segs.forEach((s, i) => { const to = i + 1 < segs.length ? segs[i + 1].from : n; html += `<div class="state" style="grid-row:${row};grid-column:${s.from + 2}/${to + 2}"><div>${esc(s.l)}</div></div>`; });
   html += `</div><svg class="svg" id="links" aria-hidden="true"></svg>`;
-  html += `<div class="row muted" style="font-size:11px;padding:10px 8px 0;gap:16px"><span class="row" style="gap:6px"><span style="width:22px;height:4px;border-radius:2px;background:var(--pw)"></span>live interval of a recommendation</span><span>columns are scenario steps · gaps show elapsed time · every quote is the exact captured text · click a message for its capture</span></div>`;
+  html += `<div class="row muted" style="font-size:11px;padding:10px 8px 0;gap:16px"><span class="row" style="gap:6px"><span style="width:22px;height:4px;border-radius:2px;background:${ink(LANES[0])}"></span>live interval of a recommendation</span><span>columns are scenario steps · gaps show elapsed time · every quote is the exact captured text · click a message for its capture</span></div>`;
   return html;
 }
 
@@ -231,7 +235,7 @@ function rail(p) {
   const mine = issuesFor(p.id);
   const rows = mine.map(i => `<button class="issue" data-issue="${esc(i.id)}" aria-pressed="${state.issue === i.id}">
       <span class="row spread"><b style="font-size:14px">${esc(issueTitle(i))}</b><span class="mono" style="font-size:12px">${esc(i.rule)}</span></span>
-      <span class="row" style="gap:6px">${i.features.map(f => `<span class="dot c-${f}"></span>`).join('')}<span class="muted" style="font-size:12px">${i.features.map(f => esc(FNAME[f] || f)).join(' × ')}</span><span class="chip delta ${i.delta === 'new' ? '' : 'pre'}">${esc(i.delta.replace('_', ' ').toUpperCase())}</span></span>
+      <span class="row" style="gap:6px">${i.features.map(f => `<span class="dot c-${cls(f)}"></span>`).join('')}<span class="muted" style="font-size:12px">${i.features.map(f => esc(FNAME[f] || f)).join(' × ')}</span><span class="chip delta ${i.delta === 'new' ? '' : 'pre'}">${esc(i.delta.replace('_', ' ').toUpperCase())}</span></span>
       <span class="row" style="gap:5px">${chips(i)}</span></button>`).join('') || `<div style="font-size:15px;font-weight:600">Nothing raised for ${esc(p.name)} in ${esc(R.release.head)}</div><div class="muted">Every rule was evaluated on this story. See why below.</div>`;
   const factual = R.issues.filter(i => i.layer === 'factual').map(i => `<div style="font-size:13px"><b>${esc(issueTitle(i))}</b> <span class="mono" style="font-size:12px">${esc(i.rule)}</span><br><span class="muted">${esc(i.personas.join(', '))}: ${esc(i.why)}</span> · <button class="more" style="color:var(--pw);font-size:12px" data-goto="${esc(i.personas[0])}|${esc(i.id)}">open story</button></div>`).join('') || '<div class="muted">none</div>';
   const nr = R.not_raised.filter(x => x.persona.split(',').includes(p.id));
@@ -266,12 +270,12 @@ function moment(p, e, mark, base) {
   } else if (c) {
     const where = loc.kind === 'message_id' ? `message ${loc.message_id}` : loc.kind === 'notification_id' ? `notification ${loc.notification_id}`
       : loc.kind === 'chat_turn' ? `chat turn ${loc.turn + 1}` : esc(loc.kind || '');
-    const head = {email: `✉ ${esc(FNAME[e.feature] || e.feature)} → ${esc(p.name)}`, push: `▣ push notification`, chat: `💬 concierge chat`}[c.kind] || esc(c.kind);
+    const head = {email: `✉ ${esc(FNAME[e.feature] || e.feature)} → ${esc(p.name)}`, push: `▣ push notification`, chat: `💬 ${esc(FNAME[e.feature] || e.feature)} chat`}[c.kind] || esc(c.kind);
     visual = `<div class="envelope"><b style="color:var(--ink)">${head}</b> · sent ${hm(e.at)} · ${where}</div>`;
   }
   const claims = (x.claims || []).map(cl => { const tv = truthAt(p, e, cl.type); if (tv === null) return `<span class="chip conf" title="no oracle value at this moment">${esc(cl.type.replace(/_/g, ' '))} ${cl.value}</span>`;
     return Number(tv) === Number(cl.value) ? `<span class="chip ver">${esc(cl.type.replace(/_/g, ' '))} ${cl.value} ✓ true</span>` : `<span class="chip sev-critical">${esc(cl.type.replace(/_/g, ' '))} ${cl.value} ✗ true value ${tv}</span>`; }).join('');
-  return `<div class="moment f-${e.feature}">
+  return `<div class="moment f-${cls(e.feature)}">
     <div class="muted" style="font-size:12px">${mark ? `<b style="color:var(--ink)">${mark}</b> · ` : ''}<span class="mono">${rel(e.at)}</span> · ${esc(FNAME[e.feature] || e.feature)} · ${esc(e.surface.replace(/_/g, ' '))} · ${esc(e.channel)}</div>
     ${visual}<div class="quote">“${esc(e.text)}”</div>
     <div class="row" style="gap:6px">${claims}${x.message_kind === 'directive' ? `<span class="chip conf">${esc(x.action)} · ${esc(x.strength)}</span>` : `<span class="chip conf">${esc(x.message_kind || '')}</span>`}${e.live_basis ? `<span class="chip conf">live until ${e.live_until ? (e.live_until.slice(0, 10) === e.at.slice(0, 10) ? hm(e.live_until) : rel(e.live_until).slice(0, -3)) : 'unknown'} (${esc(e.live_basis.replace(/_/g, ' '))})</span>` : ''}</div></div>`;
@@ -330,7 +334,7 @@ function detail(p) {
       </div></div>
     <div class="three">
       <div class="box"><p class="h">Severity</p><div class="lvl" style="color:var(--${i.severity.level === 'critical' ? 'crit' : i.severity.level === 'major' ? 'maj' : 'min'})">${esc(i.severity.level)}</div>
-        <div class="muted">rule ${esc(sevF.rule)} base ${esc(sevF.base)} · reach ${esc(sevF.reach)} · ${esc(String(sevF.timing || '').replace(/_/g, ' '))}${(sevF.escalation || []).length ? ' · escalated: ' + sevF.escalation.map(esc).join('; ') : ''}</div></div>
+        <div class="muted">set by rule ${esc(sevF.rule)} (${esc(sevF.base)}) · seen in ${esc(sevF.tested_personas)} test persona${sevF.tested_personas === 1 ? '' : 's'} (${esc(sevF.tested_personas_before_decision)} before deciding); test personas are not production reach</div></div>
       <div class="box"><p class="h">Confidence</p><div class="lvl">${esc(i.confidence.level)}</div><div class="muted">${(i.confidence.basis || []).map(esc).join(' · ')}</div></div>
       <div class="box"><p class="h">Verification</p><div class="lvl" style="color:${i.verification.status === 'verified' ? 'var(--ok)' : 'var(--ink)'}">${esc(i.verification.status.replace('_', ' '))}</div><div style="font-size:13px;line-height:1.6">${vline}</div></div>
     </div>
@@ -383,7 +387,7 @@ function render() {
       const bar = document.createElement('div');
       bar.className = 'live' + (e.live_until ? '' : ' open');
       bar.title = `${e.extraction.action} live ${rel(e.at)} → ${e.live_until ? rel(e.live_until) : 'unknown'} (${e.live_basis})`;
-      bar.style.cssText = `left:${ra.left - g.left + 6}px;width:${Math.max(rb.right - ra.left - 12, 12)}px;top:${ra.bottom - g.top - 12 + lvl * 5}px;background:var(--${{price_watch: 'pw', fare_lock: 'fl', concierge: 'cg'}[e.feature] || 'core'})`;
+      bar.style.cssText = `left:${ra.left - g.left + 6}px;width:${Math.max(rb.right - ra.left - 12, 12)}px;top:${ra.bottom - g.top - 12 + lvl * 5}px;background:${ink(e.feature)}`;
       grid.appendChild(bar);
     }
   }

@@ -1,0 +1,11 @@
+# Who Northbound's user is and what describes their situation. Every persona fills these fields; the core reads
+# them only through the names the rules and state model give here (P1-E1's time_until reads departure_at).
+noun: traveller
+component_from: component            # events without a data-component take the persona's component
+context:
+  - {id: component, type: enum, values: [flight, hotel], default: flight}
+  - {id: route, type: str}                                    # flights: ORIGIN-DEST
+  - {id: hotel, type: str}                                    # hotels: hotel id
+  - {id: departure_at, type: time, required: true, show: "departs {in}"}   # for hotels, check-in
+  - {id: flexible, type: bool, default: true, show: {"true": flexible dates, "false": fixed dates}}
+  - {id: party, type: int, default: 1, show: {"1": solo, "*": "party of {v}"}}

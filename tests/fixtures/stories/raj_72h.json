@@ -3,9 +3,8 @@
   "id": "raj_72h",
   "release": "2.4",
   "persona": "raj",
-  "trip": {
-   "departure_at": "2026-11-05T10:03:00+00:00",
-   "change_window_hours": 24
+  "context": {
+   "departure_at": "2026-11-05T10:03:00+00:00"
   },
   "truth": {
    "units_left": 2

@@ -40,7 +40,7 @@ class Condition(Strict):
     test: str | None = None          # data conditions: name of a code test
     field: str | None = None         # judged conditions: extracted field the model filled
     hours: float | None = None
-    trip_field: str | None = None
+    context_field: str | None = None # time_until: the persona context time measured to (e.g. a deadline)
     claim: str | None = None
     oracle: str | None = None
 
@@ -57,6 +57,7 @@ class Rule(Strict):
     id: str
     kind: Literal["universal", "conditional", "coherence", "load"]
     text: str
+    title: str | None = None             # short name for an issue under this rule ("False claim")
     applies_to: dict[str, Any] = Field(default_factory=dict)
     check: dict[str, Any] = Field(default_factory=dict)
     count: dict[str, Any] = Field(default_factory=dict)
@@ -109,7 +110,8 @@ class Feature(Strict):
     release_introduced: str | None = None
     changed_in: list[str] = Field(default_factory=list)
     attribution: dict[str, Any] = Field(default_factory=dict)    # dom_attr / headers the app stamps
-    topic: str | None = None             # e.g. booking: excluded from load counts
+    topic: str | None = None             # e.g. the main transaction: excluded from load counts
+    core: bool = False                   # the product's main flow (shown last, collapsed, in the Release Story)
     default_lifetime_hours: dict[str, float] = Field(default_factory=dict)
     source: Source | None = None
 
@@ -130,7 +132,7 @@ class Oracle(Strict):
     """Ground truth the app exposes; read after every scenario step to snapshot state."""
     id: str
     kind: Literal["http_json"] = "http_json"
-    endpoint: str                        # path template, e.g. /api/oracle/inventory?fare={fare}
+    endpoint: str                        # path template, e.g. /api/oracle/orders?user={user}
     fields: dict[str, str] = Field(default_factory=dict)   # name -> JSON path in the response
 
 
@@ -141,7 +143,7 @@ class FactSource(Strict):
     where: dict[str, Any] = Field(default_factory=dict)   # list field: pick the item whose keys match
     take: str | None = None                              # list field: the value to take from that item
     match_feature: str | None = None                     # list field: item key that must equal the claiming feature
-    scale: float = 1.0                                   # e.g. 0.01 for cents -> EUR
+    scale: float = 1.0                                   # e.g. 0.01 for cents -> whole currency units
 
 
 class Fact(Strict):
@@ -157,7 +159,8 @@ class StateVar(Strict):
     """A state variable derived from user actions strictly before a moment (never stored on a persona).
 
     plain:  value = initial, replaced by set_by[action] when that action happens.
-    window: True while t <= (first time `opens_on` happened) + hours (or the trip's `hours_from_trip`).
+    window: True while t <= (first time `opens_on` happened) + hours (or the persona context's
+            `hours_from_context` field, when the persona sets it).
     """
     id: str
     kind: Literal["plain", "window"] = "plain"
@@ -165,7 +168,7 @@ class StateVar(Strict):
     set_by: dict[str, Any] = Field(default_factory=dict)
     opens_on: str | None = None
     hours: float | None = None
-    hours_from_trip: str | None = None
+    hours_from_context: str | None = None
 
     @model_validator(mode="after")
     def _shape(self):
@@ -189,23 +192,63 @@ def resolve_time(spec: str, day0: datetime) -> datetime:
     return base + timedelta(days=d, hours=hh, minutes=mm, seconds=ss)
 
 
-class Trip(Strict):
-    component: Literal["flight", "hotel"] = "flight"
-    route: str | None = None             # flights: ORIGIN-DEST
-    hotel: str | None = None             # hotels: hotel id
-    departure_at: str                    # relative time; for hotels, check-in
-    flexible: bool = True
+class ContextField(Strict):
+    """One typed attribute of a persona's situation, declared by the app's contract (a deadline,
+    a household's size, a user's age...). `time` values are relative times ('D42 08:00') resolved against the
+    scenario's day 0. `show` renders it in the Release Story header: a format string with `{v}` (and, for
+    times, `{in}`: e.g. '41 days away'), or a map value -> text with '*' as the fallback."""
+    id: str
+    type: Literal["time", "bool", "int", "float", "str", "enum"]
+    values: list[str] = Field(default_factory=list)          # enum members
+    required: bool = False
+    default: Any = None
+    show: str | dict[str, str] | None = None
+
+    @model_validator(mode="after")
+    def _shape(self):
+        if self.type == "enum" and not self.values:
+            raise ValueError(f"context field {self.id}: an enum needs values")
+        return self
+
+
+class Subject(Strict):
+    """Who the app's user is, in the contract's own words, and what describes their situation."""
+    noun: str = "user"                   # the contract's word for its user, used in explanations
+    context: list[ContextField] = Field(default_factory=list)
+    component_from: str | None = None    # context field giving an event's component when the app does not stamp one
+
+    def field(self, fid: str) -> ContextField | None:
+        return next((f for f in self.context if f.id == fid), None)
 
 
 class Persona(Strict):
     id: str
     name: str
-    party: int = 1
     axes: dict[str, Any] = Field(default_factory=dict)
-    trip: Trip
+    context: dict[str, Any] = Field(default_factory=dict)       # values for the contract's Subject.context
     experiments: dict[str, Any] = Field(default_factory=dict)   # experiment arms the app assigns
     world: dict[str, Any] = Field(default_factory=dict)         # oracle state seeded before the scenario
     role: str | None = None              # hero | negative | boundary | factual (documentation only)
+
+    def value(self, fid: str, subject: "Subject") -> Any:
+        """The persona's value for a context field, falling back to the field's declared default."""
+        if fid in self.context:
+            return self.context[fid]
+        f = subject.field(fid)
+        return f.default if f else None
+
+
+def resolve_context(persona: Persona, subject: Subject, day0: datetime) -> dict[str, Any]:
+    """A persona's full context for one scenario: declared defaults filled in, times made exact."""
+    out: dict[str, Any] = {}
+    for f in subject.context:
+        v = persona.value(f.id, subject)
+        if v is not None and f.type == "time":
+            v = resolve_time(str(v), day0)
+        out[f.id] = v
+    for k, v in persona.context.items():             # undeclared keys are rejected by the validator
+        out.setdefault(k, v)
+    return out
 
 
 class Step(Strict):
@@ -261,23 +304,8 @@ class PolicyRow(Strict):
     otherwise: bool = False              # fires unconditionally (catch-all)
 
 
-class Escalation(Strict):
-    """Raise an issue's severity when it reaches enough people at a moment that matters."""
-    text: str
-    reach_at_least: int | None = None                        # distinct personas affected
-    timing: Literal["before_decision", "after_decision"] | None = None
-    rule_kinds: list[str] = Field(default_factory=list)      # empty: any kind
-    raise_by: int = 1
-
-    def applies(self, reach: int, timing: str, rule_kind: str) -> bool:
-        return ((self.reach_at_least is None or reach >= self.reach_at_least)
-                and (self.timing is None or timing == self.timing)
-                and (not self.rule_kinds or rule_kind in self.rule_kinds))
-
-
 class ReleasePolicy(Strict):
     rows: list[PolicyRow]
-    escalation: list[Escalation] = Field(default_factory=list)
     source: Source | None = None
 
     def evaluate(self, open_issues: list[dict[str, str]]) -> tuple[PolicyRow, int]:
@@ -296,7 +324,7 @@ class ReleasePolicy(Strict):
 
 class Hooks(Strict):
     reset: str | None = None
-    persona: str                         # creates the persona's account and trip
+    persona: str                         # creates the persona's account and situation
     clock: str | None = None             # without it, time-triggered surfaces are 'not measured'
     world: str | None = None             # seeds oracle state
 
@@ -345,6 +373,7 @@ class Contract(Strict):
     scenarios: list[Scenario] = Field(default_factory=list)
     policy: ReleasePolicy | None = None
     app: App | None = None
+    subject: Subject = Field(default_factory=Subject)
 
     def rule(self, rule_id: str) -> Rule:
         return next(r for r in self.rules if r.id == rule_id)
@@ -387,4 +416,6 @@ def load_contract(directory: Path) -> Contract:
     data["policy"] = ReleasePolicy(**policy) if policy else None
     app = read("app.yaml")
     data["app"] = App(**app) if app else None
+    subject = read("subject.yaml")
+    data["subject"] = Subject(**subject) if subject else Subject()
     return Contract(**data)

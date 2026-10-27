@@ -1,0 +1,4 @@
+- id: tax_return
+  actions: [file_now, wait_for_documents]
+  incompatible: [{pair: [file_now, wait_for_documents], rationale: "filing now forecloses waiting"}]
+  decided_by: [file]

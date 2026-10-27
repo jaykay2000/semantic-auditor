@@ -20,7 +20,7 @@ import httpx
 
 from ..adapters.base import Session, StepResult, load_adapter
 from ..adapters.hooks import HookClient, HookError, OracleClient
-from ..contract.schema import Contract, Persona, Scenario, Step, Surface, load_contract, resolve_time
+from ..contract.schema import Contract, Persona, Scenario, Step, Surface, load_contract, resolve_context, resolve_time
 from ..story.episode import (Capture, Element, Episode, NotMeasured, OracleReading, StepRecord, BBox,
                              episode_path)
 from . import sinks
@@ -139,7 +139,8 @@ class Runner:
 
         reset = hooks.reset()
         build = adapter.app_build(reset) if hasattr(adapter, "app_build") else release
-        persona_resp = hooks.persona(adapter.persona_body(persona, scenario.day0))
+        persona_ctx = resolve_context(persona, contract.subject, scenario.day0)
+        persona_resp = hooks.persona(adapter.persona_body(persona, persona_ctx))
         if persona.world and hooks.has("world"):
             hooks.world(adapter.world_body(persona) if hasattr(adapter, "world_body") else persona.world)
 
@@ -164,7 +165,7 @@ class Runner:
                                                accept_downloads=True, base_url=app.base_url)
         page = context.new_page()
         page.set_default_timeout(self.step_timeout_ms)
-        sess = Session(release, app.base_url, persona, scenario, page, http, self.seed, persona_resp)
+        sess = Session(release, app.base_url, persona, scenario, page, http, self.seed, persona_resp, persona_ctx)
         sess._capture = lambda surface: self._capture_page(ectx, sess, surface)
         try:
             if hasattr(adapter, "start_session"):

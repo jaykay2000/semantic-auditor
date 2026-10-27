@@ -66,6 +66,13 @@ def validate(c: Contract) -> list[str]:
             if not e.approved.get("expires"):
                 p.append(f"exception {e.id}: no expiry (exceptions must expire)")
             for cond in e.conditions:
+                if cond.test == "time_until":
+                    f = c.subject.field(cond.context_field or "")
+                    if f is None or f.type != "time":
+                        p.append(f"exception {e.id} condition {cond.id}: time_until needs context_field naming a "
+                                 f"time field of subject.context (got {cond.context_field!r})")
+                    if cond.hours is None:
+                        p.append(f"exception {e.id} condition {cond.id}: time_until needs hours")
                 if cond.kind == "data" and cond.test not in DATA_TESTS:
                     p.append(f"exception {e.id} condition {cond.id}: unknown data test {cond.test!r}")
                 if cond.kind == "judged" and not cond.field:
@@ -84,6 +91,14 @@ def validate(c: Contract) -> list[str]:
         for pair in d.incompatible + d.tradeoffs:
             for a in pair.pair:
                 need("action", a, set(d.actions), f"decision {d.id} pair")
+
+    for v in c.state:
+        if v.hours_from_context:
+            f = c.subject.field(v.hours_from_context)
+            if f is None or f.type not in ("int", "float"):
+                p.append(f"state {v.id}: hours_from_context must name a numeric field of subject.context")
+    if c.subject.component_from and c.subject.field(c.subject.component_from) is None:
+        p.append(f"subject.component_from: {c.subject.component_from!r} is not a context field")
 
     for f in c.facts:
         for src in f.sources:
@@ -104,11 +119,20 @@ def validate(c: Contract) -> list[str]:
             continue
         if any(b < a for a, b in zip(times, times[1:])):
             p.append(f"scenario {sc.id}: steps are not in time order")
+    fields = {f.id: f for f in c.subject.context}
     for x in c.personas:
-        try:
-            resolve_time(x.trip.departure_at, c.scenarios[0].day0 if c.scenarios else _epoch())
-        except ValueError as e:
-            p.append(f"persona {x.id}: {e}")
+        for k in x.context:
+            if k not in fields:
+                p.append(f"persona {x.id}: context field {k!r} is not declared in subject.context")
+        for f in fields.values():
+            v = x.value(f.id, c.subject)
+            if v is None:
+                if f.required:
+                    p.append(f"persona {x.id}: required context field {f.id!r} missing")
+                continue
+            bad = _type_problem(f, v, c.scenarios[0].day0 if c.scenarios else _epoch())
+            if bad:
+                p.append(f"persona {x.id}: context {f.id}: {bad}")
         if c.scenarios and x.id not in scheduled:
             p.append(f"persona {x.id}: in no scenario")
 
@@ -120,6 +144,25 @@ def validate(c: Contract) -> list[str]:
             if exhaustive and i not in fired:
                 p.append(f"release policy row {i + 1} ({row.recommendation}) can never fire")
     return p
+
+
+def _type_problem(f, v, day0) -> str | None:
+    if f.type == "time":
+        try:
+            resolve_time(str(v), day0)
+        except ValueError as e:
+            return str(e)
+    elif f.type == "bool" and not isinstance(v, bool):
+        return f"expected true/false, got {v!r}"
+    elif f.type == "int" and (isinstance(v, bool) or not isinstance(v, int)):
+        return f"expected an integer, got {v!r}"
+    elif f.type == "float" and (isinstance(v, bool) or not isinstance(v, (int, float))):
+        return f"expected a number, got {v!r}"
+    elif f.type == "str" and not isinstance(v, str):
+        return f"expected text, got {v!r}"
+    elif f.type == "enum" and v not in f.values:
+        return f"{v!r} is not one of {f.values}"
+    return None
 
 
 def _epoch():

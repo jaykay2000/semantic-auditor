@@ -1,7 +1,7 @@
 """A generic HTTP client for the contract's test hooks (reset, persona, clock, world) and its oracles.
 
 Nothing here knows an app. The contract names each hook as `"METHOD /path"`; what to send (the persona body,
-the clock body) comes from the app's adapter. Oracles are path templates (`/api/oracle/booking?traveller={traveller}`)
+the clock body) comes from the app's adapter. Oracles are path templates (e.g. `/api/oracle/orders?user={user}`)
 filled from adapter-supplied params; each response is read with the contract's JSON paths.
 """
 

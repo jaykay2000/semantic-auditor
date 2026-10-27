@@ -9,11 +9,10 @@ Loaded by the runner from `app.adapter` in contract/app.yaml (a .py path relativ
 from __future__ import annotations
 
 import re
-from datetime import datetime
 from typing import Any
 
 from semaudit.adapters.base import ChatTurn, PdfDownload, Session, StepFailed, StepResult
-from semaudit.contract.schema import Persona, Step, resolve_time
+from semaudit.contract.schema import Persona, Step
 
 _PRICE = re.compile(r"€\s*([\d,]+(?:\.\d+)?)")
 
@@ -31,21 +30,21 @@ def _http_error(resp: Any, what: str) -> str | None:
 
 class Adapter:
     # ---- hooks
-    def persona_body(self, persona: Persona, day0: datetime) -> dict[str, Any]:
-        trip = persona.trip
-        departure = resolve_time(trip.departure_at, day0).isoformat()
-        if trip.component == "hotel":
-            city = (trip.hotel or "LIS-H1").split("-")[0]
+    def persona_body(self, persona: Persona, context: dict[str, Any]) -> dict[str, Any]:
+        """`context` is Northbound's subject.context (contract/subject.yaml), defaults filled, times exact."""
+        departure = context["departure_at"].isoformat()
+        if context["component"] == "hotel":
+            city = (context["hotel"] or "LIS-H1").split("-")[0]
             origin, destination = city, "BER" if city != "BER" else "LIS"   # the app wants a trip for every traveller
         else:
-            origin, destination = (trip.route or "LIS-BER").split("-")
-        body: dict[str, Any] = {"id": persona.id, "name": persona.name, "travellers": persona.party,
-                                "flexible": trip.flexible,
+            origin, destination = (context["route"] or "LIS-BER").split("-")
+        body: dict[str, Any] = {"id": persona.id, "name": persona.name, "travellers": context["party"],
+                                "flexible": context["flexible"],
                                 "trip": {"origin": origin, "destination": destination, "departure_at": departure}}
         if persona.experiments:
             body["experiments"] = persona.experiments
-        if trip.component == "hotel":
-            body["stay"] = {"hotel": trip.hotel, "check_in_at": departure, "nights": 2, "rooms": 1}
+        if context["component"] == "hotel":
+            body["stay"] = {"hotel": context["hotel"], "check_in_at": departure, "nights": 2, "rooms": 1}
         return body
 
     def app_build(self, reset_response: Any) -> str:
@@ -57,9 +56,9 @@ class Adapter:
         session.page.context.add_cookies([{"name": name, "value": value, "url": session.base_url}])
 
     def oracle_params(self, persona: Persona, session: Session) -> dict[str, Any]:
-        route = persona.trip.route
+        route = session.context.get("route")
         return {"traveller": persona.id, "route": route, "fare": f"{route}-NR" if route else None,
-                "hotel": persona.trip.hotel}
+                "hotel": session.context.get("hotel")}
 
     # ---- verbs
     def run_step(self, step: Step, session: Session) -> StepResult:
@@ -69,7 +68,7 @@ class Adapter:
         return fn(step, session)
 
     def verb_search(self, step: Step, s: Session) -> StepResult:
-        route = step.params.get("route") or s.persona.trip.route or "LIS-BER"
+        route = step.params.get("route") or s.context.get("route") or "LIS-BER"
         origin, destination = route.split("-")
         resp = s.page.goto(f"/search?origin={origin}&destination={destination}")
         return StepResult(landed="search_results", error=_http_error(resp, "search"))
@@ -94,7 +93,7 @@ class Adapter:
     def verb_open_fare(self, step: Step, s: Session) -> StepResult:
         page = s.page
         if step.params.get("direct") or step.params.get("fare"):
-            fare = step.params.get("fare") or f"{s.persona.trip.route}-NR"
+            fare = step.params.get("fare") or f"{s.context.get('route')}-NR"
             resp = page.goto(f"/fare/{fare}")
             return StepResult(landed="fare_detail", error=_http_error(resp, f"fare {fare}"))
         rows = page.locator(".msg-wrap").filter(has=page.locator("a[href^='/fare/']"))
@@ -154,7 +153,7 @@ class Adapter:
         return StepResult(pdf=PdfDownload("itinerary", url, dl.value.suggested_filename, data))
 
     def verb_open_hotel(self, step: Step, s: Session) -> StepResult:
-        hotel = step.params.get("hotel") or s.persona.trip.hotel
+        hotel = step.params.get("hotel") or s.context.get("hotel")
         resp = s.page.goto(f"/hotel/{hotel}")
         if resp is not None and resp.status == 404:        # the release has no hotel pages: not offered
             return StepResult(offered=False)

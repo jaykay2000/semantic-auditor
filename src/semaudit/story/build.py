@@ -11,7 +11,7 @@ from collections import Counter
 from datetime import datetime
 from typing import Any
 
-from semaudit.contract.schema import Contract, Fact, resolve_time
+from semaudit.contract.schema import Contract, Fact, resolve_context
 from semaudit.story.episode import Episode, OracleReading
 from semaudit.story.model import Event, Evidence, Story
 
@@ -56,6 +56,8 @@ def snapshot(at: datetime, state: dict[str, OracleReading], contract: Contract) 
 def story_from_episode(ep: Episode, contract: Contract) -> Story:
     persona = contract.persona(ep.persona)
     scenario = next(s for s in contract.scenarios if s.id == ep.scenario)
+    context = resolve_context(persona, contract.subject, scenario.day0)
+    default_component = context.get(contract.subject.component_from) if contract.subject.component_from else None
     features = {f.id: f for f in contract.features}
     surfaces = {s.id: s for s in contract.surfaces}
     captures = {c.id: c for c in ep.captures()}
@@ -84,13 +86,11 @@ def story_from_episode(ep: Episode, contract: Contract) -> Story:
                             attribution={"method": attr_src, "confidence": 1.0})
         events.append(Event(
             id=eid, at=at, kind="message", feature=m["feature"], surface=cap.surface, channel=channel,
-            component=m["component"] or persona.trip.component, topic=feat.topic if feat else None,
+            component=m["component"] or default_component, topic=feat.topic if feat else None,
             user_initiated=initiated, copy_key=m["key"], text=m["text"], evidence=evidence))
 
     events.sort(key=lambda e: (e.at, 0 if e.kind == "user_action" else 1))
     snaps = [snapshot(scenario.day0, ep.initial_state, contract)] if ep.initial_state else []
     snaps += [snapshot(st.at, st.state, contract) for st in ep.steps if st.state]
-    trip = {"departure_at": resolve_time(persona.trip.departure_at, scenario.day0),
-            "component": persona.trip.component, "party": persona.party}
-    return Story(id=ep.id.replace("/", "__"), release=ep.release, persona=ep.persona, trip=trip,
+    return Story(id=ep.id.replace("/", "__"), release=ep.release, persona=ep.persona, context=context,
                  snapshots=snaps, events=events)

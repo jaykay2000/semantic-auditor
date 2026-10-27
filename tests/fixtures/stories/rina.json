@@ -3,9 +3,8 @@
   "id": "rina",
   "release": "2.4.1",
   "persona": "rina",
-  "trip": {
-   "departure_at": "2026-11-03T16:00:00+00:00",
-   "change_window_hours": 24
+  "context": {
+   "departure_at": "2026-11-03T16:00:00+00:00"
   },
   "truth": {
    "units_left": 1

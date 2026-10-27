@@ -137,9 +137,9 @@ def report_cmd(review: Path = typer.Argument(..., exists=True, dir_okay=False),
 
 
 @app.command("repro")
-def repro_cmd(issue_id: str = typer.Argument(..., help="e.g. I-2.4-P2-fare-lock-price-watch-unexplained-tradeoff"),
+def repro_cmd(issue_id: str = typer.Argument(..., help="an issue id from the review, e.g. I-2.4-P2-…"),
               review: Path = typer.Option(None, "--review", help="review JSON (default: the newest under runs/)"),
-              contract_dir: Path = typer.Option(Path("examples/northbound/contract"), "--contract"),
+              contract_dir: Path = typer.Option(..., "--contract", exists=True, file_okay=False),
               runs_dir: Path = typer.Option(Path("runs"), "--runs-dir")):
     """Re-capture the issue's personas on the head release and check every cited moment appears again.
 

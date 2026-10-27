@@ -40,12 +40,12 @@ class Event(BaseModel):
     feature: str | None = None
     surface: str | None = None
     channel: str | None = None          # card | banner | page | email | push | chat
-    component: str | None = None        # flight | hotel
-    topic: str | None = None            # e.g. booking (excluded from load counts)
+    component: str | None = None        # a part of the product the contract names (exception scopes read it)
+    topic: str | None = None            # e.g. the main transaction (excluded from load counts)
     user_initiated: bool = False
     copy_key: str | None = None
     text: str | None = None
-    action: str | None = None           # user actions: search, book, buy_lock, ask, opt_in ...
+    action: str | None = None           # user actions: the scenario verbs
     effects: dict[str, Any] = Field(default_factory=dict)   # state changes caused by a user action
     extraction: Extraction | None = None
     evidence: Evidence | None = None    # None only for hand-authored stories; captured stories always carry it
@@ -55,7 +55,7 @@ class Story(BaseModel):
     id: str
     release: str
     persona: str
-    trip: dict[str, Any]                 # departure_at (exact), component, party ...
+    context: dict[str, Any] = Field(default_factory=dict)   # the persona's situation (subject.context), times exact
     truth: dict[str, Any] = Field(default_factory=dict)   # fact id -> true value (hand-authored stories)
     snapshots: list[dict[str, Any]] = Field(default_factory=list)  # [{at, truth: {fact: value}}] from captures
     events: list[Event]
@@ -87,7 +87,7 @@ class Story(BaseModel):
         """State derived from the contract's state model and user actions strictly before t.
 
         inclusive=True also counts actions AT t: use it for a message, which is shown as the result of the step
-        it appears in (the confirmation page shown at 10:06:00 follows the 10:06:00 booking). Exact timestamps,
+        it appears in (a confirmation shown at 10:06:00 follows the 10:06:00 action). Exact timestamps,
         no rounding. An action's explicit `effects` are applied after the model.
         """
         acts = sorted((e for e in self.events if e.kind == "user_action" and (e.at <= t if inclusive else e.at < t)),
@@ -102,7 +102,7 @@ class Story(BaseModel):
                 state[var.id] = value
             else:
                 opened = next((a.at for a in acts if a.action == var.opens_on), None)
-                hours = self.trip.get(var.hours_from_trip) if var.hours_from_trip else None
+                hours = self.context.get(var.hours_from_context) if var.hours_from_context else None
                 hours = var.hours if hours is None else hours
                 state[var.id] = opened is not None and hours is not None and t <= opened + timedelta(hours=hours)
         for a in acts:

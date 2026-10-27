@@ -123,10 +123,10 @@ class Episode(Strict):
         return next(s for s in self.steps if s.seq == seq)
 
     def messages(self) -> list[dict[str, Any]]:
-        """Every marked message the traveller was shown or sent, once each, in the order first observed.
+        """Every marked message the user was shown or sent, once each, in the order first observed.
 
         A message is identified by (capture kind, surface, message key, time shown): a chat transcript that
-        repeats an earlier turn does not count it twice. Elements without a message key (a traveller's own chat
+        repeats an earlier turn does not count it twice. Elements without a message key (the user's own chat
         turn, PDF text lines) are not messages. Meaning is not extracted here; this only reads the markers.
         """
         seen: set[tuple] = set()

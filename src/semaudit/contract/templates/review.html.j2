@@ -105,12 +105,20 @@ button{font:600 13px Inter,sans-serif;padding:7px 12px;border-radius:7px;border:
     </table>
   </div>
 
+  <h2>Subject</h2>
+  <section class="card">
+    <div class="row spread"><span>The user is called <b>{{ c.subject.noun }}</b>{% if c.subject.component_from %} · an event's component defaults to <code>{{ c.subject.component_from }}</code>{% endif %}</span>{{ state("subject:all") }}</div>
+    <table><tr><th>Context field</th><th>Type</th><th>Default</th><th>Shown as</th></tr>
+    {% for f in c.subject.context %}<tr><td class="mono">{{ f.id }}{% if f.required %} <span class="pill">required</span>{% endif %}</td><td>{{ f.type }}{% if f.values %} ({{ f.values|join(", ") }}){% endif %}</td><td class="mono">{{ f.default if f.default is not none else "" }}</td><td>{{ f.show if f.show is not none else "" }}</td></tr>{% endfor %}
+    </table>
+  </section>
+
   {% if c.personas %}
   <h2>Personas</h2>
   <div class="card">
-    <table><tr><th>Persona</th><th>Trip</th><th>Arms / world</th><th>Status</th></tr>
+    <table><tr><th>Persona</th><th>Situation</th><th>Arms / world</th><th>Status</th></tr>
     {% for p in c.personas %}<tr><td><b>{{ p.name }}</b> <span class="mono muted">{{ p.id }}</span>{% if p.role %}<br><span class="muted">{{ p.role }}</span>{% endif %}</td>
-      <td>{{ p.trip.component }} {{ p.trip.route or p.trip.hotel }} · party {{ p.party }} · {{ "flexible" if p.trip.flexible else "fixed dates" }}<br><span class="mono">departs {{ p.trip.departure_at }}</span></td>
+      <td class="mono">{% for f in c.subject.context %}{% set v = p.value(f.id, c.subject) %}{% if v is not none %}{{ f.id }}: {{ v }}{% if f.id not in p.context %} <span class="muted">(default)</span>{% endif %}<br>{% endif %}{% endfor %}</td>
       <td class="mono">{% for k, v in p.experiments.items() %}{{ k }}={{ v }}<br>{% endfor %}{% for k, v in p.world.items() %}{{ k }}: {{ v }}<br>{% endfor %}</td>
       <td>{{ state("persona:" ~ p.id) }}</td></tr>{% endfor %}
     </table>
@@ -131,7 +139,6 @@ button{font:600 13px Inter,sans-serif;padding:7px 12px;border-radius:7px;border:
   <h2>Release policy</h2>
   <section class="card">
     <div class="row spread"><span class="muted">Evaluated top to bottom; the first row that fires is the recommendation. Exhaustive by construction.</span>{{ state("policy:release") }}</div>
-    {% for e in c.policy.escalation %}<div class="muted">Severity escalation: {{ e.text }}</div>{% endfor %}
     <table>{% for row in c.policy.rows %}<tr><td class="mono" style="width:30px">{{ loop.index }}</td><td style="width:190px"><b>{{ row.recommendation|replace("_", " ")|capitalize }}</b></td><td>{{ row.text }}</td></tr>{% endfor %}</table>
   </section>
   {% endif %}

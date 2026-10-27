@@ -1,7 +1,6 @@
 """Read the file sinks (email, push) and PDF documents into elements. Structural only.
 
-A sink holds one JSON document per message: {message_id, sent_at, headers, text, ...} (see
-examples/northbound/README.md). The text is the marked text; every other field and header is kept in `attrs`.
+A sink holds one JSON document per message: {message_id, sent_at, headers, text, ...}. The text is the marked text; every other field and header is kept in `attrs`.
 """
 
 from __future__ import annotations

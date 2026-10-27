@@ -1,5 +1,6 @@
 - id: core
   name: Core booking
+  core: true                          # the main flow: last lane in the Release Story
   release_introduced: "1.0"
   attribution: {dom_attr: "data-feature=core", headers: ["X-Feature: core"]}
   topic: booking                      # messages about the booking itself; P3 does not count them

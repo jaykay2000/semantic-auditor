@@ -4,13 +4,14 @@ The core runner (`semaudit.capture`) is generic. Everything that knows an app (w
 a Persona becomes the app's persona-hook body, which params fill the oracle templates) lives in an adapter that
 the contract names in `app.adapter`. An adapter is a class called `Adapter` with no-argument construction:
 
-    persona_body(persona, day0) -> dict        body of the persona hook
+    persona_body(persona, context) -> dict     body of the persona hook; `context` is the persona's
+                                               subject.context with defaults filled and times exact
     run_step(step, session) -> StepResult      perform one scenario verb in the browser
-    oracle_params(persona, session) -> dict    values for the oracle endpoint templates
+    oracle_params(persona, session) -> dict    values for the oracle endpoint templates (session.context)
   optional:
     world_body(persona) -> dict                body of the world hook (default: persona.world)
     clock_body(at) -> dict                     body of the clock hook (default: {"set": <iso time>})
-    start_session(session, persona_response)   e.g. set the cookie that identifies the traveller
+    start_session(session, persona_response)   e.g. set the cookie that identifies the user
     app_build(reset_response) -> str           a build id for the episode (default: the release name)
 
 Drive through the browser wherever a user would; use HTTP only for hooks and oracles.
@@ -35,7 +36,7 @@ class StepFailed(Exception):
 
 @dataclass
 class ChatTurn:
-    who: str                              # "traveller" | the product's side ("concierge")
+    who: str                              # the user's side or the product's side, as the adapter names them
     text: str
     attrs: dict[str, str] = field(default_factory=dict)   # the marked element's attributes, if the turn carries one
 
@@ -68,6 +69,7 @@ class Session:
     http: Any                             # an httpx.Client on the app's base URL (hooks and oracles only)
     seed: int = 0
     persona_response: Any = None
+    context: dict[str, Any] = field(default_factory=dict)        # resolved subject.context for this scenario
     scratch: dict[str, Any] = field(default_factory=dict)         # the adapter's own memory across steps
     _capture: Callable[[str], None] | None = None
 
@@ -79,7 +81,7 @@ class Session:
 
 
 class Adapter(Protocol):
-    def persona_body(self, persona: Persona, day0: datetime) -> dict[str, Any]: ...
+    def persona_body(self, persona: Persona, context: dict[str, Any]) -> dict[str, Any]: ...
     def run_step(self, step: Step, session: Session) -> StepResult: ...
     def oracle_params(self, persona: Persona, session: Session) -> dict[str, Any]: ...
 

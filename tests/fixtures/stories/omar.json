@@ -3,9 +3,8 @@
   "id": "omar",
   "release": "2.4",
   "persona": "omar",
-  "trip": {
-   "departure_at": "2026-11-03T06:00:00+00:00",
-   "change_window_hours": 24
+  "context": {
+   "departure_at": "2026-11-03T06:00:00+00:00"
   },
   "truth": {
    "units_left": 9

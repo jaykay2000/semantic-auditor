@@ -1,0 +1,5 @@
+noun: member
+context:
+  - {id: tax_deadline, type: time, required: true, show: "tax deadline {in}"}
+  - {id: household, type: int, default: 1, show: {"1": single, "*": "household of {v}"}}
+  - {id: age, type: int}

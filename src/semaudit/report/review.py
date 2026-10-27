@@ -72,6 +72,29 @@ def event_row(e, story: Story, contract: Contract, ep=None) -> dict:
     return row
 
 
+def _span(hours: float) -> str:
+    return f"{round(hours / 24)} days away" if abs(hours) >= 48 else f"{round(hours)} hours away"
+
+
+def context_summary(context: dict, contract: Contract, start) -> list[str]:
+    """The persona's situation in the contract's own words (Subject.context `show`), in declared order."""
+    out = []
+    for f in contract.subject.context:
+        v = context.get(f.id)
+        if f.show is None or v is None:
+            continue
+        if isinstance(f.show, dict):
+            key = str(v).lower() if isinstance(v, bool) else str(v)
+            text = f.show.get(key, f.show.get("*"))
+            if text is None:
+                continue
+        else:
+            text = f.show
+        when = _span((v - start).total_seconds() / 3600) if f.type == "time" and start is not None else ""
+        out.append(text.replace("{v}", str(v)).replace("{in}", when))
+    return out
+
+
 def persona_view(persona: str, story: Story, base: Story | None, contract: Contract, ev: ReleaseEval,
                  base_ev: ReleaseEval | None = None) -> dict:
     diff = align(base, story) if base else None
@@ -92,10 +115,10 @@ def persona_view(persona: str, story: Story, base: Story | None, contract: Contr
         evaluations.append({"rule": x.rule, "subject": x.subject, "status": x.status, "label": x.label,
                             "conditions": detail, "note": x.note[:200]})
     persona_c = contract.persona(persona)
-    view = {"id": persona, "name": persona_c.name, "party": persona_c.party, "role": persona_c.role, "trip": {
-        "departure_at": story.trip["departure_at"].isoformat() if hasattr(story.trip["departure_at"], "isoformat")
-        else story.trip["departure_at"], "flexible": persona_c.trip.flexible, "component": persona_c.trip.component,
-        "route": persona_c.trip.route or persona_c.trip.hotel},
+    start = ev.episodes[persona].steps[0].at if ev.episodes[persona].steps else None
+    view = {"id": persona, "name": persona_c.name, "role": persona_c.role,
+        "context": {k: (v.isoformat() if hasattr(v, "isoformat") else v) for k, v in story.context.items()},
+        "summary": context_summary(story.context, contract, start),
         "steps": steps, "events": events, "evaluations": evaluations,
         "state_steps": [{"at": st.at.isoformat(), "state": story.state_at(st.at, contract.state, inclusive=True)}
                         for st in ev.episodes[persona].steps],
@@ -157,8 +180,9 @@ def assemble(base: ReleaseEval, head: ReleaseEval, contract: Contract, verified:
         "generated_at_sim": None,
         "release": {"base": base.release, "head": head.release},
         "app": contract.app.model_dump() if contract.app else None,
-        "features": [{"id": f.id, "name": f.name or f.id} for f in contract.features],
-        "rules": [{"id": r.id, "kind": r.kind, "text": r.text} for r in contract.rules],
+        "subject": {"noun": contract.subject.noun},
+        "features": [{"id": f.id, "name": f.name or f.id, "core": f.core} for f in contract.features],
+        "rules": [{"id": r.id, "kind": r.kind, "text": r.text, "title": r.title} for r in contract.rules],
         "policy": {"recommendation": row.recommendation, "row": idx + 1, "rule_fired": row.text},
         "owner_decision": {"status": "pending"},
         "issues": issues,

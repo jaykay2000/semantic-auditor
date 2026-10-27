@@ -1,0 +1,12 @@
+- id: N1
+  title: "Pressure outside the exception"
+  kind: conditional
+  severity: major
+  text: We never pressure a member to file now unless their deadline is close and the message explains the tradeoff.
+  applies_to: {decision: tax_return, strength: [urge, require]}
+  exceptions:
+    - id: N1-E1
+      approved: {by: owner, date: "2026-10-26", expires: "2027-12-31"}
+      conditions:
+        - {id: a, kind: data, test: time_until, context_field: tax_deadline, hours: 72}
+        - {id: b, kind: judged, field: explains_own_tradeoff}

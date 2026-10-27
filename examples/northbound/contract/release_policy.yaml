@@ -1,5 +1,7 @@
 # Evaluated top to bottom; the first row that fires wins. The last row is a catch-all, so the policy is
-# exhaustive by construction. Issues whose verification failed are not open (they are on the not-raised list).
+# exhaustive by construction. Severity is each rule's own level, set by the owner in principles.yaml; how many
+# test personas an issue reaches is shown but never raises it (a count of fixtures is not production reach).
+# Issues whose verification failed are not open (they are on the not-raised list).
 source: {kind: default, file: docs/03-architecture.md, at: "L6 Decision and memory"}
 rows:
   - recommendation: hold
@@ -14,7 +16,3 @@ rows:
   - recommendation: ship_with_notes
     text: "open issues exist; all are verified and non-critical"
     otherwise: true
-escalation:
-  - text: "reaches two or more travellers before they decide: one level up"
-    reach_at_least: 2
-    timing: before_decision

@@ -33,7 +33,7 @@ Labels:
   them (for example by saying which applies in which situation), shown while both were live and before the
   user decided. Give that message's id in reconciling_event_id.
 - compatible: there is no material tradeoff for this user.
-A message that explains only its OWN tradeoff (e.g. "book now, or lock it if your plans might change") does
+A message that explains only its OWN tradeoff (e.g. "buy now, or reserve it if your plans might change") does
 NOT reconcile another feature's advice. Use the pair type given; do not reclassify incompatible as tradeoff.
 Use "" for reconciling_event_id when no message reconciles them. Judge only from the story given."""
 
@@ -60,8 +60,7 @@ def model_interpreter(router: Router, *, fresh: bool = False, rng: random.Random
             rng.shuffle(p)                     # A/B order must not matter
         rng.shuffle(pairs)
         payload = {
-            "rule": contract.rule("P2").text if any(r.id == "P2" for r in contract.rules)
-                    else next(r.text for r in contract.rules if r.kind == "coherence"),
+            "rule": contract.rule(cand.rule).text,
             "decision": cand.decision,
             "pair_type": cand.pair_kind,
             "what_is_at_stake": cand.material,

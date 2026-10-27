@@ -1,50 +1,50 @@
-# Times are relative to the scenario's day 0 (2026-11-02). Trip times match tests/fixtures/stories/build.py.
+# Times are relative to the scenario's day 0 (2026-11-02). Context times match tests/fixtures/stories/build.py.
 # `world` seeds oracle state before the scenario (2 seats left at LIS-BER-NR, as the stories assume; the family
-# of four keeps the default 9 so a party of four can book); `experiments` are arms the app assigns to this traveller.
+# of four keeps the default 9 so a party of four can book); `experiments` are arms the app assigns to this persona.
 - {id: maya, name: Maya, role: hero, axes: {budget: tight},
-   trip: {route: LIS-BER, departure_at: "D42 08:00", flexible: true},
+   context: {route: LIS-BER, departure_at: "D42 08:00", flexible: true},
    world: {seats: {LIS-BER-NR: 2}, forecast: {LIS-BER: {drop: true, window_days: 14}}}}
 - {id: maya_r, name: Maya, role: negative, axes: {budget: tight},
-   trip: {route: LIS-BER, departure_at: "D42 08:00", flexible: true},
+   context: {route: LIS-BER, departure_at: "D42 08:00", flexible: true},
    experiments: {fare_detail_reconcile: true},
    world: {seats: {LIS-BER-NR: 2}, forecast: {LIS-BER: {drop: true, window_days: 14}}}}
 - {id: lena, name: Lena, role: negative,
-   trip: {route: LIS-BER, departure_at: "D42 08:00", flexible: true},
+   context: {route: LIS-BER, departure_at: "D42 08:00", flexible: true},
    world: {seats: {LIS-BER-NR: 2}, forecast: {LIS-BER: {drop: true, window_days: 14}}}}
 - {id: raj, name: Raj, role: negative, axes: {budget: expense_account},
-   trip: {route: LIS-BER, departure_at: "D1 16:00", flexible: false},
+   context: {route: LIS-BER, departure_at: "D1 16:00", flexible: false},
    world: {seats: {LIS-BER-NR: 2}, forecast: {LIS-BER: {drop: false}}}}
 - {id: raj_x, name: Raj, role: boundary,
-   trip: {route: LIS-BER, departure_at: "D1 16:00", flexible: false},
+   context: {route: LIS-BER, departure_at: "D1 16:00", flexible: false},
    experiments: {fl_urgent_copy: bare},
    world: {seats: {LIS-BER-NR: 2}, forecast: {LIS-BER: {drop: false}}}}
 - {id: raj_72h, name: Raj, role: boundary,          # departs exactly 72 h 00 m 00 s after the 10:03 banner
-   trip: {route: LIS-BER, departure_at: "D3 10:03:00", flexible: false},
+   context: {route: LIS-BER, departure_at: "D3 10:03:00", flexible: false},
    world: {seats: {LIS-BER-NR: 2}, forecast: {LIS-BER: {drop: false}}}}
 - {id: raj_72h_30s, name: Raj, role: boundary,
-   trip: {route: LIS-BER, departure_at: "D3 10:03:30", flexible: false},
+   context: {route: LIS-BER, departure_at: "D3 10:03:30", flexible: false},
    world: {seats: {LIS-BER-NR: 2}, forecast: {LIS-BER: {drop: false}}}}
 - {id: raj_72h_1m, name: Raj, role: boundary,
-   trip: {route: LIS-BER, departure_at: "D3 10:04:00", flexible: false},
+   context: {route: LIS-BER, departure_at: "D3 10:04:00", flexible: false},
    world: {seats: {LIS-BER-NR: 2}, forecast: {LIS-BER: {drop: false}}}}
 - {id: kai, name: Kai, role: boundary,
-   trip: {route: LIS-BER, departure_at: "D1 16:00", flexible: true},
+   context: {route: LIS-BER, departure_at: "D1 16:00", flexible: true},
    world: {seats: {LIS-BER-NR: 2}, forecast: {LIS-BER: {drop: true, window_days: 14}}}}
 - {id: hana, name: Hana, role: boundary,
-   trip: {route: LIS-BER, departure_at: "D181 10:00", flexible: false},
+   context: {route: LIS-BER, departure_at: "D181 10:00", flexible: false},
    world: {seats: {LIS-BER-NR: 2}, forecast: {LIS-BER: {drop: false}}}}
 - {id: omar, name: Omar, role: boundary,             # inventory 9, but the banner's bucket says 2
-   trip: {route: LIS-BER, departure_at: "D1 06:00", flexible: true},
+   context: {route: LIS-BER, departure_at: "D1 06:00", flexible: true},
    world: {seats: {LIS-BER-NR: 9}, bucket_seats: {LIS-BER-NR: 2}, forecast: {LIS-BER: {drop: false}}}}
-- {id: sam_alex, name: Sam & Alex, role: factual, party: 2,
-   trip: {route: LIS-BER, departure_at: "D42 08:00", flexible: true},
+- {id: sam_alex, name: Sam & Alex, role: factual,
+   context: {route: LIS-BER, departure_at: "D42 08:00", flexible: true, party: 2},
    world: {seats: {LIS-BER-NR: 2}, forecast: {LIS-BER: {drop: true, window_days: 14}}}}
 - {id: theo, name: Theo, role: negative,
-   trip: {route: LIS-BER, departure_at: "D42 08:00", flexible: true},
+   context: {route: LIS-BER, departure_at: "D42 08:00", flexible: true},
    world: {seats: {LIS-BER-NR: 2}}}
-- {id: family, name: The Okafors, role: negative, party: 4,   # NC4: persona-specific totals are not a divergence
-   trip: {route: LIS-BER, departure_at: "D42 08:00", flexible: true},
+- {id: family, name: The Okafors, role: negative,   # NC4: persona-specific totals are not a divergence
+   context: {route: LIS-BER, departure_at: "D42 08:00", flexible: true, party: 4},
    world: {forecast: {LIS-BER: {drop: true, window_days: 14}}}}
 - {id: rina, name: Rina, role: boundary,             # 2.4.1: hotel, check-in 30 h away, 1 room, inventory 1
-   trip: {component: hotel, hotel: LIS-H1, departure_at: "D1 16:00", flexible: false},
+   context: {component: hotel, hotel: LIS-H1, departure_at: "D1 16:00", flexible: false},
    world: {rooms: {LIS-H1: 1}}}

@@ -62,6 +62,7 @@ def items(c: Contract) -> list[Item]:
         add("policy", "release", c.policy)
     if c.app:
         add("app", c.app.name, c.app)
+    add("subject", "all", c.subject)
     return out
 
 

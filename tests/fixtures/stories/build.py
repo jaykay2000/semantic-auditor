@@ -80,7 +80,7 @@ BOOK = act("a_book", t(minutes=6), "book", booking_status="booked")
 
 def story(id, persona, departure, oracles, events, expected, release="2.4", reconciler=None):
     return {"story": {"id": id, "release": release, "persona": persona,
-                      "trip": {"departure_at": departure, "change_window_hours": 24},
+                      "context": {"departure_at": departure},
                       "truth": oracles, "events": events},
             "expected": expected, "gold_reconciler": reconciler}
 

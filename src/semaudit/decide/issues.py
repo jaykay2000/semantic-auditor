@@ -1,8 +1,9 @@
 """From rule evaluations to issues the owner decides on (W9). No model calls here.
 
-An issue groups the same violation (same signature) across personas. Severity is computed from the
-contract (rule base level + the policy's escalation rules); confidence and verification are attached later
-by the verifier and are never derived from severity, or from each other.
+An issue groups the same violation (same signature) across personas. Severity is the rule's own level, set by
+the owner in the contract; how many test personas an issue reaches, and whether before or after their decision,
+is recorded but never changes it (a count of fixtures is not production reach). Confidence and verification are
+attached later by the verifier and are never derived from severity, or from each other.
 """
 
 from __future__ import annotations
@@ -65,7 +66,7 @@ def commitment_actions(contract: Contract) -> set[str]:
 
 
 def timing_of(events: list[Event], story: Story, contract: Contract) -> str:
-    """before_decision if the cited moment comes before the traveller's first commitment (book, buy a lock...)."""
+    """before_decision if the cited moment comes before the user's first commitment (a decided_by action)."""
     commits = [e.at for e in story.events if e.kind == "user_action" and e.action in commitment_actions(contract)]
     first = min(commits) if commits else None
     last = max(e.at for e in events)
@@ -97,16 +98,15 @@ def issue_id(release: str, sig: tuple) -> str:
     return f"I-{release}-{rule}-{tail}" if tail else f"I-{release}-{rule}"
 
 
-def severity_of(rule: Rule, reach: int, timing: str, contract: Contract) -> dict[str, Any]:
-    level = SEVERITY.index(rule.severity)
-    applied = []
-    for esc in (contract.policy.escalation if contract.policy else []):
-        if esc.applies(reach, timing, rule.kind):
-            level = min(level + esc.raise_by, len(SEVERITY) - 1)
-            applied.append(esc.text)
-    return {"level": SEVERITY[level],
-            "factors": {"rule": rule.id, "base": rule.severity, "reach": reach, "timing": timing,
-                        "escalation": applied}}
+def severity_of(rule: Rule, occurrences: list[Occurrence]) -> dict[str, Any]:
+    """The rule's owner-set level. Tested-persona counts are context for the reader, never a multiplier."""
+    before = sorted({o.persona for o in occurrences if o.timing == "before_decision"})
+    after = sorted({o.persona for o in occurrences if o.timing == "after_decision"} - set(before))
+    return {"level": rule.severity,
+            "factors": {"rule": rule.id, "base": rule.severity,
+                        "tested_personas": len({o.persona for o in occurrences}),
+                        "tested_personas_before_decision": len(before),
+                        "tested_personas_after_decision": len(after)}}
 
 
 def _hm(e: Event) -> str:
@@ -116,6 +116,7 @@ def _hm(e: Event) -> str:
 def explain(entry: Entry, events: list[Event], story: Story, contract: Contract) -> str:
     """One sentence assembled from the relation's fields; never free model prose."""
     r = contract.rule(entry.rule)
+    who = contract.subject.noun
     if r.kind == "coherence" and len(events) >= 2:
         acts = {}
         for e in events:
@@ -123,7 +124,7 @@ def explain(entry: Entry, events: list[Event], story: Story, contract: Contract)
         (fa, a), (fb, b) = list(acts.items())[:2]
         dec = contract.decision(entry.meta.get("decision", ""))
         decided = story.first_action_after(b.at, dec.decided_by if dec else [])
-        when = f"before the traveller decided at {decided:%H:%M}" if decided else "while the traveller was deciding"
+        when = f"before the {who} decided at {decided:%H:%M}" if decided else f"while the {who} was deciding"
         if entry.meta.get("pair_kind") == "incompatible":
             return (f"{a.extraction.action} ({fa}, {_hm(a)}) and {b.extraction.action} ({fb}, {_hm(b)}) are "
                     f"incompatible on {entry.meta.get('decision')} ({entry.meta.get('material')}); "
@@ -140,7 +141,7 @@ def explain(entry: Entry, events: list[Event], story: Story, contract: Contract)
         was = ", ".join(f"{k} = {state.get(k)}" for k in pre)
         return f"'{e.extraction.action}' needs {need}; when shown at {_hm(e)}, {was}."
     if "message_kind" in r.applies_to and e:
-        return f"a {r.applies_to['message_kind']} message at {_hm(e)}, after the traveller had committed."
+        return f"a {r.applies_to['message_kind']} message at {_hm(e)}, after the {who} had committed."
     if r.kind == "conditional" and e:
         return conditional_why(r, entry, e, story)
     if r.kind == "load":
@@ -149,7 +150,7 @@ def explain(entry: Entry, events: list[Event], story: Story, contract: Contract)
 
 
 def condition_details(r: Rule, entry: Entry, e: Event, story: Story) -> list[dict[str, str]]:
-    """Every exception condition with its measured value in words, met or not (Raj: a ✓ 29 h 57 m ≤ 72 h)."""
+    """Every exception condition with its measured value in words, met or not ('<deadline> 29 h 57 m … ≤ 72 h')."""
     ex = r.exceptions[0] if r.exceptions else None
     if ex is None:
         return []
@@ -163,14 +164,17 @@ def condition_details(r: Rule, entry: Entry, e: Event, story: Story) -> list[dic
         elif cid == "expiry":
             text = f"approved until {ex.approved.get('expires')}"
         elif c is not None and c.test == "time_until":
-            dep = story.trip.get(c.trip_field)
-            dep = datetime.fromisoformat(dep) if isinstance(dep, str) else dep
-            gap = dep - e.at
-            secs = int(gap.total_seconds())
-            h, rem = divmod(abs(secs), 3600)
-            span = f"{h} h {rem // 60:02d} m {rem % 60:02d} s"
-            text = (f"departs {span} after the message ({'≤' if ok else '>'} {c.hours:g} h)" if secs >= 0
-                    else "the departure has already passed")
+            name = c.context_field.replace("_at", "").replace("_", " ")
+            dep = story.context.get(c.context_field)
+            if dep is None:
+                text = f"{name} unknown"
+            else:
+                dep = datetime.fromisoformat(dep) if isinstance(dep, str) else dep
+                secs = int((dep - e.at).total_seconds())
+                h, rem = divmod(abs(secs), 3600)
+                span = f"{h} h {rem // 60:02d} m {rem % 60:02d} s"
+                text = (f"{name} {span} after the message ({'≤' if ok else '>'} {c.hours:g} h)" if secs >= 0
+                        else f"the {name} has already passed")
         elif c is not None and c.test == "claim_matches_oracle":
             claimed = [x["value"] for x in e.extraction.claims if x["type"] == c.claim]
             truth = story.truth_at(c.claim, e.at, e.feature)
@@ -216,11 +220,9 @@ def build_issues(release: str, results: dict[str, tuple[Story, list[Entry]]], co
         rule = contract.rule(sig[0])
         story, _ = results[occ[0].persona]
         evs = cited_events(occ[0].entry, story)
-        timing = "before_decision" if any(o.timing == "before_decision" for o in occ) else "after_decision"
-        reach = len({o.persona for o in occ})
         it = Issue(id=issue_id(release, sig), signature=sig, rule=rule.id, rule_kind=rule.kind,
                    layer="factual" if rule.check.get("must") in FACTUAL_CHECKS else "release",
-                   label=occ[0].entry.label, occurrences=occ, severity=severity_of(rule, reach, timing, contract),
+                   label=occ[0].entry.label, occurrences=occ, severity=severity_of(rule, occ),
                    why=explain(occ[0].entry, evs, story, contract))
         it._features = sorted({e.feature for o in occ for e in cited_events(o.entry, results[o.persona][0])
                                if e.feature})
