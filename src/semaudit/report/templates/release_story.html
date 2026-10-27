@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Release Story · __TITLE__</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ground:#F6F6F3;--panel:#fff;--ink:#15171C;--ink2:#5B606B;--ink3:#8A8F98;--line:#E2E2DC;--line2:#ECECE6;
+  --pw:#2563C9;--pwbg:#EAF1FC;--pwln:#BCD0F2;--fl:#0E7C70;--flbg:#E3F4F1;--flln:#A9DBD3;
+  --cg:#6D46B8;--cgbg:#F0EBFA;--cgln:#D2C3EE;--core:#5B606B;--corebg:#F0F0EE;--coreln:#DADAD4;
+  --crit:#8E2F0E;--critbg:#FBE4DA;--maj:#7A4E00;--majbg:#FCEFD6;--min:#5E5638;--minbg:#F3F0E6;
+  --ok:#1F5130;--okbg:#E2F1E6;--okln:#B8D9C2;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font:14px/1.45 Inter,system-ui,sans-serif}
+.mono,code{font-family:'JetBrains Mono',ui-monospace,monospace}
+main{max-width:1640px;margin:0 auto;padding:18px 22px 48px;display:flex;flex-direction:column;gap:14px}
+button{font:500 13px Inter,sans-serif;cursor:pointer;color:var(--ink)}
+.tag{font-size:12px;padding:3px 8px;border-radius:999px;border:1px solid #D6D6CF;color:var(--ink2);background:#fff;white-space:nowrap}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.spread{justify-content:space-between}
+.seg{padding:6px 12px;border:1px solid #D6D6CF;background:#fff;margin-left:-1px}
+.seg:first-child{border-radius:7px 0 0 7px;margin-left:0}.seg:last-child{border-radius:0 7px 7px 0}
+.seg[aria-pressed=true]{background:var(--ink);color:#fff;border-color:var(--ink)}
+select{font:500 13px Inter,sans-serif;padding:7px 10px;border-radius:7px;border:1px solid #D6D6CF;background:#fff;color:var(--ink)}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.h{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2);margin:0 0 8px}
+.chip{font-size:11px;font-weight:600;padding:2px 7px;border-radius:5px;white-space:nowrap;display:inline-block}
+.sev-critical{background:var(--critbg);color:var(--crit)}.sev-major{background:var(--majbg);color:var(--maj)}.sev-minor{background:var(--minbg);color:var(--min)}
+.conf{background:#EEF0F4;color:#2F3542}.ver{background:#fff;color:var(--ok);border:1px solid var(--okln)}
+.ver.partial{color:var(--ink2);border-color:#D6D6CF}
+.delta{background:var(--ink);color:#fff}.delta.pre{background:#fff;color:var(--ink);border:1px solid var(--ink)}
+.rec{font-size:15px;font-weight:700;padding:4px 10px;border-radius:6px}
+.rec-hold{background:var(--critbg);color:var(--crit)}.rec-needs_owner_review{background:var(--majbg);color:var(--maj)}
+.rec-ship_with_notes{background:#EEF0F4;color:#2F3542}.rec-ship{background:var(--okbg);color:var(--ok)}
+.layout{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start}
+.story{flex:999 1 900px;min-width:0;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px 12px;overflow-x:auto;position:relative}
+.rail{flex:1 1 330px;min-width:290px;display:flex;flex-direction:column;gap:12px}
+.grid{display:grid;position:relative}
+.ax{padding:8px 6px;font-size:11px;color:var(--ink2)}
+.ax .t{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;color:var(--ink)}
+.ax.gap{border-left:2px dashed #D6D6CF}
+.ax.empty{opacity:.45}
+.lane{font-size:12px;font-weight:600;color:var(--ink2);text-transform:uppercase;letter-spacing:.04em;padding:10px 8px;display:flex;align-items:flex-start;gap:6px;border-top:1px solid var(--line2)}
+.cell{border-top:1px solid var(--line2);padding:7px 5px 18px;display:flex;flex-direction:column;gap:6px;min-height:44px;position:relative}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex:none;margin-top:3px}
+.act{font-size:13px;font-weight:600}
+.msg{font-size:12.5px;line-height:1.35;border-radius:8px;padding:7px 8px;border:1px solid;cursor:pointer;text-align:left;background:none;width:100%;color:var(--ink)}
+.msg .meta{font-size:11px;color:var(--ink2);display:flex;gap:6px;align-items:center;margin-bottom:2px;flex-wrap:wrap}
+.f-price_watch{background:var(--pwbg);border-color:var(--pwln)}.f-fare_lock{background:var(--flbg);border-color:var(--flln)}
+.f-concierge{background:var(--cgbg);border-color:var(--cgln)}.f-core{background:var(--corebg);border-color:var(--coreln)}
+.c-price_watch{background:var(--pw)}.c-fare_lock{background:var(--fl)}.c-concierge{background:var(--cg)}.c-core{background:var(--core)}
+.msg.sel{box-shadow:0 0 0 3px var(--ink)}
+.msg.ghost{opacity:.5;border-style:dashed;background:#FAFAF7}
+.mark{font-weight:700;color:var(--ink)}
+.badge{font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px}
+.b-added{background:var(--ink);color:#fff}.b-changed,.b-fuzzy{background:#fff;border:1px solid var(--ink)}.b-unchanged{background:#EEF0F4;color:var(--ink2)}.b-removed{background:#fff;border:1px dashed var(--ink2);color:var(--ink2)}
+.live{position:absolute;height:4px;border-radius:2px}
+.live.open::after{content:"→ open";position:absolute;right:-44px;top:-6px;font-size:10px;color:var(--ink2)}
+.state{border-top:1px solid var(--line2);padding:10px 5px}
+.state div{border-radius:6px;padding:6px 10px;font-size:12px;font-weight:500;background:var(--corebg)}
+.more{font-size:11px;color:var(--ink2);background:none;border:none;padding:0;text-align:left}
+.issue{display:flex;flex-direction:column;gap:6px;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:#fff;text-align:left;width:100%}
+.issue[aria-pressed=true]{border:2px solid var(--ink);background:#FAFAF7}
+.detail{background:#fff;border:2px solid var(--ink);border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:14px}
+.moments{display:flex;gap:10px;flex-wrap:wrap;flex:3 1 560px;min-width:0}
+.moment{flex:1 1 250px;display:flex;flex-direction:column;gap:8px;border-radius:10px;padding:12px 14px;border:1px solid}
+.shot{position:relative;width:100%;height:130px;border-radius:6px;border:1px solid var(--line);background-color:#fff;background-repeat:no-repeat;overflow:hidden}
+.shot .hl{position:absolute;border:2px solid var(--ink);border-radius:3px;box-shadow:0 0 0 2000px rgba(255,255,255,.35)}
+.envelope{border-radius:6px;border:1px solid var(--line);background:#fff;padding:8px 10px;font-size:12px;color:var(--ink2)}
+.quote{font-size:14.5px;line-height:1.5}
+.three{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.lvl{font-size:15px;font-weight:700}
+.btn{padding:8px 12px;border-radius:7px;border:1px solid #D6D6CF;background:#fff}
+.btn[disabled]{opacity:.55;cursor:not-allowed}
+.repro{font-size:13px;background:var(--ink);color:#fff;padding:7px 10px;border-radius:6px}
+.cond{display:grid;grid-template-columns:56px 1fr;gap:6px;font-size:13px}
+.muted{color:var(--ink2);font-size:13px}
+.svg{position:absolute;inset:0;pointer-events:none;overflow:visible}
+@media (max-width:760px){.three{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<script type="application/json" id="review-data">__REVIEW_JSON__</script>
+<main id="app" aria-live="polite"></main>
+<script>
+(() => {
+const R = JSON.parse(document.getElementById('review-data').textContent);
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const SEV = ['critical','major','minor'];
+const FNAME = Object.fromEntries((R.features || []).map(f => [f.id, f.name]));
+const LANES = [...(R.features || []).map(f => f.id).filter(f => f !== 'core'), 'core'];
+const personas = Object.fromEntries(R.personas.map(p => [p.id, p]));
+const issuesFor = pid => R.issues.filter(i => i.layer === 'release' && i.personas.includes(pid));
+const t = iso => iso ? new Date(iso) : null;
+const D0 = (() => { const x = t(R.personas[0].steps[0].at); return Date.UTC(x.getUTCFullYear(), x.getUTCMonth(), x.getUTCDate()); })();
+const rel = iso => { const d = t(iso); const day = Math.floor((d - D0) / 864e5); return `D${day} ${d.toISOString().slice(11, 19)}`; };
+const hm = iso => t(iso).toISOString().slice(11, 16);
+const gapText = ms => { const m = Math.round(ms / 6e4); if (m < 60) return `+${m} m`; const h = Math.floor(m / 60), r = m % 60;
+  if (h < 24) return `+${h} h${r ? ` ${r} m` : ''}`; return `+${Math.floor(h / 24)} d ${h % 24} h`; };
+
+// The hero: the most severe release-level issue, coherence first (it is what no single-feature test sees).
+const KIND = {coherence: 0, conditional: 1, universal: 2, load: 3};
+const top = [...R.issues].sort((a, b) => SEV.indexOf(a.severity.level) - SEV.indexOf(b.severity.level)
+  || (a.layer === 'release' ? 0 : 1) - (b.layer === 'release' ? 0 : 1) || KIND[a.rule_kind] - KIND[b.rule_kind]
+  || b.personas.length - a.personas.length)[0];
+const heroPersona = top ? ((top.personas.find(pid => (personas[pid] || {}).role === 'hero')) || top.personas[0]) : R.personas[0].id;
+const state = { persona: heroPersona, mode: 'head', issue: top ? top.id : null, notRaisedOpen: false };
+
+// Columns: the hero's scenario steps plus the current persona's, both releases. Switching persona keeps the
+// hero's columns, so Raj's banner sits where Maya's banner sat.
+let colTimes = [];
+const stepsOf = p => p ? [...p.steps, ...(p.base_steps || [])].map(s => s.at) : [];
+const setColumns = pid => { colTimes = [...new Set([...stepsOf(personas[heroPersona]), ...stepsOf(personas[pid])])].sort((a, b) => t(a) - t(b)); };
+const colOf = iso => { let i = 0; colTimes.forEach((c, k) => { if (t(c) <= t(iso)) i = k; }); return i; };
+function fromHash() { try { const h = new URLSearchParams(location.hash.slice(1)); for (const k of ['persona','mode','issue']) if (h.has(k)) state[k] = h.get(k) || null; } catch (e) {} }
+fromHash();
+window.addEventListener('hashchange', () => { fromHash(); render(); });
+
+function set(patch) { Object.assign(state, patch); try { history.replaceState(null, '', '#' + new URLSearchParams({persona: state.persona, mode: state.mode, issue: state.issue || ''})); } catch (e) {} render(); }
+
+function occurrence(issue, pid) { return issue && issue.occurrences.find(o => o.persona === pid); }
+
+function chips(i) {
+  const v = i.verification, steps = v.steps || {}, applicable = Object.values(steps).filter(s => s.result !== 'not_applicable');
+  const passed = applicable.filter(s => s.result === 'pass').length;
+  return `<span class="chip sev-${i.severity.level}">severity ${i.severity.level}</span>
+    <span class="chip conf">confidence ${i.confidence.level}</span>
+    <span class="chip ver ${v.status === 'verified' ? '' : 'partial'}">${v.status === 'verified' ? '✓ ' : ''}${v.status.replace('_', ' ')} ${passed}/${applicable.length}</span>`;
+}
+
+function issueTitle(i) {
+  const L = {unexplained_tradeoff: 'Unexplained tradeoff', conflict: 'Conflicting advice'};
+  if (i.label && L[i.label]) return L[i.label];
+  const T = {U1: 'False claim', U2: 'Fee shown ≠ fee charged', U3: 'Guidance the traveller cannot act on', U4: 'Second-guessing a purchase', P1: 'Urgency outside the exception', P3: 'Too many contacts'};
+  return T[i.rule] || i.rule;
+}
+
+function header(p) {
+  const party = p.party > 1 ? `party of ${p.party}` : 'solo';
+  const days = (t(p.trip.departure_at) - t(p.steps[0].at)) / 36e5;
+  const away = days >= 48 ? `departs in ${Math.round(days / 24)} days` : `departs in ${Math.round(days)} hours`;
+  const fict = R.app && R.app.fictional;
+  const opts = R.personas.map(x => `<option value="${x.id}" ${x.id === p.id ? 'selected' : ''}>${esc(x.name)} (${x.id}) · ${issuesFor(x.id).length} issue${issuesFor(x.id).length === 1 ? '' : 's'}</option>`).join('');
+  const b = R.release.base, h = R.release.head;
+  return `<div class="row spread">
+    <div style="display:flex;flex-direction:column;gap:4px">
+      <div class="row" style="align-items:baseline"><h1 style="margin:0;font-size:22px">${esc(p.name)}</h1>
+        <span class="muted" style="font-size:14px">${party} · ${p.trip.flexible ? 'flexible dates' : 'fixed dates'} · ${esc(p.trip.route || '')} · <span title="${esc(p.trip.departure_at)}">${away}</span></span></div>
+      <div class="row" style="gap:6px"><span class="tag">built during the hackathon</span><span class="tag">${R.app ? esc(R.app.name) : ''} · ${fict ? 'fictional app' : 'app under audit'}</span><span class="tag">review ${esc(b)} → ${esc(h)}</span></div>
+    </div>
+    <div class="row">
+      <span class="muted" style="font-size:12px">Release</span>
+      <div role="group" aria-label="Release">${[[b, 'base'], [h, 'head'], ['diff', 'diff']].map(([l, m]) => `<button class="seg" data-mode="${m}" aria-pressed="${state.mode === m}">${esc(l)}</button>`).join('')}</div>
+      <label class="muted" style="font-size:12px" for="persona">Persona</label><select id="persona">${opts}</select>
+    </div></div>`;
+}
+
+function decisionBar() {
+  const pol = R.policy;
+  return `<div class="box row" style="gap:18px;padding:12px 16px">
+    <span class="muted" style="font-size:12px">Recommendation</span>
+    <span class="rec rec-${pol.recommendation}">${pol.recommendation.replace(/_/g, ' ').replace(/^./, c => c.toUpperCase())}</span>
+    <span class="muted">policy row ${pol.row}: <span class="mono" style="font-size:12px;color:var(--ink)">${esc(pol.rule_fired)}</span></span>
+    <span style="margin-left:auto" class="muted">Owner decision <b style="color:var(--ink)">${esc(R.owner_decision.status)}</b> · ${R.issues.length} open issue${R.issues.length === 1 ? '' : 's'} · ${R.personas.length} personas</span>
+  </div>`;
+}
+
+function card(e, opts) {
+  const mark = opts.marks && opts.marks[e.id];
+  const badge = opts.badge ? `<span class="badge b-${opts.badge}">${{added: '+ added', changed: '~ changed', fuzzy: '≈ changed', unchanged: '=', removed: '− removed'}[opts.badge]}</span>` : '';
+  const ex = e.text.length > 64 ? e.text.slice(0, 62) + '…' : e.text;
+  return `<button class="msg f-${e.feature} ${mark ? 'sel' : ''} ${opts.ghost ? 'ghost' : ''}" data-ev="${esc(e.id)}" data-ghost="${opts.ghost ? 1 : ''}" title="${esc(e.message_key)} · ${esc(e.text)}">
+    <div class="meta">${mark ? `<span class="mark">${mark}</span>` : ''}${badge}<span>${esc(e.channel)} · ${hm(e.at)}</span></div>${esc(ex)}</button>`;
+}
+
+function storyGrid(p, mode, marks) {
+  const head = mode !== 'base';
+  const events = head ? p.events : (p.base_events || []);
+  const steps = head ? p.steps : (p.base_steps || []);
+  const base = p.base_events || [];
+  const n = colTimes.length;
+  const stepCols = new Set(steps.map(s => colOf(s.at)));
+  let html = `<div class="grid" id="grid" style="grid-template-columns:110px repeat(${n},minmax(118px,1fr));min-width:${110 + n * 118}px">`;
+  html += `<div class="ax">time ►</div>` + colTimes.map((c, k) => {
+    const gap = k > 0 ? t(c) - t(colTimes[k - 1]) : 0;
+    const st = steps.find(s => colOf(s.at) === k);
+    return `<div class="ax ${gap > 6e5 ? 'gap' : ''} ${stepCols.has(k) ? '' : 'empty'}">${gap > 6e5 ? `<div>${gapText(gap)}</div>` : ''}<div class="t">${rel(c)}</div><div>${st ? esc(st.do.replace(/_/g, ' ')) + (st.status === 'skipped_not_offered' ? ' · not offered' : '') : '—'}</div></div>`;
+  }).join('');
+  // actions lane
+  html += `<div class="lane"><span class="dot" style="background:var(--ink)"></span>${esc(p.name)}</div>`;
+  for (let k = 0; k < n; k++) {
+    const acts = events.filter(e => e.kind === 'user_action' && colOf(e.at) === k);
+    html += `<div class="cell">${acts.map(a => `<span class="act">● ${esc(a.action.replace(/_/g, ' '))}</span>`).join('')}</div>`;
+  }
+  let row = 3;
+  for (const f of LANES) {
+    const mine = events.filter(e => e.kind === 'message' && e.feature === f);
+    const ghosts = mode === 'diff' ? base.filter(e => e.kind === 'message' && e.feature === f) : [];
+    if (!mine.length && !ghosts.length && f === 'core') continue;
+    html += `<div class="lane" style="grid-row:${row}"><span class="dot c-${f}"></span>${esc(FNAME[f] || f)}</div>`;
+    for (let k = 0; k < n; k++) {
+      const here = mine.filter(e => colOf(e.at) === k);
+      const ghostsHere = ghosts.filter(e => colOf(e.at) === k);
+      let inner = '';
+      if (mode === 'diff') inner += ghostsHere.map(e => card(e, {ghost: true, badge: (p.removed_from_base || []).includes(e.id) ? 'removed' : null})).join('');
+      const limit = f === 'core' ? 1 : 99;
+      inner += here.slice(0, limit).map(e => card(e, {marks, badge: mode === 'diff' ? e.delta : null})).join('');
+      if (here.length > limit) inner += `<button class="more" data-expand="${f}:${k}">+ ${here.length - limit} more</button>`;
+      html += `<div class="cell" style="grid-row:${row};grid-column:${k + 2}" data-cell="${f}:${k}">${inner}</div>`;
+    }
+    row++;
+  }
+  // derived state lane
+  const ss = head ? p.state_steps : (p.base_state_steps || []);
+  html += `<div class="lane" style="grid-row:${row}">State</div>`;
+  const label = st => Object.entries(st).filter(([k, v]) => (typeof v !== 'boolean' || v) && v !== 'none' && v !== null).map(([k, v]) => typeof v === 'boolean' ? k.replace(/_/g, ' ') : `${k.replace(/_/g, ' ')}: ${String(v).replace(/_/g, ' ')}`).join(' · ');
+  const segs = [];
+  ss.forEach(s => { const l = label(s.state); const k = colOf(s.at); if (!segs.length || segs[segs.length - 1].l !== l) segs.push({l, from: k}); });
+  segs.forEach((s, i) => { const to = i + 1 < segs.length ? segs[i + 1].from : n; html += `<div class="state" style="grid-row:${row};grid-column:${s.from + 2}/${to + 2}"><div>${esc(s.l)}</div></div>`; });
+  html += `</div><svg class="svg" id="links" aria-hidden="true"></svg>`;
+  html += `<div class="row muted" style="font-size:11px;padding:10px 8px 0;gap:16px"><span class="row" style="gap:6px"><span style="width:22px;height:4px;border-radius:2px;background:var(--pw)"></span>live interval of a recommendation</span><span>columns are scenario steps · gaps show elapsed time · every quote is the exact captured text · click a message for its capture</span></div>`;
+  return html;
+}
+
+function rail(p) {
+  const mine = issuesFor(p.id);
+  const rows = mine.map(i => `<button class="issue" data-issue="${esc(i.id)}" aria-pressed="${state.issue === i.id}">
+      <span class="row spread"><b style="font-size:14px">${esc(issueTitle(i))}</b><span class="mono" style="font-size:12px">${esc(i.rule)}</span></span>
+      <span class="row" style="gap:6px">${i.features.map(f => `<span class="dot c-${f}"></span>`).join('')}<span class="muted" style="font-size:12px">${i.features.map(f => esc(FNAME[f] || f)).join(' × ')}</span><span class="chip delta ${i.delta === 'new' ? '' : 'pre'}">${esc(i.delta.replace('_', ' ').toUpperCase())}</span></span>
+      <span class="row" style="gap:5px">${chips(i)}</span></button>`).join('') || `<div style="font-size:15px;font-weight:600">Nothing raised for ${esc(p.name)} in ${esc(R.release.head)}</div><div class="muted">Every rule was evaluated on this story. See why below.</div>`;
+  const factual = R.issues.filter(i => i.layer === 'factual').map(i => `<div style="font-size:13px"><b>${esc(issueTitle(i))}</b> <span class="mono" style="font-size:12px">${esc(i.rule)}</span><br><span class="muted">${esc(i.personas.join(', '))}: ${esc(i.why)}</span> · <button class="more" style="color:var(--pw);font-size:12px" data-goto="${esc(i.personas[0])}|${esc(i.id)}">open story</button></div>`).join('') || '<div class="muted">none</div>';
+  const nr = R.not_raised.filter(x => x.persona.split(',').includes(p.id));
+  const others = R.not_raised.filter(x => !x.persona.split(',').includes(p.id));
+  const open = state.notRaisedOpen || !mine.length;
+  const nrItem = x => `<div style="font-size:13px"><b>${esc(x.rule)}</b> · ${esc(x.reason)}</div>`;
+  const fixed = (R.resolved || []).filter(i => i.personas.includes(p.id));
+  const resolvedBox = fixed.length ? `<div class="box" style="display:flex;flex-direction:column;gap:6px"><p class="h">Resolved since ${esc(R.release.base)} · ${fixed.length}</p>${fixed.map(i => `<div style="font-size:13px"><span class="chip ver">✓ resolved</span> <b>${esc(issueTitle(i))}</b> <span class="mono" style="font-size:12px">${esc(i.rule)}</span><br><span class="muted">was ${esc(i.id)}: ${esc(i.why)}</span></div>`).join('')}</div>` : '';
+  return `<div class="box" style="display:flex;flex-direction:column;gap:8px"><p class="h">Release-level · ${esc(p.name)} · ${mine.length}</p>${rows}</div>${resolvedBox}
+    <div class="box" style="background:#FAFAF7;display:flex;flex-direction:column;gap:8px"><p class="h">Factual layer · all stories · ${R.issues.filter(i => i.layer === 'factual').length}</p>${factual}</div>
+    <div class="box" style="display:flex;flex-direction:column;gap:6px"><button class="more h" style="margin:0;cursor:pointer" data-toggle-nr>Not raised · ${nr.length} here · ${others.length} elsewhere ${open ? '▴' : '▾'}</button>
+      ${open ? (nr.map(nrItem).join('') || '<div class="muted">nothing evaluated and cleared in this story</div>') + (others.length ? `<div class="muted" style="font-size:12px">elsewhere: ${others.map(x => `${esc(x.persona)} (${esc(x.rule)}${x.label ? ' ' + esc(x.label.replace(/_/g, ' ')) : ''})`).join(' · ')}</div>` : '') : ''}</div>`;
+}
+
+function truthAt(p, e, fact) {
+  let best = null;
+  for (const s of p.state) if (t(s.at) <= t(e.at)) best = s;
+  if (!best) return null;
+  return best.truth[`${fact}@${e.feature}`] ?? best.truth[fact] ?? null;
+}
+
+function moment(p, e, mark, base) {
+  const x = e.extraction || {};
+  let visual = '';
+  const c = e.capture;
+  const loc = (e.evidence && e.evidence.locator) || {};
+  if (c && c.kind === 'web' && c.screenshot && c.bbox) {
+    visual = `<a href="${esc(c.screenshot)}" target="_blank" rel="noopener" class="shot" title="open the full capture (${esc(c.url || '')})"
+      data-shot data-bx="${c.bbox.x}" data-by="${c.bbox.y}" data-bw="${c.bbox.width}" data-bh="${c.bbox.height}"
+      style="background-image:url('${esc(c.screenshot)}');display:block"><span class="hl"></span></a>
+      <div class="muted" style="font-size:11px">captured ${esc(c.url || '')} · <span class="mono">${esc(loc.css || '')}</span></div>`;
+  } else if (c) {
+    const where = loc.kind === 'message_id' ? `message ${loc.message_id}` : loc.kind === 'notification_id' ? `notification ${loc.notification_id}`
+      : loc.kind === 'chat_turn' ? `chat turn ${loc.turn + 1}` : esc(loc.kind || '');
+    const head = {email: `✉ ${esc(FNAME[e.feature] || e.feature)} → ${esc(p.name)}`, push: `▣ push notification`, chat: `💬 concierge chat`}[c.kind] || esc(c.kind);
+    visual = `<div class="envelope"><b style="color:var(--ink)">${head}</b> · sent ${hm(e.at)} · ${where}</div>`;
+  }
+  const claims = (x.claims || []).map(cl => { const tv = truthAt(p, e, cl.type); if (tv === null) return `<span class="chip conf" title="no oracle value at this moment">${esc(cl.type.replace(/_/g, ' '))} ${cl.value}</span>`;
+    return Number(tv) === Number(cl.value) ? `<span class="chip ver">${esc(cl.type.replace(/_/g, ' '))} ${cl.value} ✓ true</span>` : `<span class="chip sev-critical">${esc(cl.type.replace(/_/g, ' '))} ${cl.value} ✗ true value ${tv}</span>`; }).join('');
+  return `<div class="moment f-${e.feature}">
+    <div class="muted" style="font-size:12px">${mark ? `<b style="color:var(--ink)">${mark}</b> · ` : ''}<span class="mono">${rel(e.at)}</span> · ${esc(FNAME[e.feature] || e.feature)} · ${esc(e.surface.replace(/_/g, ' '))} · ${esc(e.channel)}</div>
+    ${visual}<div class="quote">“${esc(e.text)}”</div>
+    <div class="row" style="gap:6px">${claims}${x.message_kind === 'directive' ? `<span class="chip conf">${esc(x.action)} · ${esc(x.strength)}</span>` : `<span class="chip conf">${esc(x.message_kind || '')}</span>`}${e.live_basis ? `<span class="chip conf">live until ${e.live_until ? (e.live_until.slice(0, 10) === e.at.slice(0, 10) ? hm(e.live_until) : rel(e.live_until).slice(0, -3)) : 'unknown'} (${esc(e.live_basis.replace(/_/g, ' '))})</span>` : ''}</div></div>`;
+}
+
+function rulesPanel(p) {
+  const evs = Object.fromEntries(p.events.map(e => [e.id, e]));
+  const cond = (p.evaluations || []).filter(x => x.conditions.length);
+  const blocks = cond.map(x => { const e = evs[x.subject];
+    const ok = x.status === 'excepted';
+    return `<div class="row" style="align-items:stretch;gap:16px">
+      <div class="moments" style="flex:1 1 320px">${e ? moment(p, e, '') : ''}</div>
+      <div style="flex:2 1 520px;min-width:0;display:flex;flex-direction:column;gap:6px">
+        <div class="row"><span class="chip conf">${esc(x.rule)} applies</span><span class="muted">${esc((R.rules.find(r => r.id === x.rule) || {}).text || '')}</span></div>
+        ${x.conditions.map(c => `<div class="cond" style="grid-template-columns:70px 1fr"><span class="mono">${c.value === 'met' ? '✓' : '✗'} ${esc(c.id)}</span><span>${esc(c.text)}</span></div>`).join('')}
+        <div class="row"><span class="chip ${ok ? 'ver' : 'sev-critical'}">${ok ? '→ excepted: allowed by the owner\'s exception' : '→ violated'}</span></div>
+      </div></div>`; }).join('');
+  const byRule = {};
+  for (const x of (p.evaluations || [])) (byRule[x.rule] = byRule[x.rule] || []).push(x);
+  const lines = R.rules.map(r => { const xs = byRule[r.id];
+    if (!xs) return `<div><b class="mono">${esc(r.id)}</b> not applicable${r.kind === 'coherence' ? ': no two features recommended on the same decision while both were live' : ': nothing in this story it governs'}</div>`;
+    const sts = [...new Set(xs.map(x => x.status + (x.label ? ' (' + x.label.replace(/_/g, ' ') + ')' : '')))];
+    return `<div><b class="mono">${esc(r.id)}</b> ${sts.map(esc).join(', ')} <span class="muted">· ${xs.map(x => esc(x.subject)).join(', ')}</span></div>`; }).join('');
+  return `<section class="detail" aria-label="Rules on this story"><div class="row spread" style="align-items:baseline"><h2 style="margin:0;font-size:18px">Rules on ${esc(p.name)}'s story</h2><span class="muted">every rule's evaluation, including the ones that passed</span></div>
+    ${blocks}<div class="box" style="display:flex;flex-direction:column;gap:4px;font-size:13.5px">${lines}</div></section>`;
+}
+
+function detail(p) {
+  const i = R.issues.find(x => x.id === state.issue);
+  if (!i || (!occurrence(i, p.id) && !issuesFor(p.id).length && i.layer === 'release')) return rulesPanel(p);
+  const occ = occurrence(i, p.id) || i.occurrences[0];
+  const pv = personas[occ.persona] || p;
+  const evs = occ.events.map(id => pv.events.find(e => e.id === id)).filter(e => e && e.kind === 'message');
+  const marks = evs.length > 1 ? ['A', 'B', 'C', 'D', 'E'] : [''];
+  const momentsHtml = evs.map((e, k) => (k ? `<div style="align-self:center;font-size:20px" aria-hidden="true">⇄</div>` : '') + moment(pv, e, marks[k])).join('');
+  const conds = i.conditions.length ? `<div style="margin-top:8px;display:flex;flex-direction:column;gap:2px">${i.conditions.map(([c, v]) => `<div class="cond"><span class="mono">${v === 'met' ? '✓' : '✗'} ${esc(c)}</span><span>${esc(v.replace('_', ' '))}</span></div>`).join('')}</div>` : '';
+  const markOf = Object.fromEntries(evs.map((e, k) => [e.id, marks[k] || '']));
+  const grouped = {};
+  for (const o of (i.other_rules || [])) { const k = `${o.rule} ${o.status.replace('_', ' ')}${o.label ? ' (' + o.label.replace(/_/g, ' ') + ')' : ''}`; (grouped[k] = grouped[k] || []).push(markOf[o.subject] || ''); }
+  const others = Object.entries(grouped).map(([k, ms]) => `${esc(k)}${ms.filter(Boolean).length ? ' · ' + ms.filter(Boolean).join(', ') : ''}`).join(' &nbsp;|&nbsp; ');
+  const vs = i.verification.steps || {};
+  const vline = Object.entries(vs).map(([k, v]) => `<span title="${esc(typeof v.detail === 'string' ? v.detail : JSON.stringify(v.detail))}">${{pass: '✓', fail: '✗', not_run: '○', not_applicable: '–'}[v.result]} ${esc(k.replace(/_/g, ' '))}</span>`).join(' · ');
+  const sevF = i.severity.factors || {};
+  return `<section class="detail" aria-label="Issue detail">
+    <div class="row spread" style="align-items:baseline"><div class="row" style="align-items:baseline"><h2 style="margin:0;font-size:18px">${esc(issueTitle(i))}${i.features.length > 1 ? ' between ' + i.features.map(f => esc(FNAME[f] || f)).join(' and ') : ''}</h2><span class="mono muted" style="font-size:12px">${esc(i.id)}</span></div>
+      <div class="row" style="gap:8px">${['Mark fix', 'Accept with scoped exception…', 'Not an issue…'].map(l => `<button class="btn" disabled title="owner dispositions are recorded by semaudit (W11)">${l}</button>`).join('')}</div></div>
+    ${occ.persona !== p.id ? `<div class="muted">This issue is in ${esc(i.personas.join(', '))}'s stories; showing ${esc(pv.name)}.</div>` : ''}
+    <div class="row" style="align-items:stretch;gap:16px">
+      <div class="moments">${momentsHtml}</div>
+      <div style="flex:2 1 360px;min-width:0;display:flex;flex-direction:column;gap:10px">
+        <div class="box" style="background:#FAFAF7"><p class="h">Rule <span class="mono">${esc(i.rule)}</span> · ${esc(i.rule_kind)} · owner-approved</p>
+          <div style="font-size:14px;line-height:1.5">“${esc(i.rule_text)}”</div>${conds}
+          ${i.rule_source ? `<div class="muted" style="font-size:12px;margin-top:6px">source: ${esc(i.rule_source.file || i.rule_source.kind)} ${esc(i.rule_source.at || '')}</div>` : ''}</div>
+        <div style="font-size:14px;line-height:1.5"><b>Why:</b> ${esc(i.why)}</div>
+        ${others ? `<div class="muted"><b style="color:var(--ink)">Other rules on these moments:</b> ${others}</div>` : ''}
+      </div></div>
+    <div class="three">
+      <div class="box"><p class="h">Severity</p><div class="lvl" style="color:var(--${i.severity.level === 'critical' ? 'crit' : i.severity.level === 'major' ? 'maj' : 'min'})">${esc(i.severity.level)}</div>
+        <div class="muted">rule ${esc(sevF.rule)} base ${esc(sevF.base)} · reach ${esc(sevF.reach)} · ${esc(String(sevF.timing || '').replace(/_/g, ' '))}${(sevF.escalation || []).length ? ' · escalated: ' + sevF.escalation.map(esc).join('; ') : ''}</div></div>
+      <div class="box"><p class="h">Confidence</p><div class="lvl">${esc(i.confidence.level)}</div><div class="muted">${(i.confidence.basis || []).map(esc).join(' · ')}</div></div>
+      <div class="box"><p class="h">Verification</p><div class="lvl" style="color:${i.verification.status === 'verified' ? 'var(--ok)' : 'var(--ink)'}">${esc(i.verification.status.replace('_', ' '))}</div><div style="font-size:13px;line-height:1.6">${vline}</div></div>
+    </div>
+    <div class="row spread"><span style="font-size:13px"><span class="chip delta ${i.delta === 'new' ? '' : 'pre'}">${esc(i.delta.replace('_', ' ').toUpperCase())} in ${esc(R.release.head)}</span> ${esc(i.delta_basis)} · features: ${i.features.map(esc).join(', ')}</span>
+      <span class="row" style="gap:8px"><code class="repro">${esc(i.repro)}</code><button class="btn" data-copy="${esc(i.repro)}">Copy</button></span></div>
+  </section>`;
+}
+
+function drawLinks() {
+  const svg = $('#links'), grid = $('#grid');
+  if (!svg || !grid) return;
+  const sel = [...grid.querySelectorAll('.msg.sel')];
+  const i = R.issues.find(x => x.id === state.issue);
+  svg.innerHTML = '';
+  if (sel.length < 2 || !i) return;
+  const box = svg.getBoundingClientRect();
+  const rs = sel.map(el => { const r = el.getBoundingClientRect(); return {l: r.left - box.left, r: r.right - box.left, t: r.top - box.top, b: r.bottom - box.top}; })
+    .sort((x, y) => x.l - y.l);
+  const dash = i.label === 'conflict' ? '' : '6 5';
+  for (let k = 1; k < rs.length; k++) {           // elbow outside both cards: down from A, across into B
+    const a = rs[k - 1], b = rs[k], sx = (a.l + a.r) / 2, ey = (b.t + b.b) / 2;
+    const d = b.t > a.b ? `M${sx},${a.b} V${ey} H${b.l}` : `M${a.r},${(a.t + a.b) / 2} H${(a.r + b.l) / 2} V${ey} H${b.l}`;
+    svg.innerHTML += `<path d="${d}" fill="none" stroke="#15171C" stroke-width="2" stroke-dasharray="${dash}"/><circle cx="${b.l}" cy="${ey}" r="3" fill="#15171C"/>`;
+  }
+}
+
+function render() {
+  const p = personas[state.persona] || R.personas[0];
+  setColumns(p.id);
+  const i = R.issues.find(x => x.id === state.issue);
+  const occ = occurrence(i, p.id);
+  const marks = {};
+  if (occ && state.mode !== 'base') { const ids = occ.events.filter(id => (p.events.find(e => e.id === id) || {}).kind === 'message'); ids.forEach((id, k) => marks[id] = ids.length > 1 ? 'ABCDE'[k] : '•'); }
+  $('#app').innerHTML = header(p) + decisionBar() +
+    `<div class="layout"><div class="story">${storyGrid(p, state.mode, marks)}</div><div class="rail">${rail(p)}</div></div>` +
+    (state.mode !== 'base' ? detail(p) : `<div class="box muted">Base release ${esc(R.release.base)}: ${p.base_events ? 'the same scenario as it ran before this release' : 'not measured'}.</div>`);
+  // live intervals
+  const grid = $('#grid');
+  if (grid && state.mode !== 'base') {
+    const cells = [...grid.querySelectorAll('[data-cell]')];
+    const stack = {};
+    for (const e of p.events.filter(e => e.kind === 'message' && e.live_basis)) {
+      const start = colOf(e.at);
+      let end = e.live_until ? colOf(e.live_until) : colTimes.length - 1;
+      if (e.live_until && end > start && t(colTimes[end]).getTime() === t(e.live_until).getTime()) end -= 1;  // ends as that step begins
+      const lvl = stack[e.feature] = (stack[e.feature] ?? -1) + 1;
+      const a = cells.find(c => c.dataset.cell === `${e.feature}:${start}`), b = cells.find(c => c.dataset.cell === `${e.feature}:${end}`);
+      if (!a || !b) continue;
+      const g = grid.getBoundingClientRect(), ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect();
+      const bar = document.createElement('div');
+      bar.className = 'live' + (e.live_until ? '' : ' open');
+      bar.title = `${e.extraction.action} live ${rel(e.at)} → ${e.live_until ? rel(e.live_until) : 'unknown'} (${e.live_basis})`;
+      bar.style.cssText = `left:${ra.left - g.left + 6}px;width:${Math.max(rb.right - ra.left - 12, 12)}px;top:${ra.bottom - g.top - 12 + lvl * 5}px;background:var(--${{price_watch: 'pw', fare_lock: 'fl', concierge: 'cg'}[e.feature] || 'core'})`;
+      grid.appendChild(bar);
+    }
+  }
+  requestAnimationFrame(() => { drawLinks(); sizeShots(); });
+}
+
+function sizeShots() {        // crop each capture around its element, scaled to the card's real width
+  for (const a of document.querySelectorAll('[data-shot]')) {
+    const W = a.clientWidth, bx = +a.dataset.bx, by = +a.dataset.by, bw = +a.dataset.bw, bh = +a.dataset.bh;
+    const scale = Math.min(1, W / (bw + 60)), x0 = Math.max(0, bx - 30), y0 = Math.max(0, by - 50);
+    a.style.backgroundSize = `${1280 * scale}px auto`;
+    a.style.backgroundPosition = `-${x0 * scale}px -${y0 * scale}px`;
+    const hl = a.querySelector('.hl');
+    Object.assign(hl.style, {left: `${(bx - x0) * scale}px`, top: `${(by - y0) * scale}px`, width: `${bw * scale}px`, height: `${Math.max(bh * scale, 10)}px`});
+  }
+}
+
+document.addEventListener('click', ev => {
+  const el = ev.target.closest('button, a');
+  if (!el) return;
+  if (el.dataset.mode) set({mode: el.dataset.mode});
+  else if (el.dataset.issue) set({issue: el.dataset.issue});
+  else if (el.dataset.goto) { const [p, i] = el.dataset.goto.split('|'); set({persona: p, issue: i, mode: 'head'}); }
+  else if (el.hasAttribute('data-toggle-nr')) set({notRaisedOpen: !state.notRaisedOpen});
+  else if (el.dataset.copy) { try { navigator.clipboard.writeText(el.dataset.copy); el.textContent = 'Copied'; } catch (e) {} }
+  else if (el.dataset.expand) { const [f, k] = el.dataset.expand.split(':'); const p = personas[state.persona];
+    const cell = document.querySelector(`[data-cell="${f}:${k}"]`); const all = p.events.filter(e => e.kind === 'message' && e.feature === f && colOf(e.at) === +k);
+    cell.innerHTML = all.map(e => card(e, {})).join(''); }
+  else if (el.dataset.ev && !el.dataset.ghost) { const p = personas[state.persona]; const e = p.events.find(x => x.id === el.dataset.ev);
+    const hit = R.issues.find(i => (occurrence(i, p.id) || {events: []}).events.includes(e.id));
+    if (hit) set({issue: hit.id}); else if (e.capture && e.capture.screenshot) window.open(e.capture.screenshot, '_blank'); }
+});
+document.addEventListener('change', ev => { if (ev.target.id === 'persona') { const pid = ev.target.value; const mine = issuesFor(pid); set({persona: pid, issue: mine.length ? mine[0].id : null}); } });
+window.addEventListener('resize', () => render());
+render();
+})();
+</script>
+</body>
+</html>

@@ -599,3 +599,104 @@ def test_delta_2_4_to_2_4_1_resolves_the_fixes_and_flags_rina(run):
     rina = next(i for i in head if i.personas == ["rina"])
     assert rina.delta == "new" and "nearest exception P1-E1 does not apply: scope" in rina.why
     assert next(i for i in head if i.rule == "U4").delta == "pre_existing"
+
+
+# ---------------------------------------------- W10b: the Release Story page, driven in a real browser
+from semaudit.decide.pipeline import ReleaseEval  # noqa: E402
+from semaudit.report.page import build as _build_page  # noqa: E402
+from semaudit.report.review import assemble as _assemble  # noqa: E402
+from semaudit.report.review import write as _write  # noqa: E402
+from semaudit.verify.steps import verify as _verify  # noqa: E402
+
+
+@pytest.fixture(scope="module")
+def page_path(run, runner):
+    evs = {}
+    for rel in ("2.3", "2.4"):
+        res = _gold_results(run, rel)
+        evs[rel] = ReleaseEval(rel, {p: run(rel, p) for p in res}, res, {})
+    head = build_issues("2.4", evs["2.4"].results, _C)
+    resolved = apply_delta(head, build_issues("2.3", evs["2.3"].results, _C), set(evs["2.3"].results))
+    stories = {p: s for p, (s, _) in evs["2.4"].results.items()}
+    for i in head:                         # no model: cross-check and defense are recorded as not run
+        _verify(i, stories, evs["2.4"].episodes, runner.run_dir, _C, None, repro=stories, models=False)
+    review = _assemble(evs["2.3"], evs["2.4"], _C, head, resolved, 0.0)
+    path = _write(review, runner.run_dir / "review-2.3-2.4.json")
+    return _build_page(path)
+
+
+def _open(browser, page_path, hash_=""):
+    pg = browser.new_page(viewport={"width": 1600, "height": 1000})
+    errors = []
+    pg.on("pageerror", lambda e: errors.append(str(e)))
+    pg.on("console", lambda m: m.type == "error" and errors.append(m.text))
+    pg.goto(page_path.resolve().as_uri() + hash_)
+    pg.wait_for_selector("h1")
+    return pg, errors
+
+
+def test_page_opens_on_the_hero_with_its_issues_and_policy(browser, page_path):
+    pg, errors = _open(browser, page_path)
+    assert pg.inner_text("h1") == "Maya" and not errors, errors
+    assert "Unexplained tradeoff" in pg.inner_text(".rail")
+    assert pg.inner_text(".rec") == "Needs owner review"                 # models off: partially verified -> review
+    assert pg.locator(".msg.sel").count() == 2                           # moments A and B ringed
+    detail = pg.inner_text(".detail")
+    assert "rule p2" in detail.lower() and "semaudit repro I-2.4-P2" in detail
+    assert {"Severity", "Confidence", "Verification"} <= {x.strip().title() for x in pg.locator(".detail .h").all_inner_texts()}
+    # every quote on the page is the exact captured text
+    texts = set(pg.locator(".quote").all_inner_texts())
+    banner = next(e for e in story_from_episode(_cache[("2.4", "maya")], _C).messages() if e.copy_key == "fl.banner")
+    assert f"“{banner.text}”" in texts
+    pg.close()
+
+
+def test_page_raj_has_nothing_raised_and_shows_his_rule_panel(browser, page_path):
+    pg, errors = _open(browser, page_path, "#persona=raj&mode=head&issue=")
+    assert pg.inner_text("h1") == "Raj" and not errors, errors
+    assert "Nothing raised for Raj" in pg.inner_text(".rail")
+    panel = pg.inner_text(".detail")
+    assert "P1 applies" in panel and "excepted" in panel and "≤ 72 h" in panel
+    assert "P2 not applicable" in panel
+    pg.close()
+
+
+def test_page_diff_mode_marks_added_and_removed(browser, page_path):
+    pg, errors = _open(browser, page_path, "#persona=maya&mode=diff&issue=")
+    assert not errors, errors
+    badges = set(pg.locator(".badge").all_inner_texts())
+    assert {"+ added", "− removed"} <= badges and pg.locator(".msg.ghost").count() > 0
+    pg.close()
+
+
+def test_page_deep_link_opens_kais_conflict(browser, page_path):
+    pg, errors = _open(browser, page_path, "#persona=kai&mode=head&issue=I-2.4-P2-fare-lock-price-watch-conflict")
+    assert not errors, errors
+    assert "Conflicting advice" in pg.inner_text(".detail h2") and "incompatible" in pg.inner_text(".detail")
+    pg.close()
+
+
+def test_page_is_self_contained(page_path):
+    html = page_path.read_text()
+    assert "__REVIEW_JSON__" not in html and "<script src=" not in html     # data and code inline; no CDN
+    shots = {e["capture"]["screenshot"] for p in json.loads(
+        (page_path.parent.parent / "review-2.3-2.4.json").read_text())["personas"]
+        for e in p["events"] if (e.get("capture") or {}).get("screenshot")}
+    assert shots and all((page_path.parent / s).is_file() for s in shots)
+
+
+def test_page_shows_issues_resolved_since_base(browser, run, runner, tmp_path):
+    evs = {}
+    for rel in ("2.4", "2.4.1"):
+        res = _gold_results(run, rel)
+        evs[rel] = ReleaseEval(rel, {p: run(rel, p) for p in res}, res, {})
+    head = build_issues("2.4.1", evs["2.4.1"].results, _C)
+    resolved = apply_delta(head, build_issues("2.4", evs["2.4"].results, _C), set(evs["2.4"].results))
+    stories = {p: s for p, (s, _) in evs["2.4.1"].results.items()}
+    for i in head:
+        _verify(i, stories, evs["2.4.1"].episodes, runner.run_dir, _C, None, repro=stories, models=False)
+    path = _write(_assemble(evs["2.4"], evs["2.4.1"], _C, head, resolved, 0.0), runner.run_dir / "review-2.4-2.4.1.json")
+    pg, errors = _open(browser, _build_page(path), "#persona=maya&mode=head&issue=")
+    rail = pg.inner_text(".rail")
+    assert not errors and "resolved since 2.4" in rail.lower() and "Unexplained tradeoff" in rail, errors
+    pg.close()

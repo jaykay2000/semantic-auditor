@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any
 
 from semaudit.contract.schema import Contract
-from semaudit.decide.issues import Issue, apply_delta, build_issues
+from semaudit.decide.issues import Issue, apply_delta, build_issues, condition_details
 from semaudit.decide.pipeline import ReleaseEval
 from semaudit.relate.rules import validity
 from semaudit.story.align import align
@@ -43,38 +43,73 @@ def not_raised(head: ReleaseEval, failed: list[Issue], contract: Contract) -> li
     return out
 
 
-def persona_view(persona: str, story: Story, base: Story | None, contract: Contract, ev: ReleaseEval) -> dict:
+def capture_view(ep, evidence) -> dict | None:
+    """Where the page can show this message: the screenshot and the element's box (web), or the raw text."""
+    if evidence is None or ep is None:
+        return None
+    cap = next((c for c in ep.captures() if c.id == evidence.capture_id), None)
+    if cap is None:
+        return None
+    el = cap.elements[evidence.element]
+    return {"kind": cap.kind, "surface": cap.surface, "url": cap.url, "screenshot": cap.files.get("screenshot"),
+            "bbox": el.bbox.model_dump() if el.bbox else None}
+
+
+def event_row(e, story: Story, contract: Contract, ep=None) -> dict:
+    row: dict[str, Any] = {"id": e.id, "at": e.at.isoformat(), "kind": e.kind}
+    if e.kind == "user_action":
+        row["action"] = e.action
+        return row
+    live = validity(e, story, contract) if e.extraction and e.extraction.message_kind == "directive" else None
+    row.update(feature=e.feature, surface=e.surface, channel=e.channel, text=e.text, message_key=e.copy_key,
+               user_initiated=e.user_initiated,
+               extraction=e.extraction.model_dump() if e.extraction else None,
+               evidence=e.evidence.model_dump() if e.evidence else None,
+               capture=capture_view(ep, e.evidence),
+               live_until=(live.end.isoformat() if live.end else None) if live else None,
+               live_basis=live.basis if live else None,
+               step_id=f"s{e.evidence.step:02d}" if e.evidence else None)
+    return row
+
+
+def persona_view(persona: str, story: Story, base: Story | None, contract: Contract, ev: ReleaseEval,
+                 base_ev: ReleaseEval | None = None) -> dict:
     diff = align(base, story) if base else None
     steps = [{"step_id": f"s{st.seq:02d}", "at": st.at.isoformat(), "do": st.do, "status": st.status}
              for st in ev.episodes[persona].steps]
     events = []
     for e in story.events:
-        row: dict[str, Any] = {"id": e.id, "at": e.at.isoformat(), "kind": e.kind}
-        if e.kind == "user_action":
-            row["action"] = e.action
-        else:
-            live = validity(e, story, contract) if e.extraction and e.extraction.message_kind == "directive" else None
-            row.update(feature=e.feature, surface=e.surface, channel=e.channel, text=e.text, message_key=e.copy_key,
-                       extraction=e.extraction.model_dump() if e.extraction else None,
-                       evidence=e.evidence.model_dump() if e.evidence else None,
-                       live_until=(live.end.isoformat() if live and live.end else None) if live else None,
-                       live_basis=live.basis if live else None)
-            row["step_id"] = f"s{e.evidence.step:02d}" if e.evidence else None
+        row = event_row(e, story, contract, ev.episodes.get(persona))
         if diff:
             row["delta"] = diff.head_status(e.id)
             row["base_event"] = diff.base_of(e.id)
         events.append(row)
+    by_id = {e.id: e for e in story.events}
+    evaluations = []
+    for x in ev.results[persona][1]:
+        e = by_id.get(x.subject)
+        detail = condition_details(contract.rule(x.rule), x, e, story) if e is not None and x.conditions else []
+        evaluations.append({"rule": x.rule, "subject": x.subject, "status": x.status, "label": x.label,
+                            "conditions": detail, "note": x.note[:200]})
     persona_c = contract.persona(persona)
-    view = {"id": persona, "name": persona_c.name, "party": persona_c.party, "trip": {
+    view = {"id": persona, "name": persona_c.name, "party": persona_c.party, "role": persona_c.role, "trip": {
         "departure_at": story.trip["departure_at"].isoformat() if hasattr(story.trip["departure_at"], "isoformat")
         else story.trip["departure_at"], "flexible": persona_c.trip.flexible, "component": persona_c.trip.component,
         "route": persona_c.trip.route or persona_c.trip.hotel},
-        "steps": steps, "events": events,
+        "steps": steps, "events": events, "evaluations": evaluations,
+        "state_steps": [{"at": st.at.isoformat(), "state": story.state_at(st.at, contract.state, inclusive=True)}
+                        for st in ev.episodes[persona].steps],
         "state": [{"at": s["at"].isoformat() if hasattr(s["at"], "isoformat") else s["at"], "truth": s["truth"]}
                   for s in story.snapshots]}
     if diff:
-        view["removed_from_base"] = [{"id": b.id, "at": b.at.isoformat(), "feature": b.feature, "text": b.text}
-                                     for b in base.events if b.id in diff.removed]
+        view["removed_from_base"] = list(diff.removed)
+        bep = base_ev.episodes.get(persona) if base_ev else None
+        view["base_events"] = [event_row(b, base, contract, bep) for b in base.events]
+        view["base_state_steps"] = [{"at": st.at.isoformat(),
+                                     "state": base.state_at(st.at, contract.state, inclusive=True)}
+                                    for st in bep.steps] if bep else []
+        view["base_steps"] = [{"step_id": f"s{st.seq:02d}", "at": st.at.isoformat(), "do": st.do, "status": st.status}
+                              for st in bep.steps] if bep else []
     return view
 
 
@@ -122,13 +157,15 @@ def assemble(base: ReleaseEval, head: ReleaseEval, contract: Contract, verified:
         "generated_at_sim": None,
         "release": {"base": base.release, "head": head.release},
         "app": contract.app.model_dump() if contract.app else None,
+        "features": [{"id": f.id, "name": f.name or f.id} for f in contract.features],
+        "rules": [{"id": r.id, "kind": r.kind, "text": r.text} for r in contract.rules],
         "policy": {"recommendation": row.recommendation, "row": idx + 1, "rule_fired": row.text},
         "owner_decision": {"status": "pending"},
         "issues": issues,
         "resolved": [issue_dict(i, base_stories, contract) for i in resolved],
         "not_raised": not_raised(head, failed, contract),
         "not_measured": {"base": base.not_measured, "head": head.not_measured},
-        "personas": [persona_view(p, s, base_stories.get(p), contract, head) for p, s in sorted(stories.items())],
+        "personas": [persona_view(p, s, base_stories.get(p), contract, head, base) for p, s in sorted(stories.items())],
         "cost_usd": round(spent_usd, 4),
         "written_at": datetime.utcnow().isoformat(timespec="seconds") + "Z",
     }

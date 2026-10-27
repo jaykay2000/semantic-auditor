@@ -24,6 +24,7 @@ How the work runs:
 | W7 | **built**: base ↔ head alignment by event key; explicit added/removed; marked fuzzy pairs | `src/semaudit/story/align.py` |
 | W8 | **accepted**: real captures → stories → rules + P2 interpretation; 31/31 × 5 fresh runs; stubs fail ($0.56). Re-accepted after the external audit fixes (lineage, liveness, expiry, pair kinds, supersession): 31/31 × 5 ($0.30) | [evidence/w8-real-captures.md](evidence/w8-real-captures.md) |
 | W9 | **accepted**: `semaudit review` end to end (capture → stories → issues → re-capture → verify → policy → review.json) and `semaudit repro`; 2.3→2.4 Hold with 9 verified issues; 2.4→2.4.1 resolves the fixes and raises Rina on scope; verifier rejects 4/4 planted issues (~$0.79) | [evidence/w9-review.md](evidence/w9-review.md) |
+| W10b | **built**: Release Story page from review.json (timeline, issue rail, detail, diff, persona switch, rule panel, resolved, deep links); 5+1 browser tests | [evidence/w10b-release-story.md](evidence/w10b-release-story.md) |
 
 ## The minimum compelling version (MCV)
 

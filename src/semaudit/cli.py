@@ -121,8 +121,19 @@ def review_cmd(contract_dir: Path = typer.Option(..., "--contract", exists=True,
                    f"{i['delta']:12} {', '.join(i['personas'])}")
     for i in r["resolved"]:
         typer.echo(f"  resolved: {i['id']}")
+    from .report.page import build
+    page = build(path)
     typer.echo(f"not raised: {len(r['not_raised'])} · spent ${r['cost_usd']:.3f} · {path}")
+    typer.echo(f"Release Story: {page}")
     raise typer.Exit(0 if r["policy"]["recommendation"] == "ship" else 1)
+
+
+@app.command("report")
+def report_cmd(review: Path = typer.Argument(..., exists=True, dir_okay=False),
+               out: Path = typer.Option(None, "--out", help="output folder (default: beside the review)")):
+    """Build the static Release Story page from a review JSON."""
+    from .report.page import build
+    typer.echo(f"wrote {build(review, out)}")
 
 
 @app.command("repro")

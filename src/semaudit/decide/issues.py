@@ -148,40 +148,51 @@ def explain(entry: Entry, events: list[Event], story: Story, contract: Contract)
     return entry.note or ""
 
 
-def conditional_why(r: Rule, entry: Entry, e: Event, story: Story) -> str:
-    """'nearest exception P1-E1 does not apply: scope (hotel)', with each failing condition's measured value."""
+def condition_details(r: Rule, entry: Entry, e: Event, story: Story) -> list[dict[str, str]]:
+    """Every exception condition with its measured value in words, met or not (Raj: a ✓ 29 h 57 m ≤ 72 h)."""
     ex = r.exceptions[0] if r.exceptions else None
     if ex is None:
-        return f"{e.extraction.strength} on {r.applies_to.get('decision')}, which {r.id} forbids."
+        return []
     conds = {c.id: c for c in ex.conditions}
-    reasons = []
+    out = []
     for cid, v in entry.conditions:
-        if v == "met":
-            continue
-        c = conds.get(cid)
+        c, ok = conds.get(cid), v == "met"
         if cid == "scope":
-            covered = " / ".join(f"{k}: {', '.join(v)}" for k, v in ex.scope.items())
-            reasons.append(f"scope ({e.feature} on a {e.component} {e.surface.replace('_', ' ')}; "
-                           f"the exception covers {covered})")
+            covered = " / ".join(f"{k}: {', '.join(x)}" for k, x in ex.scope.items())
+            text = f"{e.feature} on a {e.component} {e.surface.replace('_', ' ')}; the exception covers {covered}"
         elif cid == "expiry":
-            reasons.append(f"expired ({ex.approved.get('expires')})")
+            text = f"approved until {ex.approved.get('expires')}"
         elif c is not None and c.test == "time_until":
             dep = story.trip.get(c.trip_field)
             dep = datetime.fromisoformat(dep) if isinstance(dep, str) else dep
             gap = dep - e.at
-            h, rem = divmod(int(gap.total_seconds()), 3600)
-            reasons.append(f"({cid}) departs {h} h {rem // 60:02d} m {rem % 60:02d} s after the message, more than "
-                           f"{c.hours:g} h" if gap.total_seconds() >= 0 else f"({cid}) the departure has passed")
+            secs = int(gap.total_seconds())
+            h, rem = divmod(abs(secs), 3600)
+            span = f"{h} h {rem // 60:02d} m {rem % 60:02d} s"
+            text = (f"departs {span} after the message ({'≤' if ok else '>'} {c.hours:g} h)" if secs >= 0
+                    else "the departure has already passed")
         elif c is not None and c.test == "claim_matches_oracle":
             claimed = [x["value"] for x in e.extraction.claims if x["type"] == c.claim]
-            reasons.append(f"({cid}) claims {claimed[0] if claimed else '?'} {c.claim.replace('_', ' ')}, "
-                           f"true value {story.truth_at(c.claim, e.at, e.feature)}")
+            truth = story.truth_at(c.claim, e.at, e.feature)
+            text = f"claims {claimed[0] if claimed else '?'} {c.claim.replace('_', ' ')}; true value {truth}"
         elif c is not None and c.kind == "judged":
-            reasons.append(f"({cid}) the message does not {c.field.replace('_', ' ').replace('explains', 'explain')}")
+            verb = c.field.replace("_", " ").replace("explains", "explains" if ok else "does not explain")
+            text = f"the message {verb}" if ok else f"the message {verb.replace('does not explain', 'does not explain')}"
         else:
-            reasons.append(f"({cid}) {v}")
+            text = v
+        out.append({"id": cid, "value": v, "text": text})
+    return out
+
+
+def conditional_why(r: Rule, entry: Entry, e: Event, story: Story) -> str:
+    """'nearest exception P1-E1 does not apply: scope (…)', with each failing condition's measured value."""
+    ex = r.exceptions[0] if r.exceptions else None
+    if ex is None:
+        return f"{e.extraction.strength} on {r.applies_to.get('decision')}, which {r.id} forbids."
+    bad = [f"({d['id']}) {d['text']}" if d["id"] not in ("scope", "expiry") else f"{d['id']} ({d['text']})"
+           for d in condition_details(r, entry, e, story) if d["value"] != "met"]
     return (f"{e.extraction.strength} {e.extraction.action} on {r.applies_to.get('decision')}; nearest exception "
-            f"{ex.id} does not apply: " + "; ".join(reasons) + ".")
+            f"{ex.id} does not apply: " + "; ".join(bad) + ".")
 
 
 def build_issues(release: str, results: dict[str, tuple[Story, list[Entry]]], contract: Contract) -> list[Issue]:

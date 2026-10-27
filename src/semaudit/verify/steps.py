@@ -228,4 +228,5 @@ def verify(issue: Issue, stories: dict[str, Story], episodes: dict[str, Episode]
     }
     issue.verification = verification_status(steps)
     issue.confidence = confidence_of(issue, steps, contract,
-                                     reduced_independence=same_family(router, "extractor", "cross_checker_extract"))
+                                     reduced_independence=bool(router) and models
+                                     and same_family(router, "extractor", "cross_checker_extract"))
