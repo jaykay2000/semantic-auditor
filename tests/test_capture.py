@@ -624,8 +624,10 @@ def page_path(run, runner):
     stories = {p: s for p, (s, _) in evs["2.4"].results.items()}
     for i in head:                         # no model: cross-check and defense are recorded as not run
         _verify(i, stories, evs["2.4"].episodes, runner.run_dir, _C, None, repro=stories, models=False)
-    review = _assemble(evs["2.3"], evs["2.4"], _C, head, resolved, 0.0, approval=_approval(_C_DIR, _C))
-    path = _write(review, runner.run_dir / "review-2.3-2.4.json")
+    out = runner.run_dir / "review-2.3-2.4.json"
+    review = _assemble(evs["2.3"], evs["2.4"], _C, head, resolved, 0.0, approval=_approval(_C_DIR, _C),
+                       review_path=str(out))
+    path = _write(review, out)
     return _build_page(path)
 
 

@@ -14,6 +14,7 @@ from semaudit.contract.schema import load_contract
 from semaudit.decide.issues import apply_delta, build_issues
 from semaudit.decide.pipeline import evaluate_release
 from semaudit.models.router import Router
+from semaudit.report import manifest as mf
 from semaudit.report.review import assemble, write
 from semaudit.story.build import story_from_episode
 from semaudit.verify.steps import verify
@@ -43,6 +44,10 @@ def run_review(contract_dir: Path, base: str, head: str, *, run_id: str, runs_di
     stories = {p: s for p, (s, _) in h.results.items()}
     for i in head_issues:
         verify(i, stories, h.episodes, run_dir, contract, router, repro=repro, fresh=fresh, models=models)
+    out = run_dir / f"review-{base}-{head}.json"
+    manifest = mf.build(contract_dir, contract, run_dir, base, head, router=router, models=models, max_usd=max_usd,
+                        repro_run=f"{run_id}-repro" if affected else None)
     review = assemble(b, h, contract, head_issues, resolved, router.spent_usd,
-                      approval=approval_state(contract_dir, contract), unconfirmed=unconfirmed)
-    return write(review, run_dir / f"review-{base}-{head}.json")
+                      approval=approval_state(contract_dir, contract), unconfirmed=unconfirmed,
+                      manifest=manifest, review_path=str(out))
+    return write(review, out)

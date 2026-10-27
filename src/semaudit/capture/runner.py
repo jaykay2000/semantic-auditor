@@ -262,7 +262,7 @@ class Runner:
         try:
             self._write(ectx, cid, "dom", "html", page.content().encode("utf-8"), cap)
             self._write(ectx, cid, "screenshot", "png", page.screenshot(full_page=True, animations="disabled",
-                                                                       caret="hide"), cap, hashed=False)
+                                                                       caret="hide"), cap)
         except Exception as exc:  # noqa: BLE001
             errors.append(f"page artifacts: {type(exc).__name__}: {exc}")
         if surface is not None and kind == "chat":

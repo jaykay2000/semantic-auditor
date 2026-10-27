@@ -74,7 +74,7 @@ class ModelError(RuntimeError):
 
 class Router:
     def __init__(self, root: Path | None = None, config_path: Path | None = None,
-                 max_usd: float | None = None):
+                 max_usd: float | None = None, offline: bool = False):
         self.root = root or Path.cwd()
         load_env(self.root / ".env")
         self.roles = dict(DEFAULT_ROLES)
@@ -85,6 +85,7 @@ class Router:
         self.ledger_path = self.root / "runs" / "ledger.jsonl"
         self.max_usd = max_usd
         self.spent_usd = 0.0
+        self.offline = offline            # cache only: a miss is an error, never a model call
 
     def _key(self, provider: str) -> str:
         env = PROVIDERS[provider]["key_env"]
@@ -120,6 +121,8 @@ class Router:
             raw, latency = json.loads(cache_file.read_text()), 0.0
             cached = True
         else:
+            if self.offline:
+                raise ModelError(f"offline: no cached answer for {role} ({digest[:12]})")
             if self.max_usd is not None and self.spent_usd >= self.max_usd:
                 raise ModelError(f"budget exhausted: spent ${self.spent_usd:.4f} of ${self.max_usd}")
             t0 = time.monotonic()

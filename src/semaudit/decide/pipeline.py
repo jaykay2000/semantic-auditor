@@ -42,7 +42,8 @@ def measurement_problems(ep: Episode) -> list[str]:
 
 
 def evaluate_release(run_dir: Path, release: str, contract: Contract, router: Router, *,
-                     fresh: bool = False, seed: str = "0") -> ReleaseEval:
+                     fresh: bool = False, seed: str = "0", personas: set[str] | None = None) -> ReleaseEval:
+    """`personas`: the personas this run was meant to capture (default: every persona the contract schedules)."""
     episodes = {}
     for p in sorted((run_dir / "episodes" / release).glob("*.json")):
         ep = Episode.read(p)
@@ -50,6 +51,8 @@ def evaluate_release(run_dir: Path, release: str, contract: Contract, router: Ro
     not_measured = {p: probs for p, ep in episodes.items() if (probs := measurement_problems(ep))}
     for sc in contract.scenarios:                          # a persona the contract schedules but nobody captured
         for pid in sc.personas:
+            if personas is not None and pid not in personas:
+                continue
             ep = episodes.get(pid)
             if ep is None or ep.scenario != sc.id:
                 not_measured.setdefault(pid, []).append(f"no {release} episode for scenario {sc.id}")

@@ -38,6 +38,9 @@ def extraction_schema(contract: Contract) -> dict:
             "properties": {"messages": {"type": "array", "items": item}}}
 
 
+PROMPT = "Classify every message below independently, using the rubric. Return one entry per id.\n"
+
+
 def normalize(x: Extraction, contract: Contract) -> Extraction:
     """Code over model where the contract decides: an action that belongs to exactly one decision implies
     that decision. A contradicting model decision is overruled and recorded (never silently kept)."""
@@ -51,8 +54,7 @@ def extract_story(story: Story, contract: Contract, router: Router, *, fresh: bo
                   role: str = "extractor") -> dict[str, Extraction]:
     msgs = story.messages()
     listing = [{"id": m.id, "feature": m.feature, "channel": m.channel, "text": m.text} for m in msgs]
-    prompt = ("Classify every message below independently, using the rubric. Return one entry per id.\n"
-              + json.dumps(listing, ensure_ascii=False, indent=1))
+    prompt = (PROMPT + json.dumps(listing, ensure_ascii=False, indent=1))
     r = router.complete(role, [{"role": "system", "content": contract.rubric},
                                {"role": "user", "content": prompt}],
                         schema=extraction_schema(contract), schema_name="extraction", fresh=fresh)
@@ -76,8 +78,7 @@ def extract_unique(messages: list[dict], contract: Contract, router: Router, *, 
     for i in range(0, len(uniq), batch):
         chunk = uniq[i:i + batch]
         listing = [{"id": f"m{j}", "feature": f, "channel": c, "text": t} for j, (f, c, t) in enumerate(chunk)]
-        prompt = ("Classify every message below independently, using the rubric. Return one entry per id.\n"
-                  + json.dumps(listing, ensure_ascii=False, indent=1))
+        prompt = (PROMPT + json.dumps(listing, ensure_ascii=False, indent=1))
         r = router.complete(role, [{"role": "system", "content": contract.rubric},
                                    {"role": "user", "content": prompt}],
                             schema=extraction_schema(contract), schema_name="extraction", fresh=fresh)

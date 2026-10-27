@@ -149,52 +149,49 @@ def report_cmd(review: Path = typer.Argument(..., exists=True, dir_okay=False),
 
 @app.command("repro")
 def repro_cmd(issue_id: str = typer.Argument(..., help="an issue id from the review, e.g. I-2.4-P2-…"),
-              review: Path = typer.Option(None, "--review", help="review JSON (default: the newest under runs/)"),
-              contract_dir: Path = typer.Option(..., "--contract", exists=True, file_okay=False),
-              runs_dir: Path = typer.Option(Path("runs"), "--runs-dir")):
-    """Re-capture the issue's personas on the head release and check every cited moment appears again.
+              review: Path = typer.Option(..., "--review", exists=True, dir_okay=False, help="the review JSON"),
+              max_usd: float = typer.Option(..., "--max-usd", help="spend cap (unchanged messages hit the cache)"),
+              runs_dir: Path = typer.Option(None, "--runs-dir", help="where the replay run goes (default: beside the review)"),
+              fresh: bool = typer.Option(False, "--fresh", help="ignore the model cache")):
+    """Replay one finding from scratch: re-capture, check every cited moment, re-derive the issue.
 
-    Exit 0: reproduced; 1: an event did not come back (or came back different); 2: could not measure.
+    Uses the contract, adapter and prompts the review's manifest pins; refuses if they changed.
+    Exit 0: reproduced; 1: ran but did not reproduce; 2: could not measure.
     """
-    import json
-    import time
-    from .capture import LaunchError, Runner
-    from .contract.schema import load_contract
-    from .story.build import story_from_episode
-    review = review or max(runs_dir.glob("*/review-*.json"), key=lambda p: p.stat().st_mtime, default=None)
-    if review is None or not review.exists():
-        typer.echo("no review found", err=True)
-        raise typer.Exit(2)
-    r = json.loads(review.read_text())
-    issue = next((i for i in r["issues"] + r["resolved"] if i["id"] == issue_id), None)
-    if issue is None:
-        typer.echo(f"{issue_id} not in {review}", err=True)
-        raise typer.Exit(2)
-    head = r["release"]["base"] if issue in r["resolved"] else r["release"]["head"]
-    views = {p["id"]: {e["id"]: e for e in p["events"]} for p in r["personas"]}
-    contract = load_contract(contract_dir)
-    personas = sorted({o["persona"] for o in issue["occurrences"]})
-    typer.echo(f"{issue_id}: re-capturing {', '.join(personas)} on {head}")
+    from .capture import LaunchError
+    from .decide.repro import CannotReplay, replay
+    from .models.router import ModelError
     try:
-        with Runner(contract_dir, runs_dir=runs_dir, run_id=f"repro-{time.strftime('%Y%m%dT%H%M%S')}") as run:
-            fresh = {ep.persona: story_from_episode(ep, contract) for ep in run.capture(head, personas)}
-    except LaunchError as e:
+        res = replay(review, issue_id, max_usd=max_usd, runs_dir=runs_dir, fresh=fresh)
+    except (CannotReplay, LaunchError, ModelError) as e:
         typer.echo(f"cannot measure: {e}", err=True)
         raise typer.Exit(2)
-    ok = True
-    for o in issue["occurrences"]:
-        for eid in o["events"]:
-            want = views.get(o["persona"], {}).get(eid)
-            if want is None or want["kind"] != "message":
-                continue
-            got = [e for e in fresh[o["persona"]].messages()
-                   if e.copy_key == want["message_key"] and e.feature == want["feature"]
-                   and e.text == want["text"] and e.at.isoformat() == want["at"]]
-            ok &= bool(got)
-            typer.echo(f"  {'✓' if got else '✗'} {o['persona']} {want['at'][11:19]} {want['feature']}: "
-                       f"\"{want['text'][:70]}\"")
-    typer.echo("REPRODUCED" if ok else "NOT REPRODUCED")
-    raise typer.Exit(0 if ok else 1)
+    typer.echo(f"{issue_id} ({res.kind}) · replay run {res.run_dir}")
+    for c in res.checks:
+        typer.echo(f"  {c.name}: {'ok' if c.ok else 'FAILED'}")
+        for line in c.lines:
+            typer.echo(f"    {line}")
+    typer.echo("REPRODUCED" if res.ok else "NOT REPRODUCED")
+    raise typer.Exit(0 if res.ok else 1)
+
+
+@app.command("verify-report")
+def verify_report_cmd(review: Path = typer.Argument(..., exists=True, dir_okay=False)):
+    """Check a review.json against the inputs its manifest pins, offline (model cache only, no spend).
+
+    Exit 0: the review is what its inputs produce; 1: it is not (each difference is listed); 2: cannot check.
+    """
+    from .verify.report import CannotVerify, verify_report
+    try:
+        problems = verify_report(review)
+    except CannotVerify as e:
+        typer.echo(f"cannot verify: {e}", err=True)
+        raise typer.Exit(2)
+    for p in problems:
+        typer.echo(f"  ✗ {p}")
+    typer.echo("CONSISTENT: the review is what its pinned inputs produce" if not problems
+               else f"NOT CONSISTENT: {len(problems)} difference(s)")
+    raise typer.Exit(0 if not problems else 1)
 
 
 if __name__ == "__main__":

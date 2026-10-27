@@ -136,11 +136,11 @@ def persona_view(persona: str, story: Story, base: Story | None, contract: Contr
     return view
 
 
-def issue_dict(i: Issue, stories: dict[str, Story], contract: Contract) -> dict:
+def issue_dict(i: Issue, stories: dict[str, Story], contract: Contract, review_path: str | None = None) -> dict:
     rule = contract.rule(i.rule)
     o = i.occurrences[0]
     return {
-        "id": i.id, "layer": i.layer, "rule": i.rule, "rule_kind": i.rule_kind, "label": i.label,
+        "id": i.id, "signature": json.loads(json.dumps(list(i.signature))), "layer": i.layer, "rule": i.rule, "rule_kind": i.rule_kind, "label": i.label,
         "personas": i.personas, "features": i.features, "delta": i.delta, "delta_basis": i.delta_basis,
         "why": i.why, "rule_text": rule.text, "rule_source": rule.source.model_dump() if rule.source else None,
         "conditions": [list(c) for c in o.entry.conditions],
@@ -148,7 +148,7 @@ def issue_dict(i: Issue, stories: dict[str, Story], contract: Contract) -> dict:
                          "also": [asdict(a) | {"conditions": [list(c) for c in a.conditions]} for a in x.also]}
                         for x in i.occurrences],
         "severity": i.severity, "confidence": i.confidence, "verification": i.verification,
-        "repro": f"semaudit repro {i.id}",
+        "repro": f"semaudit repro {i.id} --review {review_path} --max-usd 1" if review_path else None,
     }
 
 
@@ -177,7 +177,7 @@ def outcome_of(policy_rec: str, measured: bool, approval: dict) -> dict:
 
 def assemble(base: ReleaseEval, head: ReleaseEval, contract: Contract, verified: list[Issue],
              resolved: list[Issue], spent_usd: float, *, approval: dict,
-             unconfirmed: list[Issue] = ()) -> dict:
+             unconfirmed: list[Issue] = (), manifest: dict | None = None, review_path: str | None = None) -> dict:
     open_issues = [i for i in verified if i.verification.get("status") != "failed"]
     failed = [i for i in verified if i.verification.get("status") == "failed"]
     row, idx = contract.policy.evaluate([{"severity": i.severity["level"], "confidence": i.confidence["level"],
@@ -187,7 +187,7 @@ def assemble(base: ReleaseEval, head: ReleaseEval, contract: Contract, verified:
     base_stories = {p: s for p, (s, _) in base.results.items()}
     issues = []
     for i in open_issues:
-        d = issue_dict(i, stories, contract)
+        d = issue_dict(i, stories, contract, review_path)
         d["other_rules"] = other_rules(i, head.results)
         issues.append(d)
     return {
@@ -204,11 +204,12 @@ def assemble(base: ReleaseEval, head: ReleaseEval, contract: Contract, verified:
         "approval": approval,
         "owner_decision": {"status": "pending"},
         "issues": issues,
-        "resolved": [issue_dict(i, base_stories, contract) for i in resolved],
+        "resolved": [issue_dict(i, base_stories, contract, review_path) for i in resolved],
         "unconfirmed": [issue_dict(i, base_stories, contract) for i in unconfirmed],
         "not_raised": not_raised(head, failed, contract),
         "personas": [persona_view(p, s, base_stories.get(p), contract, head, base) for p, s in sorted(stories.items())],
         "cost_usd": round(spent_usd, 4),
+        "manifest": manifest,
         "written_at": datetime.utcnow().isoformat(timespec="seconds") + "Z",
     }
 

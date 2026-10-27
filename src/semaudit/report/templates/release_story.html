@@ -346,7 +346,7 @@ function detail(p) {
       <div class="box"><p class="h">Verification</p><div class="lvl" style="color:${i.verification.status === 'verified' ? 'var(--ok)' : 'var(--ink)'}">${esc(i.verification.status.replace('_', ' '))}</div><div style="font-size:13px;line-height:1.6">${vline}</div></div>
     </div>
     <div class="row spread"><span style="font-size:13px"><span class="chip delta ${i.delta === 'new' ? '' : 'pre'}">${esc(i.delta.replace('_', ' ').toUpperCase())} in ${esc(R.release.head)}</span> ${esc(i.delta_basis)} · features: ${i.features.map(esc).join(', ')}</span>
-      <span class="row" style="gap:8px"><code class="repro">${esc(i.repro)}</code><button class="btn" data-copy="${esc(i.repro)}">Copy</button></span></div>
+      ${i.repro ? `<span class="row" style="gap:8px" title="re-captures, checks every cited moment and re-derives the issue"><code class="repro">${esc(i.repro)}</code><button class="btn" data-copy="${esc(i.repro)}">Copy</button></span>` : '<span class="muted">no pinned replay for this review</span>'}</div>
   </section>`;
 }
 

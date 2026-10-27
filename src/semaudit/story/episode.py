@@ -69,7 +69,7 @@ class Capture(Strict):
     status: CaptureStatus = "captured"                        # not_measured: the surface could not be read
     error: str | None = None
     files: dict[str, str] = Field(default_factory=dict)       # role -> path relative to the run dir
-    sha256: dict[str, str] = Field(default_factory=dict)      # role -> digest, for the text-like artifacts
+    sha256: dict[str, str] = Field(default_factory=dict)      # role -> digest of every stored artifact (dom, raw, screenshot)
     meta: dict[str, Any] = Field(default_factory=dict)
     elements: list[Element] = Field(default_factory=list)
 
