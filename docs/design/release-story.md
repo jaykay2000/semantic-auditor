@@ -1,6 +1,6 @@
 # Release Story screen: design spec (W10a)
 
-Status: **draft, awaiting owner approval** (approval gates W10b). The wireframe (three screens: Maya on 2.4 with the top issue selected, Raj after a persona switch, Maya in diff mode; private link given to the owner) is the visual companion to this spec; where the two disagree, this spec wins and the wireframe is corrected.
+Status: **approved by the owner, 2026-10-26** (this unblocks W10b). The wireframe (three screens: Maya on 2.4 with the top issue selected, Raj after a persona switch, Maya in diff mode; private link given to the owner) is the visual companion to this spec; where the two disagree, this spec wins and the wireframe is corrected.
 
 ## Job of the screen
 
