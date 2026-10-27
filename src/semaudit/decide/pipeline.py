@@ -42,8 +42,11 @@ def measurement_problems(ep: Episode) -> list[str]:
 
 
 def evaluate_release(run_dir: Path, release: str, contract: Contract, router: Router, *,
-                     fresh: bool = False, seed: str = "0", personas: set[str] | None = None) -> ReleaseEval:
-    """`personas`: the personas this run was meant to capture (default: every persona the contract schedules)."""
+                     fresh: bool = False, seed: str = "0", personas: set[str] | None = None,
+                     generator=None) -> ReleaseEval:
+    """`personas`: the personas this run was meant to capture (default: every persona the contract schedules).
+    `generator`: replaces the code candidate generators and rule evaluation with a function story -> entries
+    (the no-generators ablation); extraction still runs, so verification sees the same readings."""
     episodes = {}
     for p in sorted((run_dir / "episodes" / release).glob("*.json")):
         ep = Episode.read(p)
@@ -64,5 +67,5 @@ def evaluate_release(run_dir: Path, release: str, contract: Contract, router: Ro
         for e in s.messages():
             e.extraction = ext[(e.feature or "", e.channel or "", e.text)]
         interp = model_interpreter(router, fresh=fresh, rng=random.Random(f"{seed}:{release}:{persona}"))
-        results[persona] = (s, evaluate(s, contract, interp))
+        results[persona] = (s, generator(s) if generator else evaluate(s, contract, interp))
     return ReleaseEval(release, episodes, results, not_measured)

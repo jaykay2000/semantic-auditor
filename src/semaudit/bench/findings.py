@@ -148,8 +148,13 @@ def from_review(review: dict, *, system: str = "semaudit-full", run: str = "1") 
             out.append(Finding(id=f"{i['id']}+{rule}", personas=sorted({o["persona"] for o in occ}), rule=rule,
                                target=target, why=f"also violated on the event {i['id']} cites",
                                cited=[c for c in cited if c.persona in {o["persona"] for o in occ}], secondary=True))
-    return Findings(system=system, release=review["release"]["head"] if isinstance(review["release"], dict)
-                    else str(review["release"]), run=run, findings=out, cost_usd=review.get("cost_usd"))
+    spend = (review.get("manifest") or {}).get("spend") or {}
+    abl = (review.get("manifest") or {}).get("ablation")
+    return Findings(system=f"ablation-{abl}" if abl and system == "semaudit-full" else system,
+                    release=review["release"]["head"] if isinstance(review["release"], dict)
+                    else str(review["release"]), run=run, findings=out, cost_usd=review.get("cost_usd"),
+                    cost_if_fresh_usd=spend.get("if_fresh_usd"), calls=spend.get("calls"),
+                    cached_calls=spend.get("cached"), fresh=spend.get("fresh"))
 
 
 def load(path: Path, model: type[BaseModel]) -> Any:
