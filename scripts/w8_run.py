@@ -38,6 +38,7 @@ from semaudit.story.model import Extraction  # noqa: E402
 
 FIX = ROOT / "tests" / "fixtures" / "stories"
 FIXTURE_FOR = {("2.3", "maya"): "maya_23", ("2.4.1", "rina"): "rina", ("2.4.1", "maya"): "maya_241",
+               ("2.4.1", "kai"): "kai_241",           # audit P1: cg.reconcile does not reconcile wait vs book now
                ("2.4", "family"): "maya"}           # NC4: the family's story is Maya's, with their own totals
 EMAIL_ALIAS = {"pw.card": "pw.email.forecast", "pw.card.nodrop": "pw.email.forecast.nodrop"}
 SLACK = timedelta(seconds=15)                        # fixtures place renders +5/+10 s after the action

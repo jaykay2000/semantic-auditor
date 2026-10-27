@@ -31,7 +31,7 @@ Everything on the screen serves one of those four, or the shipping decision. Any
 ```
 
 ### Header
-- Persona name, party, flexibility, **departure relative to the first event** ("departs in 42 days"), and the exact departure timestamp on hover.
+- Persona name and the persona's situation in the contract's own words (`subject.context` fields with `show`, e.g. "solo · flexible dates · departs 41 days away"), computed in review.json as `summary`.
 - Release switch: `2.3`, `2.4`, `diff`. Persona switch: a menu listing every persona in the run, each with its count of raised issues.
 - Corner tag on every auditor screen: *built during the hackathon*. Northbound screens also carry *fictional app*; Finablo screens *app under audit*.
 
@@ -90,7 +90,7 @@ Opens under the story when an issue is selected; the selected issue's events get
 ## Data the page reads (W10b contract)
 One JSON per run, `review.json`, from which the static page is generated:
 - `release {base, head}`, `policy {recommendation, rule_fired}`, `owner_decision`.
-- `personas[]`, each with `trip`, `steps[] {step_id, at}`, `events[] {event_key, id, step_id, at, kind, feature, surface, channel, text, message_key, capture_ref, locator, live_until | open, delta, base_event_key}`, `state[] {from, to, label}`.
+- `personas[]`, each with `context` and `summary`, `steps[] {step_id, at}`, `events[] {event_key, id, step_id, at, kind, feature, surface, channel, text, message_key, capture_ref, locator, live_until | open, delta, base_event_key}`, `state[] {from, to, label}`.
 - `issues[] {id, persona, layer: release|factual, rule, label, subjects[], severity {level, factors[]}, confidence {level, basis[]}, verification {status, steps{…}}, delta, why, rule_text, rule_source, conditions[], other_rules[], repro}`.
 - `not_raised[] {persona, rule, subjects[], status, label, reason}`.
 Nothing on the screen is computed in the page except layout; every word and value comes from this file.

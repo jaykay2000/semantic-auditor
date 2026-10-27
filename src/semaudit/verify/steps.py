@@ -39,17 +39,43 @@ def rule_fields(contract: Contract, rule_id: str) -> tuple[str, ...]:
         return ("message_kind", "decision", "action")
     return ()                                   # fact rules: claims are compared instead
 
+GROUNDS = ["exception_applies", "extraction_wrong", "reconciled", "timing", "rule_does_not_apply", "none"]
+FIELDS_DISPUTABLE = ["message_kind", "decision", "action", "strength", "explains_own_tradeoff"]
+
 DEFENSE_SCHEMA = {
-    "type": "object", "additionalProperties": False, "required": ["strongest_defense", "defense_succeeds"],
-    "properties": {"strongest_defense": {"type": "string"}, "defense_succeeds": {"type": "boolean"}},
+    "type": "object", "additionalProperties": False,
+    "required": ["strongest_defense", "ground", "exception_conditions_met", "disputed_readings",
+                 "reconciling_event_id", "addresses_actions", "defense_succeeds"],
+    "properties": {
+        "strongest_defense": {"type": "string"},
+        "ground": {"type": "string", "enum": GROUNDS},
+        "exception_conditions_met": {"type": "array", "items": {"type": "string"}},
+        "disputed_readings": {"type": "array", "items": {
+            "type": "object", "additionalProperties": False, "required": ["event_id", "field", "value"],
+            "properties": {"event_id": {"type": "string"}, "field": {"type": "string", "enum": FIELDS_DISPUTABLE},
+                           "value": {"type": "string"}}}},
+        "reconciling_event_id": {"type": "string"},
+        "addresses_actions": {"type": "array", "items": {"type": "string"}},
+        "defense_succeeds": {"type": "boolean"},
+    },
 }
 
 DEFENSE_INSTRUCTIONS = """You are the product team defending a release against one reported issue.
-Using ONLY the owner's rules and exceptions given and the messages the user actually saw, make the
-strongest honest case that this is NOT a violation (an exception applies, the cited messages do not say what
-the report claims, the timing is different, the rule does not apply to this case). Write that defense first.
-Then set defense_succeeds: true if your defense shows the rule is NOT broken by what the user actually
-saw; false if the violation still holds despite your best defense. Do not invent messages, rules or facts."""
+Using ONLY the owner's rules and exceptions, the rubric, and the messages the user actually saw, make the
+strongest honest case that this is NOT a violation. Write that defense first, then name its ground:
+- exception_applies: an exception's conditions all hold; list the condition ids you say are met.
+- extraction_wrong: a cited message does not say what its reading says; list each disputed reading as
+  {event_id, field, value} with the value you say is correct under the rubric.
+- reconciled: another message reconciled the cited recommendations in time; give its id and which of the
+  pair's actions it addresses.
+- timing: the cited moments did not overlap, or came after the decision the rule protects.
+- rule_does_not_apply: the rule's own text, read as a whole, does not cover this case.
+- none: you found no honest defense.
+The rule applies to each message as the rubric classifies it (its reading is given). Arguing that a message the
+rubric classifies as forbidden is nonetheless fine is not a defense; dispute the reading instead.
+Then set defense_succeeds: true if your defense shows the rule is NOT broken by what the user actually saw;
+false if the violation still holds despite your best defense. Use [] and "" for fields your ground does not use.
+Do not invent messages, rules or facts. Your claims are checked against the measured data."""
 
 
 # ---------- individual steps ----------
@@ -85,7 +111,8 @@ def step_reproduced(issue: Issue, stories: dict[str, Story], repro: dict[str, St
     return {"result": "fail" if missing else "pass", "detail": missing or "same events, same text, same time"}
 
 
-def _cross_one(issue: Issue, o, story: Story, contract: Contract, router: Router, *, fresh: bool) -> tuple[bool, str]:
+def _cross_one(issue: Issue, o, story: Story, contract: Contract, router: Router, *, fresh: bool,
+               readings: dict | None = None) -> tuple[bool, str]:
     from semaudit.relate.rules import evaluate
     story = story.model_copy(deep=True)
     cited = [e for e in cited_events(o.entry, story) if e.kind == "message"]
@@ -98,6 +125,8 @@ def _cross_one(issue: Issue, o, story: Story, contract: Contract, router: Router
         if diffs:
             changed.append(f"{e.id}: {', '.join(f'{f} {getattr(e.extraction, f)}->{getattr(x, f)}' for f in diffs)}")
         e.extraction = x
+        if readings is not None:
+            readings[e.id] = x
     interp = model_interpreter(router, fresh=fresh, rng=random.Random(f"x:{issue.id}:{o.persona}"),
                                role="cross_checker_interpret")
     again = [x for x in evaluate(story, contract, interp)
@@ -112,39 +141,102 @@ def _cross_one(issue: Issue, o, story: Story, contract: Contract, router: Router
 
 
 def step_cross_model(issue: Issue, stories: dict[str, Story], contract: Contract, router: Router, *,
-                     fresh: bool) -> dict:
+                     fresh: bool, readings: dict[str, dict] | None = None) -> dict:
     """Independent re-derivation, for EVERY occurrence: the other model re-extracts each cited message (and, for
     coherence issues, re-labels the candidate); the rules then run again on that reading. Passes only if the
     same violation (rule, subject, and label for P2) comes out again for every persona the issue groups."""
-    per = {o.persona: _cross_one(issue, o, stories[o.persona], contract, router, fresh=fresh)
+    if readings is not None:
+        for o in issue.occurrences:
+            readings.setdefault(o.persona, {})
+    per = {o.persona: _cross_one(issue, o, stories[o.persona], contract, router, fresh=fresh,
+                                 readings=readings.get(o.persona) if readings is not None else None)
            for o in issue.occurrences}
     ok = all(v for v, _ in per.values())
     return {"result": "pass" if ok else "fail", "detail": {p: d for p, (_, d) in per.items()},
             "occurrences": {p: "pass" if v else "fail" for p, (v, _) in per.items()}}
 
 
-def _defend_one(issue: Issue, o, story: Story, contract: Contract, router: Router, *, fresh: bool) -> tuple[bool, str]:
+def adjudicate(defense: dict, issue: Issue, o, story: Story, contract: Contract,
+               cross: dict[str, Any] | None) -> tuple[bool, str]:
+    """Code checks a successful defense against what was measured. Returns (defense_stands, why).
+
+    A claim about a data condition is decided by its measured value; a disputed reading stands only where the two
+    models disagree and the defense takes the other model's reading (a reading both share, or a restatement of
+    the reading, is overruled; whether the violation follows from the reading is the cross-check's job); a claimed reconciler must be timely and address
+    both actions of the pair. Judged grounds (a reading the models disagree on, timing, the rule's scope) stand.
+    """
+    if not defense["defense_succeeds"]:
+        return False, "the defender found no defense"
+    ground = defense["ground"]
     rule = contract.rule(issue.rule)
+    if ground == "exception_applies":
+        data = {c.id for e in rule.exceptions for c in e.conditions if c.kind == "data"} | {"scope", "expiry"}
+        measured = dict(o.entry.conditions)
+        wrong = [c for c in defense["exception_conditions_met"] if c in data and measured.get(c) not in (None, "met")]
+        if wrong:
+            return False, f"overruled: claims {', '.join(wrong)} met; measured {', '.join(measured[c] for c in wrong)}"
+        return True, "an exception applies (judged conditions disputed)"
+    if ground == "extraction_wrong":
+        by = {e.id: e for e in story.events}
+        relevant = set(rule_fields(contract, issue.rule))
+        for d in defense["disputed_readings"]:
+            e = by.get(d["event_id"])
+            if e is None or e.extraction is None or d["field"] not in relevant:
+                continue
+            mine = str(getattr(e.extraction, d["field"])).lower()
+            other = cross.get(e.id) if cross else None
+            theirs = str(getattr(other, d["field"])).lower() if other is not None else None
+            if d["value"].lower() != mine and theirs is not None and d["value"].lower() == theirs:
+                return True, f"the models disagree on {e.id}.{d['field']} and the defense takes the other reading"
+        return False, "overruled: no disputed reading is one the models disagree on"
+    if ground == "reconciled":
+        from semaudit.relate.rules import reconciler_addresses_pair, reconciler_is_timely
+        cand = next((c for c in p2_candidates(story, contract) if c.subject == o.entry.subject), None)
+        rid = defense["reconciling_event_id"]
+        if cand is None:
+            return True, "reconciled (not a coherence candidate; judged)"
+        if not reconciler_is_timely(story, cand, rid, contract):
+            return False, f"overruled: {rid or 'no message'} was not shown while both were live and before deciding"
+        if not reconciler_addresses_pair(cand, defense["addresses_actions"]):
+            return False, f"overruled: {rid} does not address both actions of the pair"
+        return True, f"{rid} reconciles the pair in time"
+    if ground == "none":
+        return False, "the defender named no ground"
+    if ground == "rule_does_not_apply" and evidence_kind(issue, contract) == "measured":
+        # code applied this rule over contract-declared fields (channels, topics, states, oracle values); a
+        # disagreement with how the contract scopes it is the owner's to settle, not grounds to drop the issue
+        return False, "overruled: this rule is applied by code from the contract's own definitions"
+    return True, f"{ground.replace('_', ' ')} (judged)"
+
+
+def _defend_one(issue: Issue, o, story: Story, contract: Contract, router: Router, *, fresh: bool,
+                cross: dict[str, Any] | None) -> tuple[bool, str]:
+    rule = contract.rule(issue.rule)
+    cited = [e for e in cited_events(o.entry, story) if e.kind == "message"]
     payload = {
         "issue": {"rule": rule.id, "rule_text": rule.text, "label": issue.label, "why": issue.why,
-                  "exception_conditions": [list(c) for c in o.entry.conditions]},
+                  "exception_conditions_measured": [list(c) for c in o.entry.conditions]},
         "exceptions": [{"id": e.id, "conditions": [c.model_dump(exclude_none=True) for c in e.conditions],
                         "scope": e.scope} for e in rule.exceptions],
+        "rubric": contract.rubric,
         "cited_messages": [{"id": e.id, "feature": e.feature, "channel": e.channel, "at": e.at.isoformat(),
-                            "text": e.text} for e in cited_events(o.entry, story) if e.kind == "message"],
+                            "text": e.text, "reading": {f: getattr(e.extraction, f) for f in FIELDS_DISPUTABLE}
+                            if e.extraction else None} for e in cited],
         "story_in_time_order": story_view(story),
     }
     r = router.complete("defender", [{"role": "system", "content": DEFENSE_INSTRUCTIONS},
                                      {"role": "user", "content": json.dumps(payload, ensure_ascii=False, indent=1)}],
                         schema=DEFENSE_SCHEMA, schema_name="defense", fresh=fresh)
-    return not r.parsed["defense_succeeds"], r.parsed["strongest_defense"][:400]
+    stands, why = adjudicate(r.parsed, issue, o, story, contract, cross)
+    return not stands, f"[{r.parsed['ground']}] {why} · {r.parsed['strongest_defense'][:300]}"
 
 
 def step_defended(issue: Issue, stories: dict[str, Story], contract: Contract, router: Router, *,
-                  fresh: bool) -> dict:
-    """The defender argues each occurrence away on that persona's own story; the issue holds only if every
-    occurrence survives its defense."""
-    per = {o.persona: _defend_one(issue, o, stories[o.persona], contract, router, fresh=fresh)
+                  fresh: bool, cross: dict[str, dict] | None = None) -> dict:
+    """The defender argues each occurrence away on that persona's own story; code adjudicates the defense
+    against what was measured. The issue holds only if no occurrence's defense stands."""
+    per = {o.persona: _defend_one(issue, o, stories[o.persona], contract, router, fresh=fresh,
+                                  cross=(cross or {}).get(o.persona))
            for o in issue.occurrences}
     ok = all(v for v, _ in per.values())
     return {"result": "pass" if ok else "fail", "detail": {p: d for p, (_, d) in per.items()},
@@ -233,12 +325,13 @@ def same_family(router: Router, a: str, b: str) -> bool:
 def verify(issue: Issue, stories: dict[str, Story], episodes: dict[str, Episode], run_dir: Path,
            contract: Contract, router: Router, *, repro: dict[str, Story] | None, fresh: bool = False,
            models: bool = True) -> None:
+    readings: dict[str, dict] = {}            # persona -> event id -> the cross-checker's reading
     steps: dict[str, Any] = {
         "reproduced": step_reproduced(issue, stories, repro),
         "evidence_linked": step_evidence(issue, stories, episodes, run_dir),
-        "cross_model": step_cross_model(issue, stories, contract, router, fresh=fresh) if models
+        "cross_model": step_cross_model(issue, stories, contract, router, fresh=fresh, readings=readings) if models
         else {"result": "not_run", "detail": "models off"},
-        "defended": step_defended(issue, stories, contract, router, fresh=fresh) if models
+        "defended": step_defended(issue, stories, contract, router, fresh=fresh, cross=readings) if models
         else {"result": "not_run", "detail": "models off"},
         "oracle_checked": step_oracle(issue, stories, contract),
     }

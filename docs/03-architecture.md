@@ -85,7 +85,7 @@ The schema is shown below as an excerpt. **Northbound's full rules, decision voc
   exceptions:
     - id: P1-E1
       conditions:              # ALL must be met
-        - {id: a, data: "trip.departure_at - message.shown_at <= 72h"}   # exact timestamps; never rounded or truncated
+        - {id: a, data: "context.departure_at - message.shown_at in [0, 72h]"}   # exact timestamps; never rounded or truncated
         - {id: b, data: "claim.units_left == oracle.inventory"}          # seats or rooms
         - {id: c, judged: directive.explains_own_tradeoff}
       scope: {features: [fare_lock], components: [flight], surfaces: [fare_detail, checkout]}
@@ -122,13 +122,23 @@ The schema is shown below as an excerpt. **Northbound's full rules, decision voc
   attribution: {dom_attr: "data-feature=price_watch", headers: ["X-Feature: price_watch"]}
   default_lifetime: {card: session, email: 7d, push: 24h}
 
-# personas.yaml: axes + a TRIP; time-dependent state is DERIVED per step, never stored
+# subject.yaml: who the user is, in the app's own words, and the typed fields that describe their situation.
+# The core knows nothing about trips: a budgeting app declares a tax deadline and a household size instead.
+noun: traveller
+component_from: component
+context:
+  - {id: departure_at, type: time, required: true, show: "departs {in}"}
+  - {id: flexible, type: bool, default: true, show: {"true": flexible dates, "false": fixed dates}}
+  - {id: party, type: int, default: 1, show: {"1": solo, "*": "party of {v}"}}
+  - {id: component, type: enum, values: [flight, hotel], default: flight}
+
+# personas.yaml: axes + context; time-dependent state is DERIVED per step, never stored
 - id: maya
-  axes: {party: solo, budget: tight, date_flexibility: flexible, currency: EUR}
-  trip: {route: LIS-BER, departure_at: "D42 08:00"}
+  axes: {budget: tight}
+  context: {route: LIS-BER, departure_at: "D42 08:00", flexible: true}
 - id: raj
-  axes: {party: solo, budget: expense_account, date_flexibility: fixed}
-  trip: {route: LIS-BER, departure_at: "D1 16:00"}      # 30 h after D0 10:00
+  axes: {budget: expense_account}
+  context: {route: LIS-BER, departure_at: "D1 16:00", flexible: false}      # 30 h after D0 10:00
 
 # scenarios.yaml: time-ordered user actions (the messages are what the app produces)
 - id: S-book-flexible
@@ -317,7 +327,13 @@ The owner's actual decision is recorded beside the recommendation, never overwri
 
 ## Model roles and data policy
 
-| Role | Model | Notes |
+**As built (Oct 26):** every role runs on Muse Spark through the Meta Model API: `extractor` and `interpreter`
+on `muse-spark-1.3`, `cross_checker_extract`, `cross_checker_interpret` and `defender` on `muse-spark-1.2`.
+Open-weights hosting (Modal / Baseten) is not set up and voice onboarding is not built. Because every role is one
+model family, cross-model agreement is recorded as reduced independence and **caps confidence at medium**. The
+table below is the target routing once Muse Spark Open is hosted.
+
+| Role | Model (target) | Notes |
 |---|---|---|
 | `extractor` (messages, directives, claims) | **Muse Spark Open** (`meta-models/muse-spark-open-1026` on Modal/Baseten) | high volume, structured output |
 | `interpreter` (label relations; `model_open` pass) | **Muse Spark** (Meta Model API; latest official ID, to be verified) | the core judgement |

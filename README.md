@@ -71,6 +71,24 @@ semaudit capture --contract examples/northbound/contract --release 2.4 [--person
 
 The runner starts the release from the contract's `app.launch` on a free port and stops it afterwards. For each step it sets the simulated clock (which runs due jobs, so emails and pushes sent between steps exist), lets the app's adapter (`app.adapter`, here `examples/northbound/adapter.py`) perform the verb in Chromium (1280x900), captures the page it landed on (DOM, screenshot, marked elements), captures every new email, push, chat transcript and PDF, and snapshots every oracle. Output: `runs/<run-id>/episodes/<release>/<persona>__<scenario>.json` plus artifacts under `runs/<run-id>/captures/`. Exit `0` when every step ran; exit `2` if a release would not boot or a step failed or a surface could not be measured (the episodes are still written). Format: `src/semaudit/story/episode.py`. Adding an app means writing its adapter; the runner is generic.
 
+## Review a release
+
+```bash
+semaudit contract check examples/northbound/contract        # validate; lists items not yet owner-approved
+semaudit review --contract examples/northbound/contract --base 2.3 --head 2.4 --max-usd 3
+semaudit repro <issue-id> --review runs/<id>/review-2.3-2.4.json --max-usd 1   # re-capture + re-derive one finding
+semaudit verify-report runs/<id>/review-2.3-2.4.json                           # offline: is the report what its inputs give?
+```
+
+`review` exits 0 only for a decided Ship: every persona measured and every contract item owner-approved at its
+current content. Otherwise the recommendation is `provisional` (exit 1) or `not_measurable` (exit 2), and the
+Release Story page says why.
+
+**Adding an app** needs no core change: a contract (rules, decisions, features, surfaces, facts and oracles,
+`subject.yaml` for who the user is and what describes their situation, personas, scenarios, release policy) and an
+adapter for its scenario verbs. `tests/test_core_is_generic.py` keeps app vocabulary out of `src/semaudit/` and
+runs a non-travel contract through the rules.
+
 ## Documents
 
 1. [Vision](docs/01-vision.md)
@@ -86,11 +104,14 @@ Also: [Decisions](docs/decisions.md) · [Hackathon compliance and provenance](HA
 
 ## Built with Meta models
 
-| Role | Model |
-|---|---|
-| Interpret candidate conflicts against owner principles; explore and repair journeys | **Muse Spark** (Meta Model API) |
-| Extract messages, directives and claims at volume; independent defense and cross-check | **Muse Spark Open** (open weights, Modal / Baseten) |
-| Turn the owner's spoken intent into draft principles | **Muse Voice Transcribe** |
+| Role | Model today | Planned |
+|---|---|---|
+| Extract messages, directives and claims; interpret candidate conflicts against owner principles | **Muse Spark 1.3** (Meta Model API) | extraction on **Muse Spark Open** (open weights) |
+| Independent cross-check and defense of every issue occurrence | **Muse Spark 1.2** | **Muse Spark Open**, so agreement is across model families |
+| Turn the owner's spoken intent into draft principles | not built | **Muse Voice Transcribe** |
+
+Every role is called through `semaudit.models` by name, never by model ID. While all roles are one model family,
+the verifier records "reduced independence" and caps confidence at medium.
 
 ## Layout
 
@@ -105,4 +126,4 @@ docs/         design documents
 
 ## Status
 
-Built during the Meta Global AI Developer Hackathon (Oct 26 – Nov 4, 2026). License to be chosen before the repo goes public (Apache-2.0 proposed).
+Built during the Meta Global AI Developer Hackathon (Oct 26 – Nov 4, 2026). Licensed under Apache-2.0 ([LICENSE](LICENSE)).

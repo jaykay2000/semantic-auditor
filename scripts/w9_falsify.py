@@ -75,7 +75,7 @@ def main():
               "before the traveller decided.")
     verify(f3, stories, h.episodes, a.run, c, router, repro=stories, fresh=True)
     print("3 planted P2 on Lena ->", f3.verification["status"], f3.verification["reason"], "| confidence",
-          f3.confidence["level"], "|", f3.verification["steps"]["defended"]["detail"][:160])
+          f3.confidence["level"], "|", str(f3.verification["steps"]["defended"]["detail"])[:220])
     ok &= f3.confidence["level"] == "low"
 
     # 4. fabricated U4 on a booking confirmation
@@ -85,7 +85,7 @@ def main():
     f4.why = "a retrospective message after the traveller had committed."
     verify(f4, stories, h.episodes, a.run, c, router, repro=stories, fresh=True)
     print("4 planted U4 on a confirmation ->", f4.verification["status"], "| confidence", f4.confidence["level"],
-          "|", f4.verification["steps"]["defended"]["detail"][:160])
+          "|", str(f4.verification["steps"]["defended"]["detail"])[:220])
     ok &= f4.confidence["level"] == "low"
     # 5. a false second occurrence inside an otherwise valid group
     hero5 = copy.deepcopy(next(i for i in build_issues("2.4", h.results, c) if i.rule == "P2" and i.label == "unexplained_tradeoff"))

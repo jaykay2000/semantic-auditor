@@ -25,6 +25,7 @@ How the work runs:
 | W8 | **accepted**: real captures → stories → rules + P2 interpretation; 31/31 × 5 fresh runs; stubs fail ($0.56). Re-accepted after the external audit fixes (lineage, liveness, expiry, pair kinds, supersession): 31/31 × 5 ($0.30) | [evidence/w8-real-captures.md](evidence/w8-real-captures.md) |
 | W9 | **accepted**: `semaudit review` end to end (capture → stories → issues → re-capture → verify → policy → review.json) and `semaudit repro`; 2.3→2.4 Hold with 9 verified issues; 2.4→2.4.1 resolves the fixes and raises Rina on scope; verifier rejects 4/4 planted issues (~$0.79) | [evidence/w9-review.md](evidence/w9-review.md) |
 | W10b | **built**: Release Story page from review.json (timeline, issue rail, detail, diff, persona switch, rule panel, resolved, deep links); 5+1 browser tests | [evidence/w10b-release-story.md](evidence/w10b-release-story.md) |
+| Audit 2 | **fixed**: core generalized (persona context + `subject.yaml`; no app vocabulary in `src/`, guarded; a non-travel contract runs); fail closed on unmeasured oracles / missing episodes / unmeasured head; approval gate (provisional until owner-approved); repro re-derives the finding, checks base events for resolved issues, fails on zero checks; review manifest + `semaudit verify-report`; screenshots hashed; verifier per occurrence; same-family confidence capped at medium; count escalation removed; a reconciler must address both actions (Kai stays open on 2.4.1); LICENSE | [evidence/audit-2-fixes.md](evidence/audit-2-fixes.md) |
 
 ## The minimum compelling version (MCV)
 
@@ -116,9 +117,10 @@ The first end-to-end path. Northbound only; no new concepts until it runs:
   carries the others.
 - **Delta.** Base stories are evaluated too. Each head issue is `new` or `pre_existing`; a base issue with no head
   counterpart is `resolved`.
-- **Severity** (code, from the contract, never a model): each rule declares a base level; the release policy's
-  escalation rules raise it (default: reach ≥ 2 personas and before the user's decision → one level up).
-  Factors are recorded: rule, base, reach, timing, escalation applied.
+- **Severity** (code, from the contract, never a model): the rule's owner-set level. *Superseded after the second
+  audit (owner ruling, Oct 26):* count-based escalation is removed, because the number of test personas an issue
+  reaches is a property of the fixtures, not of production. Factors record the tested-persona counts before and
+  after the decision, for the reader only.
 - **Confidence** (code, from a basis list): evidence kind (measured vs interpreted), cross-model extraction
   agreement on the cited messages, cross-model label agreement (P2), the defense outcome, unknown validity or
   unknown conditions. High: everything run agrees and nothing is unknown; medium: something not run or unknown;

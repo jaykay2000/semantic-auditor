@@ -130,3 +130,66 @@ def test_a_model_failure_during_verification_is_not_a_verified_issue(tmp_path):
         verify(i, {"maya": Story(id="x", release="2.4", persona="maya", events=[])}, {}, tmp_path, C,
                _FailingRouter(), repro=None)
     assert i.verification == {}                    # nothing was recorded as verified
+
+
+# ---------- the defense is adjudicated against what was measured ----------
+from semaudit.story.model import Event, Extraction, Story  # noqa: E402
+from semaudit.verify.steps import adjudicate  # noqa: E402
+from datetime import datetime, timezone  # noqa: E402
+
+_AT = datetime(2026, 11, 2, 10, 3, tzinfo=timezone.utc)
+_URGE = Extraction(message_kind="directive", decision="when_to_book", action="book_now", strength="urge",
+                   urgency_cue="seats", explains_own_tradeoff=True, claims=[])
+
+
+def _p1_issue(conditions):
+    e = Entry("P1", "fl", "violated", conditions=conditions)
+    return Issue(id="I", signature=(), rule="P1", rule_kind="conditional", layer="release", label=None,
+                 occurrences=[Occurrence("hana", "x", ["fl"], e, "before_decision")], severity={}, why="")
+
+
+def _defense(ground, **kw):
+    d = {"strongest_defense": "x", "ground": ground, "exception_conditions_met": [], "disputed_readings": [],
+         "reconciling_event_id": "", "addresses_actions": [], "defense_succeeds": True}
+    return d | kw
+
+
+_STORY = Story(id="s", release="2.4", persona="hana", events=[
+    Event(id="fl", at=_AT, kind="message", feature="fare_lock", text="Book now", extraction=_URGE)])
+
+
+def test_a_defense_claiming_a_measured_condition_is_overruled():
+    i = _p1_issue((("a", "not_met"), ("b", "met"), ("c", "met"), ("scope", "met"), ("expiry", "met")))
+    stands, why = adjudicate(_defense("exception_applies", exception_conditions_met=["a", "b", "c"]),
+                             i, i.occurrences[0], _STORY, C, None)
+    assert not stands and "a met; measured not_met" in why
+
+
+def test_a_disputed_reading_stands_only_where_the_models_disagree():
+    i = _p1_issue(())
+    soften = _defense("extraction_wrong", disputed_readings=[{"event_id": "fl", "field": "strength", "value": "suggest"}])
+    agree = {"fl": _URGE}
+    assert not adjudicate(soften, i, i.occurrences[0], _STORY, C, agree)[0]               # both read 'urge'
+    split = {"fl": _URGE.model_copy(update={"strength": "suggest"})}
+    assert adjudicate(soften, i, i.occurrences[0], _STORY, C, split)[0]                    # the models disagree
+    restate = _defense("extraction_wrong", disputed_readings=[{"event_id": "fl", "field": "strength", "value": "urge"}])
+    assert not adjudicate(restate, i, i.occurrences[0], _STORY, C, agree)[0]
+
+
+def test_no_ground_or_no_success_means_the_issue_holds():
+    i = _p1_issue(())
+    assert not adjudicate(_defense("none"), i, i.occurrences[0], _STORY, C, None)[0]
+    assert not adjudicate(_defense("timing", defense_succeeds=False), i, i.occurrences[0], _STORY, C, None)[0]
+    # P1 with only measured conditions is applied by code: a scope argument is overruled ...
+    assert not adjudicate(_defense("rule_does_not_apply"), i, i.occurrences[0], _STORY, C, None)[0]
+    # ... while a judgement-based rule (P2's label) leaves a scope argument standing
+    p2 = issue()
+    assert adjudicate(_defense("rule_does_not_apply"), p2, p2.occurrences[0], _STORY, C, None)[0]
+
+
+def test_a_scope_argument_against_a_code_applied_rule_is_overruled():
+    e = Entry("P3", "story", "violated")
+    i = Issue(id="I", signature=(), rule="P3", rule_kind="load", layer="release", label=None,
+              occurrences=[Occurrence("family", "x", ["a"], e, "after_decision")], severity={}, why="")
+    stands, why = adjudicate(_defense("rule_does_not_apply"), i, i.occurrences[0], _STORY, C, None)
+    assert not stands and "applied by code" in why
