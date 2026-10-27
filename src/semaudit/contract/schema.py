@@ -274,6 +274,22 @@ class Hooks(Strict):
     world: str | None = None             # seeds oracle state
 
 
+class Launch(Strict):
+    """How the capture runner starts the app under audit, once per release, on a free port.
+
+    `cwd` is relative to the contract directory. `cmd` and every `env` value may use `{python}` (the runner's
+    interpreter), `{port}`, `{release}` and `{scratch}` (a fresh temp dir per launched app). The release is also
+    passed in `App.release_env`. Email and push sink paths (`Surface.sink`) are resolved relative to `sink_root`
+    (default: the resolved `cwd`; may use `{scratch}`), so an app can write its outbox anywhere.
+    """
+    cwd: str = "."
+    cmd: list[str]
+    env: dict[str, str] = Field(default_factory=dict)
+    sink_root: str | None = None
+    health: str = "/"                    # GET until it answers (any status below 500)
+    startup_timeout: float = 30.0
+
+
 class App(Strict):
     name: str
     fictional: bool
@@ -282,7 +298,9 @@ class App(Strict):
     release_env: str | None = None       # env var that selects the release, if the app is launched by us
     releases: list[str] = Field(default_factory=list)
     hooks: Hooks
-    adapter: str | None = None           # dotted path to the scenario-verb adapter (W4)
+    launch: Launch | None = None         # how the capture runner starts the app; absent = already running
+    adapter: str | None = None           # scenario-verb adapter: a .py path relative to the contract, or a dotted
+                                         # module path; it must define a class `Adapter` (see semaudit.adapters)
 
 
 # ---------- the contract ----------

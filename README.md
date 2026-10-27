@@ -60,6 +60,17 @@ What it deliberately **does not** raise:
 
 An exception to one rule never excuses another: permitted urgency can still be raised for incoherence.
 
+## Capture
+
+`semaudit capture` runs each persona's scenarios against one release of the app and writes **episodes**: the ordered steps, everything the product showed or sent, and the oracle state after each step. It costs no model budget.
+
+```bash
+pip install -e '.[demo,dev]' && playwright install chromium
+semaudit capture --contract examples/northbound/contract --release 2.4 [--persona maya --persona omar] [--run-id ID] [--runs-dir runs]
+```
+
+The runner starts the release from the contract's `app.launch` on a free port and stops it afterwards. For each step it sets the simulated clock (which runs due jobs, so emails and pushes sent between steps exist), lets the app's adapter (`app.adapter`, here `examples/northbound/adapter.py`) perform the verb in Chromium (1280x900), captures the page it landed on (DOM, screenshot, marked elements), captures every new email, push, chat transcript and PDF, and snapshots every oracle. Output: `runs/<run-id>/episodes/<release>/<persona>__<scenario>.json` plus artifacts under `runs/<run-id>/captures/`. Exit `0` when every step ran; exit `2` if a release would not boot or a step failed or a surface could not be measured (the episodes are still written). Format: `src/semaudit/story/episode.py`. Adding an app means writing its adapter; the runner is generic.
+
 ## Documents
 
 1. [Vision](docs/01-vision.md)

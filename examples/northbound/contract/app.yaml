@@ -9,4 +9,10 @@ hooks:
   persona: POST /api/test/personas
   clock: POST /api/test/clock
   world: POST /api/test/world
-adapter: null              # scenario-verb adapter, added in W4
+launch:                    # how `semaudit capture` starts the app, once per release, on a free port
+  cwd: ..                  # relative to this contract directory: examples/northbound/
+  cmd: ["{python}", "-m", "uvicorn", "northbound.app:app", "--host", "127.0.0.1", "--port", "{port}", "--log-level", "warning"]
+  env: {NORTHBOUND_OUTBOX: "{scratch}/outbox"}
+  sink_root: "{scratch}"   # surfaces.yaml sinks (outbox/email, outbox/push) are resolved under this
+  health: /
+adapter: ../adapter.py     # scenario-verb adapter, a path relative to this contract directory

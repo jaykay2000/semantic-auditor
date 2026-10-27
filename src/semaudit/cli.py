@@ -54,5 +54,42 @@ def approve_cmd(directory: Path = typer.Argument(..., exists=True, file_okay=Fal
         typer.echo(f"approved {k}")
 
 
+@app.command("capture")
+def capture_cmd(contract_dir: Path = typer.Option(..., "--contract", exists=True, file_okay=False,
+                                                  help="the product contract directory"),
+                release: str = typer.Option(..., "--release", help="release to run, e.g. 2.4"),
+                persona: list[str] = typer.Option(None, "--persona", help="persona id (repeatable); default all"),
+                run_id: str = typer.Option(None, "--run-id", help="default capture-<UTC time>"),
+                runs_dir: Path = typer.Option(Path("runs"), "--runs-dir"),
+                seed: int = typer.Option(0, "--seed")):
+    """Run each persona's scenarios against a release and write episodes (steps, captures, state) under runs/.
+
+    Exit 0: every step ran. Exit 2: a release would not boot, or a step failed or a surface could not be
+    measured; the episodes are still written and the failures are listed.
+    """
+    from .capture import LaunchError, Runner
+
+    problems: list[str] = []
+    try:
+        with Runner(contract_dir, runs_dir=runs_dir, run_id=run_id, seed=seed) as r:
+            episodes = r.capture(release, persona or None)
+            run_dir = r.run_dir
+    except (LaunchError, FileNotFoundError, AttributeError) as exc:
+        typer.echo(f"cannot measure: {exc}", err=True)
+        raise typer.Exit(2)
+    for ep in episodes:
+        counts = {k: sum(1 for st in ep.steps if st.status == k) for k in ("done", "skipped_not_offered", "failed")}
+        ncap = len(ep.captures())
+        typer.echo(f"{ep.id}: {counts['done']} done, {counts['skipped_not_offered']} skipped, "
+                   f"{counts['failed']} failed; {ncap} captures")
+        problems += [f"{ep.id} step {st.seq} ({st.do}): {st.error}" for st in ep.steps if st.status == "failed"]
+        problems += [f"{ep.id} {c.id}: {c.error}" for c in ep.captures() if c.status == "not_measured"]
+        problems += [f"{ep.id} {n.surface}: not measured, {n.reason}" for n in ep.not_measured]
+    typer.echo(f"episodes in {run_dir / 'episodes' / release}")
+    for p in problems:
+        typer.echo(f"  not measured: {p}")
+    raise typer.Exit(2 if problems else 0)
+
+
 if __name__ == "__main__":
     app()
