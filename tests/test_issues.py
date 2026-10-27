@@ -6,6 +6,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+import pytest  # noqa: E402
 from semaudit.contract.schema import load_contract  # noqa: E402
 from semaudit.decide.issues import Issue, Occurrence, severity_of  # noqa: E402
 from semaudit.relate.rules import Entry  # noqa: E402
@@ -45,6 +46,22 @@ def test_severity_is_the_rules_own_level_and_moves_only_with_it():
     i = issue()
     s = steps()
     assert confidence_of(i, s, C) == confidence_of(i, s, C) and verification_status(s)["status"] == "verified"
+
+
+def test_a_coherence_rule_sets_its_level_per_label():
+    r = C.rule("P2")
+    lab = lambda label: severity_of(r, [Occurrence("maya", "x", ["a"], Entry("P2", "s", "violated", label=label),
+                                                    "before_decision")])
+    assert lab("conflict")["level"] == "critical"                       # owner ruling Oct 27
+    assert lab("unexplained_tradeoff")["level"] == "major"
+    assert lab("unexplained_tradeoff")["factors"]["set_by"] == "severity_by_label"
+    assert severity_of(r.model_copy(update={"severity_by_label": {}}), [occ("maya", "before_decision")])["level"] \
+        == r.severity                                                   # without the map, the rule's own level
+
+
+def test_only_a_coherence_rule_may_set_a_level_per_label():
+    with pytest.raises(ValueError, match="only for coherence rules"):
+        C.rule("P1").model_validate({**C.rule("P1").model_dump(), "severity_by_label": {"conflict": "minor"}})
 
 
 def test_before_decision_count_uses_only_qualifying_occurrences():
@@ -193,3 +210,16 @@ def test_a_scope_argument_against_a_code_applied_rule_is_overruled():
               occurrences=[Occurrence("family", "x", ["a"], e, "after_decision")], severity={}, why="")
     stands, why = adjudicate(_defense("rule_does_not_apply"), i, i.occurrences[0], _STORY, C, None)
     assert not stands and "applied by code" in why
+
+
+def test_the_policy_names_the_issues_that_made_its_row_fire():
+    p = C.policy
+    xs = [{"severity": "major", "confidence": "medium", "verification": "verified"},
+          {"severity": "critical", "confidence": "medium", "verification": "verified"},
+          {"severity": "critical", "confidence": "low", "verification": "partially_verified"}]
+    row, idx = p.evaluate(xs)
+    assert row.recommendation == "hold" and p.fired_by(row, xs) == [1]     # only the verified critical one holds it
+    row, _ = p.evaluate(xs[2:])
+    assert row.recommendation == "needs_owner_review" and p.fired_by(row, xs[2:]) == [0]
+    row, _ = p.evaluate(xs[:1])
+    assert row.otherwise and p.fired_by(row, xs[:1]) == []                 # a catch-all names no issue

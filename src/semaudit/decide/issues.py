@@ -101,11 +101,15 @@ def issue_id(release: str, sig: tuple) -> str:
 
 
 def severity_of(rule: Rule, occurrences: list[Occurrence]) -> dict[str, Any]:
-    """The rule's owner-set level. Tested-persona counts are context for the reader, never a multiplier."""
+    """The rule's owner-set level (per label, for a coherence rule that sets one). Tested-persona counts are
+    context for the reader, never a multiplier. An issue's occurrences share one signature, hence one label."""
     before = sorted({o.persona for o in occurrences if o.timing == "before_decision"})
     after = sorted({o.persona for o in occurrences if o.timing == "after_decision"} - set(before))
-    return {"level": rule.severity,
-            "factors": {"rule": rule.id, "base": rule.severity,
+    label = occurrences[0].entry.label if occurrences else None
+    level = rule.severity_for(label)
+    return {"level": level,
+            "factors": {"rule": rule.id, "base": rule.severity, "label": label,
+                        "set_by": "severity_by_label" if label in rule.severity_by_label else "severity",
                         "tested_personas": len({o.persona for o in occurrences}),
                         "tested_personas_before_decision": len(before),
                         "tested_personas_after_decision": len(after)}}

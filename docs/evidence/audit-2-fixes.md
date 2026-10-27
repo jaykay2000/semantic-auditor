@@ -43,6 +43,6 @@ code applies from the contract's definitions.
 
 1. **Approve the contract** (`semaudit contract review examples/northbound/contract`, then approve): until then every
    recommendation is provisional.
-2. **P2's severity:** ~~it is `major`~~ **decided Oct 27: `critical`** (owner). P1(a) stays `major`.
+2. **P2's severity:** ~~it is `major`~~ ~~decided Oct 27: `critical`~~ **decided Oct 27 (later): per label** (owner): `conflict` critical, `unexplained_tradeoff` major. 2.4 still says hold, now fired by Kai's conflict; Maya's tradeoff is major. P1(a) stays `major`. See [w11b-severity-and-page.md](w11b-severity-and-page.md).
 3. **Kai on 2.4.1:** a short blind human judgement of whether the reconcile message reconciles "wait" against
    "Book now".

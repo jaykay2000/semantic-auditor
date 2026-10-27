@@ -195,8 +195,10 @@ def assemble(base: ReleaseEval, head: ReleaseEval, contract: Contract, verified:
              set_aside: list[Issue] = ()) -> dict:
     open_issues = [i for i in verified if i.verification.get("status") != "failed"]
     failed = [i for i in verified if i.verification.get("status") == "failed"]
-    row, idx = contract.policy.evaluate([{"severity": i.severity["level"], "confidence": i.confidence["level"],
-                                          "verification": i.verification["status"]} for i in open_issues])
+    rows = [{"severity": i.severity["level"], "confidence": i.confidence["level"],
+             "verification": i.verification["status"]} for i in open_issues]
+    row, idx = contract.policy.evaluate(rows)
+    fired_by = [open_issues[k].id for k in contract.policy.fired_by(row, rows)]
     measured = base.complete and head.complete
     stories = {p: s for p, (s, _) in head.results.items()}
     base_stories = {p: s for p, (s, _) in base.results.items()}
@@ -213,7 +215,8 @@ def assemble(base: ReleaseEval, head: ReleaseEval, contract: Contract, verified:
         "subject": {"noun": contract.subject.noun},
         "features": [{"id": f.id, "name": f.name or f.id, "core": f.core} for f in contract.features],
         "rules": [{"id": r.id, "kind": r.kind, "text": r.text, "title": r.title} for r in contract.rules],
-        "policy": {"recommendation": row.recommendation, "row": idx + 1, "rule_fired": row.text},
+        "policy": {"recommendation": row.recommendation, "row": idx + 1, "rule_fired": row.text,
+                   "fired_by": fired_by},
         "outcome": outcome_of(row.recommendation, measured, approval),
         "measurement": {"complete": measured, "base": base.not_measured, "head": head.not_measured},
         "approval": approval,

@@ -61,6 +61,11 @@ def prompt_digests(contract: Contract) -> dict[str, str]:
             "defense": _sha([_steps.DEFENSE_INSTRUCTIONS, _steps.DEFENSE_SCHEMA])}
 
 
+def _same_family(router) -> bool:
+    from semaudit.verify.steps import same_family
+    return same_family(router, "extractor", "cross_checker_extract")
+
+
 def episode_digests(run_dir: Path, releases: list[str]) -> dict[str, str]:
     return {str(p.relative_to(run_dir)): sha256_file(p) for rel in releases
             for p in sorted((run_dir / "episodes" / rel).glob("*.json"))}
@@ -81,6 +86,9 @@ def build(contract_dir: Path, contract: Contract, run_dir: Path, base: str, head
         "models": {role: spec["model"] for role, spec in router.roles.items()} if router else {},
         "prompts": prompt_digests(contract),
         "verifier": {"models": models, "per_occurrence": True,
+                     # one family: the second model's agreement is a second pass, not independent agreement
+                     "independence": ("one_family" if _same_family(router) else "independent_families")
+                     if router and models else None,
                      "steps": ["reproduced", "evidence_linked", "cross_model", "defended", "oracle_checked"]},
         "max_usd": max_usd,
         "memory": memory,

@@ -27,6 +27,10 @@ button{font:500 13px Inter,sans-serif;cursor:pointer;color:var(--ink)}
 select{font:500 13px Inter,sans-serif;padding:7px 10px;border-radius:7px;border:1px solid #D6D6CF;background:#fff;color:var(--ink)}
 .box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
 .h{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink2);margin:0 0 8px}
+.linkbtn{background:none;border:0;padding:0;font:inherit;font-size:12px;color:var(--ink);text-decoration:underline;cursor:pointer}
+.vsteps{display:flex;flex-direction:column;gap:3px;font-size:13px;line-height:1.45;margin-top:4px}
+.vstep{display:flex;flex-wrap:wrap;justify-content:space-between;column-gap:10px}.vstep>span:last-child{margin-left:auto;text-align:right}.vstep.v-pass>span:first-child{color:var(--ok)}
+.vstep.v-fail>span:first-child{color:var(--crit)}
 .chip{font-size:11px;font-weight:600;padding:2px 7px;border-radius:5px;white-space:nowrap;display:inline-block}
 .sev-critical{background:var(--critbg);color:var(--crit)}.sev-major{background:var(--majbg);color:var(--maj)}.sev-minor{background:var(--minbg);color:var(--min)}
 .conf{background:#EEF0F4;color:#2F3542}.ver{background:#fff;color:var(--ok);border:1px solid var(--okln)}
@@ -115,12 +119,18 @@ const hm = iso => t(iso).toISOString().slice(11, 16);
 const gapText = ms => { const m = Math.round(ms / 6e4); if (m < 60) return `+${m} m`; const h = Math.floor(m / 60), r = m % 60;
   if (h < 24) return `+${h} h${r ? ` ${r} m` : ''}`; return `+${Math.floor(h / 24)} d ${h % 24} h`; };
 
-// The hero: the most severe release-level issue, coherence first (it is what no single-feature test sees).
+// The page opens on the contract's hero persona and its most severe release-level issue, coherence first (it is
+// what no single-feature test sees); with no hero issue, on the most severe issue overall. The decision bar names
+// the issues that made the policy fire, which may be another persona's.
 const KIND = {coherence: 0, conditional: 1, universal: 2, load: 3};
-const top = [...R.issues].sort((a, b) => SEV.indexOf(a.severity.level) - SEV.indexOf(b.severity.level)
+const isHero = pid => (personas[pid] || {}).role === 'hero';
+const ranked = xs => [...xs].sort((a, b) => SEV.indexOf(a.severity.level) - SEV.indexOf(b.severity.level)
   || (a.layer === 'release' ? 0 : 1) - (b.layer === 'release' ? 0 : 1) || KIND[a.rule_kind] - KIND[b.rule_kind]
-  || b.personas.length - a.personas.length)[0];
-const heroPersona = top ? ((top.personas.find(pid => (personas[pid] || {}).role === 'hero')) || top.personas[0]) : R.personas[0].id;
+  || b.personas.length - a.personas.length);
+const heroIssues = R.issues.filter(i => i.layer === 'release' && i.personas.some(isHero));
+const top = ranked(heroIssues.length ? heroIssues : R.issues)[0];
+const personaOf = i => i.personas.find(isHero) || i.personas[0];
+const heroPersona = top ? personaOf(top) : R.personas[0].id;
 const state = { persona: heroPersona, mode: 'head', issue: top ? top.id : null, notRaisedOpen: false };
 
 // Columns: the hero's scenario steps plus the current persona's, both releases. Switching persona keeps the
@@ -143,6 +153,30 @@ function chips(i) {
   return `<span class="chip sev-${i.severity.level}">severity ${i.severity.level}</span>
     <span class="chip conf">confidence ${i.confidence.level}</span>
     <span class="chip ver ${v.status === 'verified' ? '' : 'partial'}">${v.status === 'verified' ? '✓ ' : ''}${v.status.replace('_', ' ')} ${passed}/${applicable.length}</span>`;
+}
+
+// Verification steps in words. The second-model and defense rows name the model that ran them, and say when it
+// is the same family as the reader (a second pass, not independent agreement).
+const MODELS = ((R.manifest || {}).models) || {};
+const ONE_FAMILY = (((R.manifest || {}).verifier) || {}).independence === 'one_family';
+const STEP = {
+  reproduced: ['Replayed', {pass: 'same events, same text, same time', fail: 'did not reproduce'}],
+  evidence_linked: ['Evidence linked to captures', {pass: 'every cited message resolves', fail: 'a cited message does not resolve'}],
+  cross_model: [`Second model${MODELS.cross_checker_interpret ? ' (' + MODELS.cross_checker_interpret + (ONE_FAMILY ? ', same family' : '') + ')' : ''}`,
+                {pass: 're-derived it', fail: 'did not re-derive it'}],
+  defended: [`Argued against${MODELS.defender ? ' (' + MODELS.defender + ')' : ''}`,
+             {pass: 'no defense held', fail: 'a defense held: needs owner review'}],
+  oracle_checked: ['Checked against the oracle', {pass: 'claims match what was measured', fail: 'a claim does not match'}],
+};
+const stepResult = (k, v) => (STEP[k] && STEP[k][1][v.result]) || {not_run: 'not run', not_applicable: 'not applicable'}[v.result] || v.result;
+
+function modelLine() {
+  const by = {};
+  for (const [role, m] of Object.entries(MODELS)) if (role !== 'smoke') (by[m] = by[m] || []).push(role);
+  const verbs = roles => [...new Set(roles.map(r => r.startsWith('cross_checker') ? 're-derives each finding' : r === 'defender'
+    ? 'argues against it' : 'reads what each message means'))].join(' and ');
+  const models = Object.entries(by).map(([m, roles]) => `<b style="color:var(--ink)">${esc(m)}</b> ${esc(verbs(roles))}`).join(' · ');
+  return models ? `<div class="muted models" style="font-size:12px;padding:0 4px">${models} · code tracks time, state and the owner's rules${ONE_FAMILY ? ' · one model family, so a second model\'s agreement is a second pass, not independent agreement, and confidence is capped at medium' : ''}</div>` : '';
 }
 
 function issueTitle(i) {
@@ -210,7 +244,9 @@ function ownerRelease() {
 const approvalOf = key => ((R.approval || {}).items || {})[key] || 'unapproved';
 function decisionBar() {
   const pol = R.policy, out = R.outcome || {status: 'decided', recommendation: pol.recommendation};
-  const policyLine = `policy row ${pol.row}: <span class="mono" style="font-size:12px;color:var(--ink)">${esc(pol.rule_fired)}</span>`;
+  const firedBy = (pol.fired_by || []).map(id => R.issues.find(x => x.id === id)).filter(Boolean);
+  const policyLine = `policy row ${pol.row}: <span class="mono" style="font-size:12px;color:var(--ink)">${esc(pol.rule_fired)}</span>` +
+    (firedBy.length ? ` · fired by ${firedBy.map(i => `<button class="linkbtn firedby" data-goto="${esc(personaOf(i))}|${esc(i.id)}">${esc(issueTitle(i))} (${esc(i.personas.map(id => (personas[id] || {}).name || id).join(', '))})</button>`).join(', ')}` : '');
   const why = out.status === 'decided' ? `<span class="muted">${policyLine}</span>`
     : out.status === 'provisional' ? `<span class="muted">${esc(out.reason)}. The policy would say <b style="color:var(--ink)">${esc(words(out.policy_would_say))}</b> (${policyLine}).</span>`
     : `<span class="muted">${esc(out.reason)}: ${Object.entries((R.measurement || {}).head || {}).map(([p, r]) => esc(p) + ' (' + esc(r[0]) + ')').join(', ') || 'base release'}</span>`;
@@ -365,7 +401,7 @@ function detail(p) {
   for (const o of (i.other_rules || [])) { const k = `${o.rule} ${o.status.replace('_', ' ')}${o.label ? ' (' + o.label.replace(/_/g, ' ') + ')' : ''}`; (grouped[k] = grouped[k] || []).push(markOf[o.subject] || ''); }
   const others = Object.entries(grouped).map(([k, ms]) => `${esc(k)}${ms.filter(Boolean).length ? ' · ' + ms.filter(Boolean).join(', ') : ''}`).join(' &nbsp;|&nbsp; ');
   const vs = i.verification.steps || {};
-  const vline = Object.entries(vs).map(([k, v]) => `<span title="${esc(typeof v.detail === 'string' ? v.detail : JSON.stringify(v.detail))}">${{pass: '✓', fail: '✗', not_run: '○', not_applicable: '–'}[v.result]} ${esc(k.replace(/_/g, ' '))}${v.occurrences ? ` (${Object.values(v.occurrences).filter(x => x === 'pass').length}/${Object.keys(v.occurrences).length} personas)` : ''}</span>`).join(' · ');
+  const vline = Object.entries(vs).map(([k, v]) => `<div class="vstep v-${v.result}" title="${esc(typeof v.detail === 'string' ? v.detail : JSON.stringify(v.detail))}"><span>${{pass: '✓', fail: '✗', not_run: '○', not_applicable: '–'}[v.result]} ${esc(STEP[k] ? STEP[k][0] : k.replace(/_/g, ' '))}</span><span class="muted">${esc(stepResult(k, v))}${v.occurrences ? ` · ${Object.values(v.occurrences).filter(x => x === 'pass').length}/${Object.keys(v.occurrences).length} personas` : ''}</span></div>`).join('');
   const sevF = i.severity.factors || {};
   return `<section class="detail" aria-label="Issue detail">
     <div class="row spread" style="align-items:baseline"><div class="row" style="align-items:baseline"><h2 style="margin:0;font-size:18px">${esc(issueTitle(i))}${i.features.length > 1 ? ' between ' + i.features.map(f => esc(FNAME[f] || f)).join(' and ') : ''}</h2><span class="mono muted" style="font-size:12px">${esc(i.id)}</span></div>
@@ -383,9 +419,9 @@ function detail(p) {
       </div></div>
     <div class="three">
       <div class="box"><p class="h">Severity</p><div class="lvl" style="color:var(--${i.severity.level === 'critical' ? 'crit' : i.severity.level === 'major' ? 'maj' : 'min'})">${esc(i.severity.level)}</div>
-        <div class="muted">set by rule ${esc(sevF.rule)} (${esc(sevF.base)}) · seen in ${esc(sevF.tested_personas)} test persona${sevF.tested_personas === 1 ? '' : 's'} (${esc(sevF.tested_personas_before_decision)} before deciding); test personas are not production reach</div></div>
+        <div class="muted">set by the owner: rule ${esc(sevF.rule)}${sevF.set_by === 'severity_by_label' ? ` sets ${esc((sevF.label || '').replace(/_/g, ' '))} at ${esc(i.severity.level)}` : ` (${esc(sevF.base)})`} · seen in ${esc(sevF.tested_personas)} test persona${sevF.tested_personas === 1 ? '' : 's'} (${esc(sevF.tested_personas_before_decision)} before deciding); test personas are not production reach</div></div>
       <div class="box"><p class="h">Confidence</p><div class="lvl">${esc(i.confidence.level)}</div><div class="muted">${(i.confidence.basis || []).map(esc).join(' · ')}</div></div>
-      <div class="box"><p class="h">Verification</p><div class="lvl" style="color:${i.verification.status === 'verified' ? 'var(--ok)' : 'var(--ink)'}">${esc(i.verification.status.replace('_', ' '))}</div><div style="font-size:13px;line-height:1.6">${vline}</div></div>
+      <div class="box"><p class="h">Verification</p><div class="lvl" style="color:${i.verification.status === 'verified' ? 'var(--ok)' : 'var(--ink)'}">${esc(i.verification.status.replace('_', ' '))}</div><div class="vsteps">${vline}</div></div>
     </div>
     <div class="row spread"><span style="font-size:13px">${deltaChip(i, ' in ' + esc(R.release.head))} ${esc(i.delta_basis)} · features: ${i.features.map(esc).join(', ')}</span>
       ${i.repro ? `<span class="row" style="gap:8px" title="re-captures, checks every cited moment and re-derives the issue"><code class="repro">${esc(i.repro)}</code><button class="btn" data-copy="${esc(i.repro)}">Copy</button></span>` : '<span class="muted">no pinned replay for this review</span>'}</div>
@@ -417,7 +453,7 @@ function render() {
   const occ = occurrence(i, p.id);
   const marks = {};
   if (occ && state.mode !== 'base') { const ids = occ.events.filter(id => (p.events.find(e => e.id === id) || {}).kind === 'message'); ids.forEach((id, k) => marks[id] = ids.length > 1 ? 'ABCDE'[k] : '•'); }
-  $('#app').innerHTML = header(p) + decisionBar() +
+  $('#app').innerHTML = header(p) + decisionBar() + modelLine() +
     `<div class="layout"><div class="story">${storyGrid(p, state.mode, marks)}</div><div class="rail">${rail(p)}</div></div>` +
     (state.mode !== 'base' ? detail(p) : `<div class="box muted">Base release ${esc(R.release.base)}: ${p.base_events ? 'the same scenario as it ran before this release' : 'not measured'}.</div>`);
   // live intervals

@@ -298,8 +298,8 @@ def confidence_of(issue: Issue, steps: dict[str, dict], contract: Contract,
     basis.append(f"evidence: {kind}")
     cm = steps.get("cross_model", {}).get("result", "not_run")
     df = steps.get("defended", {}).get("result", "not_run")
-    basis.append({"pass": "independent model agrees", "fail": "independent model disagrees",
-                  "not_run": "no independent model check"}[cm])
+    basis.append({"pass": "a second model agrees", "fail": "a second model disagrees",
+                  "not_run": "no second-model check"}[cm])
     basis.append({"pass": "defense failed to explain it away", "fail": "defense explained it away",
                   "not_run": "no defense run"}[df])
     unknown = any(o.entry.meta.get("unknown_validity") for o in issue.occurrences) or \

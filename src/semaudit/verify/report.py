@@ -93,11 +93,16 @@ def verify_report(review_path: Path, *, root: Path | None = None) -> list[str]:
         if mark(now) != sorted((x["id"], (x.get("memory") or {}).get("status")) for x in then):
             problems.append(f"{name} differs: review {sorted(x['id'] for x in then)}, "
                             f"episodes {sorted(i.id for i in now)}")
-    row, idx = contract.policy.evaluate([{"severity": d["severity"]["level"], "confidence": d["confidence"]["level"],
-                                          "verification": d["verification"]["status"]} for d in r["issues"]])
+    rows = [{"severity": d["severity"]["level"], "confidence": d["confidence"]["level"],
+             "verification": d["verification"]["status"]} for d in r["issues"]]
+    row, idx = contract.policy.evaluate(rows)
     if (row.recommendation, idx + 1) != (r["policy"]["recommendation"], r["policy"]["row"]):
         problems.append(f"policy: review says row {r['policy']['row']} ({r['policy']['recommendation']}), "
                         f"its issues give row {idx + 1} ({row.recommendation})")
+    fired = sorted(r["issues"][k]["id"] for k in contract.policy.fired_by(row, rows))
+    if sorted(r["policy"].get("fired_by", [])) != fired:
+        problems.append(f"policy: review says it fired on {sorted(r['policy'].get('fired_by', []))}, "
+                        f"its issues give {fired}")
     if outcome_of(row.recommendation, b.complete and h.complete, r["approval"]) != r["outcome"]:
         problems.append("outcome does not follow from the policy, the measurement and the recorded approval")
     return problems

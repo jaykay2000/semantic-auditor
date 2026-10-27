@@ -41,6 +41,9 @@
   title: "Advice that does not agree"
   kind: coherence
   severity: critical
+  # Owner ruling Oct 27: telling one traveller two incompatible things is critical; leaving a material
+  # tradeoff between two compatible offers unexplained is major.
+  severity_by_label: {conflict: critical, unexplained_tradeoff: major}
   text: When more than one feature gives an active recommendation about the same decision, the product must reconcile incompatible actions, or explain the material tradeoffs between otherwise compatible actions, while both are live and before the traveller decides.
   applies_to: {relation: competing_directives}
 - id: P3

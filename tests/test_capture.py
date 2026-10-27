@@ -580,7 +580,7 @@ def _gold_results(run, release, contract=None):
 def test_issues_on_2_4_are_the_accepted_violations_grouped(run):
     issues = {i.id: i for i in build_issues("2.4", _gold_results(run, "2.4"), _C)}
     expect = {
-        "I-2.4-P2-fare-lock-price-watch-unexplained-tradeoff": (["family", "maya", "sam_alex"], "critical"),
+        "I-2.4-P2-fare-lock-price-watch-unexplained-tradeoff": (["family", "maya", "sam_alex"], "major"),
         "I-2.4-P2-fare-lock-price-watch-conflict": (["kai"], "critical"),
         "I-2.4-P1-fare-lock-fl-banner-urgent-a": (["hana", "raj_72h_1m", "raj_72h_30s"], "major"),
         "I-2.4-P1-fare-lock-fl-banner-urgent-bare-c": (["raj_x"], "major"),
@@ -664,6 +664,20 @@ def test_page_opens_on_the_hero_with_its_issues_and_policy(browser, page_path):
     texts = set(pg.locator(".quote").all_inner_texts())
     banner = next(e for e in story_from_episode(_cache[("2.4", "maya")], _C).messages() if e.copy_key == "fl.banner")
     assert f"“{banner.text}”" in texts
+    pg.close()
+
+
+def test_page_opens_on_the_hero_even_when_another_personas_issue_is_more_severe(browser, page_path):
+    pg, errors = _open(browser, page_path)
+    assert not errors, errors
+    assert pg.inner_text(".detail h2").startswith("Unexplained tradeoff")       # Maya's: major (owner, Oct 27)
+    assert "major" in pg.inner_text(".detail .three") and "sets unexplained tradeoff at major" in pg.inner_text(".detail .three")
+    fired = pg.locator(".firedby")
+    kai = [k for k in range(fired.count()) if fired.nth(k).inner_text().startswith("Conflicting advice")]
+    assert kai, fired.all_inner_texts()                                     # the bar names what fired the policy
+    fired.nth(kai[0]).click()
+    assert pg.inner_text("h1") == "Kai" and pg.inner_text(".detail h2").startswith("Conflicting advice")
+    assert "critical" in pg.inner_text(".detail .three")
     pg.close()
 
 

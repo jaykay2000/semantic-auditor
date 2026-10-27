@@ -63,7 +63,19 @@ class Rule(Strict):
     count: dict[str, Any] = Field(default_factory=dict)
     exceptions: list[ExceptionRule] = Field(default_factory=list)
     severity: Literal["minor", "major", "critical"] = "major"   # owner-set base level of a violation
+    # coherence rules only: an owner-set level per violation label, overriding `severity` for that label
+    severity_by_label: dict[Literal["conflict", "unexplained_tradeoff"], Literal["minor", "major", "critical"]] = \
+        Field(default_factory=dict)
     source: Source | None = None
+
+    @model_validator(mode="after")
+    def _labels_only_on_coherence(self):
+        if self.severity_by_label and self.kind != "coherence":
+            raise ValueError(f"{self.id}: severity_by_label is only for coherence rules (they alone carry a label)")
+        return self
+
+    def severity_for(self, label: str | None) -> str:
+        return self.severity_by_label.get(label, self.severity) if label else self.severity
 
 
 # ---------- decisions ----------
@@ -318,6 +330,11 @@ class ReleasePolicy(Strict):
             if row.any_issue and any(m.matches(x) for x in open_issues for m in row.any_issue):
                 return row, i
         raise ValueError("release policy is not exhaustive: no row fired")
+
+    @staticmethod
+    def fired_by(row: PolicyRow, open_issues: list[dict[str, str]]) -> list[int]:
+        """Which open issues made an any_issue row fire (indices); empty for a catch-all or no-issues row."""
+        return [k for k, x in enumerate(open_issues) if any(m.matches(x) for m in row.any_issue)]
 
 
 # ---------- the app ----------
