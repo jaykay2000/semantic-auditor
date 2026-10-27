@@ -48,7 +48,7 @@ def test_code_layer_matches_expected(name):
 
 
 def test_fixture_count():
-    assert len(NAMES) == 15
+    assert len(NAMES) == 16
 
 
 def test_late_reconciler_is_not_accepted():

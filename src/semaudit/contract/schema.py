@@ -139,6 +139,7 @@ class FactSource(Strict):
     field: str
     where: dict[str, Any] = Field(default_factory=dict)   # list field: pick the item whose keys match
     take: str | None = None                              # list field: the value to take from that item
+    match_feature: str | None = None                     # list field: item key that must equal the claiming feature
     scale: float = 1.0                                   # e.g. 0.01 for cents -> EUR
 
 

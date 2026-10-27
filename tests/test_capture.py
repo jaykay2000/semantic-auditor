@@ -425,8 +425,10 @@ def test_story_truth_is_read_at_the_time_shown(run):
     assert s.truth_at("units_left", banner.at) == 2                      # before she books
     assert s.final_truth("units_left") == 1                              # after: her seat is gone
     lock = story_from_episode(run("2.4", "sam_alex"), _C)
-    assert lock.final_truth("fee_total") == 18                           # 2 x EUR 9, the per-traveller bug
-    assert lock.truth_at("fee_total", next(e for e in lock.messages() if e.copy_key == "fl.banner").at) is None
+    assert lock.final_truth("fee_total", "fare_lock") == 18              # 2 x EUR 9, the per-traveller bug
+    banner_at = next(e for e in lock.messages() if e.copy_key == "fl.banner").at
+    assert lock.truth_at("fee_total", banner_at, "fare_lock") is None    # nothing charged yet when shown
+    assert lock.final_truth("fee_total", "core") is None                 # another feature's fee: never the lock
 
 
 def test_every_captured_message_has_hand_authored_gold(run):

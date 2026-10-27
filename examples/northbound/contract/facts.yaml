@@ -5,6 +5,6 @@
   sources: [{oracle: inventory, field: seats_left}, {oracle: room_inventory, field: rooms_left}]
 - id: fee_total
   unit: EUR
-  sources: [{oracle: booking, field: charges, where: {what: fare_lock}, take: amount_cents, scale: 0.01}]
+  sources: [{oracle: booking, field: charges, match_feature: what, take: amount_cents, scale: 0.01}]   # a fee vs the claiming feature's own charges
 - id: fee_per_traveller                 # no oracle: unverifiable, never "false"
   unit: EUR

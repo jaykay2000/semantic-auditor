@@ -47,27 +47,38 @@ class Story(BaseModel):
     snapshots: list[dict[str, Any]] = Field(default_factory=list)  # [{at, truth: {fact: value}}] from captures
     events: list[Event]
 
-    def truth_at(self, fact: str, t: datetime) -> Any:
-        """The fact's true value in force at t: the latest snapshot taken at or before t, else the static truth."""
-        snaps = [x for x in self.snapshots if _dt(x["at"]) <= t and fact in x["truth"]]
-        if snaps:
-            return max(snaps, key=lambda x: _dt(x["at"]))["truth"][fact]
+    def truth_at(self, fact: str, t: datetime, feature: str | None = None) -> Any:
+        """The fact's true value in force at t: the latest snapshot taken at or before t, else the static truth.
+
+        A fact scoped to the claiming feature (e.g. a fee: only that feature's own charges) is stored as
+        'fact@feature'; it is preferred when present.
+        """
+        for name in ([f"{fact}@{feature}"] if feature else []) + [fact]:
+            snaps = [x for x in self.snapshots if _dt(x["at"]) <= t and name in x["truth"]]
+            if snaps:
+                return max(snaps, key=lambda x: _dt(x["at"]))["truth"][name]
         return self.truth.get(fact)
 
-    def final_truth(self, fact: str) -> Any:
+    def final_truth(self, fact: str, feature: str | None = None) -> Any:
         """The fact's value at the end of the story (e.g. what was ultimately charged)."""
-        snaps = [x for x in self.snapshots if fact in x["truth"]]
-        return max(snaps, key=lambda x: _dt(x["at"]))["truth"][fact] if snaps else self.truth.get(fact)
+        for name in ([f"{fact}@{feature}"] if feature else []) + [fact]:
+            snaps = [x for x in self.snapshots if name in x["truth"]]
+            if snaps:
+                return max(snaps, key=lambda x: _dt(x["at"]))["truth"][name]
+        return self.truth.get(fact)
 
     def messages(self) -> list[Event]:
         return [e for e in self.events if e.kind == "message"]
 
-    def state_at(self, t: datetime, model: list) -> dict[str, Any]:
+    def state_at(self, t: datetime, model: list, *, inclusive: bool = False) -> dict[str, Any]:
         """State derived from the contract's state model and user actions strictly before t.
 
-        Exact timestamps, no rounding. An action's explicit `effects` are applied after the model.
+        inclusive=True also counts actions AT t: use it for a message, which is shown as the result of the step
+        it appears in (the confirmation page shown at 10:06:00 follows the 10:06:00 booking). Exact timestamps,
+        no rounding. An action's explicit `effects` are applied after the model.
         """
-        acts = sorted((e for e in self.events if e.kind == "user_action" and e.at < t), key=lambda e: e.at)
+        acts = sorted((e for e in self.events if e.kind == "user_action" and (e.at <= t if inclusive else e.at < t)),
+                      key=lambda e: e.at)
         state: dict[str, Any] = {}
         for var in model:
             if var.kind == "plain":

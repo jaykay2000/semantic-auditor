@@ -19,15 +19,19 @@ CHANNEL_ATTRS = ("data-channel",)
 KIND_CHANNEL = {"email": "email", "push": "push", "chat": "chat", "pdf": "pdf"}
 
 
-def fact_value(fact: Fact, state: dict[str, OracleReading]) -> Any:
-    """The fact's value in one state snapshot: the first source whose oracle reads. None if none applies."""
+def fact_value(fact: Fact, state: dict[str, OracleReading], feature: str | None = None) -> Any:
+    """The fact's value in one state snapshot: the first source whose oracle reads. None if none applies.
+
+    A source with match_feature keeps only list items belonging to `feature` (a fee claim is checked against
+    the claiming feature's own charges, never another transaction's)."""
     for src in fact.sources:
         reading = state.get(src.oracle)
         if reading is None or reading.status != "ok" or src.field not in reading.values:
             continue
         v = reading.values[src.field]
-        if src.where:
-            items = [x for x in (v or []) if all(x.get(k) == w for k, w in src.where.items())]
+        if src.where or src.match_feature:
+            items = [x for x in (v or []) if all(x.get(k) == w for k, w in src.where.items())
+                     and (not src.match_feature or x.get(src.match_feature) == feature)]
             if not items:
                 continue
             v = sum(x[src.take] for x in items) if src.take else items
@@ -38,7 +42,14 @@ def fact_value(fact: Fact, state: dict[str, OracleReading]) -> Any:
 
 
 def snapshot(at: datetime, state: dict[str, OracleReading], contract: Contract) -> dict[str, Any]:
-    truth = {f.id: v for f in contract.facts if (v := fact_value(f, state)) is not None}
+    truth: dict[str, Any] = {}
+    for f in contract.facts:
+        if any(s.match_feature for s in f.sources):
+            for feat in contract.features:
+                if (v := fact_value(f, state, feat.id)) is not None:
+                    truth[f"{f.id}@{feat.id}"] = v
+        elif (v := fact_value(f, state)) is not None:
+            truth[f.id] = v
     return {"at": at, "truth": truth}
 
 

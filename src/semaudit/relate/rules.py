@@ -78,7 +78,7 @@ def eval_match_oracle(rule: Rule, story: Story) -> list[Entry]:
         for c in e.extraction.claims:
             if c["type"] not in rule.check["claims"]:
                 continue
-            truth = story.truth_at(c["type"], e.at)
+            truth = story.truth_at(c["type"], e.at, e.feature)
             if truth is None:
                 continue                      # unverifiable: an owner question, never a violation
             status = "passed" if c["value"] == truth else "violated"
@@ -91,7 +91,7 @@ def eval_match_charge(rule: Rule, story: Story) -> list[Entry]:
     for e in story.messages():
         for c in e.extraction.claims:
             if c["type"] in rule.check["claims"]:
-                charged = story.final_truth(rule.check["charge"])   # the amount ultimately charged
+                charged = story.final_truth(rule.check["charge"], e.feature)   # ultimately charged, same feature
                 if charged is None:       # no transaction in this story: not applicable
                     continue
                 status = "passed" if c["value"] == charged else "violated"
@@ -106,7 +106,7 @@ def eval_actionable(rule: Rule, story: Story, contract: Contract) -> list[Entry]
             continue
         dec = contract.decision(e.extraction.decision)
         pre = dec.precondition(e.extraction.action) if dec else {}
-        status = "passed" if holds(pre, story.state_at(e.at, contract.state)) else "violated"
+        status = "passed" if holds(pre, story.state_at(e.at, contract.state, inclusive=True)) else "violated"
         out.append(Entry(rule.id, e.id, status))
     return out
 
@@ -115,7 +115,8 @@ def eval_message_kind(rule: Rule, story: Story, contract: Contract) -> list[Entr
     """Forbid a message kind in a given state (e.g. retrospective messages once booked)."""
     kind, state = rule.applies_to["message_kind"], rule.applies_to.get("state", {})
     return [Entry(rule.id, e.id, "violated") for e in story.messages()
-            if e.extraction.message_kind == kind and holds(state, story.state_at(e.at, contract.state))]
+            if e.extraction.message_kind == kind
+            and holds(state, story.state_at(e.at, contract.state, inclusive=True))]
 
 
 # ---------- conditional rules ----------
@@ -132,7 +133,7 @@ def condition_value(cond, e: Event, story: Story) -> str:
         return "met" if dep - e.at <= timedelta(hours=cond.hours) else "not_met"   # exact timestamps
     if cond.test == "claim_matches_oracle":
         claims = [c for c in e.extraction.claims if c["type"] == cond.claim]
-        truth = story.truth_at(cond.claim, e.at)
+        truth = story.truth_at(cond.claim, e.at, e.feature)
         if not claims or truth is None:
             return "unknown"
         return "met" if all(c["value"] == truth for c in claims) else "not_met"

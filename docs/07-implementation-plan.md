@@ -21,6 +21,8 @@ How the work runs:
 | W5 | **built**: Northbound 2.4 (Fare Lock, Price Watch auto-enroll, Concierge 2.0 with the seeded bugs as settings) and 2.4.1 (the three fixes as named settings, Fare Lock on hotels); one test per README persona, mutation-checked ($0 of Meta budget) | `examples/northbound/`, `examples/northbound/tests/test_release_2_4.py` |
 | W4 | **built**: scenario runner (`semaudit capture`): launches each release, drives every persona's scenario in Chromium on simulated time through the adapter, writes episodes (steps, captures with source-specific locators, oracle state); 15 stories match the hand-authored fixtures; deterministic; mutation-checked ($0 of Meta budget) | `src/semaudit/capture/`, `src/semaudit/story/episode.py`, `examples/northbound/adapter.py`, `tests/test_capture.py` |
 | W6 | **accepted**: extraction from real captures, 55/55 distinct messages exact on 3/3 fresh repeats ($0.36) | [evidence/w6-extraction.md](evidence/w6-extraction.md) |
+| W7 | **built**: base ↔ head alignment by event key; explicit added/removed; marked fuzzy pairs | `src/semaudit/story/align.py` |
+| W8 | **accepted**: real captures → stories → rules + P2 interpretation; 31/31 stories × 5 fresh runs; stubs fail ($0.56) | [evidence/w8-real-captures.md](evidence/w8-real-captures.md) |
 
 ## The minimum compelling version (MCV)
 
