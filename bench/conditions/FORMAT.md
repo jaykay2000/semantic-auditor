@@ -31,7 +31,11 @@ Time (`at`) places an event; it is never part of its identity. A truth item made
 5. Findings about personas outside `truth.personas` (episodes the release could not measure) are not scored.
 6. A rule the auditor reports only as "also violated" on an event another rule's issue owns is scored as a
    finding (`secondary: true`). A baseline may likewise report several rules on one event.
-7. **Evidence support:** a finding is supported when it cites at least one event and every cited event exists in
+7. A finding a system raised that the format cannot express (for example a coherence finding naming a single
+   feature) is dropped, listed as `malformed`, and **scored as one false positive**. It is never repaired.
+   This is how a negative control that no well-formed finding can land on (a `duplicate_ok` repeat of one
+   feature's own advice) still costs a system that raises it.
+8. **Evidence support:** a finding is supported when it cites at least one event and every cited event exists in
    the captured stories with the quote verbatim in that event's text.
 
 ## The custodian's converter

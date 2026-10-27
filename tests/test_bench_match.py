@@ -167,3 +167,10 @@ def test_an_item_made_of_several_events_matches_a_finding_about_any_one():
 def test_event_identity_includes_the_surface():
     elsewhere = Target(kind="event", feature="fare_lock", surface="checkout", message_key="fl.banner.urgent")
     assert score(found(F("f", ["kai"], "P1", elsewhere)), truth(T("t", ["kai"], "P1", EV)))["tp"] == 0
+
+
+def test_a_malformed_finding_counts_as_a_false_positive():
+    fs = found(F("f", ["kai"], "P1", EV))
+    fs.dropped = ["x-002: a relation target names two different features and a decision"]
+    s = score(fs, truth(T("t", ["kai"], "P1", EV)))
+    assert (s["tp"], s["fp"], s["precision"]) == (1, 1, 0.5) and len(s["malformed"]) == 1

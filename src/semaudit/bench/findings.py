@@ -70,6 +70,8 @@ class Findings(BaseModel):
     release: str
     run: str = "1"
     findings: list[Finding]
+    dropped: list[str] = Field(default_factory=list)   # findings the format could not express; each one is
+                                                       # scored as a false positive, never repaired
     cost_usd: float | None = None
     calls: int | None = None
 

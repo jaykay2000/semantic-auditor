@@ -52,7 +52,7 @@ def test_input_carries_evidence_but_no_auditor_judgement_and_no_persona_roles():
 
 def test_malformed_findings_are_dropped_and_listed_never_repaired():
     fs, dropped = judge.judge_one(judge.stories_for(RUN, "2.4", C), C, FakeRouter([GOOD, BAD]), release="2.4")
-    assert len(fs.findings) == 1 and len(dropped) == 1 and fs.system == "B-judge-1"
+    assert len(fs.findings) == 1 and len(dropped) == 1 == len(fs.dropped) and fs.system == "B-judge-1"
     assert fs.findings[0].target.key() == ("relation", "fare_lock", "price_watch", "when_to_book")
 
 

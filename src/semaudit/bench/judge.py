@@ -150,5 +150,5 @@ def _validated(system: str, release: str, run: str, items: list[dict], cost: flo
             ok.append(Finding.model_validate(f))
         except ValidationError as e:
             dropped.append(f"{f['id']}: {e.errors()[0]['msg']}")
-    return Findings(system=system, release=release, run=run, findings=ok, cost_usd=round(cost, 6),
-                    calls=calls), dropped
+    return Findings(system=system, release=release, run=run, findings=ok, dropped=dropped,
+                    cost_usd=round(cost, 6), calls=calls), dropped

@@ -216,6 +216,13 @@
    "title": "Findings",
    "type": "array"
   },
+  "dropped": {
+   "items": {
+    "type": "string"
+   },
+   "title": "Dropped",
+   "type": "array"
+  },
   "cost_usd": {
    "anyOf": [
     {

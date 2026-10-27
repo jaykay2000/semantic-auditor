@@ -60,7 +60,7 @@ def score(fs: Findings, truth: Truth, *, evidence: dict[tuple[str, str], str] | 
     nc_hits, unmatched = _pair(rest, ncs, with_label=False)
 
     items = {i.id: i for i in truth.items}
-    tp, fp = len(matched), len(nc_hits) + len(unmatched)
+    tp, fp = len(matched), len(nc_hits) + len(unmatched) + len(fs.dropped)
     by_kind: dict[str, dict[str, int]] = defaultdict(lambda: {"truth": 0, "found": 0})
     for t in issues:
         by_kind[items[t.ref].pattern or t.rule]["truth"] += 1
@@ -96,6 +96,7 @@ def score(fs: Findings, truth: Truth, *, evidence: dict[tuple[str, str], str] | 
         "matched": [[f.ref, f.persona, t.ref] for f, t in matched],
         "negative_control_hits": [[f.ref, f.persona, t.ref] for f, t in nc_hits],
         "unmatched": [[f.ref, f.persona] for f in unmatched],   # to adjudication
+        "malformed": list(fs.dropped),                           # false positives the format cannot express
         "cost_usd": fs.cost_usd, "calls": fs.calls,
     }
 
