@@ -10,8 +10,8 @@ every path to its hash, and its own hash is below.
 
 Verify (after unsealing, from the sealed folder): `python3 tools/freeze.py --check <repo>/bench/FROZEN.md`
 
-- Sealed files: **82**
-- `MANIFEST.sha256`: `cac7f3ed5acd780532ff2a0b293cbbe36349b7241777d3da4d96572bfd637b62`
+- Sealed files: **90**
+- `MANIFEST.sha256`: `f1701ccff7b9310b6ab15580f0dc0eeee9026f227c374218d906f9be0cd99e0b`
 
 ## History (earlier freezes and re-seal records)
 
@@ -25,6 +25,9 @@ Verify (after unsealing, from the sealed folder): `python3 tools/freeze.py --che
 | `history/2026-10-26-first-freeze/contracts/bench-02/principles.yaml` | `d34c1b15806a472551c101cfc6a9909ba5c683bdf7bae472a4dd3c1be9c51b2a` |
 | `history/2026-10-26-first-freeze/contracts/bench-03/personas.yaml` | `996663cd84e49b87b46657b974752ec262760b96a58caf6ac737645b5fee96c7` |
 | `history/2026-10-27-migration.yaml` | `dea96b34c47c0eb2c0ea4b8dc515928c07e693399b72f02956d4f974b437e021` |
+| `history/2026-10-27-second-freeze/FROZEN.md` | `7f84dd7bd5fa922bbc1fad91aa18153b4fd698eb077bb6161f7dda632238e7ba` |
+| `history/2026-10-27-second-freeze/MANIFEST.sha256` | `cac7f3ed5acd780532ff2a0b293cbbe36349b7241777d3da4d96572bfd637b62` |
+| `history/2026-10-27b-normalized-truth.yaml` | `e457e7c3be7c706ce7db8585c483f9b5eb1084b985ff3590c1452467730cd0a1` |
 
 ## Ground truth
 
@@ -36,6 +39,9 @@ Verify (after unsealing, from the sealed folder): `python3 tools/freeze.py --che
 | `ground_truth/bench-02.yaml` | `e26ab8f36e69b4024f9a156fa52f020d0ba7f3d1ca02ca640e0a0e911914ed64` |
 | `ground_truth/bench-03.stories.yaml` | `8d33a33f17710f261baded4918900534d358eb082cb1ef66732054acb9fc98d9` |
 | `ground_truth/bench-03.yaml` | `48b07f8e56912183a25532ddbb33fca2685244206fd3943bb152b8964c9c7308` |
+| `ground_truth/normalized/bench-01.truth.json` | `6feaad068a3a33c32524fd32dac9de917d087ac2fbdea660d8317ee07b472f15` |
+| `ground_truth/normalized/bench-02.truth.json` | `8ae15c655a2fa5e6da38c2a184542dd484fa03b3335f5b8955ce6a05435cb6a3` |
+| `ground_truth/normalized/bench-03.truth.json` | `7bead37363bedea90a90a6f3ad57ecae31e9ab510c2eb01111509882ac0823cb` |
 
 ## Contracts (product policy, personas, scenarios)
 
@@ -114,21 +120,23 @@ Verify (after unsealing, from the sealed folder): `python3 tools/freeze.py --che
 
 | File | SHA-256 |
 |---|---|
-| `README.md` | `682e696a399ecf17ef2cf949e13c33b111c9b025da172649ea615b3d168b847e` |
+| `README.md` | `5fbb9a314d4672ec43a7edf6aa9cc2fb41d73d6756ba3f29cc7ed72fc2094bd5` |
 | `tests/conftest.py` | `c645f016492f19990c736f549297b9b3dcf1103d4ba723a36cd227faf75d6ff7` |
 | `tests/gtlib.py` | `08006a3f8b3193748a1fe5430c268f019c5711db3792bf49e2bbf16fc88e2245` |
 | `tests/nbdrive.py` | `0f31e63b4f36dddec37c58217b4b2c71f318489b2816b109396e8917777d6bb0` |
 | `tests/test_contract_and_base.py` | `4e90202b38224ec72cab20cd521f617d00c40117d77624c58b3179c8fa5a81bf` |
 | `tests/test_env_and_server.py` | `6dd8e6570d45b0d29fc0b61171da5ecedb949f37cba1b63895cf7c2658941dd6` |
 | `tests/test_ground_truth.py` | `a31990a11757382327b5995f9a8bcc2faffaeced06bcb87037e6eb157d476cea` |
-| `tools/freeze.py` | `c08a52b9c041c7344c6c1df256ca7e5721a551f66ecfbfb37598df09796720e0` |
+| `tests/test_normalized.py` | `d6dcd779459d417e209a9d6970d6264f70cbcff9627bed8fd932065792c28d87` |
+| `tools/freeze.py` | `69e2c44c0359c47445d2fdbb94ac89269558b4955636bcb266ca7d55410b8282` |
 | `tools/migrate_check.py` | `2003a5e7ab2889bce0e6d54e2a2ac3634fa926295e11958d20e1f986a27e4d82` |
 | `tools/record_stories.py` | `00e9926d1b69b24f117bce5093b767dd8b4f1c1c71777e69df49a753ada3c7cb` |
+| `tools/to_normalized.py` | `7f71579e2931c0a46aea045a515e0a776840608c2ec61cdcbb004c21580cbed2` |
 
 ## Re-seals
 
-Each earlier freeze is kept unchanged (the repo's `bench/FROZEN-<date>.md`, and the sealed
-`history/<date>-*/`), so it can still be checked. Hashes below are against the previous freeze.
+Each earlier freeze is kept unchanged (the repo's `bench/FROZEN-*.md`, and the sealed `history/*/`),
+so it can still be checked. Hashes below are against the freeze each re-seal replaced.
 
 ### 2026-10-27: compatibility-only
 
@@ -160,4 +168,24 @@ semaudit 8756afd (main) generalized the contract schema: persona `trip` and top-
 | `history/2026-10-26-first-freeze/contracts/bench-03/personas.yaml` | (new) | 996663cd84e49b87b46657b974752ec262760b96a58caf6ac737645b5fee96c7 | added: first-freeze manifest, FROZEN.md and the pre-migration contract files, and this record |
 | `history/2026-10-27-migration.yaml` | (new) | dea96b34c47c0eb2c0ea4b8dc515928c07e693399b72f02956d4f974b437e021 | added: first-freeze manifest, FROZEN.md and the pre-migration contract files, and this record |
 | `tools/migrate_check.py` | (new) | 2003a5e7ab2889bce0e6d54e2a2ac3634fa926295e11958d20e1f986a27e4d82 | added: the mechanical-migration proof |
+
+### 2026-10-27: additive-only
+
+Added the converter from this ground truth to the repo's normalized truth format (bench/conditions/FORMAT.md, "The custodian's converter"), its output for each release, and a test that every item converts, validates with semaudit.bench.findings.Truth, and keeps its counts per kind. No ground truth, contract, release or feature file changed. Done before any model or baseline scoring run.
+
+- Previous freeze: 82 files, `MANIFEST.sha256` `cac7f3ed5acd780532ff2a0b293cbbe36349b7241777d3da4d96572bfd637b62`, FROZEN.md `7f84dd7bd5fa922bbc1fad91aa18153b4fd698eb077bb6161f7dda632238e7ba`
+- Changed 2, added 8, removed 0; 80 unchanged
+
+| File | Old SHA-256 | New SHA-256 | Reason |
+|---|---|---|---|
+| `README.md` | 682e696a399ecf17ef2cf949e13c33b111c9b025da172649ea615b3d168b847e | 5fbb9a314d4672ec43a7edf6aa9cc2fb41d73d6756ba3f29cc7ed72fc2094bd5 | documents the converter and this re-seal |
+| `tools/freeze.py` | c08a52b9c041c7344c6c1df256ca7e5721a551f66ecfbfb37598df09796720e0 | 69e2c44c0359c47445d2fdbb94ac89269558b4955636bcb266ca7d55410b8282 | re-seal records chain: each earlier re-seal is compared with the freeze it produced |
+| `ground_truth/normalized/bench-01.truth.json` | (new) | 6feaad068a3a33c32524fd32dac9de917d087ac2fbdea660d8317ee07b472f15 | added: the converter's output, one truth file per release |
+| `ground_truth/normalized/bench-02.truth.json` | (new) | 8ae15c655a2fa5e6da38c2a184542dd484fa03b3335f5b8955ce6a05435cb6a3 | added: the converter's output, one truth file per release |
+| `ground_truth/normalized/bench-03.truth.json` | (new) | 7bead37363bedea90a90a6f3ad57ecae31e9ab510c2eb01111509882ac0823cb | added: the converter's output, one truth file per release |
+| `history/2026-10-27-second-freeze/FROZEN.md` | (new) | 7f84dd7bd5fa922bbc1fad91aa18153b4fd698eb077bb6161f7dda632238e7ba | added: the second freeze's manifest and FROZEN.md, and this record |
+| `history/2026-10-27-second-freeze/MANIFEST.sha256` | (new) | cac7f3ed5acd780532ff2a0b293cbbe36349b7241777d3da4d96572bfd637b62 | added: the second freeze's manifest and FROZEN.md, and this record |
+| `history/2026-10-27b-normalized-truth.yaml` | (new) | e457e7c3be7c706ce7db8585c483f9b5eb1084b985ff3590c1452467730cd0a1 | added: the second freeze's manifest and FROZEN.md, and this record |
+| `tests/test_normalized.py` | (new) | d6dcd779459d417e209a9d6970d6264f70cbcff9627bed8fd932065792c28d87 | added: every item converts and validates; counts per kind equal before and after |
+| `tools/to_normalized.py` | (new) | 7f71579e2931c0a46aea045a515e0a776840608c2ec61cdcbb004c21580cbed2 | added: the converter to bench/conditions/truth.schema.json |
 
