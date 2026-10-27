@@ -21,15 +21,20 @@ from semaudit.story.model import Story
 CLEARED_LABELS = {"explained_tradeoff", "compatible"}
 
 
-def not_raised(head: ReleaseEval, failed: list[Issue], contract: Contract) -> list[dict]:
+def not_raised(head: ReleaseEval, failed: list[Issue], contract: Contract, set_aside: list[Issue] = ()) -> list[dict]:
     out = []
     for persona, (story, entries) in sorted(head.results.items()):
         by = {e.id: e for e in story.events}
         for e in entries:
             if e.status == "excepted":
+                ex = next((x for x in contract.rule(e.rule).exceptions if x.id == e.meta.get("exception")), None)
+                src = ex.source if ex else None
+                origin = (f", accepted by {src.by} on {src.date} from {src.at}" if src and src.kind == "review" else "")
                 out.append({"persona": persona, "rule": e.rule, "subjects": [e.subject], "status": "excepted",
                             "label": None, "conditions": [list(c) for c in e.conditions],
-                            "reason": "exception applies: " + ", ".join(f"({c}) {v}" for c, v in e.conditions)})
+                            "exception": ex.id if ex else None,
+                            "reason": f"exception {ex.id if ex else ''}{origin} applies: "
+                                      + ", ".join(f"({c}) {v}" for c, v in e.conditions)})
             elif e.rule == contract.rules_of("coherence")[0].id and e.status == "passed" and e.label in CLEARED_LABELS:
                 rid = e.meta.get("reconciler")
                 when = f" by {rid} at {by[rid].at:%H:%M:%S}" if rid in by else ""
@@ -40,6 +45,12 @@ def not_raised(head: ReleaseEval, failed: list[Issue], contract: Contract) -> li
         out.append({"persona": ",".join(i.personas), "rule": i.rule, "subjects": [i.id], "status": "not_raised",
                     "label": i.label, "conditions": [],
                     "reason": f"verification failed: {i.verification['reason']}"})
+    for i in set_aside:
+        m = i.memory
+        out.append({"persona": ",".join(i.personas), "rule": i.rule, "subjects": [i.id], "status": "owner_set_aside",
+                    "label": i.label, "conditions": [], "memory": m,
+                    "reason": f"owner decided not an issue ({m['decision']}, {m['by']}, {m['date']}, on {m['made_on']}): "
+                              f"{m.get('reason', '')}; same signature, personas and messages"})
     return out
 
 
@@ -61,7 +72,7 @@ def event_row(e, story: Story, contract: Contract, ep=None) -> dict:
         row["action"] = e.action
         return row
     live = validity(e, story, contract) if e.extraction and e.extraction.message_kind == "directive" else None
-    row.update(feature=e.feature, surface=e.surface, channel=e.channel, text=e.text, message_key=e.copy_key,
+    row.update(feature=e.feature, component=e.component, surface=e.surface, channel=e.channel, text=e.text, message_key=e.copy_key,
                user_initiated=e.user_initiated,
                extraction=e.extraction.model_dump() if e.extraction else None,
                evidence=e.evidence.model_dump() if e.evidence else None,
@@ -145,9 +156,12 @@ def issue_dict(i: Issue, stories: dict[str, Story], contract: Contract, review_p
         "why": i.why, "rule_text": rule.text, "rule_source": rule.source.model_dump() if rule.source else None,
         "conditions": [list(c) for c in o.entry.conditions],
         "occurrences": [{"persona": x.persona, "events": x.events, "timing": x.timing,
+                         "conditions": [list(c) for c in x.entry.conditions],
+                         "exception": x.entry.meta.get("exception"),
                          "also": [asdict(a) | {"conditions": [list(c) for c in a.conditions]} for a in x.also]}
                         for x in i.occurrences],
         "severity": i.severity, "confidence": i.confidence, "verification": i.verification,
+        "memory": i.memory or None,
         "repro": f"semaudit repro {i.id} --review {review_path} --max-usd 1" if review_path else None,
     }
 
@@ -177,7 +191,8 @@ def outcome_of(policy_rec: str, measured: bool, approval: dict) -> dict:
 
 def assemble(base: ReleaseEval, head: ReleaseEval, contract: Contract, verified: list[Issue],
              resolved: list[Issue], spent_usd: float, *, approval: dict,
-             unconfirmed: list[Issue] = (), manifest: dict | None = None, review_path: str | None = None) -> dict:
+             unconfirmed: list[Issue] = (), manifest: dict | None = None, review_path: str | None = None,
+             set_aside: list[Issue] = ()) -> dict:
     open_issues = [i for i in verified if i.verification.get("status") != "failed"]
     failed = [i for i in verified if i.verification.get("status") == "failed"]
     row, idx = contract.policy.evaluate([{"severity": i.severity["level"], "confidence": i.confidence["level"],
@@ -202,11 +217,10 @@ def assemble(base: ReleaseEval, head: ReleaseEval, contract: Contract, verified:
         "outcome": outcome_of(row.recommendation, measured, approval),
         "measurement": {"complete": measured, "base": base.not_measured, "head": head.not_measured},
         "approval": approval,
-        "owner_decision": {"status": "pending"},
         "issues": issues,
         "resolved": [issue_dict(i, base_stories, contract, review_path) for i in resolved],
         "unconfirmed": [issue_dict(i, base_stories, contract) for i in unconfirmed],
-        "not_raised": not_raised(head, failed, contract),
+        "not_raised": not_raised(head, failed, contract, set_aside),
         "personas": [persona_view(p, s, base_stories.get(p), contract, head, base) for p, s in sorted(stories.items())],
         "cost_usd": round(spent_usd, 4),
         "manifest": manifest,

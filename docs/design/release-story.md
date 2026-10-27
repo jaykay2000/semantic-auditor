@@ -37,7 +37,7 @@ Everything on the screen serves one of those four, or the shipping decision. Any
 
 ### Decision bar
 - **Recommendation** is exactly what the release policy computed (`Hold` / `Needs owner review` / `Ship with notes` / `Ship`), followed by the policy line that fired, verbatim from `release_policy.yaml` (e.g. "an open issue is critical, or an open issue is not verified"). Never hand-set.
-- **Owner decision**: `pending` until the owner acts; then the disposition and who/when.
+- **Owner decision**: `pending` until the owner acts; then the release decision (ship / ship with notes / hold) and who/when, beside the recommendation and never replacing it. Per issue: *Mark fix*, *Not an issue* (with a reason), *Accept scoped exception* (only where it cannot widen anything; otherwise disabled with the reason). Working buttons under `semaudit serve`; the static page shows the equivalent `semaudit decide` commands.
 
 ### Story: the time axis (decision)
 Events in one scenario span minutes and then days (Maya: 10:00–10:06, then 12:00, 18:00, D2 09:02). A linear axis would stack the hero moments into one pixel. So:
@@ -89,7 +89,7 @@ Opens under the story when an issue is selected; the selected issue's events get
 
 ## Data the page reads (W10b contract)
 One JSON per run, `review.json`, from which the static page is generated:
-- `release {base, head}`, `policy {recommendation, rule_fired}`, `owner_decision`.
+- `release {base, head}`, `policy {recommendation, rule_fired}`, `outcome`. The owner's decisions are not in review.json (it is never edited after it is written): the page builder reads the decisions made on this exact review (by hash) from the contract's `dispositions.yaml`, and issues carry `memory`, the earlier decision a review applied (W11).
 - `personas[]`, each with `context` and `summary`, `steps[] {step_id, at}`, `events[] {event_key, id, step_id, at, kind, feature, surface, channel, text, message_key, capture_ref, locator, live_until | open, delta, base_event_key}`, `state[] {from, to, label}`.
 - `issues[] {id, persona, layer: release|factual, rule, label, subjects[], severity {level, factors[]}, confidence {level, basis[]}, verification {status, steps{…}}, delta, why, rule_text, rule_source, conditions[], other_rules[], repro}`.
 - `not_raised[] {persona, rule, subjects[], status, label, reason}`.

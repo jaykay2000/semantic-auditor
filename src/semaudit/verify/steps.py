@@ -218,6 +218,7 @@ def _defend_one(issue: Issue, o, story: Story, contract: Contract, router: Route
                   "exception_conditions_measured": [list(c) for c in o.entry.conditions]},
         "exceptions": [{"id": e.id, "conditions": [c.model_dump(exclude_none=True) for c in e.conditions],
                         "scope": e.scope} for e in rule.exceptions],
+        **({"exception_measured": o.entry.meta.get("exception")} if len(rule.exceptions) > 1 else {}),
         "rubric": contract.rubric,
         "cited_messages": [{"id": e.id, "feature": e.feature, "channel": e.channel, "at": e.at.isoformat(),
                             "text": e.text, "reading": {f: getattr(e.extraction, f) for f in FIELDS_DISPUTABLE}

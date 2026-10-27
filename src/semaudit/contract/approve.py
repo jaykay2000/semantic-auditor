@@ -29,24 +29,30 @@ class Item:
     digest: str
 
 
-def _digest(obj: Any) -> str:
+def _digest(obj: Any, exclude: frozenset = frozenset()) -> str:
     def dump(o):
         if isinstance(o, list):
             return [dump(x) for x in o]
         if isinstance(o, str):
             return o
-        return o.model_dump(mode="json", exclude={"source"})
+        return o.model_dump(mode="json", exclude={"source", *exclude})
     return hashlib.sha256(json.dumps(dump(obj), sort_keys=True).encode()).hexdigest()[:16]
+
+
+def rule_digest(r: Any) -> str:
+    """A rule's own content. Its exceptions are approved as separate items, so adding or narrowing one (an owner
+    `accept`) does not unapprove the rule; removing one only makes the contract stricter."""
+    return _digest(r, frozenset({"exceptions"}))
 
 
 def items(c: Contract) -> list[Item]:
     out: list[Item] = []
 
-    def add(section: str, id: str, obj: Any):
-        out.append(Item(f"{section}:{id}", section, id, obj, _digest(obj)))
+    def add(section: str, id: str, obj: Any, digest: str | None = None):
+        out.append(Item(f"{section}:{id}", section, id, obj, digest or _digest(obj)))
 
     for r in c.rules:
-        add("rule", r.id, r)
+        add("rule", r.id, r, rule_digest(r))
         for e in r.exceptions:
             add("exception", e.id, e)
     for d in c.decisions:

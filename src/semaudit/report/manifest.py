@@ -19,7 +19,8 @@ from semaudit.extract import messages as _extract
 from semaudit.relate import interpret as _interpret
 from semaudit.verify import steps as _steps
 
-SKIP = {"approvals.yaml"}          # approving later does not change what was measured
+SKIP = {"approvals.yaml", "dispositions.yaml"}   # approving or deciding later does not change what was measured;
+                                                 # the decisions a review applied are pinned in `memory`
 
 
 def sha256_file(p: Path) -> str:
@@ -66,7 +67,7 @@ def episode_digests(run_dir: Path, releases: list[str]) -> dict[str, str]:
 
 
 def build(contract_dir: Path, contract: Contract, run_dir: Path, base: str, head: str, *, router,
-          models: bool, max_usd: float, repro_run: str | None) -> dict[str, Any]:
+          models: bool, max_usd: float, repro_run: str | None, memory: dict | None = None) -> dict[str, Any]:
     ad = adapter_path(contract_dir, contract)
     return {
         "schema": "semaudit.manifest/1",
@@ -82,6 +83,7 @@ def build(contract_dir: Path, contract: Contract, run_dir: Path, base: str, head
         "verifier": {"models": models, "per_occurrence": True,
                      "steps": ["reproduced", "evidence_linked", "cross_model", "defended", "oracle_checked"]},
         "max_usd": max_usd,
+        "memory": memory,
     }
 
 
@@ -113,3 +115,14 @@ def episode_problems(manifest: dict) -> list[str]:
         elif sha256_file(p) != digest:
             out.append(f"episode {rel} changed since the review")
     return out
+
+
+def memory_problems(manifest: dict) -> list[str]:
+    """The owner decisions the review recorded must be intact: their digest is over their own content."""
+    mem = manifest.get("memory")
+    if mem is None:
+        return []
+    from semaudit.decide.memory import digest
+    if digest(mem.get("issues", [])) != mem.get("sha256"):
+        return ["the owner decisions recorded in this review were altered"]
+    return []

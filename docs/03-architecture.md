@@ -315,12 +315,14 @@ The rows are evaluated top to bottom and are exhaustive: every combination of op
 
 The owner's actual decision is recorded beside the recommendation, never overwriting it.
 
-**Owner dispositions become memory, and nothing is suppressed broadly:**
+**Owner dispositions become memory, and nothing is suppressed broadly** (as built in W11: fix, accept, not an issue
+and release decisions; see [05-audit-workflow.md](05-audit-workflow.md) step 10. Each review records the decisions it
+applied in its manifest, so repro and verify-report replay exactly those. The last two rows are planned):
 
 | Disposition | What is stored | Next release |
 |---|---|---|
 | **fix** | issue reference + expected resolution | the issue must come back `resolved`, or it is re-raised as `still_open` |
-| **accept as scoped exception** | a new or narrowed exception: conditions, scope (features, surfaces, personas), expiry, approver | applies only when *all* its conditions are met. A similar event outside the scope or conditions is raised, with the reason (e.g. Fare Lock's urgent variant in the hotel flow: "nearest exception P1-E1 does not apply: scope"; Hana: "condition (a) not met: departs in ≈ 4,380 h") |
+| **accept as scoped exception** | a new exception: the nearest exception's conditions, scope narrowed to the issue's own (feature, component, surface), expiry, approver. Only for a conditional rule whose nearest exception failed on scope alone | applies only when *all* its conditions are met. A similar event outside the scope or conditions is raised, with the reason (e.g. Fare Lock's urgent variant in the hotel flow: "nearest exception P1-E1 does not apply: scope"; Hana: "condition (a) not met: departs in ≈ 4,380 h") |
 | **not an issue** | reason + the exact relation signature (events, features, principle) | that exact signature is not re-raised; a variant is |
 | **expressible rule** | a deterministic check in `.semaudit/checks/` (fact equality, presence or absence under a condition, a precondition rule) | runs first after capture, with no model calls; it reports `could_not_measure` when a locator breaks |
 | **approved semantic expectation** | a natural-language expectation, approved and scoped ("Price Watch never messages a traveller after they book") | evaluated by the relation layer every release; not claimed to be deterministic |

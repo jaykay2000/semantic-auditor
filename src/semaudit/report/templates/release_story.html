@@ -82,10 +82,13 @@ select{font:500 13px Inter,sans-serif;padding:7px 10px;border-radius:7px;border:
 </head>
 <body>
 <script type="application/json" id="review-data">__REVIEW_JSON__</script>
+<script type="application/json" id="owner-data">__OWNER_JSON__</script>
 <main id="app" aria-live="polite"></main>
 <script>
 (() => {
 const R = JSON.parse(document.getElementById('review-data').textContent);
+// The owner's decisions made on this exact review; shown beside the recommendation, never changing it.
+const O = JSON.parse(document.getElementById('owner-data').textContent);
 const $ = (s, el = document) => el.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const SEV = ['critical','major','minor'];
@@ -166,6 +169,44 @@ function header(p) {
 }
 
 const words = s => String(s).replace(/_/g, ' ').replace(/^./, c => c.toUpperCase());
+const copyCmd = s => `<span class="row" style="gap:8px"><code class="repro">${esc(s)}</code><button class="btn" data-copy="${esc(s)}">Copy</button></span>`;
+const back = () => `<input type="hidden" name="back" value="${esc(location.hash)}">`;
+const DARK = new Set(['new', 'regressed', 'still_open']);
+const deltaChip = (i, tail = '') => `<span class="chip delta ${DARK.has(i.delta) ? '' : 'pre'}">${esc(i.delta.replace(/_/g, ' ').toUpperCase())}${tail}</span>`;
+const failing = o => (o.conditions || []).filter(([, v]) => v !== 'met').map(([c]) => c);
+function whyNotAccept(i) {
+  if (i.rule_kind !== 'conditional') return `exceptions exist only for conditional rules; ${i.rule} is ${i.rule_kind}`;
+  const bad = i.occurrences.find(o => !o.exception || failing(o).join() !== 'scope');
+  return bad ? `${bad.persona}: ${bad.exception || 'the exception'} failed on ${failing(bad).join(', ') || 'nothing'}, not on scope alone; accepting would drop a condition` : '';
+}
+function memoryNote(m) {
+  if (!m) return '';
+  return `<div class="box" style="background:#FAFAF7;font-size:13px;line-height:1.5"><b>Earlier owner decision ${esc(m.decision)}</b> · ${esc(m.kind.replace(/_/g, ' '))} · ${esc(m.by)} · ${esc(m.date)} · made on ${esc(m.made_on)} → <b>${esc(m.status.replace(/_/g, ' '))}</b>: ${esc(m.note)}${m.reason ? ` · “${esc(m.reason)}”` : ''}</div>`;
+}
+function ownerBlock(i) {
+  const d = O.issues[i.id];
+  if (d) return `<div class="row" style="gap:8px"><span class="chip ver">owner: ${esc(d.kind.replace(/_/g, ' '))}</span><span class="muted" style="font-size:12px">${esc(d.id)} · ${esc(d.by)} · ${esc(d.date)}${d.reason ? ` · “${esc(d.reason)}”` : ''}${d.exceptions ? ' · ' + d.exceptions.map(x => esc(x.id)).join(', ') + ' until ' + esc(d.exceptions[0].approved.expires) : ''}</span></div>`;
+  if (!O.can_decide) return '<span class="muted">this review has no manifest; re-run it to record decisions</span>';
+  const no = whyNotAccept(i);
+  if (O.interactive) {
+    const f = (kind, inner, label) => `<form method="post" action="/decide" class="row" style="gap:6px;margin:0"><input type="hidden" name="issue" value="${esc(i.id)}"><input type="hidden" name="kind" value="${kind}">${back()}${inner}<button class="btn" type="submit">${label}</button></form>`;
+    return `<div class="row" style="gap:10px;flex-wrap:wrap;justify-content:flex-end">${f('fix', '', 'Mark fix')}
+      ${f('not_an_issue', '<input name="reason" required placeholder="why this is not an issue" class="btn" style="width:210px">', 'Not an issue')}
+      ${no ? `<button class="btn" disabled title="${esc(no)}">Accept scoped exception</button>`
+           : f('accept', '<input type="date" name="expires" required class="btn" aria-label="exception expires">', 'Accept scoped exception')}</div>`;
+  }
+  const tail = ` --review ${O.review} --by <you>`;
+  return `<details><summary class="btn" style="list-style:none;cursor:pointer">Decide…</summary><div style="display:flex;flex-direction:column;gap:6px;margin-top:8px">
+    ${copyCmd(`semaudit decide ${i.id} fix${tail}`)}${copyCmd(`semaudit decide ${i.id} not-an-issue --reason "…"${tail}`)}
+    ${no ? `<span class="muted" style="font-size:12px">accept: ${esc(no)}</span>` : copyCmd(`semaudit decide ${i.id} accept --expires YYYY-MM-DD${tail}`)}
+    <span class="muted" style="font-size:12px">or <span class="mono">semaudit serve --review ${esc(O.review)} --by &lt;you&gt;</span> for buttons</span></div></details>`;
+}
+function ownerRelease() {
+  const d = O.release;
+  if (d) return `Owner decision <b style="color:var(--ink)">${esc(words(d.decision))}</b> · ${esc(d.by)} · ${esc(d.date)}${d.note ? ` · “${esc(d.note)}”` : ''}`;
+  if (O.interactive && O.can_decide) return `Owner decision <form method="post" action="/release" class="row" style="gap:6px;margin:0;display:inline-flex">${back()}<input name="note" placeholder="note (optional)" class="btn" style="width:150px">${['ship', 'ship_with_notes', 'hold'].map(x => `<button class="btn" name="decision" value="${x}" type="submit">${words(x)}</button>`).join('')}</form>`;
+  return `Owner decision <b style="color:var(--ink)">pending</b>`;
+}
 const approvalOf = key => ((R.approval || {}).items || {})[key] || 'unapproved';
 function decisionBar() {
   const pol = R.policy, out = R.outcome || {status: 'decided', recommendation: pol.recommendation};
@@ -177,7 +218,7 @@ function decisionBar() {
     <span class="muted" style="font-size:12px">Recommendation</span>
     <span class="rec rec-${out.recommendation}">${esc(words(out.recommendation))}</span>
     ${why}
-    <span style="margin-left:auto" class="muted">Owner decision <b style="color:var(--ink)">${esc(R.owner_decision.status)}</b> · ${R.issues.length} open issue${R.issues.length === 1 ? '' : 's'} · ${R.personas.length} personas</span>
+    <span style="margin-left:auto" class="muted row">${ownerRelease()} · ${R.issues.length} open issue${R.issues.length === 1 ? '' : 's'} · ${R.personas.length} personas</span>
   </div>`;
 }
 
@@ -242,7 +283,7 @@ function rail(p) {
   const mine = issuesFor(p.id);
   const rows = mine.map(i => `<button class="issue" data-issue="${esc(i.id)}" aria-pressed="${state.issue === i.id}">
       <span class="row spread"><b style="font-size:14px">${esc(issueTitle(i))}</b><span class="mono" style="font-size:12px">${esc(i.rule)}</span></span>
-      <span class="row" style="gap:6px">${i.features.map(f => `<span class="dot c-${cls(f)}"></span>`).join('')}<span class="muted" style="font-size:12px">${i.features.map(f => esc(FNAME[f] || f)).join(' × ')}</span><span class="chip delta ${i.delta === 'new' ? '' : 'pre'}">${esc(i.delta.replace('_', ' ').toUpperCase())}</span></span>
+      <span class="row" style="gap:6px">${i.features.map(f => `<span class="dot c-${cls(f)}"></span>`).join('')}<span class="muted" style="font-size:12px">${i.features.map(f => esc(FNAME[f] || f)).join(' × ')}</span>${deltaChip(i)}${O.issues[i.id] ? `<span class="chip ver">owner: ${esc(O.issues[i.id].kind.replace(/_/g, ' '))}</span>` : ''}</span>
       <span class="row" style="gap:5px">${chips(i)}</span></button>`).join('') || `<div style="font-size:15px;font-weight:600">Nothing raised for ${esc(p.name)} in ${esc(R.release.head)}</div><div class="muted">Every rule was evaluated on this story. See why below.</div>`;
   const factual = R.issues.filter(i => i.layer === 'factual').map(i => `<div style="font-size:13px"><b>${esc(issueTitle(i))}</b> <span class="mono" style="font-size:12px">${esc(i.rule)}</span><br><span class="muted">${esc(i.personas.join(', '))}: ${esc(i.why)}</span> · <button class="more" style="color:var(--pw);font-size:12px" data-goto="${esc(i.personas[0])}|${esc(i.id)}">open story</button></div>`).join('') || '<div class="muted">none</div>';
   const nr = R.not_raised.filter(x => x.persona.split(',').includes(p.id));
@@ -250,7 +291,7 @@ function rail(p) {
   const open = state.notRaisedOpen || !mine.length;
   const nrItem = x => `<div style="font-size:13px"><b>${esc(x.rule)}</b> · ${esc(x.reason)}</div>`;
   const fixed = (R.resolved || []).filter(i => i.personas.includes(p.id));
-  const resolvedBox = fixed.length ? `<div class="box" style="display:flex;flex-direction:column;gap:6px"><p class="h">Resolved since ${esc(R.release.base)} · ${fixed.length}</p>${fixed.map(i => `<div style="font-size:13px"><span class="chip ver">✓ resolved</span> <b>${esc(issueTitle(i))}</b> <span class="mono" style="font-size:12px">${esc(i.rule)}</span><br><span class="muted">was ${esc(i.id)}: ${esc(i.why)}</span></div>`).join('')}</div>` : '';
+  const resolvedBox = fixed.length ? `<div class="box" style="display:flex;flex-direction:column;gap:6px"><p class="h">Resolved since ${esc(R.release.base)} · ${fixed.length}</p>${fixed.map(i => `<div style="font-size:13px"><span class="chip ver">✓ ${i.memory && i.memory.status === 'fix_confirmed' ? 'fix confirmed · ' + esc(i.memory.decision) : 'resolved'}</span> <b>${esc(issueTitle(i))}</b> <span class="mono" style="font-size:12px">${esc(i.rule)}</span><br><span class="muted">was ${esc(i.id)}: ${esc(i.why)}</span></div>`).join('')}</div>` : '';
   return `<div class="box" style="display:flex;flex-direction:column;gap:8px"><p class="h">Release-level · ${esc(p.name)} · ${mine.length}</p>${rows}</div>${resolvedBox}
     <div class="box" style="background:#FAFAF7;display:flex;flex-direction:column;gap:8px"><p class="h">Factual layer · all stories · ${R.issues.filter(i => i.layer === 'factual').length}</p>${factual}</div>
     <div class="box" style="display:flex;flex-direction:column;gap:6px"><button class="more h" style="margin:0;cursor:pointer" data-toggle-nr>Not raised · ${nr.length} here · ${others.length} elsewhere ${open ? '▴' : '▾'}</button>
@@ -328,7 +369,8 @@ function detail(p) {
   const sevF = i.severity.factors || {};
   return `<section class="detail" aria-label="Issue detail">
     <div class="row spread" style="align-items:baseline"><div class="row" style="align-items:baseline"><h2 style="margin:0;font-size:18px">${esc(issueTitle(i))}${i.features.length > 1 ? ' between ' + i.features.map(f => esc(FNAME[f] || f)).join(' and ') : ''}</h2><span class="mono muted" style="font-size:12px">${esc(i.id)}</span></div>
-      <div class="row" style="gap:8px">${['Mark fix', 'Accept with scoped exception…', 'Not an issue…'].map(l => `<button class="btn" disabled title="owner dispositions are recorded by semaudit (W11)">${l}</button>`).join('')}</div></div>
+      ${ownerBlock(i)}</div>
+    ${memoryNote(i.memory)}
     ${occ.persona !== p.id ? `<div class="muted">This issue is in ${esc(i.personas.join(', '))}'s stories; showing ${esc(pv.name)}.</div>` : ''}
     <div class="row" style="align-items:stretch;gap:16px">
       <div class="moments">${momentsHtml}</div>
@@ -345,7 +387,7 @@ function detail(p) {
       <div class="box"><p class="h">Confidence</p><div class="lvl">${esc(i.confidence.level)}</div><div class="muted">${(i.confidence.basis || []).map(esc).join(' · ')}</div></div>
       <div class="box"><p class="h">Verification</p><div class="lvl" style="color:${i.verification.status === 'verified' ? 'var(--ok)' : 'var(--ink)'}">${esc(i.verification.status.replace('_', ' '))}</div><div style="font-size:13px;line-height:1.6">${vline}</div></div>
     </div>
-    <div class="row spread"><span style="font-size:13px"><span class="chip delta ${i.delta === 'new' ? '' : 'pre'}">${esc(i.delta.replace('_', ' ').toUpperCase())} in ${esc(R.release.head)}</span> ${esc(i.delta_basis)} · features: ${i.features.map(esc).join(', ')}</span>
+    <div class="row spread"><span style="font-size:13px">${deltaChip(i, ' in ' + esc(R.release.head))} ${esc(i.delta_basis)} · features: ${i.features.map(esc).join(', ')}</span>
       ${i.repro ? `<span class="row" style="gap:8px" title="re-captures, checks every cited moment and re-derives the issue"><code class="repro">${esc(i.repro)}</code><button class="btn" data-copy="${esc(i.repro)}">Copy</button></span>` : '<span class="muted">no pinned replay for this review</span>'}</div>
   </section>`;
 }

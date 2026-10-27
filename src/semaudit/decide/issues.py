@@ -41,10 +41,12 @@ class Issue:
     occurrences: list[Occurrence]
     severity: dict[str, Any]
     why: str
-    delta: str = "new"                 # new | pre_existing | resolved
+    delta: str = "new"                 # new | pre_existing | resolved | not_measured_in_head; with an owner
+                                       # fix decision also still_open | regressed (decide.memory)
     delta_basis: str = ""
     confidence: dict[str, Any] = field(default_factory=dict)
     verification: dict[str, Any] = field(default_factory=dict)
+    memory: dict[str, Any] = field(default_factory=dict)   # the owner's past decision on this signature, if any
 
     @property
     def personas(self) -> list[str]:
@@ -149,9 +151,15 @@ def explain(entry: Entry, events: list[Event], story: Story, contract: Contract)
     return entry.note or ""
 
 
+def nearest_exception(r: Rule, entry: Entry):
+    """The exception the rule engine measured this entry against (most conditions met), or None."""
+    want = entry.meta.get("exception")
+    return next((x for x in r.exceptions if x.id == want), r.exceptions[0] if r.exceptions and not want else None)
+
+
 def condition_details(r: Rule, entry: Entry, e: Event, story: Story) -> list[dict[str, str]]:
     """Every exception condition with its measured value in words, met or not ('<deadline> 29 h 57 m … ≤ 72 h')."""
-    ex = r.exceptions[0] if r.exceptions else None
+    ex = nearest_exception(r, entry)
     if ex is None:
         return []
     conds = {c.id: c for c in ex.conditions}
@@ -190,7 +198,7 @@ def condition_details(r: Rule, entry: Entry, e: Event, story: Story) -> list[dic
 
 def conditional_why(r: Rule, entry: Entry, e: Event, story: Story) -> str:
     """'nearest exception P1-E1 does not apply: scope (…)', with each failing condition's measured value."""
-    ex = r.exceptions[0] if r.exceptions else None
+    ex = nearest_exception(r, entry)
     if ex is None:
         return f"{e.extraction.strength} on {r.applies_to.get('decision')}, which {r.id} forbids."
     bad = [f"({d['id']}) {d['text']}" if d["id"] not in ("scope", "expiry") else f"{d['id']} ({d['text']})"

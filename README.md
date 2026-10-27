@@ -78,6 +78,9 @@ semaudit contract check examples/northbound/contract        # validate; lists it
 semaudit review --contract examples/northbound/contract --base 2.3 --head 2.4 --max-usd 3
 semaudit repro <issue-id> --review runs/<id>/review-2.3-2.4.json --max-usd 1   # re-capture + re-derive one finding
 semaudit verify-report runs/<id>/review-2.3-2.4.json                           # offline: is the report what its inputs give?
+semaudit decide <issue-id> fix --review runs/<id>/review-2.3-2.4.json --by <you>   # or not-an-issue --reason …, accept --expires …
+semaudit decide-release hold --review runs/<id>/review-2.3-2.4.json --by <you>
+semaudit serve --review runs/<id>/review-2.3-2.4.json --by <you>                 # the page with working decision buttons
 ```
 
 `review` exits 0 only for a decided Ship: every persona measured and every contract item owner-approved at its

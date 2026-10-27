@@ -127,7 +127,11 @@ def review_cmd(contract_dir: Path = typer.Option(..., "--contract", exists=True,
         typer.echo(f"  {i['id']:52} {i['severity']['level']:8} conf {i['confidence']['level']:6} {v:18} "
                    f"{i['delta']:12} {', '.join(i['personas'])}")
     for i in r["resolved"]:
-        typer.echo(f"  resolved: {i['id']}")
+        m = i.get("memory") or {}
+        typer.echo(f"  resolved: {i['id']}" + (f"  ({m['status'].replace('_', ' ')}, {m['decision']})" if m else ""))
+    for x in r["not_raised"]:
+        if x["status"] == "owner_set_aside":
+            typer.echo(f"  set aside by owner: {x['subjects'][0]} ({x['memory']['decision']})")
     for i in r["unconfirmed"]:
         typer.echo(f"  NOT CONFIRMED resolved: {i['id']} ({i['delta_basis']})")
     from .report.page import build
@@ -173,6 +177,68 @@ def repro_cmd(issue_id: str = typer.Argument(..., help="an issue id from the rev
             typer.echo(f"    {line}")
     typer.echo("REPRODUCED" if res.ok else "NOT REPRODUCED")
     raise typer.Exit(0 if res.ok else 1)
+
+
+@app.command("decide")
+def decide_cmd(issue_id: str = typer.Argument(..., help="an open issue id from the review"),
+               kind: str = typer.Argument(..., help="fix | not-an-issue | accept"),
+               review: Path = typer.Option(..., "--review", exists=True, dir_okay=False, help="the review JSON"),
+               by: str = typer.Option(..., "--by", help="who decides (recorded with the decision)"),
+               reason: str = typer.Option(None, "--reason", help="required for not-an-issue"),
+               expires: str = typer.Option(None, "--expires", help="accept: when the exception ends (YYYY-MM-DD)")):
+    """Record an owner decision on one issue; the next review applies it.
+
+    fix: the next review must show it resolved, else it is raised as still_open. not-an-issue: that exact
+    signature, with the same personas and messages, is set aside; any variant is raised. accept: a new exception,
+    narrowed to exactly this issue's features, components and surfaces (conditional rules, scope-only failures).
+    Exit 0: recorded; 1: refused (the reason is printed).
+    """
+    from .decide.memory import DecisionError, decide_issue
+    from .report.page import build
+    k = kind.replace("-", "_")
+    if k in ("rule", "expect"):
+        typer.echo(f"{kind}: deterministic-check and semantic-expectation decisions are planned, not built; "
+                   "use fix, not-an-issue or accept", err=True)
+        raise typer.Exit(1)
+    try:
+        d = decide_issue(review, issue_id, k, by=by, reason=reason, expires=expires)
+    except DecisionError as e:
+        typer.echo(f"not recorded: {e}", err=True)
+        raise typer.Exit(1)
+    typer.echo(f"recorded {d['id']}: {issue_id} {d['kind']} by {d['by']} on {d['date']}"
+               + (f" (supersedes {', '.join(d['supersedes'])})" if d.get("supersedes") else ""))
+    for x in d.get("exceptions", []):
+        typer.echo(f"  exception {x['id']}: scope {x['scope']}, conditions "
+                   f"{', '.join(c['id'] for c in x['conditions'])}, expires {x['approved']['expires']} (approved)")
+    typer.echo(f"Release Story: {build(review)}")
+
+
+@app.command("decide-release")
+def decide_release_cmd(decision: str = typer.Argument(..., help="ship | ship-with-notes | hold"),
+                       review: Path = typer.Option(..., "--review", exists=True, dir_okay=False),
+                       by: str = typer.Option(..., "--by", help="who decides"),
+                       note: str = typer.Option(None, "--note")):
+    """Record the owner's release decision beside the review's recommendation (it never changes it)."""
+    from .decide.memory import DecisionError, decide_release
+    from .report.page import build
+    try:
+        d = decide_release(review, decision.replace("-", "_"), by=by, note=note)
+    except DecisionError as e:
+        typer.echo(f"not recorded: {e}", err=True)
+        raise typer.Exit(1)
+    said = d["review_said"]
+    typer.echo(f"recorded: {d['head']} {d['decision']} by {d['by']} on {d['date']} "
+               f"(review said {said['recommendation']}; policy {said['policy']})")
+    typer.echo(f"Release Story: {build(review)}")
+
+
+@app.command("serve")
+def serve_cmd(review: Path = typer.Option(..., "--review", exists=True, dir_okay=False),
+              by: str = typer.Option(..., "--by", help="who the decisions are recorded as"),
+              port: int = typer.Option(8791, "--port")):
+    """Serve the Release Story locally with working decision buttons."""
+    from .report.serve import serve
+    serve(review, by=by, port=port)
 
 
 @app.command("verify-report")

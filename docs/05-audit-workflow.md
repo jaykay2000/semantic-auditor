@@ -77,11 +77,16 @@ Each step yields a **verification status** (`unverified` → `partially_verified
 ### 10. Owner decisions → memory
 | Command | Effect |
 |---|---|
-| `semaudit decide <issue> fix` | the next review must show it `resolved`, or it is re-raised as `still_open` |
-| `semaudit decide <issue> accept --scope … --expires …` | creates a **scoped exception**: conditions, features, surfaces, personas, expiry. Never broader than the issue's own events |
-| `semaudit decide <issue> not-an-issue --reason …` | that exact relation signature is not re-raised; a variant is |
-| `semaudit decide <issue> rule` | only when the issue is expressible (fact equality, presence/absence under a condition, a precondition). Writes a deterministic check to `.semaudit/checks/` |
-| `semaudit decide <issue> expect "…"` | records an **approved semantic expectation**, evaluated by the relation layer every release. Not claimed to be deterministic |
+Every command takes `--review <review.json> --by <who>` and is refused if the contract changed since that review. Decisions go to `dispositions.yaml` beside the contract, pinned to the review's hash, the issue signature, the exact message texts and the rule's content (W11, `semaudit/decide/memory.py`). `semaudit serve --review … --by …` gives the same decisions as buttons on the Release Story.
+
+| Command | Effect |
+|---|---|
+| `semaudit decide <issue> fix` | the next review must show it `resolved` (*fix confirmed*); if it is still there it is `still_open`, and if it comes back after a release without it, `regressed` |
+| `semaudit decide <issue> accept --expires …` | only for a **conditional** rule whose nearest exception failed on **scope alone**: a new exception with the same conditions, scoped to exactly the features, components and surfaces of the issue's events, approved by the decision. Refused (with the reason) where it would drop a condition or clear a universal, coherence or load rule |
+| `semaudit decide <issue> not-an-issue --reason …` | that exact signature, with the same personas and message texts, is set aside onto the not-raised list with the reason; a variant (a new persona, changed copy) is raised, saying what differs. A decision made under another version of the rule is `stale` and does not apply |
+| `semaudit decide-release ship\|ship-with-notes\|hold` | records the owner's release decision beside the recommendation; never changes it |
+| `semaudit decide <issue> rule` | **planned, not built.** Only when the issue is expressible (fact equality, presence/absence under a condition, a precondition). Writes a deterministic check to `.semaudit/checks/` |
+| `semaudit decide <issue> expect "…"` | **planned, not built.** Records an **approved semantic expectation**, evaluated by the relation layer every release. Not claimed to be deterministic |
 | `semaudit repro <issue>` | replays exactly that persona, scenario and release, and re-runs verification |
 
 Questions for the owner (new vocabulary, new surfaces, unknown claims, unknown exception conditions) appear in the next `semaudit contract review`.

@@ -11,6 +11,7 @@ from pathlib import Path
 from semaudit.capture import Runner
 from semaudit.contract.approve import approval_state
 from semaudit.contract.schema import load_contract
+from semaudit.decide import memory as mem
 from semaudit.decide.issues import apply_delta, build_issues
 from semaudit.decide.pipeline import evaluate_release
 from semaudit.models.router import Router
@@ -22,7 +23,8 @@ from semaudit.verify.steps import verify
 
 def run_review(contract_dir: Path, base: str, head: str, *, run_id: str, runs_dir: Path, max_usd: float,
                reuse: bool = False, fresh: bool = False, models: bool = True, root: Path | None = None) -> Path:
-    contract = load_contract(contract_dir)
+    recorded = mem.snapshot(contract_dir)
+    contract = load_contract(contract_dir, memory=recorded["issues"])
     router = Router(root=root or Path.cwd(), max_usd=max_usd)
     run_dir = runs_dir / run_id
     if not (reuse and (run_dir / "episodes" / base).exists() and (run_dir / "episodes" / head).exists()):
@@ -34,6 +36,9 @@ def run_review(contract_dir: Path, base: str, head: str, *, run_id: str, runs_di
     head_issues = build_issues(head, h.results, contract)
     base_issues = build_issues(base, b.results, contract)
     resolved, unconfirmed = apply_delta(head_issues, base_issues, set(b.results), set(h.results))
+    applied = mem.apply(head_issues, resolved, unconfirmed, recorded["issues"], contract,
+                        {p: s for p, (s, _) in h.results.items()})
+    head_issues = [i for i in head_issues if all(i is not s for s in applied.set_aside)]
 
     affected = sorted({p for i in head_issues for p in i.personas})
     repro = {}
@@ -46,8 +51,8 @@ def run_review(contract_dir: Path, base: str, head: str, *, run_id: str, runs_di
         verify(i, stories, h.episodes, run_dir, contract, router, repro=repro, fresh=fresh, models=models)
     out = run_dir / f"review-{base}-{head}.json"
     manifest = mf.build(contract_dir, contract, run_dir, base, head, router=router, models=models, max_usd=max_usd,
-                        repro_run=f"{run_id}-repro" if affected else None)
+                        repro_run=f"{run_id}-repro" if affected else None, memory=recorded)
     review = assemble(b, h, contract, head_issues, resolved, router.spent_usd,
                       approval=approval_state(contract_dir, contract), unconfirmed=unconfirmed,
-                      manifest=manifest, review_path=str(out))
+                      manifest=manifest, review_path=str(out), set_aside=applied.set_aside)
     return write(review, out)

@@ -13,6 +13,7 @@ import json
 from pathlib import Path
 
 from semaudit.contract.schema import load_contract
+from semaudit.decide import memory as mem
 from semaudit.decide.issues import apply_delta, build_issues
 from semaudit.decide.pipeline import evaluate_release
 from semaudit.models.router import ModelError, Router
@@ -27,12 +28,13 @@ class CannotVerify(RuntimeError):
 
 def _row(i) -> dict:
     return {"signature": json.loads(json.dumps(list(i.signature))), "rule": i.rule,
-            "severity": i.severity["level"], "personas": i.personas, "delta": i.delta}
+            "severity": i.severity["level"], "personas": i.personas, "delta": i.delta,
+            "memory": (i.memory or {}).get("status")}
 
 
 def _row_of(d: dict) -> dict:
     return {"signature": d["signature"], "rule": d["rule"], "severity": d["severity"]["level"],
-            "personas": d["personas"], "delta": d["delta"]}
+            "personas": d["personas"], "delta": d["delta"], "memory": (d.get("memory") or {}).get("status")}
 
 
 def verify_report(review_path: Path, *, root: Path | None = None) -> list[str]:
@@ -40,8 +42,9 @@ def verify_report(review_path: Path, *, root: Path | None = None) -> list[str]:
     m = r.get("manifest")
     if not m:
         raise CannotVerify("no manifest in this review")
-    contract = load_contract(Path(m["contract"]["dir"]))
-    problems = mf.contract_problems(m, contract) + mf.episode_problems(m)
+    memory = (m.get("memory") or {}).get("issues", [])
+    contract = load_contract(Path(m["contract"]["dir"]), memory=memory)
+    problems = mf.contract_problems(m, contract) + mf.episode_problems(m) + mf.memory_problems(m)
     if problems:
         return problems
     run_dir = Path(m["run_dir"])
@@ -58,6 +61,12 @@ def verify_report(review_path: Path, *, root: Path | None = None) -> list[str]:
     head_issues = build_issues(head, h.results, contract)
     resolved, unconfirmed = apply_delta(head_issues, build_issues(base, b.results, contract), set(b.results),
                                         set(h.results))
+    applied = mem.apply(head_issues, resolved, unconfirmed, memory, contract, {p: s for p, (s, _) in h.results.items()})
+    aside = sorted(i.id for i in applied.set_aside)
+    recorded_aside = sorted(s for x in r["not_raised"] if x["status"] == "owner_set_aside" for s in x["subjects"])
+    if aside != recorded_aside:
+        problems.append(f"set aside by owner decisions: review {recorded_aside}, its recorded decisions give {aside}")
+    head_issues = [i for i in head_issues if all(i is not s for s in applied.set_aside)]
     recorded = {d["id"]: d for d in r["issues"]}
     failed_ids = {s for x in r["not_raised"] if x["status"] == "not_raised" for s in x["subjects"]}
     derived = {i.id: i for i in head_issues}
@@ -80,7 +89,8 @@ def verify_report(review_path: Path, *, root: Path | None = None) -> list[str]:
         if ev["result"] != "pass":
             problems.append(f"{iid}: evidence does not resolve: {ev['detail']}")
     for name, now, then in (("resolved", resolved, r["resolved"]), ("unconfirmed", unconfirmed, r["unconfirmed"])):
-        if sorted(i.id for i in now) != sorted(x["id"] for x in then):
+        mark = lambda xs: sorted((x.id, (x.memory or {}).get("status")) for x in xs)          # noqa: E731
+        if mark(now) != sorted((x["id"], (x.get("memory") or {}).get("status")) for x in then):
             problems.append(f"{name} differs: review {sorted(x['id'] for x in then)}, "
                             f"episodes {sorted(i.id for i in now)}")
     row, idx = contract.policy.evaluate([{"severity": d["severity"]["level"], "confidence": d["confidence"]["level"],

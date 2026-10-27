@@ -130,8 +130,8 @@ def replay(review_path: Path, issue_id: str, *, max_usd: float, runs_dir: Path |
     if kind == "unconfirmed":
         raise CannotReplay(f"{issue_id} was not measured in head; there is no finding to replay")
     contract_dir = Path(m["contract"]["dir"])
-    contract = load_contract(contract_dir)
-    changed = mf.contract_problems(m, contract)
+    contract = load_contract(contract_dir, memory=(m.get("memory") or {}).get("issues", []))
+    changed = mf.contract_problems(m, contract) + mf.memory_problems(m)
     if changed:
         raise CannotReplay("the contract changed since the review: " + "; ".join(changed))
     personas = sorted({o["persona"] for o in issue["occurrences"]})

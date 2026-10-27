@@ -405,12 +405,23 @@ FILES = {   # section -> file; only the first four are required
 }
 
 
-def load_contract(directory: Path) -> Contract:
+MEMORY_FILE = "dispositions.yaml"   # owner decisions (semaudit.decide.memory); accepted exceptions merge in here
+
+
+def load_contract(directory: Path, memory: list[dict] | None = None) -> Contract:
+    """Read a contract directory. Exceptions the owner accepted from a review (`accept` decisions in
+    dispositions.yaml, or the `memory` given, e.g. a review's recorded snapshot) are added to their rules."""
     def read(name: str):
         p = directory / name
         return yaml.safe_load(p.read_text()) if p.exists() else None
 
     data: dict[str, Any] = {k: read(f) or [] for k, f in FILES.items()}
+    if memory is None:
+        memory = (read(MEMORY_FILE) or {}).get("issues") or []
+    by_rule = {r["id"]: r for r in data["rules"]}
+    for d in memory:
+        if d.get("kind") == "accept" and d.get("rule") in by_rule:
+            by_rule[d["rule"]].setdefault("exceptions", []).extend(d.get("exceptions", []))
     data["rubric"] = (directory / "rubric.md").read_text()
     policy = read("release_policy.yaml")
     data["policy"] = ReleasePolicy(**policy) if policy else None

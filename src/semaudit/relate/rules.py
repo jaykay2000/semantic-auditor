@@ -170,16 +170,18 @@ def eval_conditional(rule: Rule, story: Story) -> list[Entry]:
     for e in story.messages():
         if not is_directive(e) or e.extraction.decision != want_decision or e.extraction.strength not in strengths:
             continue
-        status, conds = "violated", ()
+        status, conds, nearest, best = "violated", (), None, -1
         for ex in rule.exceptions:
             values = tuple((c.id, condition_value(c, e, story)) for c in ex.conditions)
             values += (("scope", "met" if in_scope(ex.scope, e) else "not_met"),
                        ("expiry", expiry_value(ex, e)))
-            conds = values
             if all(v == "met" for _, v in values):
-                status = "excepted"
+                status, conds, nearest = "excepted", values, ex.id
                 break
-        out.append(Entry(rule.id, e.id, status, conditions=conds))
+            met = sum(v == "met" for _, v in values)
+            if met > best:                     # nearest: most conditions met; ties keep contract order
+                conds, nearest, best = values, ex.id, met
+        out.append(Entry(rule.id, e.id, status, conditions=conds, meta={"exception": nearest} if nearest else {}))
     return out
 
 

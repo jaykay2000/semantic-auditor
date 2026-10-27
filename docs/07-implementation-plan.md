@@ -68,7 +68,7 @@ The MCV is everything the demo storyboard needs to be true ([06-demo-vision.md](
 | **P0** | W8 | Wire W1b's generators and interpretation to real stories; `model_open`. | W7 | Oct 30 |
 | **P0** | W9 | Issues: severity, confidence, verification; verifier; policy; the *not raised* list; `semaudit repro`. | W8 | Oct 30–31 |
 | **P0** | W10b | Release Story UI, built to the approved wireframe. | W10a, W9 | Oct 31 |
-| **P0** | W11 | Dispositions → memory; 2.4.1 re-review. | W9 | Oct 31 |
+| **P0** | W11 | Dispositions → memory; 2.4.1 re-review. **Built Oct 27**: fix / not-an-issue / accept (+ release decisions), `semaudit decide`, `decide-release`, `serve`; `rule` / `expect` decisions planned, not built ([evidence](evidence/w11-memory.md)). | W9 | Oct 31 |
 | | | **Core feature freeze: Oct 31, end of day** | | |
 | **P0** | W13a | **Sealed benchmark** (a separate session): bench-01..03 plus their contracts and ground truth, kept outside the repo; hashes committed to `bench/FROZEN.md`. | W2 | Oct 29–31 |
 | **P0** | W13b | Baselines; prompts frozen on 2.4; scoring script; anonymized adjudication sheet. | W9, W13a | Nov 1 |

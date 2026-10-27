@@ -98,7 +98,7 @@ After every review:
   release_policy.yaml     severity x confidence x verification -> recommendation
   checks/                 deterministic checks from owner "rule" decisions
   expectations/           approved semantic expectations
-  dispositions/           owner decisions on past issues
+  dispositions.yaml       owner decisions on issues and releases (semaudit decide; W11)
   CONTRACT.md             generated readable summary
 ```
 

@@ -547,8 +547,9 @@ from semaudit.story.model import Extraction as _Extraction  # noqa: E402
 ALL = [p.id for p in _C.personas]
 
 
-def _gold_results(run, release):
+def _gold_results(run, release, contract=None):
     """Every measured persona on a release, with gold extraction and the fixture's P2 label (no model)."""
+    contract = contract or _C
     sys.path.insert(0, str(ROOT / "scripts"))
     import json as _json
 
@@ -558,7 +559,7 @@ def _gold_results(run, release):
         ep = run(release, persona)
         if any(s.status == "failed" for s in ep.steps):
             continue
-        s = story_from_episode(ep, _C)
+        s = story_from_episode(ep, contract)
         for e in s.messages():
             e.extraction = _Extraction(**gold_for(e.copy_key, e.text))
         name = W.fixture_name(release, persona)
@@ -572,7 +573,7 @@ def _gold_results(run, release):
         adds = RECONCILES.get(next((e.copy_key for e in s.messages() if e.id == rec), ""), [])
         interp = lambda st, c, k, label=label, rec=rec, adds=adds: {"label": label, "reconciling_event_id": rec,  # noqa
                                                                      "addresses_actions": adds, "rationale": "g"}
-        out[persona] = (s, _evaluate(s, _C, interp))
+        out[persona] = (s, _evaluate(s, contract, interp))
     return out
 
 
@@ -717,3 +718,214 @@ def test_page_shows_issues_resolved_since_base(browser, run, runner, tmp_path):
     rail = pg.inner_text(".rail")
     assert not errors and "resolved since 2.4" in rail.lower() and "Unexplained tradeoff" in rail, errors
     pg.close()
+
+
+# ---------------------------------------------- W11: owner decisions -> memory -> the next review (no model)
+from semaudit.contract.approve import load_approvals as _load_approvals  # noqa: E402
+from semaudit.contract.approve import rule_digest as _rule_digest  # noqa: E402
+from semaudit.decide import memory as _mem  # noqa: E402
+from semaudit.report import manifest as _mf  # noqa: E402
+from semaudit.report.page import render as _render_page  # noqa: E402
+
+KAI = "I-2.4-P2-fare-lock-price-watch-conflict"
+TRADEOFF = "I-2.4-P2-fare-lock-price-watch-unexplained-tradeoff"
+U4 = "I-2.4-U4-concierge-cg-regret"
+RINA = "I-2.4.1-P1-fare-lock-fl-hotel-urgent-scope"
+HANA = "I-2.4-P1-fare-lock-fl-banner-urgent-a"
+
+
+def _review(run, runner, cdir, base, head, out):
+    """The W9 review path on gold extraction, applying whatever the owner has decided in `cdir`."""
+    rec = _mem.snapshot(cdir)
+    c = _load_contract(cdir, memory=rec["issues"])
+    evs = {}
+    for rel in (base, head):
+        res = _gold_results(run, rel, c)
+        evs[rel] = ReleaseEval(rel, {p: run(rel, p) for p in res}, res, {})
+    h = build_issues(head, evs[head].results, c)
+    resolved, unconf = apply_delta(h, build_issues(base, evs[base].results, c), set(evs[base].results),
+                                   set(evs[head].results))
+    applied = _mem.apply(h, resolved, unconf, rec["issues"], c, {p: s for p, (s, _) in evs[head].results.items()})
+    h = [i for i in h if all(i is not s for s in applied.set_aside)]
+    stories = {p: s for p, (s, _) in evs[head].results.items()}
+    for i in h:
+        _verify(i, stories, evs[head].episodes, runner.run_dir, c, None, repro=stories, models=False)
+    manifest = _mf.build(cdir, c, runner.run_dir, base, head, router=None, models=False, max_usd=0.0,
+                         repro_run=None, memory=rec)
+    review = _assemble(evs[base], evs[head], c, h, resolved, 0.0, approval=_approval(cdir, c), unconfirmed=unconf,
+                       manifest=manifest, review_path=str(out), set_aside=applied.set_aside)
+    return _write(review, out), json.loads(json.dumps(review, default=str))
+
+
+@pytest.fixture
+def owner(tmp_path):
+    return _contract_copy(tmp_path, lambda data: None)
+
+
+def test_fix_is_confirmed_when_resolved_and_raised_as_still_open_when_not(run, runner, owner, tmp_path):
+    r24, _ = _review(run, runner, owner, "2.3", "2.4", tmp_path / "r24.json")
+    _mem.decide_issue(r24, TRADEOFF, "fix", by="test", on="2026-10-27")
+    _mem.decide_issue(r24, KAI, "fix", by="test", on="2026-10-27")
+    _, r = _review(run, runner, owner, "2.4", "2.4.1", tmp_path / "r241.json")
+    tradeoff = next(x for x in r["resolved"] if x["id"] == TRADEOFF)
+    assert tradeoff["memory"]["status"] == "fix_confirmed" and tradeoff["memory"]["decision"] == "D-001"
+    kai = next(x for x in r["issues"] if x["rule"] == "P2" and x["label"] == "conflict")
+    assert kai["delta"] == "still_open" and kai["memory"]["decision"] == "D-002"
+    assert "marked fix in D-002 on 2.4" in kai["delta_basis"]
+    assert r["manifest"]["memory"]["sha256"] == _mem.digest(r["manifest"]["memory"]["issues"])
+
+
+def test_not_an_issue_sets_aside_only_the_exact_signature_messages_and_personas(run, runner, owner, tmp_path):
+    r24, _ = _review(run, runner, owner, "2.3", "2.4", tmp_path / "r24.json")
+    d = _mem.decide_issue(r24, U4, "not_an_issue", by="test", reason="a gentle tip, not second-guessing",
+                          on="2026-10-27")
+    assert {o["persona"] for o in d["occurrences"]} == {"family", "maya", "maya_r"}
+    _, r = _review(run, runner, owner, "2.4", "2.4.1", tmp_path / "r241.json")
+    assert not [x for x in r["issues"] if x["rule"] == "U4"]
+    aside = [x for x in r["not_raised"] if x["status"] == "owner_set_aside"]
+    assert len(aside) == 1 and "a gentle tip" in aside[0]["reason"] and aside[0]["rule"] == "U4"
+    # a variant -- one persona's message text differs from what the owner judged -- is raised, saying so
+    data = _mem.load(owner)
+    data["issues"][0]["occurrences"][0]["texts"] = ["something the owner never saw"]
+    _mem.save(owner, data)
+    _, r = _review(run, runner, owner, "2.4", "2.4.1", tmp_path / "r241b.json")
+    u4 = next(x for x in r["issues"] if x["rule"] == "U4")
+    assert u4["memory"]["status"] == "variant" and "message text changed" in u4["memory"]["note"]
+    # a decision made under another version of the rule does not apply
+    data["issues"][0]["occurrences"] = d["occurrences"]
+    data["issues"][0]["rule_digest"] = "0" * 16
+    _mem.save(owner, data)
+    _, r = _review(run, runner, owner, "2.4", "2.4.1", tmp_path / "r241c.json")
+    assert next(x for x in r["issues"] if x["rule"] == "U4")["memory"]["status"] == "stale"
+
+
+def test_accept_narrows_to_the_issues_own_events_and_does_not_spread(run, runner, owner, tmp_path):
+    r241, review = _review(run, runner, owner, "2.4", "2.4.1", tmp_path / "r241.json")
+    rina = next(x for x in review["issues"] if x["id"] == RINA)
+    assert rina["occurrences"][0]["exception"] == "P1-E1"
+    before = {x["id"]: x["signature"] for x in review["issues"]}
+    d = _mem.decide_issue(r241, RINA, "accept", by="test", expires="2026-12-31", on="2026-10-27")
+    (ex,) = d["exceptions"]
+    assert ex["id"] == "P1-E2" and ex["scope"] == {"features": ["fare_lock"], "surfaces": ex["scope"]["surfaces"],
+                                                   "components": ["hotel"]}
+    assert [c["id"] for c in ex["conditions"]] == ["a", "b", "c"]            # every condition kept
+    c = _load_contract(owner)
+    assert [x.id for x in c.rule("P1").exceptions] == ["P1-E1", "P1-E2"]
+    assert _approval(owner, c)["items"]["exception:P1-E2"] == "approved"      # the decision is the approval
+    assert _approval(owner, c)["items"]["rule:P1"] == _approval(owner, _C)["items"]["rule:P1"]
+    assert _load_approvals(owner)["exception:P1-E2"]["by"] == "test"
+    _, after = _review(run, runner, owner, "2.4", "2.4.1", tmp_path / "r241b.json")
+    ids = {x["id"] for x in after["issues"]}
+    assert RINA not in ids
+    assert any(x["persona"] == "rina" and x["status"] == "excepted" for x in after["not_raised"])
+    for iid, sig in before.items():                       # nothing else moved: the flight banner stays raised
+        if iid != RINA:
+            assert iid in ids and next(x for x in after["issues"] if x["id"] == iid)["signature"] == sig
+
+
+def test_accept_is_refused_where_it_would_drop_a_condition_or_clear_a_universal_rule(run, runner, owner, tmp_path):
+    r24, _ = _review(run, runner, owner, "2.3", "2.4", tmp_path / "r24.json")
+    with pytest.raises(_mem.DecisionError, match="failed on a, not on scope alone"):
+        _mem.decide_issue(r24, HANA, "accept", by="test", expires="2026-12-31")
+    with pytest.raises(_mem.DecisionError, match="only for conditional rules"):
+        _mem.decide_issue(r24, U4, "accept", by="test", expires="2026-12-31")
+    with pytest.raises(_mem.DecisionError, match="needs a reason"):
+        _mem.decide_issue(r24, U4, "not_an_issue", by="test")
+    with pytest.raises(_mem.DecisionError, match="not an open issue"):
+        _mem.decide_issue(r24, "I-nope", "fix", by="test")
+    assert _mem.load(owner) == {"issues": [], "releases": []}             # nothing half-recorded
+
+
+def test_a_decision_needs_a_review_that_matches_the_contract(run, runner, owner, tmp_path):
+    r24, _ = _review(run, runner, owner, "2.3", "2.4", tmp_path / "r24.json")
+    p = owner / "principles.yaml"
+    p.write_text(p.read_text().replace("severity: critical", "severity: major", 1))
+    with pytest.raises(_mem.DecisionError, match="contract changed since this review"):
+        _mem.decide_issue(r24, KAI, "fix", by="test")
+
+
+def test_a_rules_approval_does_not_cover_its_exceptions():
+    p1 = _C.rule("P1")
+    narrowed = p1.model_copy(update={"exceptions": p1.exceptions[:0]})
+    assert _rule_digest(p1) == _rule_digest(narrowed)
+    assert _rule_digest(p1) != _rule_digest(p1.model_copy(update={"text": p1.text + "!"}))
+
+
+def test_altered_recorded_decisions_fail_the_manifest_check(run, runner, owner, tmp_path):
+    r24, _ = _review(run, runner, owner, "2.3", "2.4", tmp_path / "r24.json")
+    _mem.decide_issue(r24, KAI, "fix", by="test")
+    _, r = _review(run, runner, owner, "2.4", "2.4.1", tmp_path / "r241.json")
+    m = r["manifest"]
+    assert _mf.memory_problems(m) == []
+    m["memory"]["issues"][0]["kind"] = "not_an_issue"
+    assert _mf.memory_problems(m) == ["the owner decisions recorded in this review were altered"]
+
+
+def test_release_decision_sits_beside_the_recommendation(run, runner, owner, tmp_path):
+    r24, review = _review(run, runner, owner, "2.3", "2.4", tmp_path / "r24.json")
+    d = _mem.decide_release(r24, "hold", by="test", note="fix the P2 conflict first", on="2026-10-27")
+    assert d["review_said"]["policy"] == review["policy"]["recommendation"]
+    assert json.loads(r24.read_text())["policy"] == review["policy"]                 # the review is untouched
+    assert _mem.decisions_for(r24, owner)["release"]["decision"] == "hold"
+
+
+def test_page_shows_decisions_and_offers_buttons_only_when_served(browser, run, runner, owner, tmp_path):
+    r24, _ = _review(run, runner, owner, "2.3", "2.4", runner.run_dir / "review-w11-2.3-2.4.json")
+    _mem.decide_issue(r24, TRADEOFF, "fix", by="test", on="2026-10-27")
+    _mem.decide_release(r24, "hold", by="test", on="2026-10-27")
+    static = _build_page(r24, runner.run_dir / "report-w11")            # the screenshots are copied beside it
+    pg, errors = _open(browser, static, f"#persona=maya&mode=head&issue={TRADEOFF}")
+    assert not errors, errors
+    assert "owner: fix" in pg.inner_text(".rail")
+    assert "Owner decision Hold · test · 2026-10-27" in " ".join(pg.inner_text(".box.row").split())
+    assert pg.locator("form").count() == 0                                  # static: no buttons
+    pg.close()
+    served = static.parent / "served.html"
+    served.write_text(_render_page(r24, interactive=True, by="test"))
+    pg, errors = _open(browser, served, f"#persona=kai&mode=head&issue={KAI}")
+    assert not errors, errors
+    assert pg.locator("form[action='/decide']").count() == 2                 # fix, not an issue
+    assert pg.locator("button[disabled]", has_text="Accept scoped exception").count() == 1   # coherence rule
+    pg.close()
+
+
+def test_serve_records_a_decision_through_the_same_path(run, runner, owner, tmp_path):
+    import threading
+    import urllib.parse
+    import urllib.request
+    from http.server import HTTPServer
+
+    from semaudit.report import serve as _serve
+    r24, _ = _review(run, runner, owner, "2.3", "2.4", tmp_path / "r24.json")
+    captured = {}
+    real = HTTPServer.__init__
+
+    def grab(self, addr, handler, *a, **k):
+        real(self, ("127.0.0.1", 0), handler, *a, **k)
+        captured["srv"] = self
+    HTTPServer.__init__ = grab
+    try:
+        th = threading.Thread(target=_serve.serve, args=(r24,), kwargs={"by": "test"}, daemon=True)
+        th.start()
+        for _ in range(200):
+            if "srv" in captured:
+                break
+            import time
+            time.sleep(0.02)
+        port = captured["srv"].server_address[1]
+        body = urllib.parse.urlencode({"issue": KAI, "kind": "fix", "back": "#persona=kai"}).encode()
+        req = urllib.request.Request(f"http://127.0.0.1:{port}/decide", data=body, method="POST")
+        with urllib.request.urlopen(req) as resp:
+            page = resp.read().decode()                                          # followed the redirect
+            assert resp.status == 200 and f'"issue": "{KAI}"' in page and '"interactive": true' in page
+        bad = urllib.parse.urlencode({"issue": U4, "kind": "not_an_issue"}).encode()
+        try:
+            urllib.request.urlopen(urllib.request.Request(f"http://127.0.0.1:{port}/decide", data=bad, method="POST"))
+            raise AssertionError("expected 400")
+        except urllib.error.HTTPError as e:
+            assert e.code == 400 and "needs a reason" in e.read().decode()
+    finally:
+        HTTPServer.__init__ = real
+        if "srv" in captured:
+            captured["srv"].shutdown()
+    assert [d["issue"] for d in _mem.load(owner)["issues"]] == [KAI]
