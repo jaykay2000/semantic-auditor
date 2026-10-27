@@ -230,8 +230,11 @@ def build_issues(release: str, results: dict[str, tuple[Story, list[Entry]]], co
     return sorted(issues, key=lambda i: (-SEVERITY.index(i.severity["level"]), order[i.rule], i.id))
 
 
-def apply_delta(head: list[Issue], base: list[Issue], measured_base: set[str]) -> list[Issue]:
-    """Mark head issues new / pre_existing; return the base issues resolved in head (signature gone)."""
+def apply_delta(head: list[Issue], base: list[Issue], measured_base: set[str],
+                measured_head: set[str]) -> tuple[list[Issue], list[Issue]]:
+    """Mark head issues new / pre_existing. Return (resolved, unconfirmed): base issues whose signature is gone
+    from head, split by whether every persona they reached was actually measured in head. An issue can only be
+    resolved where we looked; absence in an unmeasured story is not evidence of a fix."""
     base_sigs = {i.signature: i for i in base}
     head_sigs = {i.signature for i in head}
     for i in head:
@@ -241,9 +244,15 @@ def apply_delta(head: list[Issue], base: list[Issue], measured_base: set[str]) -
             unmeasured = [p for p in i.personas if p not in measured_base]
             i.delta = "new"
             i.delta_basis = ("base not measured for " + ", ".join(unmeasured)) if unmeasured else "absent in base"
-    resolved = []
+    resolved, unconfirmed = [], []
     for b in base:
-        if b.signature not in head_sigs:
-            b.delta, b.delta_basis = "resolved", "absent in head"
+        if b.signature in head_sigs:
+            continue
+        missing = [p for p in b.personas if p not in measured_head]
+        if missing:
+            b.delta, b.delta_basis = "not_measured_in_head", "head not measured for " + ", ".join(missing)
+            unconfirmed.append(b)
+        else:
+            b.delta, b.delta_basis = "resolved", "absent in head; every affected persona measured"
             resolved.append(b)
-    return resolved
+    return resolved, unconfirmed

@@ -9,6 +9,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from semaudit.capture import Runner
+from semaudit.contract.approve import approval_state
 from semaudit.contract.schema import load_contract
 from semaudit.decide.issues import apply_delta, build_issues
 from semaudit.decide.pipeline import evaluate_release
@@ -31,7 +32,7 @@ def run_review(contract_dir: Path, base: str, head: str, *, run_id: str, runs_di
     h = evaluate_release(run_dir, head, contract, router, fresh=fresh)
     head_issues = build_issues(head, h.results, contract)
     base_issues = build_issues(base, b.results, contract)
-    resolved = apply_delta(head_issues, base_issues, set(b.results))
+    resolved, unconfirmed = apply_delta(head_issues, base_issues, set(b.results), set(h.results))
 
     affected = sorted({p for i in head_issues for p in i.personas})
     repro = {}
@@ -42,5 +43,6 @@ def run_review(contract_dir: Path, base: str, head: str, *, run_id: str, runs_di
     stories = {p: s for p, (s, _) in h.results.items()}
     for i in head_issues:
         verify(i, stories, h.episodes, run_dir, contract, router, repro=repro, fresh=fresh, models=models)
-    review = assemble(b, h, contract, head_issues, resolved, router.spent_usd)
+    review = assemble(b, h, contract, head_issues, resolved, router.spent_usd,
+                      approval=approval_state(contract_dir, contract), unconfirmed=unconfirmed)
     return write(review, run_dir / f"review-{base}-{head}.json")

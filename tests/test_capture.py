@@ -432,6 +432,7 @@ sys.path.insert(0, str(ROOT / "tests" / "fixtures"))
 from extraction_gold import gold_for  # noqa: E402
 
 _C = _load_contract(CONTRACT)
+_C_DIR = CONTRACT
 
 
 def test_story_from_maya_episode_orders_attributes_and_marks_initiative(run):
@@ -593,7 +594,8 @@ def test_issues_on_2_4_are_the_accepted_violations_grouped(run):
 def test_delta_2_4_to_2_4_1_resolves_the_fixes_and_flags_rina(run):
     head = build_issues("2.4.1", _gold_results(run, "2.4.1"), _C)
     base = build_issues("2.4", _gold_results(run, "2.4"), _C)
-    resolved = {i.id for i in apply_delta(head, base, set(_gold_results(run, "2.4")))}
+    measured = set(_gold_results(run, "2.4.1"))
+    resolved = {i.id for i in apply_delta(head, base, set(_gold_results(run, "2.4")), measured)[0]}
     assert {"I-2.4-U3-price-watch-pw-email-after", "I-2.4-P3-story", "I-2.4-U2-fare-lock-fl-banner",
             "I-2.4-P2-fare-lock-price-watch-unexplained-tradeoff"} <= resolved
     rina = next(i for i in head if i.personas == ["rina"])
@@ -604,6 +606,7 @@ def test_delta_2_4_to_2_4_1_resolves_the_fixes_and_flags_rina(run):
 # ---------------------------------------------- W10b: the Release Story page, driven in a real browser
 from semaudit.decide.pipeline import ReleaseEval  # noqa: E402
 from semaudit.report.page import build as _build_page  # noqa: E402
+from semaudit.contract.approve import approval_state as _approval  # noqa: E402
 from semaudit.report.review import assemble as _assemble  # noqa: E402
 from semaudit.report.review import write as _write  # noqa: E402
 from semaudit.verify.steps import verify as _verify  # noqa: E402
@@ -616,11 +619,12 @@ def page_path(run, runner):
         res = _gold_results(run, rel)
         evs[rel] = ReleaseEval(rel, {p: run(rel, p) for p in res}, res, {})
     head = build_issues("2.4", evs["2.4"].results, _C)
-    resolved = apply_delta(head, build_issues("2.3", evs["2.3"].results, _C), set(evs["2.3"].results))
+    resolved, _ = apply_delta(head, build_issues("2.3", evs["2.3"].results, _C), set(evs["2.3"].results),
+                              set(evs["2.4"].results))
     stories = {p: s for p, (s, _) in evs["2.4"].results.items()}
     for i in head:                         # no model: cross-check and defense are recorded as not run
         _verify(i, stories, evs["2.4"].episodes, runner.run_dir, _C, None, repro=stories, models=False)
-    review = _assemble(evs["2.3"], evs["2.4"], _C, head, resolved, 0.0)
+    review = _assemble(evs["2.3"], evs["2.4"], _C, head, resolved, 0.0, approval=_approval(_C_DIR, _C))
     path = _write(review, runner.run_dir / "review-2.3-2.4.json")
     return _build_page(path)
 
@@ -639,10 +643,13 @@ def test_page_opens_on_the_hero_with_its_issues_and_policy(browser, page_path):
     pg, errors = _open(browser, page_path)
     assert pg.inner_text("h1") == "Maya" and not errors, errors
     assert "Unexplained tradeoff" in pg.inner_text(".rail")
-    assert pg.inner_text(".rec") == "Needs owner review"                 # models off: partially verified -> review
+    # nothing in the contract is owner-approved yet: the policy's answer is shown, but only as provisional
+    assert pg.inner_text(".rec") == "Provisional"
+    assert "The policy would say Needs owner review" in pg.inner_text(".box.row")   # models off: partially verified
     assert pg.locator(".msg.sel").count() == 2                           # moments A and B ringed
     detail = pg.inner_text(".detail")
     assert "rule p2" in detail.lower() and "semaudit repro I-2.4-P2" in detail
+    assert "not yet owner-approved" in detail.lower()
     assert {"Severity", "Confidence", "Verification"} <= {x.strip().title() for x in pg.locator(".detail .h").all_inner_texts()}
     # every quote on the page is the exact captured text
     texts = set(pg.locator(".quote").all_inner_texts())
@@ -691,11 +698,13 @@ def test_page_shows_issues_resolved_since_base(browser, run, runner, tmp_path):
         res = _gold_results(run, rel)
         evs[rel] = ReleaseEval(rel, {p: run(rel, p) for p in res}, res, {})
     head = build_issues("2.4.1", evs["2.4.1"].results, _C)
-    resolved = apply_delta(head, build_issues("2.4", evs["2.4"].results, _C), set(evs["2.4"].results))
+    resolved, _ = apply_delta(head, build_issues("2.4", evs["2.4"].results, _C), set(evs["2.4"].results),
+                              set(evs["2.4.1"].results))
     stories = {p: s for p, (s, _) in evs["2.4.1"].results.items()}
     for i in head:
         _verify(i, stories, evs["2.4.1"].episodes, runner.run_dir, _C, None, repro=stories, models=False)
-    path = _write(_assemble(evs["2.4"], evs["2.4.1"], _C, head, resolved, 0.0), runner.run_dir / "review-2.4-2.4.1.json")
+    path = _write(_assemble(evs["2.4"], evs["2.4.1"], _C, head, resolved, 0.0, approval=_approval(_C_DIR, _C)),
+                  runner.run_dir / "review-2.4-2.4.1.json")
     pg, errors = _open(browser, _build_page(path), "#persona=maya&mode=head&issue=")
     rail = pg.inner_text(".rail")
     assert not errors and "resolved since 2.4" in rail.lower() and "Unexplained tradeoff" in rail, errors

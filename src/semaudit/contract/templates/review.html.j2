@@ -105,6 +105,12 @@ button{font:600 13px Inter,sans-serif;padding:7px 12px;border-radius:7px;border:
     </table>
   </div>
 
+  <h2>Extraction rubric</h2>
+  <section class="card">
+    <div class="row spread"><span class="muted">How the extractor classifies each message (kind, strength, decision, action, claims).</span>{{ state("rubric:all") }}</div>
+    <pre style="white-space:pre-wrap;font-size:12.5px;line-height:1.5">{{ c.rubric }}</pre>
+  </section>
+
   <h2>Subject</h2>
   <section class="card">
     <div class="row spread"><span>The user is called <b>{{ c.subject.noun }}</b>{% if c.subject.component_from %} · an event's component defaults to <code>{{ c.subject.component_from }}</code>{% endif %}</span>{{ state("subject:all") }}</div>

@@ -111,6 +111,8 @@ def validate(c: Contract) -> list[str]:
     for sc in c.scenarios:
         for x in sc.personas:
             need("persona", x, personas, f"scenario {sc.id}")
+            if x in scheduled:      # a story is one episode; two scenarios would silently overwrite each other
+                p.append(f"persona {x}: in more than one scenario (one scenario per persona is supported)")
             scheduled.add(x)
         try:
             times = sc.times()

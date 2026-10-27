@@ -162,12 +162,27 @@ def other_rules(i: Issue, results: dict[str, tuple[Story, list]]) -> list[dict]:
             for e in entries if e.subject in cited and (e.rule, e.status) != (i.rule, "violated")]
 
 
+def outcome_of(policy_rec: str, measured: bool, approval: dict) -> dict:
+    """What the review may actually recommend. The owner's policy decides only over a complete measurement and a
+    fully approved contract; otherwise the review says why it cannot decide, and never says ship."""
+    if not measured:
+        return {"status": "not_measurable", "recommendation": "not_measurable",
+                "reason": "some personas or surfaces could not be measured; see measurement"}
+    if not approval["complete"]:
+        return {"status": "provisional", "recommendation": "provisional", "policy_would_say": policy_rec,
+                "reason": f"{len(approval['pending'])} contract item(s) are not owner-approved at their current "
+                          f"content; the release policy's answer is shown but is not an owner decision"}
+    return {"status": "decided", "recommendation": policy_rec, "reason": ""}
+
+
 def assemble(base: ReleaseEval, head: ReleaseEval, contract: Contract, verified: list[Issue],
-             resolved: list[Issue], spent_usd: float) -> dict:
+             resolved: list[Issue], spent_usd: float, *, approval: dict,
+             unconfirmed: list[Issue] = ()) -> dict:
     open_issues = [i for i in verified if i.verification.get("status") != "failed"]
     failed = [i for i in verified if i.verification.get("status") == "failed"]
     row, idx = contract.policy.evaluate([{"severity": i.severity["level"], "confidence": i.confidence["level"],
                                           "verification": i.verification["status"]} for i in open_issues])
+    measured = base.complete and head.complete
     stories = {p: s for p, (s, _) in head.results.items()}
     base_stories = {p: s for p, (s, _) in base.results.items()}
     issues = []
@@ -184,11 +199,14 @@ def assemble(base: ReleaseEval, head: ReleaseEval, contract: Contract, verified:
         "features": [{"id": f.id, "name": f.name or f.id, "core": f.core} for f in contract.features],
         "rules": [{"id": r.id, "kind": r.kind, "text": r.text, "title": r.title} for r in contract.rules],
         "policy": {"recommendation": row.recommendation, "row": idx + 1, "rule_fired": row.text},
+        "outcome": outcome_of(row.recommendation, measured, approval),
+        "measurement": {"complete": measured, "base": base.not_measured, "head": head.not_measured},
+        "approval": approval,
         "owner_decision": {"status": "pending"},
         "issues": issues,
         "resolved": [issue_dict(i, base_stories, contract) for i in resolved],
+        "unconfirmed": [issue_dict(i, base_stories, contract) for i in unconfirmed],
         "not_raised": not_raised(head, failed, contract),
-        "not_measured": {"base": base.not_measured, "head": head.not_measured},
         "personas": [persona_view(p, s, base_stories.get(p), contract, head, base) for p, s in sorted(stories.items())],
         "cost_usd": round(spent_usd, 4),
         "written_at": datetime.utcnow().isoformat(timespec="seconds") + "Z",

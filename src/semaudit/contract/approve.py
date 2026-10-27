@@ -33,6 +33,8 @@ def _digest(obj: Any) -> str:
     def dump(o):
         if isinstance(o, list):
             return [dump(x) for x in o]
+        if isinstance(o, str):
+            return o
         return o.model_dump(mode="json", exclude={"source"})
     return hashlib.sha256(json.dumps(dump(obj), sort_keys=True).encode()).hexdigest()[:16]
 
@@ -63,7 +65,16 @@ def items(c: Contract) -> list[Item]:
     if c.app:
         add("app", c.app.name, c.app)
     add("subject", "all", c.subject)
+    add("rubric", "all", c.rubric)
     return out
+
+
+def approval_state(directory: Path, c: Contract) -> dict[str, Any]:
+    """Every item's approval status at its current content. `complete` only when every item is approved."""
+    approvals = load_approvals(directory)
+    status = {i.key: status_of(i, approvals) for i in items(c)}
+    return {"complete": all(v == "approved" for v in status.values()), "items": status,
+            "pending": sorted(k for k, v in status.items() if v != "approved")}
 
 
 def load_approvals(directory: Path) -> dict[str, dict[str, str]]:

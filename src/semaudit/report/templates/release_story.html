@@ -35,6 +35,7 @@ select{font:500 13px Inter,sans-serif;padding:7px 10px;border-radius:7px;border:
 .rec{font-size:15px;font-weight:700;padding:4px 10px;border-radius:6px}
 .rec-hold{background:var(--critbg);color:var(--crit)}.rec-needs_owner_review{background:var(--majbg);color:var(--maj)}
 .rec-ship_with_notes{background:#EEF0F4;color:#2F3542}.rec-ship{background:var(--okbg);color:var(--ok)}
+.rec-provisional,.rec-not_measurable{background:#fff;color:var(--ink);border:1.5px dashed var(--ink2)}
 .layout{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start}
 .story{flex:999 1 900px;min-width:0;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px 12px;overflow-x:auto;position:relative}
 .rail{flex:1 1 330px;min-width:290px;display:flex;flex-direction:column;gap:12px}
@@ -164,12 +165,18 @@ function header(p) {
     </div></div>`;
 }
 
+const words = s => String(s).replace(/_/g, ' ').replace(/^./, c => c.toUpperCase());
+const approvalOf = key => ((R.approval || {}).items || {})[key] || 'unapproved';
 function decisionBar() {
-  const pol = R.policy;
+  const pol = R.policy, out = R.outcome || {status: 'decided', recommendation: pol.recommendation};
+  const policyLine = `policy row ${pol.row}: <span class="mono" style="font-size:12px;color:var(--ink)">${esc(pol.rule_fired)}</span>`;
+  const why = out.status === 'decided' ? `<span class="muted">${policyLine}</span>`
+    : out.status === 'provisional' ? `<span class="muted">${esc(out.reason)}. The policy would say <b style="color:var(--ink)">${esc(words(out.policy_would_say))}</b> (${policyLine}).</span>`
+    : `<span class="muted">${esc(out.reason)}: ${Object.entries((R.measurement || {}).head || {}).map(([p, r]) => esc(p) + ' (' + esc(r[0]) + ')').join(', ') || 'base release'}</span>`;
   return `<div class="box row" style="gap:18px;padding:12px 16px">
     <span class="muted" style="font-size:12px">Recommendation</span>
-    <span class="rec rec-${pol.recommendation}">${pol.recommendation.replace(/_/g, ' ').replace(/^./, c => c.toUpperCase())}</span>
-    <span class="muted">policy row ${pol.row}: <span class="mono" style="font-size:12px;color:var(--ink)">${esc(pol.rule_fired)}</span></span>
+    <span class="rec rec-${out.recommendation}">${esc(words(out.recommendation))}</span>
+    ${why}
     <span style="margin-left:auto" class="muted">Owner decision <b style="color:var(--ink)">${esc(R.owner_decision.status)}</b> · ${R.issues.length} open issue${R.issues.length === 1 ? '' : 's'} · ${R.personas.length} personas</span>
   </div>`;
 }
@@ -326,7 +333,7 @@ function detail(p) {
     <div class="row" style="align-items:stretch;gap:16px">
       <div class="moments">${momentsHtml}</div>
       <div style="flex:2 1 360px;min-width:0;display:flex;flex-direction:column;gap:10px">
-        <div class="box" style="background:#FAFAF7"><p class="h">Rule <span class="mono">${esc(i.rule)}</span> · ${esc(i.rule_kind)} · owner-approved</p>
+        <div class="box" style="background:#FAFAF7"><p class="h">Rule <span class="mono">${esc(i.rule)}</span> · ${esc(i.rule_kind)} · ${{approved: 'owner-approved', changed: 'changed since owner approval', unapproved: 'not yet owner-approved'}[approvalOf('rule:' + i.rule)]}</p>
           <div style="font-size:14px;line-height:1.5">“${esc(i.rule_text)}”</div>${conds}
           ${i.rule_source ? `<div class="muted" style="font-size:12px;margin-top:6px">source: ${esc(i.rule_source.file || i.rule_source.kind)} ${esc(i.rule_source.at || '')}</div>` : ''}</div>
         <div style="font-size:14px;line-height:1.5"><b>Why:</b> ${esc(i.why)}</div>

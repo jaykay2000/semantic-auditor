@@ -100,7 +100,8 @@ def review_cmd(contract_dir: Path = typer.Option(..., "--contract", exists=True,
                fresh: bool = typer.Option(False, "--fresh", help="ignore the model cache")):
     """Review a release against its base: issues, verification, recommendation. Writes review-<base>-<head>.json.
 
-    Exit 0: recommendation is ship; 1: anything else needs the owner; 2: could not measure.
+    Exit 0: a decided Ship (complete measurement, approved contract); 1: anything that needs the owner,
+    including a provisional recommendation from an unapproved contract; 2: could not measure.
     """
     import json
     import time
@@ -114,18 +115,28 @@ def review_cmd(contract_dir: Path = typer.Option(..., "--contract", exists=True,
         typer.echo(f"cannot measure: {e}", err=True)
         raise typer.Exit(2)
     r = json.loads(path.read_text())
-    typer.echo(f"{base} -> {head}: {r['policy']['recommendation'].upper()}  ({r['policy']['rule_fired']})")
+    out = r["outcome"]
+    typer.echo(f"{base} -> {head}: {out['recommendation'].upper()}"
+               + (f"  (policy row {r['policy']['row']}: {r['policy']['rule_fired']})" if out["status"] == "decided"
+                  else f"  ({out['reason']}; policy would say {r['policy']['recommendation']})"))
+    for side in ("base", "head"):
+        for p, probs in r["measurement"][side].items():
+            typer.echo(f"  not measured ({side}) {p}: {'; '.join(probs)}")
     for i in r["issues"]:
         v = i["verification"]["status"]
         typer.echo(f"  {i['id']:52} {i['severity']['level']:8} conf {i['confidence']['level']:6} {v:18} "
                    f"{i['delta']:12} {', '.join(i['personas'])}")
     for i in r["resolved"]:
         typer.echo(f"  resolved: {i['id']}")
+    for i in r["unconfirmed"]:
+        typer.echo(f"  NOT CONFIRMED resolved: {i['id']} ({i['delta_basis']})")
     from .report.page import build
     page = build(path)
     typer.echo(f"not raised: {len(r['not_raised'])} · spent ${r['cost_usd']:.3f} · {path}")
     typer.echo(f"Release Story: {page}")
-    raise typer.Exit(0 if r["policy"]["recommendation"] == "ship" else 1)
+    if out["status"] == "not_measurable":
+        raise typer.Exit(2)
+    raise typer.Exit(0 if out["status"] == "decided" and out["recommendation"] == "ship" else 1)
 
 
 @app.command("report")
