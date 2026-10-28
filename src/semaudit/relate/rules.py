@@ -13,7 +13,7 @@ from itertools import combinations
 from typing import Any, Callable
 
 from semaudit.contract.schema import Contract, Rule
-from semaudit.relate.claims import MISMATCH, UNREADABLE, compare, shown
+from semaudit.relate.claims import MISMATCH, UNREADABLE, compare, shown, stated
 from semaudit.story.model import Event, Story
 
 
@@ -108,6 +108,42 @@ def eval_match_oracle(rule: Rule, story: Story) -> list[Entry]:
                 continue                      # unverifiable: an owner question, never a violation
             out.append(Entry(rule.id, e.id, _status(compare(c, truth)),
                              note=f"claim {shown(c)} vs true {c['type']} {truth}"))
+    return out
+
+
+def eval_agree_across_surfaces(rule: Rule, story: Story) -> list[Entry]:
+    """Every claim of the same fact that one persona sees must agree, whichever surface shows it. No oracle is
+    needed: two surfaces that disagree cannot both be right. Two claims are compared only when no state-changing
+    user action happened between them, because the true value may legitimately change. Values are compared by
+    the one comparison (relate/claims.py), so an unreadable claim is never a disagreement.
+
+    One entry per claiming message: `violated` when some other surface stated a different value in the same
+    state, with every disagreeing message in meta["events"]; otherwise `passed`."""
+    facts = set(rule.check.get("claims", []))
+    shown_at = [(e, c) for e in story.messages() if e.extraction for c in e.extraction.claims if c["type"] in facts]
+    changes = [a.at for a in story.events if a.kind == "user_action" and a.effects]
+
+    def same_state(a, b):
+        lo, hi = sorted((a.at, b.at))
+        return not any(lo < t <= hi for t in changes)
+
+    out, seen = [], set()
+    for e, c in shown_at:
+        if (e.id, c["type"]) in seen:
+            continue
+        seen.add((e.id, c["type"]))
+        others = [(o, oc) for o, oc in shown_at if o.surface != e.surface and oc["type"] == c["type"] and same_state(e, o)
+                  and stated(oc) is not None]
+        verdicts = [(o, compare(c, stated(oc))) for o, oc in others]
+        if any(v == UNREADABLE for _, v in verdicts) and not any(v == MISMATCH for _, v in verdicts):
+            continue                                   # nothing readable to compare it with
+        bad = [o for o, v in verdicts if v == MISMATCH]
+        if not others:
+            continue                                   # shown on one surface only: nothing to agree with
+        note = (f"{c['type']} {shown(c)} on {e.surface}; " +
+                "; ".join(f"{shown(oc)} on {o.surface}" for o, oc in others if o in bad)) if bad else ""
+        out.append(Entry(rule.id, e.id, "violated" if bad else "passed", note=note,
+                         meta={"events": [e.id, *dict.fromkeys(o.id for o in bad)]} if bad else {}))
     return out
 
 
@@ -319,7 +355,8 @@ def eval_load(rule: Rule, story: Story) -> list[Entry]:
 
 def evaluate(story: Story, contract: Contract, interpret: Interpreter) -> list[Entry]:
     entries: list[Entry] = []
-    universal = {"match_oracle": eval_match_oracle, "match_charge": eval_match_charge}
+    universal = {"match_oracle": eval_match_oracle, "match_charge": eval_match_charge,
+                 "agree_across_surfaces": eval_agree_across_surfaces}
     for r in contract.rules:
         must = r.check.get("must")
         if r.kind == "universal" and must in universal:

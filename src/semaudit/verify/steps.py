@@ -247,7 +247,10 @@ def step_defended(issue: Issue, stories: dict[str, Story], contract: Contract, r
 def step_oracle(issue: Issue, stories: dict[str, Story], contract: Contract) -> dict:
     if issue.layer != "factual":
         return {"result": "not_applicable", "detail": "not a factual issue"}
-    facts = set(contract.rule(issue.rule).check.get("claims", []))
+    check = contract.rule(issue.rule).check
+    facts = set(check.get("claims", []))
+    if check.get("must") == "agree_across_surfaces":
+        return _step_agreement(issue, stories, facts)
     gaps = []
     for o in issue.occurrences:
         story = stories[o.persona]
@@ -258,6 +261,23 @@ def step_oracle(issue: Issue, stories: dict[str, Story], contract: Contract) -> 
                 if story.truth_at(c["type"], e.at, e.feature) is None and story.final_truth(c["type"], e.feature) is None:
                     gaps.append(f"{o.persona}/{e.id}: no oracle value for {c['type']}")
     return {"result": "fail" if gaps else "pass", "detail": gaps or "claims compared with oracle readings"}
+
+
+def _step_agreement(issue: Issue, stories: dict[str, Story], facts: set[str]) -> dict:
+    """Agreement issues have no oracle: re-derive the disagreement from the cited messages themselves, by the
+    one comparison. Passes only if, for every occurrence, two cited messages on different surfaces state
+    readable, different values of the same fact."""
+    from semaudit.relate.claims import MISMATCH, compare, stated
+    per = {}
+    for o in issue.occurrences:
+        cl = [(e, c) for e in cited_events(o.entry, stories[o.persona]) if e.extraction
+              for c in e.extraction.claims if c["type"] in facts]
+        per[o.persona] = any(a.surface != b.surface and ca["type"] == cb["type"] and stated(cb) is not None
+                             and compare(ca, stated(cb)) == MISMATCH for a, ca in cl for b, cb in cl)
+    ok = all(per.values())
+    return {"result": "pass" if ok else "fail",
+            "detail": "cited messages on different surfaces state different values" if ok else
+                      {p: "no readable disagreement among the cited messages" for p, v in per.items() if not v}}
 
 
 # ---------- status and confidence ----------

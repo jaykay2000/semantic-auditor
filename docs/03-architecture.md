@@ -70,6 +70,10 @@ The schema is shown below as an excerpt. **Northbound's full rules, decision voc
   text: Every scarcity, availability and policy claim matches our own data.
   check: {claims: [seats_left, availability, policy], must: match_oracle}
   source: {kind: doc, file: northbound-rules-draft.md, at: "U1"}
+- id: U5                       # universal, consistency (code: no oracle needed)
+  kind: universal
+  text: Every figure we show a traveller reads the same wherever we show it.
+  check: {claims: [fee_total], must: agree_across_surfaces}   # same fact, same persona, same state, different surfaces
 - id: U3                       # universal, about actionability (code: action preconditions)
   kind: universal
   text: Every recommendation we show is one the traveller can still act on.
@@ -246,7 +250,7 @@ The story is the single object that the relation layer, the issue evidence, the 
 | `stale_guidance` | a directive's precondition is false in `state_at_event` (e.g. "choose refundable" after booking a non-refundable fare, outside the free-change window) |
 | `rule_applies` | an event matches a universal or conditional rule's `applies_to`. For conditional rules, its exceptions are evaluated (below) |
 | `attention_load` | more than *N* directive or marketing messages within window *W* (contract-set) |
-| `fact_divergence` | the claim layer finds the same fact with different values (first-version logic) |
+| `fact_divergence` | the same fact reads different values on two surfaces one persona sees, with no state-changing action between them (`must: agree_across_surfaces`, built 2026-10-28). Needs no oracle: two surfaces that disagree cannot both be right. Verification re-derives the disagreement from the cited messages |
 | `false_claim` | a claim is `contradicted` by its oracle (e.g. "only 2 seats left" vs an inventory of 9). `unverifiable` claims go to owner questions instead |
 | `model_open` | the model reads the whole story and proposes a relation none of the above produced. Kept, but starts at lower confidence, and its vocabulary gaps become onboarding questions |
 

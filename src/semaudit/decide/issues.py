@@ -18,7 +18,7 @@ from semaudit.relate.claims import shown
 from semaudit.relate.rules import Entry
 from semaudit.story.model import Event, Story
 
-FACTUAL_CHECKS = {"match_oracle", "match_charge"}
+FACTUAL_CHECKS = {"match_oracle", "match_charge", "agree_across_surfaces"}
 
 
 @dataclass

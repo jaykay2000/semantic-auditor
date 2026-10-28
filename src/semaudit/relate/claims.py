@@ -70,6 +70,12 @@ def _compare_time(when: Any, truth: datetime) -> str:
     return MATCH if claimed == truth else MISMATCH
 
 
+def stated(claim: dict):
+    """The value a claim states, in the form `compare` takes as a truth: its moment if it has one, else its
+    amount. None when it states neither (unreadable)."""
+    return claim.get("when") or claim.get("value")
+
+
 def shown(claim: dict) -> str:
     """The claim as the message states it, for issue text and the page."""
     if claim.get("when"):
