@@ -4,6 +4,11 @@ Events are paired by a stable event_key: feature / surface / message key / occur
 action / occurrence). Events left over are paired FUZZILY only when they are the same feature, surface and
 channel at the same simulated moment (a reply to the same question, the card in the same slot), and are
 marked fuzzy. Everything else is explicitly unmatched: `added` in head or `removed` from base, never forced.
+
+A text template the contract map keyed (`contract_map` attribution) that repeats within a story has only an
+order index (`#n`) to tell its copies apart, and that order shifts when a copy is added or moved. So repeats are
+not paired by key: within the template, a copy with identical text in the other release pairs `unchanged`, and
+the rest pair in order and are marked fuzzy, never `changed` on the strength of an index.
 """
 
 from __future__ import annotations
@@ -60,6 +65,19 @@ def _slot(e: Event) -> tuple:
     return (e.feature, e.surface, e.channel, e.at)
 
 
+def _template(e: Event) -> tuple | None:
+    """The repeat group of a contract-mapped message: its key without the `#n` occurrence index."""
+    method = (e.evidence.attribution or {}).get("method") if e.evidence else None
+    if e.kind != "message" or method != "contract_map" or not e.copy_key:
+        return None
+    return (e.feature, e.surface, e.copy_key.split("#")[0])
+
+
+def _repeated(*stories: Story) -> set[tuple]:
+    counts = [Counter(t for e in s.events if (t := _template(e))) for s in stories]
+    return {t for c in counts for t, n in c.items() if n > 1}
+
+
 def align(base: Story, head: Story) -> StoryDiff:
     if base.persona != head.persona:
         raise ValueError(f"cannot align {base.persona} with {head.persona}")
@@ -70,7 +88,27 @@ def align(base: Story, head: Story) -> StoryDiff:
     diff = StoryDiff(base.release, head.release, head.persona)
     used: set[str] = set()
     unmatched_head: list[str] = []
+    repeats = _repeated(base, head)
+    for t in sorted(repeats, key=str):
+        bs = [e for e in base.events if _template(e) == t]
+        hs = [e for e in head.events if _template(e) == t]
+        rest = []
+        for h in hs:
+            b = next((b for b in bs if b.text == h.text), None)
+            if b is None:
+                rest.append(h)
+                continue
+            bs.remove(b)
+            used.add(b.id)
+            diff.pairs.append(Pair(b.id, h.id, "unchanged", hk[h.id]))
+        for h, b in zip(rest, bs):
+            used.add(b.id)
+            diff.pairs.append(Pair(b.id, h.id, "fuzzy", f"≈{hk[h.id]}"))
+        diff.added.extend(h.id for h in rest[len(bs):])
+    in_repeat = {e.id for e in head.events if _template(e) in repeats}
     for e in head.events:
+        if e.id in in_repeat:
+            continue
         key = hk[e.id]
         bid = b_by_key.get(key)
         if bid is None:

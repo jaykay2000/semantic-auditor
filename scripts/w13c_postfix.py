@@ -34,6 +34,9 @@ from semaudit.contract.schema import load_contract  # noqa: E402
 from semaudit.decide.run import run_review  # noqa: E402
 from semaudit.models.router import ModelError, Router  # noqa: E402
 
+sys.path.insert(0, str(ROOT / "scripts"))
+import freeze_conditions as freeze  # noqa: E402
+
 CAPS = {"auditor": 1.85, "judge_one": 0.25, "judge_multi": 1.85}
 THRESHOLDS = {                       # copied from POST-FIX-EVAL.md; a test pins the two against each other
     "fp_total_max": 2,               # auditor false alarms across all releases
@@ -55,7 +58,13 @@ def main() -> None:
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--max-usd", type=float, required=True)
     ap.add_argument("--seed", type=int, default=20261104)
+    ap.add_argument("--frozen", type=Path, default=ROOT / "bench/conditions/FROZEN-POSTFIX.md",
+                    help="freeze manifest the code must match before anything runs")
     a = ap.parse_args()
+    bad = freeze.changed(a.frozen)
+    if bad:                                    # nothing is spent on a run whose conditions are not the frozen ones
+        sys.exit("refusing to run: the code does not match " + a.frozen.name + "\n" + "\n".join(bad))
+    frozen = {"manifest": freeze.manifest_of(a.frozen), "file": a.frozen.name, "code": freeze.code()}
     cond = tomllib.loads((ROOT / "bench/conditions/conditions.toml").read_text())
     effort, samples = cond["B-judge-N"].get("effort", {}), cond["B-judge-N"].get("samples", 1)
     rels = a.releases.split(",")
@@ -149,6 +158,7 @@ def main() -> None:
         results["releases"][rel] = entry
     results["thresholds"] = evaluate_thresholds(results, stab)
     results["spent_usd"] = round(a.max_usd - left[0], 4)
+    results["frozen"] = frozen
     (out / "results.json").write_text(json.dumps(results, indent=1, default=str))
     print(json.dumps(aggregate(results), indent=1))
 

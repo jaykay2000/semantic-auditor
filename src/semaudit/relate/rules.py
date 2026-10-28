@@ -111,12 +111,18 @@ def eval_match_oracle(rule: Rule, story: Story) -> list[Entry]:
     return out
 
 
-def same_state(story: Story, model: list, a, b) -> bool:
-    """Two messages were shown in the same state: the contract's state model reads the same at both moments, and
-    no action with explicit effects happened between them."""
+def same_state(story: Story, model: list, a, b, fact: str | None = None) -> bool:
+    """Two messages were shown in the same state: the contract's state model reads the same at both moments, no
+    action with explicit effects happened between them, and, for a fact, its true value (where the oracle read it
+    at both moments) did not change in between. Two surfaces that each showed the value true at their moment do
+    not disagree."""
     lo, hi = sorted((a.at, b.at))
     if any(lo < x.at <= hi for x in story.events if x.kind == "user_action" and x.effects):
         return False
+    if fact is not None:
+        ta, tb = story.truth_at(fact, a.at, a.feature), story.truth_at(fact, b.at, b.feature)
+        if ta is not None and tb is not None and ta != tb:
+            return False
     return story.state_at(a.at, model, inclusive=True) == story.state_at(b.at, model, inclusive=True)
 
 
@@ -132,14 +138,14 @@ def eval_agree_across_surfaces(rule: Rule, story: Story, contract: Contract | No
     facts = set(rule.check.get("claims", []))
     shown_at = [(e, c) for e in story.messages() if e.extraction for c in e.extraction.claims if c["type"] in facts]
     model = contract.state if contract is not None else []
-    same = lambda a, b: same_state(story, model, a, b)  # noqa: E731
+    same = lambda a, b, fact: same_state(story, model, a, b, fact)  # noqa: E731
 
     out, seen = [], set()
     for e, c in shown_at:
         if (e.id, c["type"]) in seen:
             continue
         seen.add((e.id, c["type"]))
-        others = [(o, oc) for o, oc in shown_at if o.surface != e.surface and oc["type"] == c["type"] and same(e, o)
+        others = [(o, oc) for o, oc in shown_at if o.surface != e.surface and oc["type"] == c["type"] and same(e, o, c["type"])
                   and stated(oc) is not None]
         verdicts = [(o, compare(c, stated(oc), precision(oc))) for o, oc in others]
         if any(v == UNREADABLE for _, v in verdicts) and not any(v == MISMATCH for _, v in verdicts):

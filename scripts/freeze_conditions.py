@@ -1,7 +1,7 @@
 """Freeze every file that decides how a sealed benchmark run is executed and scored, by sha256.
 
   python3 scripts/freeze_conditions.py --out bench/conditions/FROZEN-POSTFIX.md --note "W13c post-fix"
-  python3 scripts/freeze_conditions.py --check bench/conditions/FROZEN-POSTFIX.md     # exit 1 on any change
+  python3 scripts/freeze_conditions.py --check bench/conditions/FROZEN-POSTFIX.md     # exit 1 on any change or uncommitted edit
 
 The manifest id is the sha256 of the sorted (path, sha256) table, so any edit, addition or removal changes it.
 """
@@ -32,6 +32,29 @@ def manifest_id(rows) -> str:
     return hashlib.sha256("\n".join(f"{a} {b}" for a, b in rows).encode()).hexdigest()
 
 
+def changed(manifest: Path) -> list[str]:
+    """Files that differ from the manifest (edited, added or removed), plus frozen files with uncommitted edits
+    or untracked: a run is reproducible only from committed code. Empty means the conditions hold."""
+    want = [tuple(l.strip("| ").replace("`", "").split(" | ")) for l in manifest.read_text().splitlines()
+            if l.startswith("| `")]
+    rows = table()
+    a_, b_ = dict(want), dict(rows)
+    out = [f"CHANGED: {p}" for p in sorted(set(a_) | set(b_)) if a_.get(p) != b_.get(p)]
+    dirty = subprocess.run(["git", "status", "--porcelain", "--", *b_], cwd=ROOT, capture_output=True,
+                           text=True).stdout.splitlines()
+    out += [f"UNCOMMITTED: {l[3:]}" for l in dirty]
+    return out
+
+
+def code() -> str:
+    return subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True).stdout.strip()
+
+
+def manifest_of(manifest: Path) -> str:
+    """The manifest id the file records on its first line."""
+    return manifest.read_text().split("manifest ", 1)[1].split()[0]
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", type=Path)
@@ -40,18 +63,13 @@ def main() -> int:
     a = ap.parse_args()
     rows = table()
     if a.check:
-        want = [tuple(l.strip("| ").replace("`", "").split(" | ")) for l in a.check.read_text().splitlines()
-                if l.startswith("| `")]
-        if want == rows:
+        bad = changed(a.check)
+        if not bad:
             print(f"OK: {len(rows)} files match {a.check.name}")
             return 0
-        a_, b_ = dict(want), dict(rows)
-        for p in sorted(set(a_) | set(b_)):
-            if a_.get(p) != b_.get(p):
-                print(f"CHANGED: {p}")
+        print("\n".join(bad))
         return 1
-    code = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True).stdout.strip()
-    lines = [f"{a.out.stem} manifest {manifest_id(rows)} at code {code}", "",
+    lines = [f"{a.out.stem} manifest {manifest_id(rows)} at code {code()}", "",
              f"# {a.note}", "", "Every file that decides how this sealed run is executed and scored, by sha256. "
              "A change to any file below invalidates the run unless it is re-frozen with a recorded reason. "
              f"Check: `python3 scripts/freeze_conditions.py --check {a.out}`.", "",

@@ -15,14 +15,15 @@ A claim the message showed rounded ("$1.2M") carries its displayed `precision` (
 for it (a fact with `match: displayed`), and matches any truth that rounds to it: within half that step.
 
 A truth that is a date/time (a datetime, or an ISO 8601 string) is compared with the claim's `when`, at the
-claim's own precision. A date-only claim compares dates. A time with no seconds compares to the minute. A claim
-with no time zone is read as the wall-clock time the truth is expressed in. Anything else is compared as a
-number.
+claim's own precision. A date-only claim compares dates. A time that states no seconds compares to the minute;
+one that states them (even ":00") compares to the second. A claim with no time zone is read as the wall-clock
+time the truth is expressed in. Anything else is compared as a number.
 """
 
 from __future__ import annotations
 
 import math
+import re
 from datetime import date, datetime
 from typing import Any
 
@@ -78,9 +79,21 @@ def _compare_time(when: Any, truth: datetime) -> str:
     if claimed.tzinfo is not None and truth.tzinfo is not None:
         truth = truth.astimezone(claimed.tzinfo)       # same instant, in the zone the message speaks in
     claimed, truth = claimed.replace(tzinfo=None), truth.replace(tzinfo=None)
-    if claimed.second == 0 and claimed.microsecond == 0:
+    if not _states_seconds(w):
         truth = truth.replace(second=0, microsecond=0)  # "14:05" states the minute, not the second
+    elif claimed.microsecond == 0:
+        truth = truth.replace(microsecond=0)            # "14:05:00" states the second
     return MATCH if claimed == truth else MISMATCH
+
+
+_TZ = re.compile(r"(Z|[+-]\d{2}:?\d{2})$")
+
+
+def _states_seconds(when: str) -> bool:
+    """Whether the stated time gives seconds. Read from the text, not the value: "14:05:00" states the second
+    (and is wrong against 14:05:30), "14:05" states only the minute."""
+    clock = _TZ.sub("", when[11:])
+    return clock.count(":") >= 2
 
 
 def stated(claim: dict):

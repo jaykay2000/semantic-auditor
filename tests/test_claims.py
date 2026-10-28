@@ -154,3 +154,13 @@ def test_precision_enters_the_schema_and_prompt_only_when_a_fact_asks_for_it():
 def _contract_with(facts):
     from semaudit.contract.schema import Contract
     return Contract(rules=[], decisions=[], features=[], rubric="r", facts=facts)
+
+
+def test_seconds_the_message_states_are_compared_even_when_they_are_zero():
+    """Audit E-03: precision is read from the text, not the value. "14:05:00" states the second."""
+    truth = "2026-11-03T14:05:30+01:00"
+    assert compare({"when": "2026-11-03T14:05"}, truth) == MATCH               # states the minute only
+    assert compare({"when": "2026-11-03T14:05:00"}, truth) == MISMATCH         # states :00, truth is :30
+    assert compare({"when": "2026-11-03T14:05:00+01:00"}, truth) == MISMATCH   # a zone's colon is not seconds
+    assert compare({"when": "2026-11-03T14:05+01:00"}, truth) == MATCH
+    assert compare({"when": "2026-11-03T14:05:30Z"}, "2026-11-03T14:05:30.4+00:00") == MATCH  # to the second

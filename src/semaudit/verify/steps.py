@@ -275,7 +275,7 @@ def _step_agreement(issue: Issue, stories: dict[str, Story], facts: set[str], mo
         cl = [(e, c) for e in cited_events(o.entry, story) if e.extraction
               for c in e.extraction.claims if c["type"] in facts]
         per[o.persona] = any(a.surface != b.surface and ca["type"] == cb["type"] and stated(cb) is not None
-                             and same_state(story, model or [], a, b)
+                             and same_state(story, model or [], a, b, ca["type"])
                              and compare(ca, stated(cb), precision(cb)) == MISMATCH for a, ca in cl for b, cb in cl)
     ok = all(per.values())
     return {"result": "pass" if ok else "fail",

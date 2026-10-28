@@ -92,6 +92,13 @@ def json_path(doc: Any, path: str) -> Any:
     return cur
 
 
+def _redact(text: str, secrets: set[str]) -> str:
+    """Replace every secret in text, longest first (a token that contains another is hidden whole)."""
+    for v in sorted((x for x in secrets if len(x) >= 4), key=len, reverse=True):
+        text = text.replace(v, "[redacted]")
+    return text
+
+
 class OracleClient:
     def __init__(self, base_url: str, oracles: list[Oracle], http: httpx.Client | None = None, timeout: float = 15.0):
         self.base_url = base_url.rstrip("/")
@@ -114,18 +121,23 @@ class OracleClient:
         endpoint = tmpl.format_map({k: quote(str(v), safe="") for k, v in params.items() if v is not None})
         headers = {k: v.format_map({n: str(x) for n, x in params.items() if x is not None})
                    for k, v in header_tmpl.items()}
+        # Header values (and the parameters filled into them) are credentials: an app that echoes one in an error
+        # body must not get it written into the episode.
+        secrets = {v for v in headers.values() if v} | {str(params[n]) for n in self._needs(*header_tmpl.values())
+                                                         if params.get(n) not in (None, "")}
+        hide = lambda text: _redact(text, secrets)  # noqa: E731
         try:
             r = self.http.get(self.base_url + endpoint, headers=headers or None)
             if r.status_code >= 400:
                 return OracleReading(status="not_measured", endpoint=endpoint,
-                                     error=f"HTTP {r.status_code}: {r.text[:200]}")
+                                     error=hide(f"HTTP {r.status_code}: {_redact(r.text, secrets)[:200]}"))
             doc = r.json()
             if root:
                 doc = json_path(doc, root)
         except KeyError:
             return OracleReading(status="not_measured", endpoint=endpoint, error=f"root {root!r} not in the response")
         except (httpx.HTTPError, ValueError) as exc:
-            return OracleReading(status="not_measured", endpoint=endpoint, error=f"{type(exc).__name__}: {exc}")
+            return OracleReading(status="not_measured", endpoint=endpoint, error=hide(f"{type(exc).__name__}: {exc}"))
         values: dict[str, Any] = {}
         absent: list[str] = []
         for name, path in oracle.fields.items():

@@ -65,6 +65,7 @@ def run(m, monkeypatch, sealed, out, total, cost=0.3):
     monkeypatch.setattr(m.judge, "judge_one", fake_judge("B-judge-1"))
     monkeypatch.setattr(m.judge, "judge_multi", fake_judge("B-judge-N"))
     monkeypatch.setattr(m, "_spent", lambda: spent[0])
+    monkeypatch.setattr(m.freeze, "changed", lambda manifest: [])   # the dev tree is past the W13c freeze
     monkeypatch.setattr(sys, "argv", ["x", "--sealed", str(sealed), "--releases", "2.4", "--out", str(out),
                                       "--max-usd", str(total)])
     m.main()
@@ -108,3 +109,43 @@ def test_an_issue_free_release_with_any_false_alarm_fails_the_claim():
     t = m.evaluate_thresholds(res, "a")
     assert t["false_alarms"]["verdict"] == "not met" and t["false_alarms"]["issue_free_fp"] == [1]
     assert t["recall"]["verdict"] == "met" and t["cost"]["verdict"] == "met"
+
+
+def test_the_runner_refuses_before_spending_when_the_code_is_not_the_frozen_code(tmp_path, monkeypatch):
+    m = load()
+    calls = []
+    monkeypatch.setattr(m, "run_review", lambda *a, **k: calls.append("auditor"))
+    monkeypatch.setattr(m.freeze, "changed", lambda manifest: ["CHANGED: src/semaudit/relate/claims.py"])
+    monkeypatch.setattr(sys, "argv", ["x", "--sealed", str(tmp_path), "--releases", "2.4", "--out",
+                                      str(tmp_path / "out"), "--max-usd", "5"])
+    with pytest.raises(SystemExit, match="claims.py"):
+        m.main()
+    assert calls == [] and not (tmp_path / "out").exists()
+
+
+@needs_run
+def test_results_record_the_freeze_they_ran_under(tmp_path, monkeypatch, sealed):
+    r, _ = run(load(), monkeypatch, sealed, tmp_path / "out", 2.2)
+    assert r["frozen"]["file"] == "FROZEN-POSTFIX.md"
+    assert re.fullmatch(r"[0-9a-f]{64}", r["frozen"]["manifest"]) and re.fullmatch(r"[0-9a-f]{40}", r["frozen"]["code"])
+
+
+def test_the_freeze_check_sees_an_edit_and_an_uncommitted_file(tmp_path, monkeypatch):
+    import subprocess
+    spec = importlib.util.spec_from_file_location("fz", ROOT / "scripts/freeze_conditions.py")
+    fz = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(fz)
+    (tmp_path / "src/semaudit").mkdir(parents=True)
+    f = tmp_path / "src/semaudit/a.py"
+    f.write_text("x = 1\n")
+    git = lambda *a: subprocess.run(["git", *a], cwd=tmp_path, check=True, capture_output=True)  # noqa: E731
+    git("init", "-q"); git("add", "."); git("-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "x")
+    monkeypatch.setattr(fz, "ROOT", tmp_path)
+    man = tmp_path / "FROZEN-T.md"
+    monkeypatch.setattr(sys, "argv", ["x", "--out", str(man)])
+    fz.main()
+    assert fz.changed(man) == []
+    f.write_text("x = 2\n")
+    assert fz.changed(man) == ["CHANGED: src/semaudit/a.py", "UNCOMMITTED: src/semaudit/a.py"]
+    git("-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qam", "y")
+    assert fz.changed(man) == ["CHANGED: src/semaudit/a.py"]       # committed, but not the frozen bytes

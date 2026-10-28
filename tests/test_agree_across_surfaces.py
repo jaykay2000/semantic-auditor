@@ -105,3 +105,19 @@ def test_the_verifier_refuses_a_disagreement_across_states():
     occ = SimpleNamespace(persona="p", entry=Entry("C1", "page", "violated", meta={"events": ["page", "export"]}))
     assert _step_agreement(SimpleNamespace(occurrences=[occ]), {"p": story}, {"annual_limit"},
                            MODEL.state)["result"] == "fail"
+
+
+def test_two_surfaces_each_showing_the_truth_of_their_moment_do_not_disagree():
+    """Audit E-04: the oracle's own value changed between the two messages (no action, same state model): each
+    surface was right when it was shown, so they are not compared. Unchanged truth still compares."""
+    page, export = msg("page", "report", 24500, 0), msg("export", "export", 32500, 2)
+    snaps = [{"at": T0, "truth": {"annual_limit": 24500}},
+             {"at": T0 + timedelta(minutes=1), "truth": {"annual_limit": 32500}}]
+    moved = Story(id="s", release="r", persona="p", events=[page, export], snapshots=snaps)
+    assert eval_agree_across_surfaces(RULE, moved) == []
+    steady = Story(id="s", release="r", persona="p", events=[page, export], snapshots=snaps[:1])
+    assert {x.status for x in eval_agree_across_surfaces(RULE, steady)} == {"violated"}
+    from semaudit.relate.rules import Entry
+    from semaudit.verify.steps import _step_agreement
+    occ = SimpleNamespace(persona="p", entry=Entry("C1", "page", "violated", meta={"events": ["page", "export"]}))
+    assert _step_agreement(SimpleNamespace(occurrences=[occ]), {"p": moved}, {"annual_limit"})["result"] == "fail"

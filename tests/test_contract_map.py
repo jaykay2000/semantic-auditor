@@ -137,6 +137,23 @@ def test_an_oracle_reads_its_most_specific_variant_with_headers_and_root():
     assert c.read(o, {}).status == "not_applicable"
 
 
+def test_a_token_the_app_echoes_in_an_error_is_never_recorded():
+    """Audit A-05: header values (and the params filled into them) are redacted from every error text."""
+    def handler(req):
+        if req.url.path == "/api/me/report":
+            return httpx.Response(401, text=f"bad token {req.headers['authorization']} for user")
+        raise httpx.ConnectError(f"refused, header was {req.headers.get('authorization')}")
+    o = Oracle(id="r", endpoint="/api/guest/{gid}", fields={"score": "$.score"},
+               variants=[{"endpoint": "/api/me/report", "headers": {"Authorization": "Bearer {token}"}}])
+    c = OracleClient("http://x", [o], httpx.Client(transport=httpx.MockTransport(handler)))
+    r = c.read(o, {"gid": "g1", "token": "s3cr3t-tok"})
+    assert r.status == "not_measured" and "HTTP 401" in r.error and "[redacted]" in r.error
+    assert "s3cr3t-tok" not in r.model_dump_json()
+    o2 = Oracle(id="r", endpoint="/api/x", fields={"score": "$.score"}, headers={"Authorization": "Bearer {token}"})
+    r2 = OracleClient("http://x", [o2], httpx.Client(transport=httpx.MockTransport(handler))).read(o2, {"token": "s3cr3t-tok"})
+    assert r2.error.startswith("ConnectError") and "s3cr3t-tok" not in r2.model_dump_json()
+
+
 # ---- the audit's visibility and block matrix (each case reproduced by the external audit, 2026-10-28)
 PAGE2 = """<html><body style="margin:0;background:#fff">
 <section class="s">
