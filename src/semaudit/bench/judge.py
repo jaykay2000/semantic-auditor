@@ -124,10 +124,10 @@ class Tally:
 
 
 def _call(router: Router, system: str, payload: dict, *, fresh: bool, tally: Tally,
-          effort: str | None = None) -> list[dict]:
+          effort: str | None = None, seed: int | None = None) -> list[dict]:
     r = router.complete(ROLE, [{"role": "system", "content": system},
                                {"role": "user", "content": json.dumps(payload, ensure_ascii=False, default=str)}],
-                        schema=SCHEMA, schema_name="findings", fresh=fresh, reasoning_effort=effort)
+                        schema=SCHEMA, schema_name="findings", fresh=fresh, reasoning_effort=effort, seed=seed)
     tally.add(r)
     return (r.parsed or {}).get("findings", [])
 
@@ -143,19 +143,22 @@ def judge_one(stories: dict[str, Story], contract: Contract, router: Router, *, 
 
 
 def judge_multi(stories: dict[str, Story], contract: Contract, router: Router, *, release: str,
-                fresh: bool = False, run: str = "1", effort: dict[str, str] | None = None) -> tuple[Findings, list[str]]:
+                fresh: bool = False, run: str = "1", effort: dict[str, str] | None = None,
+                samples: int = 1) -> tuple[Findings, list[str]]:
     """Per-persona passes, then self-critique over all candidates, then consolidation. Every pass sees the full
     contract; the critique and consolidation passes also see every story, so nothing is judged blind.
-    `effort` (per pass: persona / critique / consolidate) is the budget-matching knob, frozen in
+    `effort` (per pass: persona / critique / consolidate) and `samples` (independent per-persona passes, each
+    with its own seed; the critique sees every sample's candidates) are the budget-matching knobs, frozen in
     bench/conditions/conditions.toml; unset passes use the interpreter's own setting."""
     effort = effort or {}
     con, all_stories = render_contract(contract), [render_story(s) for _, s in sorted(stories.items())]
     tally, candidates = Tally(), []
     router.tag = f"B-judge-N:{release}:{run}"
     for persona, s in sorted(stories.items()):
-        candidates += _call(router, prompt("judge_persona"),
-                            {"release": release, "contract": con, "story": render_story(s)}, fresh=fresh, tally=tally,
-                            effort=effort.get("persona"))
+        for k in range(samples):
+            candidates += _call(router, prompt("judge_persona"),
+                                {"release": release, "contract": con, "story": render_story(s)}, fresh=fresh,
+                                tally=tally, effort=effort.get("persona"), seed=k if samples > 1 else None)
     kept = _call(router, prompt("judge_critique"),
                  {"release": release, "contract": con, "stories": all_stories, "candidates": candidates},
                  fresh=fresh, tally=tally, effort=effort.get("critique"))

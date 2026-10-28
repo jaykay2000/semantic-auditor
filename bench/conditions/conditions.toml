@@ -22,7 +22,13 @@ built = true
 evaluations = ["E2"]
 role = "interpreter"
 prompts = ["prompts/_common.md", "prompts/judge_persona.md", "prompts/judge_critique.md", "prompts/judge_consolidate.md"]
-budget = "MATCHED, rule declared before measurement: its fresh cost on the dev fixture must land within +-15% of the auditor's MEDIAN fresh judgement cost over 3 fresh full reviews of the same release; the pass plan (persona-pass reasoning effort) is chosen on dev to meet it, then frozen. NOT YET MEASURED: no fresh auditor reviews exist."
+budget = "MATCHED, rule declared before measurement: its fresh cost on the dev fixture must land within +-15% of the auditor's fresh full-review cost on the same release; the pass plan (per-pass reasoning effort) is chosen on dev to meet it, then frozen. Measured (owner plan, Oct 27: one fresh dev review, n = 1): auditor 2.3->2.4 = $0.867 (runs/dev-fresh-1), so the band is $0.737-$0.997."
+# round 1 (persona = high) cost $0.559: outside the band. Owner (Oct 27): one calibration run of the PASS PLAN,
+# frozen whether or not it lands, with the actual ratio reported. CALIBRATION RESULT (runs/w13b-tune/
+# round-1-calibration): $1.067 = 1.23x the auditor's $0.867, outside the +-15% band, in the baseline's favour.
+# FROZEN AS IS; every report states the ratio.
+effort = { persona = "high", critique = "high" }
+samples = 2                          # independent per-persona passes
 
 [B-explore]
 built = false
@@ -49,6 +55,6 @@ built = false
 
 [tuning]
 fixture = "Northbound 2.4 (dev), truth bench/dev/northbound-2.4.truth.json"
-max_rounds = 2                       # owner approved up to 8; the audit asked for a predeclared maximum of 2
+max_rounds = 1                       # owner plan Oct 27 ($16 option): one round after round 0 (cap was 2)
 stop_rule = "stop after a round whose prompt change moves no unit on the dev truth, or after round 2"
 record = "runs/w13b-tune/round-<n>/summary.json, with every prompt's sha256"

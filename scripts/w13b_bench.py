@@ -36,7 +36,7 @@ from semaudit.contract.schema import load_contract  # noqa: E402
 from semaudit.decide.run import run_review  # noqa: E402
 from semaudit.models.router import ModelError, Router  # noqa: E402
 
-CAPS = {"auditor": 1.85, "judge_one": 0.25, "judge_multi": 1.6, "no-verifier": 0.3, "no-exceptions": 1.0}
+CAPS = {"auditor": 1.85, "judge_one": 0.25, "judge_multi": 1.85, "no-verifier": 0.3, "no-exceptions": 1.0}
 
 
 def main() -> None:
@@ -51,7 +51,7 @@ def main() -> None:
     ap.add_argument("--seed", type=int, default=20261101)
     a = ap.parse_args()
     cond = tomllib.loads((ROOT / "bench/conditions/conditions.toml").read_text())
-    effort = cond["B-judge-N"].get("effort", {})
+    effort, samples = cond["B-judge-N"].get("effort", {}), cond["B-judge-N"].get("samples", 1)
     rels = a.releases.split(",")
     out, runs_dir = a.out, a.out / "runs"
     out.mkdir(parents=True, exist_ok=True)
@@ -105,7 +105,7 @@ def main() -> None:
     for rel in rels:                                                                  # 2, 3
         if "r1" not in reviews[rel]:
             continue
-        for name, fn, kw in (("judge_one", judge.judge_one, {}), ("judge_multi", judge.judge_multi, {"effort": effort})):
+        for name, fn, kw in (("judge_one", judge.judge_one, {}), ("judge_multi", judge.judge_multi, {"effort": effort, "samples": samples})):
             if fs := step(f"{name} {rel}", CAPS[name], judged(rel, fn, **kw)):
                 findings[rel].append(fs)
     for rel in rels:                                                                  # 4

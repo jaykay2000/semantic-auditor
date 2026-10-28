@@ -10,6 +10,7 @@ from misses on THIS fixture only, exactly as the auditor's rubric was; they are 
 import argparse
 import hashlib
 import json
+import tomllib
 import sys
 from pathlib import Path
 
@@ -24,7 +25,7 @@ from semaudit.models.router import Router  # noqa: E402
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--round", type=int, required=True)
+    ap.add_argument("--round", required=True)
     ap.add_argument("--max-usd", type=float, required=True)
     ap.add_argument("--only", choices=["judge_one", "judge_multi"])
     a = ap.parse_args()
@@ -39,7 +40,11 @@ def main() -> None:
     prompts = {p.name: hashlib.sha256(p.read_bytes()).hexdigest()[:16]
                for p in sorted((judge.CONDITIONS / "prompts").glob("*.md"))}
     summary = {"round": a.round, "prompts": prompts, "systems": {}}
-    runs = {"judge_one": judge.judge_one, "judge_multi": judge.judge_multi}
+    jn = tomllib.loads((judge.CONDITIONS / "conditions.toml").read_text())["B-judge-N"]
+    effort, samples = jn.get("effort", {}), jn.get("samples", 1)
+    summary["judge_multi_plan"] = {"effort": effort, "samples": samples}
+    runs = {"judge_one": judge.judge_one,
+            "judge_multi": lambda *x, **k: judge.judge_multi(*x, effort=effort, samples=samples, **k)}
     for name, fn in runs.items():
         if a.only and name != a.only:
             continue
