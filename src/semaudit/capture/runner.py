@@ -160,7 +160,7 @@ class Runner:
         for s in sink_surfaces:
             d = self._sink_dir(ectx, s)
             ectx.seen[s.id] = {p.name for p in d.glob("*.json")} if d and d.exists() else set()
-            if not hooks.has("clock"):
+            if not hooks.has("clock") and s.timed:
                 ep.not_measured.append(NotMeasured(surface=s.id, reason="no clock hook: time-triggered sends are not driven"))
             if d is None:
                 ep.not_measured.append(NotMeasured(surface=s.id, reason="sink location unknown (no app.launch / sink_root)"))

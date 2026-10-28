@@ -119,3 +119,12 @@ def test_story_building_carries_the_persona_reference():
     import inspect
     from semaudit.story import build
     assert "truth=dict(persona.reference)" in inspect.getsource(build.story_from_episode)
+
+
+def test_an_event_sent_email_surface_is_measured_without_a_clock():
+    import inspect
+    from semaudit.capture import runner
+    from semaudit.contract.schema import Surface
+    assert Surface(id="e", kind="email", locator="message_id", sink="outbox").timed is True
+    assert Surface(id="e", kind="email", locator="message_id", sink="outbox", timed=False).timed is False
+    assert 'if not hooks.has("clock") and s.timed:' in inspect.getsource(runner)

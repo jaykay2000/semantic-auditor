@@ -155,6 +155,9 @@ class Surface(Strict):
     sections: list[SectionMap] = Field(default_factory=list)  # web/text: contract-level attribution
     heading: str | None = None           # text: heading-line regex (default: markdown headings)
     sink: str | None = None              # email/push: where the app writes messages
+    timed: bool = True                   # email/push: the app sends on a schedule, so without a clock hook those sends
+                                         # are not driven (not measured). False: sent only by user actions (a sign-up
+                                         # email), which every scenario drives without a clock
     user_turn: dict[str, str] = Field(default_factory=dict)   # chat: attrs marking the user's own turn
 
 
