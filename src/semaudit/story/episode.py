@@ -119,6 +119,7 @@ class Episode(Strict):
     day0: datetime
     clock_measured: bool                                      # False: no clock hook, time-triggered surfaces unmeasured
     not_measured: list[NotMeasured] = Field(default_factory=list)
+    network: dict[str, Any] = Field(default_factory=dict)    # {policy, blocked: {host: count}} when local_only
     initial_state: dict[str, OracleReading] = Field(default_factory=dict)
     steps: list[StepRecord] = Field(default_factory=list)
 

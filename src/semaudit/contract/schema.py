@@ -413,6 +413,8 @@ class App(Strict):
     releases: list[str] = Field(default_factory=list)
     hooks: Hooks
     launch: Launch | None = None         # how the capture runner starts the app; absent = already running
+    network: Literal["open", "local_only"] = "open"   # local_only: the capture browser may reach only the app
+                                         # under audit (loopback hosts); every other request is blocked and recorded
     adapter: str | None = None           # scenario-verb adapter: a .py path relative to the contract, or a dotted
                                          # module path; it must define a class `Adapter` (see semaudit.adapters)
 

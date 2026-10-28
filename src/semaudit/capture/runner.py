@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Any
 
 import httpx
+from urllib.parse import urlsplit
 
 from ..adapters.base import Session, StepResult, load_adapter
 from ..adapters.hooks import HookClient, HookError, OracleClient
@@ -161,9 +162,15 @@ class Runner:
             if d is None:
                 ep.not_measured.append(NotMeasured(surface=s.id, reason="sink location unknown (no app.launch / sink_root)"))
 
+        local_only = contract.app.network == "local_only"
         context = self._browser_().new_context(viewport=VIEWPORT, device_scale_factor=1, locale="en-US",
                                                timezone_id="UTC", reduced_motion="reduce", color_scheme="light",
-                                               accept_downloads=True, base_url=app.base_url)
+                                               accept_downloads=True, base_url=app.base_url,
+                                               # a service worker's own fetches would bypass the block below
+                                               service_workers="block" if local_only else "allow")
+        if local_only:
+            ep.network = {"policy": "local_only", "blocked": {}}
+            context.route("**/*", lambda route: _local_only(route, ep.network["blocked"]))
         page = context.new_page()
         page.set_default_timeout(self.step_timeout_ms)
         sess = Session(release, app.base_url, persona, scenario, page, http, self.seed, persona_resp, persona_ctx)
@@ -378,6 +385,20 @@ class Runner:
                 cap.elements = [sinks.sink_element(s.kind, doc, path.stem)]
                 out.append(cap)
         return out
+
+
+LOOPBACK = {"127.0.0.1", "localhost", "::1", "[::1]"}
+
+
+def _local_only(route, blocked: dict) -> None:
+    """Let the browser reach only loopback hosts (the app under audit); abort and count everything else."""
+    url = urlsplit(route.request.url)
+    if url.scheme in ("data", "blob", "about") or (url.hostname or "") in LOOPBACK:
+        route.continue_()
+        return
+    host = url.hostname or url.scheme
+    blocked[host] = blocked.get(host, 0) + 1
+    route.abort("blockedbyclient")
 
 
 def capture_release(contract_dir: Path, release: str, personas: list[str] | None = None, *,
