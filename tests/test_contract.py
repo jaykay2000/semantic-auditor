@@ -192,3 +192,11 @@ def test_every_approval_item_shows_exactly_the_content_its_hash_pins():
         block = block[:block.index("</details>")]
         assert i.digest in block, i.key
         assert yaml.safe_dump(i.content, sort_keys=False, allow_unicode=True, width=100) in block, i.key
+
+
+def test_a_list_context_field_takes_a_list_of_plain_values_only():
+    from types import SimpleNamespace
+    from semaudit.contract.validate import _type_problem
+    f = SimpleNamespace(type="list", values=[])
+    assert _type_problem(f, ["a", "b"], None) is None and _type_problem(f, [], None) is None
+    assert _type_problem(f, "a", None) and _type_problem(f, [{"x": 1}], None)

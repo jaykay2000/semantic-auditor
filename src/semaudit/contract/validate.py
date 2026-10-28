@@ -162,6 +162,8 @@ def _type_problem(f, v, day0) -> str | None:
         return f"expected a number, got {v!r}"
     elif f.type == "str" and not isinstance(v, str):
         return f"expected text, got {v!r}"
+    elif f.type == "list" and not (isinstance(v, list) and all(isinstance(x, (str, int, float, bool)) for x in v)):
+        return f"expected a list of plain values, got {v!r}"
     elif f.type == "enum" and v not in f.values:
         return f"{v!r} is not one of {f.values}"
     return None

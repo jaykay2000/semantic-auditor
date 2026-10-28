@@ -251,7 +251,7 @@ class ContextField(Strict):
     scenario's day 0. `show` renders it in the Release Story header: a format string with `{v}` (and, for
     times, `{in}`: e.g. '41 days away'), or a map value -> text with '*' as the fallback."""
     id: str
-    type: Literal["time", "bool", "int", "float", "str", "enum"]
+    type: Literal["time", "bool", "int", "float", "str", "enum", "list"]   # list: of plain values (e.g. picks)
     values: list[str] = Field(default_factory=list)          # enum members
     required: bool = False
     default: Any = None
