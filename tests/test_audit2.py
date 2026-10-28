@@ -214,3 +214,13 @@ def test_shared_readings_extract_identical_text_once_for_both_releases(monkeypat
     import inspect
     src = inspect.getsource(pl.evaluate_release)
     assert "if readings is not None:" in src and "readings.update(ext)" in src
+
+
+# AUD2-06 (harness): a truth known only as a range
+def test_a_claim_is_checked_against_a_range_truth():
+    room = {"at_least": 23750, "at_most": 35750}
+    assert compare({"value": 12500}, room) == MISMATCH
+    assert compare({"value": 30000}, room) == MATCH and compare({"value": 23750}, room) == MATCH
+    assert compare({"value": 40000}, room) == MISMATCH
+    assert compare({"value": 23700, "precision": 100}, room) == MATCH          # shown to the hundred
+    assert compare({"value": None}, room) == "unreadable"
