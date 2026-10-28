@@ -61,3 +61,47 @@ def test_the_verifier_re_derives_the_disagreement_from_the_cited_messages():
 
 def test_other_facts_are_ignored():
     assert run(msg("page", "report", 24500, 0), msg("export", "export", 7500, 1, fact="other")) == set()
+
+
+# ---- same state comes from the contract's state model (captured stories carry no explicit effects)
+from semaudit.contract.schema import StateVar  # noqa: E402
+
+MODEL = SimpleNamespace(state=[StateVar(id="account", initial="guest", set_by={"sign_up": "signed_in"}),
+                               StateVar(id="plan", kind="step_param", param="hold", default="released")])
+
+
+def act(i, minutes, action, **params):
+    return Event(id=i, at=T0 + timedelta(minutes=minutes), kind="user_action", action=action, params=params)
+
+
+def run_m(*events):
+    return {(x.subject, x.status) for x in
+            eval_agree_across_surfaces(RULE, Story(id="s", release="r", persona="p", events=list(events)), MODEL)}
+
+
+def test_a_sign_up_between_two_claims_separates_them_without_explicit_effects():
+    assert run_m(act("a1", 0, "open"), msg("page", "report", 24500, 0), act("a2", 1, "sign_up"),
+                 msg("export", "export", 32500, 1)) == set()
+
+
+def test_the_same_state_on_both_sides_still_compares_them():
+    assert run_m(act("a1", 0, "sign_up"), msg("page", "report", 24500, 0), act("a2", 1, "copy"),
+                 msg("export", "export", 32500, 1)) == {("page", "violated"), ("export", "violated")}
+
+
+def test_a_step_param_state_held_vs_released_separates_them():
+    held = [act("a1", 0, "open", hold="held"), msg("page", "report", 24500, 0)]
+    assert run_m(*held, act("a2", 1, "copy", hold="released"), msg("export", "export", 32500, 1)) == set()
+    assert run_m(*held, act("a2", 1, "copy", hold="held"), msg("export", "export", 32500, 1)) == \
+        {("page", "violated"), ("export", "violated")}
+
+
+def test_the_verifier_refuses_a_disagreement_across_states():
+    from semaudit.relate.rules import Entry
+    from semaudit.verify.steps import _step_agreement
+    events = [act("a1", 0, "open"), msg("page", "report", 24500, 0), act("a2", 1, "sign_up"),
+              msg("export", "export", 32500, 1)]
+    story = Story(id="s", release="r", persona="p", events=events)
+    occ = SimpleNamespace(persona="p", entry=Entry("C1", "page", "violated", meta={"events": ["page", "export"]}))
+    assert _step_agreement(SimpleNamespace(occurrences=[occ]), {"p": story}, {"annual_limit"},
+                           MODEL.state)["result"] == "fail"

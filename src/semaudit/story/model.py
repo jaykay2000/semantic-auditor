@@ -46,6 +46,7 @@ class Event(BaseModel):
     copy_key: str | None = None
     text: str | None = None
     action: str | None = None           # user actions: the scenario verbs
+    params: dict[str, Any] = Field(default_factory=dict)    # user actions: the scenario step's params
     effects: dict[str, Any] = Field(default_factory=dict)   # state changes caused by a user action
     extraction: Extraction | None = None
     evidence: Evidence | None = None    # None only for hand-authored stories; captured stories always carry it
@@ -100,6 +101,8 @@ class Story(BaseModel):
                     if a.action in var.set_by:
                         value = var.set_by[a.action]
                 state[var.id] = value
+            elif var.kind == "step_param":
+                state[var.id] = acts[-1].params.get(var.param, var.default) if acts else var.default
             else:
                 opened = next((a.at for a in acts if a.action == var.opens_on), None)
                 hours = self.context.get(var.hours_from_context) if var.hours_from_context else None

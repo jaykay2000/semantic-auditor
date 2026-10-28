@@ -250,7 +250,7 @@ def step_oracle(issue: Issue, stories: dict[str, Story], contract: Contract) -> 
     check = contract.rule(issue.rule).check
     facts = set(check.get("claims", []))
     if check.get("must") == "agree_across_surfaces":
-        return _step_agreement(issue, stories, facts)
+        return _step_agreement(issue, stories, facts, contract.state)
     gaps = []
     for o in issue.occurrences:
         story = stories[o.persona]
@@ -263,17 +263,20 @@ def step_oracle(issue: Issue, stories: dict[str, Story], contract: Contract) -> 
     return {"result": "fail" if gaps else "pass", "detail": gaps or "claims compared with oracle readings"}
 
 
-def _step_agreement(issue: Issue, stories: dict[str, Story], facts: set[str]) -> dict:
+def _step_agreement(issue: Issue, stories: dict[str, Story], facts: set[str], model: list | None = None) -> dict:
     """Agreement issues have no oracle: re-derive the disagreement from the cited messages themselves, by the
-    one comparison. Passes only if, for every occurrence, two cited messages on different surfaces state
-    readable, different values of the same fact."""
-    from semaudit.relate.claims import MISMATCH, compare, stated
+    one comparison. Passes only if, for every occurrence, two cited messages on different surfaces, shown in the
+    same state, state readable, different values of the same fact."""
+    from semaudit.relate.claims import MISMATCH, compare, precision, stated
+    from semaudit.relate.rules import same_state
     per = {}
     for o in issue.occurrences:
-        cl = [(e, c) for e in cited_events(o.entry, stories[o.persona]) if e.extraction
+        story = stories[o.persona]
+        cl = [(e, c) for e in cited_events(o.entry, story) if e.extraction
               for c in e.extraction.claims if c["type"] in facts]
         per[o.persona] = any(a.surface != b.surface and ca["type"] == cb["type"] and stated(cb) is not None
-                             and compare(ca, stated(cb)) == MISMATCH for a, ca in cl for b, cb in cl)
+                             and same_state(story, model or [], a, b)
+                             and compare(ca, stated(cb), precision(cb)) == MISMATCH for a, ca in cl for b, cb in cl)
     ok = all(per.values())
     return {"result": "pass" if ok else "fail",
             "detail": "cited messages on different surfaces state different values" if ok else

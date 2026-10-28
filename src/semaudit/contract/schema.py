@@ -207,19 +207,26 @@ class StateVar(Strict):
     plain:  value = initial, replaced by set_by[action] when that action happens.
     window: True while t <= (first time `opens_on` happened) + hours (or the persona context's
             `hours_from_context` field, when the persona sets it).
+    step_param: the value of scenario-step param `param` on the latest step at or before t (`default` when that
+            step does not set it). It describes how the harness held the app during that step, not a user action.
     """
     id: str
-    kind: Literal["plain", "window"] = "plain"
+    kind: Literal["plain", "window", "step_param"] = "plain"
     initial: Any = None
     set_by: dict[str, Any] = Field(default_factory=dict)
     opens_on: str | None = None
     hours: float | None = None
     hours_from_context: str | None = None
+    param: str | None = None
+    values: list[Any] = Field(default_factory=list)
+    default: Any = None
 
     @model_validator(mode="after")
     def _shape(self):
         if self.kind == "window" and not self.opens_on:
             raise ValueError(f"window state {self.id} needs opens_on")
+        if self.kind == "step_param" and not self.param:
+            raise ValueError(f"step_param state {self.id} needs param")
         return self
 
 

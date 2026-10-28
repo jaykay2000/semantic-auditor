@@ -65,7 +65,8 @@ def story_from_episode(ep: Episode, contract: Contract) -> Story:
     events: list[Event] = []
     for st in ep.steps:
         if st.status == "done":
-            events.append(Event(id=f"a{st.seq:02d}_{st.do}", at=st.at, kind="user_action", action=st.do))
+            events.append(Event(id=f"a{st.seq:02d}_{st.do}", at=st.at, kind="user_action", action=st.do,
+                                params=dict(st.params)))
 
     seen = Counter()
     for m in ep.messages():
