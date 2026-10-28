@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from semaudit.contract.schema import Contract
-from semaudit.extract.messages import extract_unique
+from semaudit.extract.messages import extract_unique, observed_temporal
 from semaudit.models.router import Router
 from semaudit.relate.interpret import model_interpreter
 from semaudit.relate.rules import Entry, evaluate
@@ -61,7 +61,8 @@ def evaluate_release(run_dir: Path, release: str, contract: Contract, router: Ro
                 not_measured.setdefault(pid, []).append(f"no {release} episode for scenario {sc.id}")
     stories = {p: story_from_episode(ep, contract) for p, ep in episodes.items() if p not in not_measured}
     msgs = [{"feature": e.feature, "channel": e.channel, "text": e.text} for s in stories.values() for e in s.messages()]
-    ext = extract_unique(msgs, contract, router, fresh=fresh) if msgs else {}
+    ext = extract_unique(msgs, contract, router, fresh=fresh,
+                         observed=observed_temporal(stories.values())) if msgs else {}
     results = {}
     for persona, s in stories.items():
         for e in s.messages():

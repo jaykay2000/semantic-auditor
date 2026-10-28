@@ -97,3 +97,28 @@ def test_a_datetime_fact_gets_a_when_field_and_instructions():
     item = _claim_item(c)
     assert "when" in item["required"] and item["properties"]["value"]["type"] == ["number", "null"]
     assert "ISO 8601" in _prompt(c)
+
+
+def test_a_measured_datetime_makes_a_fact_temporal_without_the_contract_saying_so():
+    """The sealed contracts never declared unit: datetime. The measurement decides, not the authoring."""
+    from semaudit.extract.messages import observed_temporal
+    s = _story([]).model_copy(update={"truth": {}, "snapshots": [
+        {"at": "2026-11-01T09:00:00+00:00", "truth": {"departs_at@f": TRUTH, "units_left": 2}}]})
+    assert observed_temporal([s]) == {"departs_at"}
+    c = load_contract(NORTHBOUND)
+    f = c.facts[0].model_copy(update={"id": "departs_at", "unit": "local time", "sources": []})
+    c = c.model_copy(update={"facts": [*c.facts, f]})
+    assert set(_claim_item(c)["required"]) == {"type", "value", "unit"}            # undeclared, unmeasured
+    item = extraction_schema(c, {"departs_at"})["properties"]["messages"]["items"]["properties"]["claims"]["items"]
+    assert "when" in item["required"] and "ISO 8601" in _prompt(c, {"departs_at"})
+    assert "when" not in _prompt(c, {"not_a_fact"})                                # only the contract's facts
+
+
+def test_northbound_captures_measure_no_datetime_fact():
+    import pytest
+    from semaudit.bench import judge
+    from semaudit.extract.messages import observed_temporal
+    run = Path(__file__).resolve().parents[1] / "runs/e2e-2"
+    if not (run / "episodes/2.4").exists():
+        pytest.skip("needs runs/e2e-2 (local)")
+    assert observed_temporal(judge.stories_for(run, "2.4", load_contract(NORTHBOUND)).values()) == set()
