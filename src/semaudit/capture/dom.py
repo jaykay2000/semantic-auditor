@@ -169,17 +169,28 @@ BLOCKS_JS = r"""
     if (c && bg && own.textShadow === 'none' && Math.abs(c.r - bg.r) + Math.abs(c.g - bg.g) + Math.abs(c.b - bg.b) < 6)
       return 'same_colour';
     window.scrollTo(0, Math.max(0, b.top + window.scrollY - window.innerHeight / 2));
-    const bb = el.getBoundingClientRect();
-    const x = bb.left + Math.min(bb.width / 2, 8), y = bb.top + bb.height / 2;
-    if (x < 0 || y < 0 || x >= window.innerWidth || y >= window.innerHeight) return null;
-    for (const top of document.elementsFromPoint(x, y)) {
-      if (top === el || el.contains(top) || top.contains(el)) break;
-      const ts = getComputedStyle(top);
-      if (blurPx(ts.backdropFilter || ts.webkitBackdropFilter) >= 1.5) return 'covered';
-      const tb = rgba(ts.backgroundColor);
-      if ((tb && tb.a > 0.95) || ts.backgroundImage !== 'none') return 'covered';
+    // sample five points across each line box (not one near the left edge): text is unreadable when two or
+    // more of every five are under an opaque or frosted layer (AUD2-08)
+    const coveredAt = (x, y) => {
+      if (x < 0 || y < 0 || x >= window.innerWidth || y >= window.innerHeight) return null;
+      for (const top of document.elementsFromPoint(x, y)) {
+        if (top === el || el.contains(top) || top.contains(el)) return false;
+        const ts = getComputedStyle(top);
+        if (blurPx(ts.backdropFilter || ts.webkitBackdropFilter) >= 1.5) return true;
+        const tb = rgba(ts.backgroundColor);
+        if ((tb && tb.a > 0.95) || ts.backgroundImage !== 'none') return true;
+      }
+      return false;
+    };
+    let hit = 0, seen = 0;
+    for (const r of Array.from(el.getClientRects()).filter(r => r.width > 0 && r.height > 0)) {
+      for (const f of [0.1, 0.3, 0.5, 0.7, 0.9]) {
+        const v = coveredAt(r.left + r.width * f, r.top + r.height / 2);
+        if (v === null) continue;
+        seen++; if (v) hit++;
+      }
     }
-    return null;
+    return seen && hit / seen >= 0.4 ? 'covered' : null;
   };
   const out = [];
   const visit = (el) => {           // returns true if el's subtree has a block-level element with text

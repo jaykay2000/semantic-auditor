@@ -95,8 +95,9 @@ def signature(entry: Entry, events: list[Event]) -> tuple:
     if entry.meta.get("fact") and len(events) > 1:
         # a disagreement is identified by what disagrees with what: the fact and the other messages. Otherwise a
         # different disagreement on the same block in head would read as this one still being there
-        others = ",".join(sorted({x.copy_key or x.text or "" for x in events[1:]}))
-        return (entry.rule, e.feature or "", f"{e.copy_key or e.text or ''}|{entry.meta['fact']}|{others}", failing)
+        # unordered: A-vs-B and B-vs-A are one disagreement, whichever message the entry was raised on
+        members = ",".join(sorted({x.copy_key or x.text or "" for x in events}))
+        return (entry.rule, entry.meta["fact"], members, failing)
     return (entry.rule, e.feature or "", e.copy_key or e.text or "", failing)
 
 
@@ -231,8 +232,11 @@ def build_issues(release: str, results: dict[str, tuple[Story, list[Entry]]], co
             primary, also = es[0], es[1:]
             evs = cited_events(primary, story)
             sig = signature(primary, evs)
-            groups.setdefault(sig, []).append(Occurrence(persona, story.id, [e.id for e in evs], primary,
-                                                         timing_of(evs, story, contract), also))
+            group = groups.setdefault(sig, [])
+            if any(o.persona == persona and set(o.events) == {e.id for e in evs} for o in group):
+                continue                     # the same disagreement, raised from its other side
+            group.append(Occurrence(persona, story.id, [e.id for e in evs], primary,
+                                    timing_of(evs, story, contract), also))
     issues = []
     for sig, occ in groups.items():
         rule = contract.rule(sig[0])

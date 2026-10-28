@@ -52,15 +52,19 @@ def precision(claim: dict) -> float:
     return float(p) if isinstance(p, (int, float)) and not isinstance(p, bool) and p > 0 else 0.0
 
 
-def checkable(claim: dict, fact=None) -> bool:
+def checkable(claim: dict, fact=None, roles_on: bool = False) -> bool:
     """A claim the fact's true value can check: one whose role is a role the fact's truth describes (by default
     as_is, the figure as it is now). A target, what-if or change is not the user's current figure and is never
     compared with the oracle's; for a fact that IS a limit, a claim stating the limit is. Without roles every
-    claim is checkable, as before."""
-    return claim.get("role") in (None, *(fact.truth_roles if fact is not None else ("as_is",)))
+    claim is checkable, as before. With roles on, a claim whose role was not read is not checked (it could be a
+    target or a what-if)."""
+    role = claim.get("role")
+    if role is None:
+        return not roles_on
+    return role in (fact.truth_roles if fact is not None else ("as_is",))
 
 
-ROLE_GROUP = {"as_is": "as_is", "proposed": "level", "limit": "level", "change": "change"}
+ROLE_GROUP = {"as_is": "as_is", "proposed": "proposed", "limit": "limit", "change": "change"}
 
 
 PER_YEAR = {"month": 12, "year": 1}
@@ -76,11 +80,13 @@ def in_period(claim: dict, fact) -> dict:
     return {**claim, "value": claim["value"] * k, "precision": precision(claim) * k, "per": period}
 
 
-def comparable(fact, a: dict, b: dict) -> bool:
-    """Two claims can disagree only if they are the same kind of figure about the same quantity (key). A target
-    and the cap it is set at are both the level to reach ("ramp toward $X" / "the max of $X"), so proposed and
-    limit compare with each other; the current figure and the size of a change each compare only with their own."""
+def comparable(fact, a: dict, b: dict, roles_on: bool = False) -> bool:
+    """Two claims can disagree only if they are the same kind of figure (role) about the same quantity (key). A
+    target and a cap are different kinds: "aim for $20,000" does not contradict "the limit is $24,500". With roles
+    on, a claim whose role was not read is never compared."""
     ra, rb = a.get("role"), b.get("role")
+    if roles_on and (ra is None or rb is None):
+        return False
     if fact is not None and not fact.key and not (checkable(a, fact) and checkable(b, fact)):
         return False          # a target or what-if of a plain fact ("-> age 56 if you save more") names no scenario
                               # a second claim could share; only the roles its truth describes are comparable
@@ -115,13 +121,13 @@ def compare(claim: dict, truth: Any, truth_precision: float = 0.0) -> str:
     """`truth_precision` is the displayed precision of the other side when the truth is itself a shown claim: two
     roundings agree when they are within half the coarser step of each other. A word claim (`word`: an action
     id, yes/no) matches a word truth exactly, ignoring case; an unknown word is unreadable."""
-    if "word" in claim and claim.get("value") is None and (isinstance(truth, str) or truth is None):
+    if is_temporal(truth):
+        return _compare_time(claim.get("when"), _as_datetime(truth))
+    if claim.get("word") is not None or (claim.get("value") is None and isinstance(truth, str)):
         w = word(claim)
         if w is None or not isinstance(truth, str) or truth.strip().lower() in UNWORDED:
             return UNREADABLE
         return MATCH if w == truth.strip().lower() else MISMATCH
-    if is_temporal(truth):
-        return _compare_time(claim.get("when"), _as_datetime(truth))
     v = claim.get("value")
     if not isinstance(v, (int, float)) or isinstance(v, bool) or not isinstance(truth, (int, float)):
         return MATCH if v == truth and v is not None else (UNREADABLE if v is None else MISMATCH)

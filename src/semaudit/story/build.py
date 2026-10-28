@@ -63,7 +63,9 @@ def around(cap, index: int) -> str | None:
     el = cap.elements[index]
     if cap.kind != "web" or len((el.text or "").split()) > SHORT_WORDS:
         return None
-    readable = lambda e: bool((e.text or "").strip()) and not e.obscured  # noqa: E731
+    sec = lambda e: (getattr(e, "attribution", None) or {}).get("section")  # noqa: E731
+    readable = lambda e: (bool((e.text or "").strip()) and not e.obscured  # noqa: E731
+                          and sec(e) == sec(el))                                  # never across a section boundary
     before = next((e.text for e in reversed(cap.elements[:index]) if readable(e)), "")
     after = next((e.text for e in cap.elements[index + 1:] if readable(e)), "")
     clip = lambda t: " ".join(t.split())[:80]  # noqa: E731

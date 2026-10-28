@@ -251,7 +251,8 @@ def step_oracle(issue: Issue, stories: dict[str, Story], contract: Contract) -> 
     check = contract.rule(issue.rule).check
     facts = set(check.get("claims", []))
     if check.get("must") == "agree_across_surfaces":
-        return _step_agreement(issue, stories, facts, contract.state, {f.id: f for f in contract.facts})
+        return _step_agreement(issue, stories, facts, contract.state, {f.id: f for f in contract.facts},
+                               roles_on=bool(getattr(contract.app, "claim_roles", False)))
     if check.get("must") == "agree_across_states":
         return _step_states(issue, stories, contract)
     gaps = []
@@ -259,7 +260,8 @@ def step_oracle(issue: Issue, stories: dict[str, Story], contract: Contract) -> 
         story = stories[o.persona]
         for e in cited_events(o.entry, story):
             for c in (e.extraction.claims if e.extraction else []):
-                if c["type"] not in facts or not checkable(c, next((f for f in contract.facts if f.id == c["type"]), None)):
+                if c["type"] not in facts or not checkable(c, next((f for f in contract.facts if f.id == c["type"]), None),
+                                                           bool(getattr(contract.app, "claim_roles", False))):
                     continue
                 if story.truth_at(c["type"], e.at, e.feature) is None and story.final_truth(c["type"], e.feature) is None:
                     gaps.append(f"{o.persona}/{e.id}: no oracle value for {c['type']}")
@@ -267,7 +269,7 @@ def step_oracle(issue: Issue, stories: dict[str, Story], contract: Contract) -> 
 
 
 def _step_agreement(issue: Issue, stories: dict[str, Story], facts: set[str], model: list | None = None,
-                    defs: dict | None = None) -> dict:
+                    defs: dict | None = None, roles_on: bool = False) -> dict:
     """Agreement issues have no oracle: re-derive the disagreement from the cited messages themselves, by the
     one comparison. Passes only if, for every occurrence, two cited messages on different surfaces, shown in the
     same state, state readable, different values of the same fact."""
@@ -280,7 +282,7 @@ def _step_agreement(issue: Issue, stories: dict[str, Story], facts: set[str], mo
               for c in e.extraction.claims if c["type"] in facts]
         per[o.persona] = any(a.surface != b.surface and ca["type"] == cb["type"] and stated(cb) is not None
                              and same_state(story, model or [], a, b, ca["type"])
-                             and comparable((defs or {}).get(ca["type"]), ca, cb)
+                             and comparable((defs or {}).get(ca["type"]), ca, cb, roles_on)
                              and compare(ca, stated(cb), precision(cb)) == MISMATCH for a, ca in cl for b, cb in cl)
     ok = all(per.values())
     return {"result": "pass" if ok else "fail",

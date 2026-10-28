@@ -66,11 +66,12 @@ def _slot(e: Event) -> tuple:
 
 
 def _template(e: Event) -> tuple | None:
-    """The repeat group of a contract-mapped message: its key without the `#n` occurrence index."""
+    """The repeat group of a contract-mapped message: its key without the `#n` occurrence index, within one visit
+    (the scenario step it was captured at), so a copy on a later visit never pairs with an earlier one."""
     method = (e.evidence.attribution or {}).get("method") if e.evidence else None
     if e.kind != "message" or method != "contract_map" or not e.copy_key:
         return None
-    return (e.feature, e.surface, e.copy_key.split("#")[0])
+    return (e.feature, e.surface, e.evidence.step, e.copy_key.split("#")[0])
 
 
 def _repeated(*stories: Story) -> set[tuple]:

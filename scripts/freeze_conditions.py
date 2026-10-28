@@ -35,8 +35,7 @@ def manifest_id(rows) -> str:
 def changed(manifest: Path) -> list[str]:
     """Files that differ from the manifest (edited, added or removed), plus frozen files with uncommitted edits
     or untracked: a run is reproducible only from committed code. Empty means the conditions hold."""
-    want = [tuple(l.strip("| ").replace("`", "").split(" | ")) for l in manifest.read_text().splitlines()
-            if l.startswith("| `")]
+    want = rows_of(manifest)
     rows = table()
     a_, b_ = dict(want), dict(rows)
     out = [f"CHANGED: {p}" for p in sorted(set(a_) | set(b_)) if a_.get(p) != b_.get(p)]
@@ -50,9 +49,18 @@ def code() -> str:
     return subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True).stdout.strip()
 
 
+def rows_of(manifest: Path) -> list[tuple[str, str]]:
+    return [tuple(l.strip("| ").replace("`", "").split(" | ")) for l in manifest.read_text().splitlines()
+            if l.startswith("| `")]
+
+
 def manifest_of(manifest: Path) -> str:
-    """The manifest id the file records on its first line."""
-    return manifest.read_text().split("manifest ", 1)[1].split()[0]
+    """The manifest id, recomputed from the file's own rows; a header that does not match them is refused."""
+    stated = manifest.read_text().split("manifest ", 1)[1].split()[0]
+    real = manifest_id(rows_of(manifest))
+    if stated != real:
+        raise ValueError(f"{manifest.name}: header id {stated[:12]} does not match its rows ({real[:12]})")
+    return real
 
 
 def main() -> int:

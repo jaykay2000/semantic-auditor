@@ -64,7 +64,13 @@ def main() -> None:
     bad = freeze.changed(a.frozen)
     if bad:                                    # nothing is spent on a run whose conditions are not the frozen ones
         sys.exit("refusing to run: the code does not match " + a.frozen.name + "\n" + "\n".join(bad))
-    frozen = {"manifest": freeze.manifest_of(a.frozen), "file": a.frozen.name, "code": freeze.code()}
+    try:
+        manifest = freeze.manifest_of(a.frozen)
+    except ValueError as e:
+        sys.exit(f"refusing to run: {e}")
+    official = a.frozen.resolve() == (ROOT / "bench/conditions/FROZEN-POSTFIX.md").resolve()
+    frozen = {"manifest": manifest, "file": a.frozen.name, "code": freeze.code(),
+              "official": official}            # a caller-supplied manifest is recorded as NOT the predeclared one
     cond = tomllib.loads((ROOT / "bench/conditions/conditions.toml").read_text())
     effort, samples = cond["B-judge-N"].get("effort", {}), cond["B-judge-N"].get("samples", 1)
     rels = a.releases.split(",")

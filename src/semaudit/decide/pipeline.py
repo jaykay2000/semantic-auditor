@@ -43,10 +43,12 @@ def measurement_problems(ep: Episode) -> list[str]:
 
 def evaluate_release(run_dir: Path, release: str, contract: Contract, router: Router, *,
                      fresh: bool = False, seed: str = "0", personas: set[str] | None = None,
-                     generator=None) -> ReleaseEval:
+                     generator=None, readings: dict | None = None) -> ReleaseEval:
     """`personas`: the personas this run was meant to capture (default: every persona the contract schedules).
     `generator`: replaces the code candidate generators and rule evaluation with a function story -> entries
-    (the no-generators ablation); extraction still runs, so verification sees the same readings."""
+    (the no-generators ablation); extraction still runs, so verification sees the same readings.
+    `readings`: a message-key -> extraction map shared with the other release's evaluation; only messages not
+    in it are extracted, and the new answers are added to it."""
     episodes = {}
     for p in sorted((run_dir / "episodes" / release).glob("*.json")):
         ep = Episode.read(p)
@@ -61,8 +63,13 @@ def evaluate_release(run_dir: Path, release: str, contract: Contract, router: Ro
                 not_measured.setdefault(pid, []).append(f"no {release} episode for scenario {sc.id}")
     stories = {p: story_from_episode(ep, contract) for p, ep in episodes.items() if p not in not_measured}
     msgs = [e for s in stories.values() for e in s.messages()]
+    if readings is not None:
+        msgs = [m for m in msgs if message_key(m) not in readings]
     ext = extract_unique(msgs, contract, router, fresh=fresh,
                          observed=observed_temporal(stories.values())) if msgs else {}
+    if readings is not None:
+        readings.update(ext)
+        ext = readings
     results = {}
     for persona, s in stories.items():
         for e in s.messages():

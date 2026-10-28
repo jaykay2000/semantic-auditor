@@ -13,6 +13,7 @@ from itertools import combinations
 from typing import Any, Callable
 
 from semaudit.contract.schema import Contract, Rule
+from semaudit.extract.messages import contract_roles
 from semaudit.relate.claims import MISMATCH, UNREADABLE, checkable, comparable, compare, in_period, precision, shown, stated
 from semaudit.story.model import Event, Story
 
@@ -102,7 +103,7 @@ def eval_match_oracle(rule: Rule, story: Story, contract: Contract | None = None
     out = []
     for e in story.messages():
         for c in e.extraction.claims:
-            if c["type"] not in rule.check["claims"] or not checkable(c, defs.get(c["type"])):
+            if c["type"] not in rule.check["claims"] or not checkable(c, defs.get(c["type"]), contract_roles(contract)):
                 continue
             truth = story.truth_at(c["type"], e.at, e.feature)
             if truth is None:
@@ -110,6 +111,13 @@ def eval_match_oracle(rule: Rule, story: Story, contract: Contract | None = None
             out.append(Entry(rule.id, e.id, _status(compare(in_period(c, defs.get(c["type"])), truth)),
                              note=f"claim {shown(c)} vs true {c['type']} {truth}"))
     return out
+
+
+def truth_steady(story: Story, fact: str, a, b) -> bool:
+    """The fact's true value is the same at both moments: known and equal at both, or known at neither (a fact
+    no oracle reads). Known at only one moment is not evidence that it held still, so the pair is not compared."""
+    ta, tb = story.truth_at(fact, a.at, a.feature), story.truth_at(fact, b.at, b.feature)
+    return (ta is None) == (tb is None) and ta == tb
 
 
 def same_state(story: Story, model: list, a, b, fact: str | None = None) -> bool:
@@ -120,10 +128,8 @@ def same_state(story: Story, model: list, a, b, fact: str | None = None) -> bool
     lo, hi = sorted((a.at, b.at))
     if any(lo < x.at <= hi for x in story.events if x.kind == "user_action" and x.effects):
         return False
-    if fact is not None:
-        ta, tb = story.truth_at(fact, a.at, a.feature), story.truth_at(fact, b.at, b.feature)
-        if ta is not None and tb is not None and ta != tb:
-            return False
+    if fact is not None and not truth_steady(story, fact, a, b):
+        return False
     return story.state_at(a.at, model, inclusive=True) == story.state_at(b.at, model, inclusive=True)
 
 
@@ -140,15 +146,13 @@ def eval_agree_across_surfaces(rule: Rule, story: Story, contract: Contract | No
     shown_at = [(e, c) for e in story.messages() if e.extraction for c in e.extraction.claims if c["type"] in facts]
     model = contract.state if contract is not None else []
     defs = {f.id: f for f in getattr(contract, "facts", [])}
+    roles_on = contract_roles(contract)
     same = lambda a, b, fact: same_state(story, model, a, b, fact)  # noqa: E731
 
-    out, seen = [], set()
-    for e, c in shown_at:
-        if (e.id, c["type"]) in seen:
-            continue
-        seen.add((e.id, c["type"]))
+    out = []
+    for e, c in shown_at:                                 # every claim, including a second one of the same fact
         others = [(o, oc) for o, oc in shown_at if o.surface != e.surface and oc["type"] == c["type"] and same(e, o, c["type"])
-                  and comparable(defs.get(c["type"]), c, oc) and stated(oc) is not None]
+                  and comparable(defs.get(c["type"]), c, oc, roles_on) and stated(oc) is not None]
         verdicts = [(o, compare(c, stated(oc), precision(oc))) for o, oc in others]
         if any(v == UNREADABLE for _, v in verdicts) and not any(v == MISMATCH for _, v in verdicts):
             continue                                   # nothing readable to compare it with
@@ -175,19 +179,21 @@ def eval_agree_across_states(rule: Rule, story: Story, contract: Contract | None
     shown_at = [(e, c) for e in story.messages() if e.extraction for c in e.extraction.claims if c["type"] in facts]
     rest = lambda s: {k: v for k, v in s.items() if k != var}  # noqa: E731
 
+    roles_on = contract_roles(contract)
+
     def pair(a, b, fact):
+        if not a.at < b.at:                               # before comes first: never compare backwards
+            return False
         if state[a.id].get(var) != before or state[b.id].get(var) != after or rest(state[a.id]) != rest(state[b.id]):
             return False
-        ta, tb = story.truth_at(fact, a.at, a.feature), story.truth_at(fact, b.at, b.feature)
-        return ta is None or tb is None or ta == tb
+        return truth_steady(story, fact, a, b)
 
-    out, seen = [], set()
+    out = []
     for e, c in shown_at:
-        if (e.id, c["type"]) in seen or stated(c) is None:
+        if stated(c) is None:
             continue
-        seen.add((e.id, c["type"]))
         others = [(o, oc) for o, oc in shown_at if oc["type"] == c["type"] and pair(e, o, c["type"])
-                  and comparable(defs.get(c["type"]), c, oc) and stated(oc) is not None]
+                  and comparable(defs.get(c["type"]), c, oc, roles_on) and stated(oc) is not None]
         if not others:
             continue
         verdicts = [(o, compare(c, stated(oc), precision(oc))) for o, oc in others]

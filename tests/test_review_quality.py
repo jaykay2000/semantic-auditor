@@ -43,13 +43,14 @@ def test_a_target_is_not_compared_with_the_current_figure():
     assert agree(msg("a", "report", 1875, 0, "proposed"), msg("b", "export", 1900, 1, "proposed")) == set()
 
 
-def test_targets_and_limits_compare_when_the_fact_says_they_state_its_truth():
-    lim = SimpleNamespace(facts=[Fact(id="monthly_saved", truth_roles=["limit", "proposed"])], state=[],
+def test_limits_compare_with_limits_and_a_target_never_with_a_cap():
+    lim = SimpleNamespace(facts=[Fact(id="monthly_saved", truth_roles=["limit"])], state=[],
                           app=SimpleNamespace(claim_roles=True))
     story = lambda *e: Story(id="s", release="r", persona="p", events=list(e))  # noqa: E731
     got = lambda *e: {(x.subject, x.status) for x in eval_agree_across_surfaces(RULE, story(*e), lim)}  # noqa: E731
-    assert got(msg("a", "report", 7500, 0, "proposed"), msg("b", "export", 8600, 1, "limit")) == \
-        {("a", "violated"), ("b", "violated")}                              # a target vs the cap it is set at
+    assert got(msg("a", "report", 7500, 0, "limit"), msg("b", "export", 8600, 1, "limit")) == \
+        {("a", "violated"), ("b", "violated")}                              # two caps for one thing disagree
+    assert got(msg("a", "report", 7500, 0, "proposed"), msg("b", "export", 8600, 1, "limit")) == set()   # AUD2-02
     assert got(msg("a", "report", 12500, 0, "change"), msg("b", "export", 35750, 1, "limit")) == set()
 
 

@@ -45,8 +45,9 @@ def run_review(contract_dir: Path, base: str, head: str, *, run_id: str, runs_di
         with Runner(contract_dir, runs_dir=runs_dir, run_id=run_id) as r:
             r.capture(base)
             r.capture(head)
-    b = evaluate_release(run_dir, base, contract, router, fresh=fresh, generator=generator)
-    h = evaluate_release(run_dir, head, contract, router, fresh=fresh, generator=generator)
+    shared = {} if getattr(contract.app, "share_readings", False) else None
+    b = evaluate_release(run_dir, base, contract, router, fresh=fresh, generator=generator, readings=shared)
+    h = evaluate_release(run_dir, head, contract, router, fresh=fresh, generator=generator, readings=shared)
     head_issues = build_issues(head, h.results, contract)
     base_issues = build_issues(base, b.results, contract)
     resolved, unconfirmed = apply_delta(head_issues, base_issues, set(b.results), set(h.results))

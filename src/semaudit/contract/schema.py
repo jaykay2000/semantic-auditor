@@ -441,6 +441,8 @@ class App(Strict):
                                          # under audit (loopback hosts); every other request is blocked and recorded
     adapter: str | None = None           # scenario-verb adapter: a .py path relative to the contract, or a dotted
                                          # module path; it must define a class `Adapter` (see semaudit.adapters)
+    share_readings: bool = False         # base and head share one extraction: identical text in an identical
+                                         # reading context gets one answer, so a delta is never extraction noise
     claim_roles: bool = False            # every claim also says what the figure is (as_is | proposed | change |
                                          # limit); only same-role claims are compared, only as_is ones with an oracle
 

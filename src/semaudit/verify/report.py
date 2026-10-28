@@ -51,8 +51,9 @@ def verify_report(review_path: Path, *, root: Path | None = None) -> list[str]:
     base, head = r["release"]["base"], r["release"]["head"]
     router = Router(root=root or Path.cwd(), offline=True)
     try:
-        b = evaluate_release(run_dir, base, contract, router)
-        h = evaluate_release(run_dir, head, contract, router)
+        shared = {} if getattr(contract.app, "share_readings", False) else None   # exactly as the review did
+        b = evaluate_release(run_dir, base, contract, router, readings=shared)
+        h = evaluate_release(run_dir, head, contract, router, readings=shared)
     except ModelError as e:
         raise CannotVerify(f"cannot re-derive offline: {e}") from e
 

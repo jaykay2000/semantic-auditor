@@ -93,9 +93,12 @@ def json_path(doc: Any, path: str) -> Any:
 
 
 def _redact(text: str, secrets: set[str]) -> str:
-    """Replace every secret in text, longest first (a token that contains another is hidden whole)."""
-    for v in sorted((x for x in secrets if len(x) >= 4), key=len, reverse=True):
-        text = text.replace(v, "[redacted]")
+    """Replace every non-empty secret in text, longest first (a token that contains another is hidden whole). A
+    short one (under 4 characters) is replaced only where it stands as a whole word, so ordinary words survive."""
+    import re
+    for v in sorted((x for x in secrets if x), key=len, reverse=True):
+        text = text.replace(v, "[redacted]") if len(v) >= 4 else \
+            re.sub(rf"(?<![A-Za-z0-9]){re.escape(v)}(?![A-Za-z0-9])", "[redacted]", text)
     return text
 
 

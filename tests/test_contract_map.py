@@ -163,6 +163,8 @@ PAGE2 = """<html><body style="margin:0;background:#fff">
   <p style="position:absolute;left:-9999px">Placed off the page</p>
   <p style="color:#ffffff;background:#ffffff">White on white</p>
   <div style="position:relative"><p>Under an opaque card</p><div style="position:absolute;inset:0;background:#fafafa"></div></div>
+  <div style="position:relative;width:240px"><p style="margin:0">Mostly covered message, all but the first word</p><div style="position:absolute;top:0;bottom:0;left:20px;right:0;background:#fafafa"></div></div>
+  <div style="position:relative;width:240px"><p style="margin:0">Barely touched message with a small badge</p><div style="position:absolute;top:0;bottom:0;right:0;width:20px;background:#fafafa"></div></div>
   <div style="visibility:hidden"><p style="visibility:visible">Visible child of a hidden parent</p></div>
   <div class="chart"><svg width="200" height="40"><text x="0" y="20">Limit 35,750</text></svg></div>
   <div class="wrap">Lead text <span><div>Nested block once</div></span></div>
@@ -203,6 +205,8 @@ def test_clipped_off_page_same_colour_and_covered_text_is_not_readable(blocks2):
     assert find(blocks2, "Placed off").obscured == "clipped"
     assert find(blocks2, "White on white").obscured == "same_colour"
     assert find(blocks2, "Under an opaque").obscured == "covered"
+    assert find(blocks2, "Mostly covered").obscured == "covered"          # AUD2-08: covered away from x=8
+    assert find(blocks2, "Barely touched").obscured is None              # a small overlap leaves it readable
 
 
 def test_a_visible_child_of_a_hidden_parent_is_readable(blocks2):

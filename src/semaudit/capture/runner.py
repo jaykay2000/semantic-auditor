@@ -174,6 +174,8 @@ class Runner:
         if local_only:
             ep.network = {"policy": "local_only", "blocked": {}}
             context.route("**/*", lambda route: _local_only(route, ep.network["blocked"]))
+            # WebSocket handshakes do not pass through route(): they have their own (AUD2-04)
+            context.route_web_socket(lambda url: not _ws_local(url), lambda ws: _local_only_ws(ws, ep.network["blocked"]))
         page = context.new_page()
         page.set_default_timeout(self.step_timeout_ms)
         sess = Session(release, app.base_url, persona, scenario, page, http, self.seed, persona_resp, persona_ctx)
@@ -394,18 +396,41 @@ class Runner:
         return out
 
 
-LOOPBACK = {"127.0.0.1", "localhost", "::1", "[::1]"}
+
+
+def is_loopback(host: str) -> bool:
+    """localhost, or any literal loopback address (127.0.0.0/8, ::1)."""
+    import ipaddress
+    h = (host or "").strip("[]").lower()
+    if h == "localhost" or h.endswith(".localhost"):
+        return True
+    try:
+        return ipaddress.ip_address(h).is_loopback
+    except ValueError:
+        return False
 
 
 def _local_only(route, blocked: dict) -> None:
     """Let the browser reach only loopback hosts (the app under audit); abort and count everything else."""
     url = urlsplit(route.request.url)
-    if url.scheme in ("data", "blob", "about") or (url.hostname or "") in LOOPBACK:
+    if url.scheme in ("data", "blob", "about") or is_loopback(url.hostname or ""):
         route.continue_()
         return
     host = url.hostname or url.scheme
     blocked[host] = blocked.get(host, 0) + 1
     route.abort("blockedbyclient")
+
+
+def _ws_local(url: str) -> bool:
+    return is_loopback(urlsplit(url).hostname or "")
+
+
+def _local_only_ws(ws, blocked: dict) -> None:
+    """The same rule for a WebSocket. Only non-loopback sockets are routed here, and they are held as an
+    unconnected mock: never connected to any server, so nothing leaves the machine; counted like a blocked
+    request. (Closing one from inside the handler deadlocks Playwright's sync API, so it is left open-mocked.)"""
+    host = urlsplit(ws.url).hostname or ""
+    blocked[host] = blocked.get(host, 0) + 1
 
 
 def capture_release(contract_dir: Path, release: str, personas: list[str] | None = None, *,
