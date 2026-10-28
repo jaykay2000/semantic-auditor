@@ -135,3 +135,70 @@ def test_an_oracle_reads_its_most_specific_variant_with_headers_and_root():
     assert r.values == {"score": 71} and r.endpoint == "/api/me/report" and "t0k" not in r.model_dump_json()
     assert seen[-1] == ("/api/me/report", "Bearer t0k")
     assert c.read(o, {}).status == "not_applicable"
+
+
+# ---- the audit's visibility and block matrix (each case reproduced by the external audit, 2026-10-28)
+PAGE2 = """<html><body style="margin:0;background:#fff">
+<section class="s">
+  <p id="ellipsis" style="width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">The maximum is $24,500 per year for you</p>
+  <p id="clamp" style="width:160px;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden">First line words here and then a second line that is cut</p>
+  <div style="height:22px;overflow:hidden"><p style="margin:0">Line inside the box</p><p style="margin:0">Second line clipped away</p></div>
+  <p style="position:absolute;left:-9999px">Placed off the page</p>
+  <p style="color:#ffffff;background:#ffffff">White on white</p>
+  <div style="position:relative"><p>Under an opaque card</p><div style="position:absolute;inset:0;background:#fafafa"></div></div>
+  <div style="visibility:hidden"><p style="visibility:visible">Visible child of a hidden parent</p></div>
+  <div class="chart"><svg width="200" height="40"><text x="0" y="20">Limit 35,750</text></svg></div>
+  <div class="wrap">Lead text <span><div>Nested block once</div></span></div>
+</section></body></html>"""
+
+
+@pytest.fixture(scope="module")
+def blocks2():
+    pw = pytest.importorskip("playwright.sync_api")
+    with pw.sync_playwright() as p:
+        b = p.chromium.launch()
+        page = b.new_page(viewport={"width": 1000, "height": 600})
+        page.set_content(PAGE2)
+        cap = Capture(id="c2", kind="web", surface="report", at="2026-10-28T10:00:00")
+        Runner._section_blocks(cap, page, Surface(id="report", kind="web", locator="css",
+                                                  sections=[{"match": ".s", "feature": "f"}]))
+        b.close()
+    return cap
+
+
+def find(cap, start):
+    hits = [e for e in cap.elements if e.text.startswith(start) or (e.locator.get("full_text") or "").startswith(start)]
+    assert hits, f"no block starting {start!r}: {[e.text for e in cap.elements]}"
+    return hits[0]
+
+
+def test_text_cut_by_an_ellipsis_or_a_line_clamp_keeps_only_the_visible_part(blocks2):
+    e = find(blocks2, "The maximum")
+    assert e.obscured is None and e.locator["truncated"] and "for you" not in e.text and e.text.endswith("…")
+    assert e.locator["full_text"] == "The maximum is $24,500 per year for you"
+    c = find(blocks2, "First line")
+    assert c.locator.get("truncated") and "cut" not in c.text
+
+
+def test_clipped_off_page_same_colour_and_covered_text_is_not_readable(blocks2):
+    assert find(blocks2, "Line inside").obscured is None
+    assert find(blocks2, "Second line clipped").obscured == "clipped"
+    assert find(blocks2, "Placed off").obscured == "clipped"
+    assert find(blocks2, "White on white").obscured == "same_colour"
+    assert find(blocks2, "Under an opaque").obscured == "covered"
+
+
+def test_a_visible_child_of_a_hidden_parent_is_readable(blocks2):
+    assert find(blocks2, "Visible child").obscured is None
+
+
+def test_svg_text_is_read_and_nothing_reads_undefined(blocks2):
+    assert all("undefined" not in e.text for e in blocks2.elements)
+    assert any("Limit 35,750" in e.text and e.obscured is None for e in blocks2.elements)
+
+
+def test_a_block_inside_an_inline_wrapper_is_counted_once_and_blocks_are_in_document_order(blocks2):
+    texts = [e.text for e in blocks2.elements]
+    assert sum("Nested block once" in t for t in texts) == 1 and "Lead text" in texts
+    assert texts.index("Lead text") < texts.index("Nested block once") < len(texts)
+    assert texts.index(find(blocks2, "The maximum").text) == 0

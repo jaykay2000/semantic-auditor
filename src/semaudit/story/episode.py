@@ -57,7 +57,8 @@ class Element(Strict):
     `attribution` is set when the product does not mark the text itself and the contract's surface sections
     assign it: {method: "contract_map", feature, component, key, section}. The key is a text-template signature
     (digits normalized), so the same block with a different number pairs across releases as changed.
-    `obscured` names why the user could not read the text (blur, transparent, hidden, collapsed, covered,
+    `obscured` names why the user could not read the text (blur, transparent, hidden, collapsed, clipped,
+    same_colour, covered,
     visually_hidden):
     it was captured, but it is not a message the user was shown.
     """

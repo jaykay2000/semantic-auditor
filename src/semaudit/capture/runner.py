@@ -318,7 +318,9 @@ class Runner:
             sec = surface.sections[b["section"]]
             attribution = mapped(sec, keys(sec.feature, b["text"]), b["section"])
             cap.elements.append(Element(locator={"kind": "css", "css": b["css"], "span": [0, len(b["text"])],
-                                                 **({"own_text": True} if b["own"] else {})},
+                                                 **({"own_text": True} if b["own"] else {}),
+                                                 **({"truncated": True, "full_text": b["full_text"]}
+                                                    if b.get("truncated") else {})},
                                         text=b["text"], attrs=b["attrs"], bbox=BBox(**b["bbox"]),
                                         attribution=attribution, obscured=b["obscured"]))
         cap.meta["attribution"] = "contract_map"
