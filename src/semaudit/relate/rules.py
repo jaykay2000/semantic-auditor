@@ -13,7 +13,7 @@ from itertools import combinations
 from typing import Any, Callable
 
 from semaudit.contract.schema import Contract, Rule
-from semaudit.relate.claims import MISMATCH, UNREADABLE, compare, shown, stated
+from semaudit.relate.claims import MISMATCH, UNREADABLE, compare, precision, shown, stated
 from semaudit.story.model import Event, Story
 
 
@@ -134,7 +134,7 @@ def eval_agree_across_surfaces(rule: Rule, story: Story) -> list[Entry]:
         seen.add((e.id, c["type"]))
         others = [(o, oc) for o, oc in shown_at if o.surface != e.surface and oc["type"] == c["type"] and same_state(e, o)
                   and stated(oc) is not None]
-        verdicts = [(o, compare(c, stated(oc))) for o, oc in others]
+        verdicts = [(o, compare(c, stated(oc), precision(oc))) for o, oc in others]
         if any(v == UNREADABLE for _, v in verdicts) and not any(v == MISMATCH for _, v in verdicts):
             continue                                   # nothing readable to compare it with
         bad = [o for o, v in verdicts if v == MISMATCH]

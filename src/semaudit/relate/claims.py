@@ -11,6 +11,9 @@ Verdicts:
   unreadable  the claim's value could not be read in the form the truth takes (e.g. a date/time claim with no
               readable time). This is an extraction gap, not a product fault, so it is never a violation.
 
+A claim the message showed rounded ("$1.2M") carries its displayed `precision` (100000) when the contract asks
+for it (a fact with `match: displayed`), and matches any truth that rounds to it: within half that step.
+
 A truth that is a date/time (a datetime, or an ISO 8601 string) is compared with the claim's `when`, at the
 claim's own precision. A date-only claim compares dates. A time with no seconds compares to the minute. A claim
 with no time zone is read as the wall-clock time the truth is expressed in. Anything else is compared as a
@@ -41,13 +44,23 @@ def is_temporal(truth: Any) -> bool:
     return _as_datetime(truth) is not None
 
 
-def compare(claim: dict, truth: Any) -> str:
+def precision(claim: dict) -> float:
+    """The size of the last digit the message showed ('$1.2M' -> 100000), when the extractor recorded it (contracts
+    with a `match: displayed` fact). 0 means exact."""
+    p = claim.get("precision")
+    return float(p) if isinstance(p, (int, float)) and not isinstance(p, bool) and p > 0 else 0.0
+
+
+def compare(claim: dict, truth: Any, truth_precision: float = 0.0) -> str:
+    """`truth_precision` is the displayed precision of the other side when the truth is itself a shown claim: two
+    roundings agree when they are within half the coarser step of each other."""
     if is_temporal(truth):
         return _compare_time(claim.get("when"), _as_datetime(truth))
     v = claim.get("value")
     if not isinstance(v, (int, float)) or isinstance(v, bool) or not isinstance(truth, (int, float)):
         return MATCH if v == truth and v is not None else (UNREADABLE if v is None else MISMATCH)
-    return MATCH if math.isclose(float(v), float(truth), rel_tol=0, abs_tol=1e-9) else MISMATCH
+    tol = max(precision(claim), truth_precision) / 2
+    return MATCH if math.isclose(float(v), float(truth), rel_tol=0, abs_tol=tol + 1e-9) else MISMATCH
 
 
 def _compare_time(when: Any, truth: datetime) -> str:

@@ -62,12 +62,19 @@ def _claim_schema(contract: Contract, observed: set[str] = frozenset()) -> dict:
     answers for such contracts are not disturbed."""
     props = {"type": {"type": "string", "enum": [f.id for f in contract.facts] or ["none"]},
              "value": {"type": "number"}, "unit": {"type": "string"}}
-    if not temporal_facts(contract, observed):
-        return {"type": "object", "additionalProperties": False, "required": ["type", "value", "unit"],
-                "properties": props}
-    props.update(value={"type": ["number", "null"]}, when={"type": ["string", "null"]})
-    return {"type": "object", "additionalProperties": False, "required": ["type", "value", "unit", "when"],
-            "properties": props}
+    required = ["type", "value", "unit"]
+    if temporal_facts(contract, observed):
+        props.update(value={"type": ["number", "null"]}, when={"type": ["string", "null"]})
+        required.append("when")
+    if displayed_facts(contract):
+        props["precision"] = {"type": ["number", "null"]}
+        required.append("precision")
+    return {"type": "object", "additionalProperties": False, "required": required, "properties": props}
+
+
+def displayed_facts(contract: Contract) -> set[str]:
+    """Facts the contract matches at the precision the message shows (`match: displayed`)."""
+    return {f.id for f in contract.facts if f.match == "displayed"}
 
 
 PROMPT = "Classify every message below independently, using the rubric. Return one entry per id.\n"
@@ -79,8 +86,15 @@ DATETIME_PROMPT = ("Claims: a claim that states an amount or count goes in `valu
                    "a relative time (\"tomorrow\", \"in 2 hours\"), set `when` null: it cannot be read on its own.\n")
 
 
+PRECISION_PROMPT = ("Claims: `precision` is the size of the last digit the message shows for the value, so a rounded "
+                    "figure can be checked at the precision it was shown: \"$1.2M\" -> value 1200000, precision 100000; "
+                    "\"$250K\" -> 250000, 1000; \"$1,184,000\" -> 1184000, 1; \"15.6 months\" -> 15.6, 0.1; \"age 52\" -> "
+                    "52, 1; \"22%\" -> 22, 1. Use null when the claim has no value.\n")
+
+
 def _prompt(contract: Contract, observed: set[str] = frozenset()) -> str:
-    return PROMPT + (DATETIME_PROMPT if temporal_facts(contract, observed) else "")
+    return (PROMPT + (DATETIME_PROMPT if temporal_facts(contract, observed) else "")
+            + (PRECISION_PROMPT if displayed_facts(contract) else ""))
 
 
 def normalize(x: Extraction, contract: Contract) -> Extraction:

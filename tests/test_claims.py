@@ -122,3 +122,35 @@ def test_northbound_captures_measure_no_datetime_fact():
     if not (run / "episodes/2.4").exists():
         pytest.skip("needs runs/e2e-2 (local)")
     assert observed_temporal(judge.stories_for(run, "2.4", load_contract(NORTHBOUND)).values()) == set()
+
+
+# ---- displayed precision (a rounded figure matches what rounds to it)
+def test_a_rounded_claim_matches_within_half_its_step():
+    from semaudit.relate.claims import compare
+    assert compare({"value": 1200000, "precision": 100000}, 1184000) == "match"
+    assert compare({"value": 1200000, "precision": 100000}, 1260000) == "mismatch"
+    assert compare({"value": 250000, "precision": 1000}, 250400) == "match"
+    assert compare({"value": 250000, "precision": 1000}, 253000) == "mismatch"
+    assert compare({"value": 1200000}, 1184000) == "mismatch"          # no precision recorded: exact, as before
+
+
+def test_two_shown_figures_agree_at_the_coarser_step_from_either_side():
+    from semaudit.relate.claims import compare, precision
+    exact, rounded = {"value": 1184000, "precision": 1}, {"value": 1200000, "precision": 100000}
+    assert compare(exact, rounded["value"], precision(rounded)) == "match"
+    assert compare(rounded, exact["value"], precision(exact)) == "match"
+    assert compare({"value": 24500, "precision": 1}, 32500, precision({"value": 32500, "precision": 1})) == "mismatch"
+
+
+def test_precision_enters_the_schema_and_prompt_only_when_a_fact_asks_for_it():
+    from semaudit.contract.schema import Fact
+    from semaudit.extract.messages import _claim_schema, _prompt
+    c = _contract_with([Fact(id="amount")])
+    assert "precision" not in _claim_schema(c)["properties"] and "precision" not in _prompt(c)
+    c = _contract_with([Fact(id="amount", match="displayed")])
+    assert "precision" in _claim_schema(c)["required"] and "`precision`" in _prompt(c)
+
+
+def _contract_with(facts):
+    from semaudit.contract.schema import Contract
+    return Contract(rules=[], decisions=[], features=[], rubric="r", facts=facts)

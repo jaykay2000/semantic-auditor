@@ -195,6 +195,8 @@ class Fact(Strict):
     id: str
     unit: str | None = None
     sources: list[FactSource] = Field(default_factory=list)   # empty: claims of this fact are unverifiable
+    match: Literal["exact", "displayed"] = "exact"            # displayed: a rounded figure ("$1.2M") matches any
+                                                              # value that rounds to it (the claim records its step)
 
 
 # ---------- derived state ----------
