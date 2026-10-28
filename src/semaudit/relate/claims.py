@@ -52,6 +52,18 @@ def precision(claim: dict) -> float:
     return float(p) if isinstance(p, (int, float)) and not isinstance(p, bool) and p > 0 else 0.0
 
 
+def checkable(claim: dict) -> bool:
+    """A claim an oracle can check: it states the figure as it is now. With claim roles on, a proposed figure (a
+    target, a what-if), the size of a change, or a limit is not the user's current value and is never compared
+    with the oracle's. Without roles every claim is checkable, as before."""
+    return claim.get("role") in (None, "as_is")
+
+
+def comparable(fact, a: dict, b: dict) -> bool:
+    """Two claims can disagree only if they are the same kind of figure (role) about the same quantity (key)."""
+    return a.get("role") == b.get("role") and same_quantity(fact, a, b)
+
+
 UNKEYED = ("", "unknown", "other")   # a key that names no single quantity ("other" is a catch-all)
 
 

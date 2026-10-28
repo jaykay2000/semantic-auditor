@@ -69,11 +69,32 @@ def _claim_schema(contract: Contract, observed: set[str] = frozenset()) -> dict:
     if displayed_facts(contract):
         props["precision"] = {"type": ["number", "null"]}
         required.append("precision")
+    if contract_roles(contract):
+        props["role"] = {"type": ["string", "null"], "enum": list(ROLES) + [None]}
+        required.append("role")
     for name, values in key_fields(contract).items():
         props[name] = ({"type": ["string", "null"], "enum": sorted(values | {"unknown"}) + [None]} if values
                        else {"type": ["string", "null"]})
         required.append(name)
     return {"type": "object", "additionalProperties": False, "required": required, "properties": props}
+
+
+ROLES = ("as_is", "proposed", "change", "limit")
+
+
+def contract_roles(contract) -> bool:
+    app = getattr(contract, "app", None)
+    return bool(getattr(app, "claim_roles", False))
+
+
+ROLE_PROMPT = ("Claims: `role` says what the figure is. 'as_is': the user's figure as it stands now, or a result the "
+               "product states about them now (their balance, rate, score, date today). 'proposed': a figure they "
+               "would have or should reach if they act or if something changes (a target, a what-if, a projection "
+               "under a change: \"bring your balance to $3,000\", \"you would finish in 2031\"). 'change': the size "
+               "of a change (\"$150/mo more\", \"save $900 a year\", \"two years sooner\"). 'limit': a cap, "
+               "allowance or remaining room a figure is measured against (\"a credit limit of $5,000\", \"$800 of "
+               "room left this year\"). A message's `around` text is only there to read a short block: never take "
+               "claims from it.\n")
 
 
 def key_fields(contract: Contract) -> dict[str, set[str]]:
@@ -124,7 +145,15 @@ def key_prompt(contract: Contract) -> str:
 
 def _prompt(contract: Contract, observed: set[str] = frozenset()) -> str:
     return (PROMPT + (DATETIME_PROMPT if temporal_facts(contract, observed) else "")
-            + (PRECISION_PROMPT if displayed_facts(contract) else "") + key_prompt(contract))
+            + (PRECISION_PROMPT if displayed_facts(contract) else "") + key_prompt(contract)
+            + (ROLE_PROMPT if contract_roles(contract) else ""))
+
+
+def message_key(m) -> tuple:
+    """The extraction cache key of a message (an Event or a listing dict): identical text in an identical reading
+    context gets an identical answer."""
+    g = (lambda k: m.get(k)) if isinstance(m, dict) else (lambda k: getattr(m, k))
+    return (g("feature") or "", g("channel") or "", g("text"), g("around") or "")
 
 
 def normalize(x: Extraction, contract: Contract) -> Extraction:
@@ -140,7 +169,8 @@ def extract_story(story: Story, contract: Contract, router: Router, *, fresh: bo
                   role: str = "extractor") -> dict[str, Extraction]:
     observed = observed_temporal([story])
     msgs = story.messages()
-    listing = [{"id": m.id, "feature": m.feature, "channel": m.channel, "text": m.text} for m in msgs]
+    listing = [{"id": m.id, "feature": m.feature, "channel": m.channel, "text": m.text,
+                **({"around": m.around} if m.around else {})} for m in msgs]
     prompt = (_prompt(contract, observed) + json.dumps(listing, ensure_ascii=False, indent=1))
     r = router.complete(role, [{"role": "system", "content": contract.rubric},
                                {"role": "user", "content": prompt}],
@@ -161,11 +191,12 @@ def extract_unique(messages: list[dict], contract: Contract, router: Router, *, 
     The rubric classifies every message independently, so a message's extraction never depends on which
     story it appears in; deduplicating across stories is the same task at a fraction of the cost.
     """
-    uniq = sorted({(m["feature"] or "", m["channel"] or "", m["text"]) for m in messages})
-    out: dict[tuple[str, str, str], Extraction] = {}
+    uniq = sorted({message_key(m) for m in messages})
+    out: dict[tuple[str, str, str, str], Extraction] = {}
     for i in range(0, len(uniq), batch):
         chunk = uniq[i:i + batch]
-        listing = [{"id": f"m{j}", "feature": f, "channel": c, "text": t} for j, (f, c, t) in enumerate(chunk)]
+        listing = [{"id": f"m{j}", "feature": f, "channel": c, "text": t, **({"around": a} if a else {})}
+                   for j, (f, c, t, a) in enumerate(chunk)]
         prompt = (_prompt(contract, observed) + json.dumps(listing, ensure_ascii=False, indent=1))
         r = router.complete(role, [{"role": "system", "content": contract.rubric},
                                    {"role": "user", "content": prompt}],

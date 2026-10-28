@@ -14,7 +14,8 @@ from typing import Any
 
 from semaudit.contract.schema import Contract
 from semaudit.decide.issues import Issue, cited_events
-from semaudit.extract.messages import extract_unique
+from semaudit.extract.messages import extract_unique, message_key
+from semaudit.relate.claims import checkable
 from semaudit.models.router import Router
 from semaudit.relate.interpret import model_interpreter, story_view
 from semaudit.relate.rules import p2_candidates
@@ -116,11 +117,10 @@ def _cross_one(issue: Issue, o, story: Story, contract: Contract, router: Router
     from semaudit.relate.rules import evaluate
     story = story.model_copy(deep=True)
     cited = [e for e in cited_events(o.entry, story) if e.kind == "message"]
-    msgs = [{"feature": e.feature, "channel": e.channel, "text": e.text} for e in cited]
-    other = extract_unique(msgs, contract, router, fresh=fresh, role="cross_checker_extract") if msgs else {}
+    other = extract_unique(cited, contract, router, fresh=fresh, role="cross_checker_extract") if cited else {}
     changed = []
     for e in cited:
-        x = other[(e.feature or "", e.channel or "", e.text)]
+        x = other[message_key(e)]
         diffs = [f for f in rule_fields(contract, issue.rule) if getattr(x, f) != getattr(e.extraction, f)]
         if diffs:
             changed.append(f"{e.id}: {', '.join(f'{f} {getattr(e.extraction, f)}->{getattr(x, f)}' for f in diffs)}")
@@ -221,7 +221,8 @@ def _defend_one(issue: Issue, o, story: Story, contract: Contract, router: Route
         **({"exception_measured": o.entry.meta.get("exception")} if len(rule.exceptions) > 1 else {}),
         "rubric": contract.rubric,
         "cited_messages": [{"id": e.id, "feature": e.feature, "channel": e.channel, "at": e.at.isoformat(),
-                            "text": e.text, "reading": {f: getattr(e.extraction, f) for f in FIELDS_DISPUTABLE}
+                            "text": e.text, **({"around": e.around} if e.around else {}),
+                            "reading": {f: getattr(e.extraction, f) for f in FIELDS_DISPUTABLE}
                             if e.extraction else None} for e in cited],
         "story_in_time_order": story_view(story),
     }
@@ -256,7 +257,7 @@ def step_oracle(issue: Issue, stories: dict[str, Story], contract: Contract) -> 
         story = stories[o.persona]
         for e in cited_events(o.entry, story):
             for c in (e.extraction.claims if e.extraction else []):
-                if c["type"] not in facts:
+                if c["type"] not in facts or not checkable(c):
                     continue
                 if story.truth_at(c["type"], e.at, e.feature) is None and story.final_truth(c["type"], e.feature) is None:
                     gaps.append(f"{o.persona}/{e.id}: no oracle value for {c['type']}")
@@ -268,7 +269,7 @@ def _step_agreement(issue: Issue, stories: dict[str, Story], facts: set[str], mo
     """Agreement issues have no oracle: re-derive the disagreement from the cited messages themselves, by the
     one comparison. Passes only if, for every occurrence, two cited messages on different surfaces, shown in the
     same state, state readable, different values of the same fact."""
-    from semaudit.relate.claims import MISMATCH, compare, precision, same_quantity, stated
+    from semaudit.relate.claims import MISMATCH, comparable, compare, precision, stated
     from semaudit.relate.rules import same_state
     per = {}
     for o in issue.occurrences:
@@ -277,7 +278,7 @@ def _step_agreement(issue: Issue, stories: dict[str, Story], facts: set[str], mo
               for c in e.extraction.claims if c["type"] in facts]
         per[o.persona] = any(a.surface != b.surface and ca["type"] == cb["type"] and stated(cb) is not None
                              and same_state(story, model or [], a, b, ca["type"])
-                             and same_quantity((defs or {}).get(ca["type"]), ca, cb)
+                             and comparable((defs or {}).get(ca["type"]), ca, cb)
                              and compare(ca, stated(cb), precision(cb)) == MISMATCH for a, ca in cl for b, cb in cl)
     ok = all(per.values())
     return {"result": "pass" if ok else "fail",

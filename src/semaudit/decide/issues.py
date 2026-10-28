@@ -92,6 +92,11 @@ def signature(entry: Entry, events: list[Event]) -> tuple:
     if "pairs" in entry.meta or entry.subject == "story":
         return (entry.rule, entry.subject, entry.label or "", failing)
     e = events[0]
+    if entry.meta.get("fact") and len(events) > 1:
+        # a disagreement is identified by what disagrees with what: the fact and the other messages. Otherwise a
+        # different disagreement on the same block in head would read as this one still being there
+        others = ",".join(sorted({x.copy_key or x.text or "" for x in events[1:]}))
+        return (entry.rule, e.feature or "", f"{e.copy_key or e.text or ''}|{entry.meta['fact']}|{others}", failing)
     return (entry.rule, e.feature or "", e.copy_key or e.text or "", failing)
 
 

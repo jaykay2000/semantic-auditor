@@ -45,6 +45,8 @@ class Event(BaseModel):
     user_initiated: bool = False
     copy_key: str | None = None
     text: str | None = None
+    around: str | None = None           # a short block's visible neighbours ("Net worth | [this] | Vs plan"): context
+                                        # for reading it, never a source of claims
     action: str | None = None           # user actions: the scenario verbs
     params: dict[str, Any] = Field(default_factory=dict)    # user actions: the scenario step's params
     effects: dict[str, Any] = Field(default_factory=dict)   # state changes caused by a user action

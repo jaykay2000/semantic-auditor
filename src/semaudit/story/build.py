@@ -53,6 +53,23 @@ def snapshot(at: datetime, state: dict[str, OracleReading], contract: Contract) 
     return {"at": at, "truth": truth}
 
 
+SHORT_WORDS = 4      # a block this short ("$860K", "Net worth") is read with its neighbours
+
+
+def around(cap, index: int) -> str | None:
+    """For a short block on a page, the readable text just before and after it: a figure's label often sits in
+    its own block, and "$860K" alone cannot be told from any other amount. Context only, never a claim source.
+    Only for blocks the contract map cut out of a page; a message the app marks itself is already a whole unit."""
+    el = cap.elements[index]
+    if cap.kind != "web" or len((el.text or "").split()) > SHORT_WORDS:
+        return None
+    readable = lambda e: bool((e.text or "").strip()) and not e.obscured  # noqa: E731
+    before = next((e.text for e in reversed(cap.elements[:index]) if readable(e)), "")
+    after = next((e.text for e in cap.elements[index + 1:] if readable(e)), "")
+    clip = lambda t: " ".join(t.split())[:80]  # noqa: E731
+    return f"{clip(before)} | [this] | {clip(after)}" if before or after else None
+
+
 def story_from_episode(ep: Episode, contract: Contract) -> Story:
     persona = contract.persona(ep.persona)
     scenario = next(s for s in contract.scenarios if s.id == ep.scenario)
@@ -89,7 +106,9 @@ def story_from_episode(ep: Episode, contract: Contract) -> Story:
         events.append(Event(
             id=eid, at=at, kind="message", feature=m["feature"], surface=cap.surface, channel=channel,
             component=m["component"] or default_component, topic=feat.topic if feat else None,
-            user_initiated=initiated, copy_key=m["key"], text=m["text"], evidence=evidence))
+            user_initiated=initiated, copy_key=m["key"], text=m["text"],
+            around=around(cap, m["element"]) if attr_src == "contract_map" else None,
+            evidence=evidence))
 
     events.sort(key=lambda e: (e.at, 0 if e.kind == "user_action" else 1))
     snaps = [snapshot(scenario.day0, ep.initial_state, contract)] if ep.initial_state else []

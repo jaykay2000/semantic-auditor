@@ -13,7 +13,7 @@ from itertools import combinations
 from typing import Any, Callable
 
 from semaudit.contract.schema import Contract, Rule
-from semaudit.relate.claims import MISMATCH, UNREADABLE, compare, precision, same_quantity, shown, stated
+from semaudit.relate.claims import MISMATCH, UNREADABLE, checkable, comparable, compare, precision, shown, stated
 from semaudit.story.model import Event, Story
 
 
@@ -101,7 +101,7 @@ def eval_match_oracle(rule: Rule, story: Story) -> list[Entry]:
     out = []
     for e in story.messages():
         for c in e.extraction.claims:
-            if c["type"] not in rule.check["claims"]:
+            if c["type"] not in rule.check["claims"] or not checkable(c):
                 continue
             truth = story.truth_at(c["type"], e.at, e.feature)
             if truth is None:
@@ -147,7 +147,7 @@ def eval_agree_across_surfaces(rule: Rule, story: Story, contract: Contract | No
             continue
         seen.add((e.id, c["type"]))
         others = [(o, oc) for o, oc in shown_at if o.surface != e.surface and oc["type"] == c["type"] and same(e, o, c["type"])
-                  and same_quantity(defs.get(c["type"]), c, oc) and stated(oc) is not None]
+                  and comparable(defs.get(c["type"]), c, oc) and stated(oc) is not None]
         verdicts = [(o, compare(c, stated(oc), precision(oc))) for o, oc in others]
         if any(v == UNREADABLE for _, v in verdicts) and not any(v == MISMATCH for _, v in verdicts):
             continue                                   # nothing readable to compare it with
@@ -157,7 +157,7 @@ def eval_agree_across_surfaces(rule: Rule, story: Story, contract: Contract | No
         note = (f"{c['type']} {shown(c)} on {e.surface}; " +
                 "; ".join(f"{shown(oc)} on {o.surface}" for o, oc in others if o in bad)) if bad else ""
         out.append(Entry(rule.id, e.id, "violated" if bad else "passed", note=note,
-                         meta={"events": [e.id, *dict.fromkeys(o.id for o in bad)]} if bad else {}))
+                         meta={"events": [e.id, *dict.fromkeys(o.id for o in bad)], "fact": c["type"]} if bad else {}))
     return out
 
 
@@ -165,7 +165,7 @@ def eval_match_charge(rule: Rule, story: Story) -> list[Entry]:
     out = []
     for e in story.messages():
         for c in e.extraction.claims:
-            if c["type"] in rule.check["claims"]:
+            if c["type"] in rule.check["claims"] and checkable(c):
                 charged = story.final_truth(rule.check["charge"], e.feature)   # ultimately charged, same feature
                 if charged is None:       # no transaction in this story: not applicable
                     continue
@@ -208,7 +208,7 @@ def condition_value(cond, e: Event, story: Story) -> str:
         gap = dep - e.at                                                            # exact timestamps
         return "met" if timedelta(0) <= gap <= timedelta(hours=cond.hours) else "not_met"   # past: not "soon"
     if cond.test == "claim_matches_oracle":
-        claims = [c for c in e.extraction.claims if c["type"] == cond.claim]
+        claims = [c for c in e.extraction.claims if c["type"] == cond.claim and checkable(c)]
         truth = story.truth_at(cond.claim, e.at, e.feature)
         if not claims or truth is None:
             return "unknown"
