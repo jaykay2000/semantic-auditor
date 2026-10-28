@@ -30,6 +30,8 @@ PAGE = """<html><body style="margin:0">
   <p style="visibility:hidden">Hidden move four</p>
   <div style="position:relative"><p>Under the frosted glass</p>
     <div style="position:absolute;inset:0;backdrop-filter:blur(4px)"></div></div>
+  <div style="display:none"><p>Inside a collapsed section</p></div>
+  <details><summary>More</summary><p>Inside closed details</p></details>
   <p>Same template $1,000</p><p>Same template $2,000</p></section>
 </body></html>"""
 
@@ -76,6 +78,8 @@ def test_unreadable_text_is_captured_and_marked(blocks):
     assert t["Locked move two $32,500"].obscured == "blur"
     assert t["Faded move three"].obscured == "transparent"
     assert t["Under the frosted glass"].obscured == "covered"
+    assert t["Inside a collapsed section"].obscured == "collapsed"
+    assert t["Inside closed details"].obscured == "collapsed" and t["More"].obscured is None
     assert "Hidden move four" not in t or t["Hidden move four"].obscured == "hidden"
     assert t["Your first move: ramp to $24,500/yr"].obscured is None
     assert blocks.meta["obscured"] >= 3

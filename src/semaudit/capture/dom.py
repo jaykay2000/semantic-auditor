@@ -51,7 +51,8 @@ def find_elements(page: Any, selector: str) -> list[dict[str, Any]]:
 # block-level descendant that has text of its own; inline-level children (spans, pills, inline-block buttons)
 # stay part of their block. A block that has block children AND text of its own also yields that own text.
 # Obscured: the element or an ancestor is blurred (filter: blur >= 1.5px), nearly transparent (opacity product
-# < 0.15), visibility: hidden, its text colour is fully transparent, it is visually hidden (<= 2px box), or the
+# < 0.15), visibility: hidden, its text colour is fully transparent, it is not rendered (inside a collapsed section
+# or a closed <details>: 'collapsed'), it is visually hidden (<= 2px box), or the
 # point at its centre is covered by another element with a backdrop blur. The page is scrolled to test cover;
 # the screenshot is taken before this runs.
 BLOCKS_JS = r"""
@@ -75,6 +76,8 @@ BLOCKS_JS = r"""
   const INLINE = new Set(['inline', 'inline-block', 'inline-flex', 'inline-grid', 'inline-table', 'contents', 'ruby']);
   const blockish = (el) => { const d = getComputedStyle(el).display; return d !== 'none' && !INLINE.has(d); };
   const norm = (t) => (t || '').replace(/\s+/g, ' ').trim();
+  // An element that is not rendered (collapsed section, closed <details>) can have empty innerText: use textContent
+  const textOf = (el) => norm(el.innerText) || norm(el.textContent);
   const roots = new Map();
   sels.forEach((sel, i) => { for (const r of document.querySelectorAll(sel)) roots.set(r, i); });
   const sectionOf = (el) => { for (let e = el; e; e = e.parentElement) if (roots.has(e)) return roots.get(e); return -1; };
@@ -90,6 +93,7 @@ BLOCKS_JS = r"""
     if (op < 0.15) return 'transparent';
     const c = getComputedStyle(el).color;
     if (c === 'transparent' || /rgba\([^)]*,\s*0\)$/.test(c)) return 'transparent';
+    if (el.getClientRects().length === 0 || !norm(el.innerText)) return 'collapsed';   // a closed section or <details>
     const b = el.getBoundingClientRect();
     if (b.width <= 2 || b.height <= 2) return 'visually_hidden';
     window.scrollTo(0, Math.max(0, b.top + window.scrollY - window.innerHeight / 2));
@@ -106,15 +110,15 @@ BLOCKS_JS = r"""
   const visit = (el) => {           // returns true if el's subtree has a block-level element with text
     let childBlockText = false;
     for (const ch of el.children) if (visit(ch)) childBlockText = true;
-    if (!blockish(el) || sectionOf(el) < 0) return childBlockText || (blockish(el) && norm(el.innerText) !== '');
-    const text = norm(el.innerText);
+    if (!blockish(el) || sectionOf(el) < 0) return childBlockText || (blockish(el) && textOf(el) !== '');
+    const text = textOf(el);
     if (!text) return childBlockText;
     let own = text;
     if (childBlockText) {
       own = '';
       for (const n of el.childNodes) {
         if (n.nodeType === 3) own += ' ' + n.textContent;
-        else if (n.nodeType === 1 && !blockish(n)) own += ' ' + n.innerText;
+        else if (n.nodeType === 1 && !blockish(n) && getComputedStyle(n).display !== 'none') own += ' ' + n.innerText;
       }
       own = norm(own);
     }
