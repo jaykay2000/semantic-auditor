@@ -97,7 +97,9 @@ def review_cmd(contract_dir: Path = typer.Option(..., "--contract", exists=True,
                max_usd: float = typer.Option(..., "--max-usd", help="spend cap for every model call in this review"),
                run_id: str = typer.Option(None, "--run-id"), runs_dir: Path = typer.Option(Path("runs"), "--runs-dir"),
                reuse: bool = typer.Option(False, "--reuse", help="reuse captures already in the run directory"),
-               fresh: bool = typer.Option(False, "--fresh", help="ignore the model cache")):
+               fresh: bool = typer.Option(False, "--fresh", help="ignore the model cache"),
+               ablation: str = typer.Option(None, "--ablation",
+                                            help="benchmark only: no-exceptions | no-verifier | no-generators")):
     """Review a release against its base: issues, verification, recommendation. Writes review-<base>-<head>.json.
 
     Exit 0: a decided Ship (complete measurement, approved contract); 1: anything that needs the owner,
@@ -110,7 +112,7 @@ def review_cmd(contract_dir: Path = typer.Option(..., "--contract", exists=True,
     run_id = run_id or f"review-{time.strftime('%Y%m%dT%H%M%S')}"
     try:
         path = run_review(contract_dir, base, head, run_id=run_id, runs_dir=runs_dir, max_usd=max_usd,
-                          reuse=reuse, fresh=fresh)
+                          reuse=reuse, fresh=fresh, ablation=ablation)
     except ModelError as e:
         typer.echo(f"cannot measure: {e}", err=True)
         raise typer.Exit(2)

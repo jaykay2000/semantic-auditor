@@ -19,6 +19,13 @@ How to judge, rule by rule:
   - load: count only what the rule counts (its channels, its window), and leave out anything it excludes.
 - An exception to one rule never excuses a violation of another rule.
 - A claim is false only when an oracle reading at that time contradicts it.
+- For a rule about what is charged, compare the amount a message displays with what was actually charged
+  (oracle readings over time, and any later message stating the charge), including what the amount covers
+  (for example per person, per unit or in total).
+- For a rule about messages after a commitment, find the persona's commitment actions (the actions each contract
+  decision lists as deciding it) and check every later message against the rule.
+- Judge each persona's story on its own before grouping. A reconciling or explaining message shown to one
+  persona does not exist for another; group personas only if each one's story supports the finding.
 - Legitimate behaviour is not a problem: a permitted exception, a reconciled or explained tradeoff, a repeated
   confirmation, a persona-specific difference, an actionable offer after a commitment, recommendations that never
   overlap in time, a claim that cannot be checked, a user-initiated conversation. Do not raise these.
