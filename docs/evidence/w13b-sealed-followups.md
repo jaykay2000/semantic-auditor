@@ -44,3 +44,22 @@ Reading: bland padding up to ~140k tokens did NOT degrade the one-call baseline.
 single-run noise. Cost grows ~5x for the baseline and ~3.4x for the auditor, so the auditor is ~1.9x cheaper at
 32x. This pilot is no evidence of an accuracy advantage at scale. Padding is the easy, literal kind of length; the
 literature's hard cases are non-literal multi-hop reasoning and temporal arithmetic. Pilot spend $0.94.
+
+## Input ablation of B-judge-1 (plan committed first: 16bd979), sealed r1 captures, one run per variant
+Benchmark-session counts, 2026-10-28. Spend $0.5476 (ledger matches). The frozen-file check printed nothing.
+
+| variant (cumulative) | found (of 15) | false alarms | NC hits | cost |
+|---|---|---|---|---|
+| V0 frozen B-judge-1 | 15 | 0 | 0 of 40 | $0.19 |
+| V1 no written judging method | 15 | 0 | 0 of 40 | $0.20 |
+| V2 also no oracle readings | 12 | 1 | 1 of 40 | $0.18 |
+| V3 also plain-English rules instead of the structured contract | 10 | 6 | 1 of 40 | $0.16 |
+
+Reading:
+- The written method added nothing.
+- Without the oracle readings, the one call found 3 fewer issues.
+- Also without the structured contract, it found 5 fewer and raised 6 false alarms.
+
+So the auditor's EVIDENCE layer (true state over time + the owner's structured contract) is what makes one call
+accurate. Its prompt wording is not. The captures themselves were never removed (that is E1). Caveat: n is small
+(15 issue units), one run per variant, and the variants are cumulative, so V3's effect includes V2's.
