@@ -24,7 +24,8 @@ from ..contract.schema import Contract, Persona, Scenario, Step, Surface, load_c
 from ..story.episode import (Capture, Element, Episode, NotMeasured, OracleReading, StepRecord, BBox,
                              episode_path)
 from . import sinks
-from .dom import find_elements
+from .attribution import Keys, mapped, text_sections
+from .dom import find_blocks, find_elements
 from .launcher import LaunchError, RunningApp, launch
 
 VIEWPORT = {"width": 1280, "height": 900}
@@ -140,7 +141,7 @@ class Runner:
         reset = hooks.reset()
         build = adapter.app_build(reset) if hasattr(adapter, "app_build") else release
         persona_ctx = resolve_context(persona, contract.subject, scenario.day0)
-        persona_resp = hooks.persona(adapter.persona_body(persona, persona_ctx))
+        persona_resp = hooks.persona(adapter.persona_body(persona, persona_ctx)) if hooks.has("persona") else None
         if persona.world and hooks.has("world"):
             hooks.world(adapter.world_body(persona) if hasattr(adapter, "world_body") else persona.world)
 
@@ -220,6 +221,8 @@ class Runner:
                 self._capture_page(ectx, sess, result.landed, chat=result.chat)
             if result.pdf is not None:
                 self._capture_pdf(ectx, result.pdf)
+            if result.text is not None:
+                self._capture_text(ectx, result.text)
         sink_surfaces = [s for s in self.contract.surfaces if s.sink and s.kind in ("email", "push")]
         rec.captures.extend(self._drain(ectx, sink_surfaces, sctx))
         rec.state = oracles.snapshot(adapter.oracle_params(sess.persona, sess))
@@ -273,6 +276,11 @@ class Runner:
                 self._write(ectx, cid, "raw", "txt", raw.encode("utf-8"), cap)
                 cap.elements = [Element(locator={"kind": "chat_turn", "turn": i, "span": [0, len(t.text)]},
                                         text=t.text, attrs={"who": t.who, **t.attrs}) for i, t in enumerate(chat)]
+        elif surface is not None and surface.sections and not surface.message_selector:
+            try:
+                self._section_blocks(cap, page, surface)
+            except Exception as exc:  # noqa: BLE001 - e.g. an invalid section selector
+                errors.append(f"sections: {type(exc).__name__}: {str(exc).splitlines()[0]}")
         elif surface is not None:
             if not surface.message_selector:
                 cap.meta["note"] = "surface has no message_selector; no elements located"
@@ -286,6 +294,46 @@ class Runner:
                                   f"{str(exc).splitlines()[0]}")
         if errors:
             cap.status, cap.error = "not_measured", "; ".join(errors)
+        sctx.rec.captures.append(cap)
+
+    @staticmethod
+    def _section_blocks(cap: Capture, page, surface: Surface) -> None:
+        """Contract-map attribution: every text block under a section root is one element; obscured ones are
+        kept and marked (they are evidence of what was withheld, not messages)."""
+        keys = Keys()
+        blocks = find_blocks(page, [s.match for s in surface.sections])
+        for b in blocks:
+            sec = surface.sections[b["section"]]
+            attribution = mapped(sec, keys(sec.feature, b["text"]), b["section"])
+            cap.elements.append(Element(locator={"kind": "css", "css": b["css"], "span": [0, len(b["text"])],
+                                                 **({"own_text": True} if b["own"] else {})},
+                                        text=b["text"], attrs=b["attrs"], bbox=BBox(**b["bbox"]),
+                                        attribution=attribution, obscured=b["obscured"]))
+        cap.meta["attribution"] = "contract_map"
+        cap.meta["obscured"] = sum(1 for b in blocks if b["obscured"])
+
+    def _capture_text(self, ectx: _EpisodeCtx, tc) -> None:
+        sctx = ectx.step
+        surface = next((s for s in self.contract.surfaces if s.id == tc.surface), None)
+        cid = self._new_id(ectx, sctx)
+        cap = Capture(id=cid, kind="text", surface=tc.surface, at=sctx.at, phase=sctx.phase,
+                      meta={"source": tc.source} if tc.source else {})
+        self._write(ectx, cid, "raw", "txt", tc.text.encode("utf-8"), cap)
+        if surface is None or surface.kind != "text":
+            cap.status, cap.error = "not_measured", f"surface {tc.surface!r} is not a text surface in the contract"
+        else:
+            keys, unattributed = Keys(), 0
+            for i, b in enumerate(text_sections(surface, tc.text)):
+                attribution = None
+                if b["section"] >= 0:
+                    sec = surface.sections[b["section"]]
+                    attribution = mapped(sec, keys(sec.feature, b["heading"] or ""), b["section"])
+                else:
+                    unattributed += 1
+                cap.elements.append(Element(locator={"kind": "text_section", "section": i, "heading": b["heading"],
+                                                     "span": b["span"]}, text=b["text"], attribution=attribution))
+            cap.meta["attribution"] = "contract_map"
+            cap.meta["unattributed"] = unattributed
         sctx.rec.captures.append(cap)
 
     def _capture_pdf(self, ectx: _EpisodeCtx, pdf) -> None:

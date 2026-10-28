@@ -128,23 +128,55 @@ class Feature(Strict):
     source: Source | None = None
 
 
+class SectionMap(Strict):
+    """One part of a surface and the feature that owns it, for products that do not mark their own text.
+
+    `match` is a CSS selector for the section's root element (web) or a regular expression for the section's
+    heading (text). Attribution made this way is recorded as method `contract_map`."""
+    match: str
+    feature: str
+    component: str | None = None
+
+
 class Surface(Strict):
-    """A place the product tells the user something, and how evidence on it is located."""
+    """A place the product tells the user something, and how evidence on it is located.
+
+    Web: `message_selector` finds text the app marks itself (data-message-key). A product that marks nothing
+    lists `sections` instead: every visible text block inside a section root is one message, attributed to the
+    innermost section it sits in. Text: the captured text is split at heading lines (`heading`, a regex whose
+    group 1 is the heading) and each headed section is one message, attributed by `sections` matching the heading.
+    """
     id: str
-    kind: Literal["web", "email", "push", "pdf", "chat", "api"]
-    locator: Literal["css", "message_id", "notification_id", "pdf_page", "json_path", "chat_turn"]
+    kind: Literal["web", "email", "push", "pdf", "chat", "api", "text"]
+    locator: Literal["css", "message_id", "notification_id", "pdf_page", "json_path", "chat_turn", "text_section"]
     component: str | None = None
     reached_by: str | None = None        # scenario verb that brings the user here
     message_selector: str | None = None  # web: elements that carry messages
+    sections: list[SectionMap] = Field(default_factory=list)  # web/text: contract-level attribution
+    heading: str | None = None           # text: heading-line regex (default: markdown headings)
     sink: str | None = None              # email/push: where the app writes messages
     user_turn: dict[str, str] = Field(default_factory=dict)   # chat: attrs marking the user's own turn
 
 
+class OracleVariant(Strict):
+    """Another way to read the same oracle, e.g. once the user has signed in. `root` is a JSON path to the
+    object the field paths are relative to; `headers` are templates filled like the endpoint."""
+    endpoint: str
+    root: str | None = None
+    headers: dict[str, str] = Field(default_factory=dict)
+
+
 class Oracle(Strict):
-    """Ground truth the app exposes; read after every scenario step to snapshot state."""
+    """Ground truth the app exposes; read after every scenario step to snapshot state.
+
+    With `variants`, the first variant whose template params are all available is read (list the most specific
+    first); the base endpoint is the last resort. Field paths are relative to the chosen variant's `root`."""
     id: str
     kind: Literal["http_json"] = "http_json"
     endpoint: str                        # path template, e.g. /api/oracle/orders?user={user}
+    root: str | None = None
+    headers: dict[str, str] = Field(default_factory=dict)
+    variants: list[OracleVariant] = Field(default_factory=list)
     fields: dict[str, str] = Field(default_factory=dict)   # name -> JSON path in the response
 
 
@@ -341,7 +373,8 @@ class ReleasePolicy(Strict):
 
 class Hooks(Strict):
     reset: str | None = None
-    persona: str                         # creates the persona's account and situation
+    persona: str | None = None           # creates the persona's account and situation. Absent: the persona
+                                         # exists only through the scenario's own steps (e.g. a guest flow)
     clock: str | None = None             # without it, time-triggered surfaces are 'not measured'
     world: str | None = None             # seeds oracle state
 

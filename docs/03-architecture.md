@@ -238,7 +238,7 @@ This is a small, explicit rule set, not a general temporal reasoner. The fixture
 
 The story is the single object that the relation layer, the issue evidence, the delta and the UI all read: one source of truth.
 
-**Stable event identity.** `event_key` = feature / surface / message key / decision / occurrence index within the scenario. The message key comes from the app (`data-message-key`, email or push template id) where it exists. Otherwise it is a normalized text-template signature, and alignment is then marked *fuzzy*.
+**Stable event identity.** `event_key` = feature / surface / message key / decision / occurrence index within the scenario. The message key comes from the app (`data-message-key`, email or push template id) where it exists. Otherwise it is a normalized text-template signature, and alignment is then marked *fuzzy*. A product that marks none of its text is attributed by the contract instead (method `contract_map`, built 2026-10-28): a surface lists `sections` (a CSS root, or a heading regex for a `text` surface such as a copied export), every visible text block under a section root is one message attributed to the innermost section, and its key is `<feature>.<signature>` with digits normalized, so a changed number pairs as *changed*. Text the user cannot read (blurred, transparent, hidden, under a backdrop blur) is captured and marked `obscured`, and is never a message.
 
 ## L4: Relations
 

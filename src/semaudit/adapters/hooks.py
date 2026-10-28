@@ -98,19 +98,32 @@ class OracleClient:
         self.oracles = oracles
         self.http = http or httpx.Client(timeout=timeout)
 
+    @staticmethod
+    def _needs(*templates: str) -> list[str]:
+        return [f for t in templates for _, f, _, _ in string.Formatter().parse(t) if f]
+
     def read(self, oracle: Oracle, params: dict[str, Any]) -> OracleReading:
-        needed = [f for _, f, _, _ in string.Formatter().parse(oracle.endpoint) if f]
-        missing = [n for n in needed if params.get(n) in (None, "")]
-        if missing:
+        have = lambda names: all(params.get(n) not in (None, "") for n in names)  # noqa: E731
+        ways = [(v.endpoint, v.root, v.headers) for v in oracle.variants] + [(oracle.endpoint, oracle.root, oracle.headers)]
+        chosen = next((w for w in ways if have(self._needs(w[0], *w[2].values()))), None)
+        if chosen is None:
+            missing = sorted({n for n in self._needs(oracle.endpoint, *oracle.headers.values()) if not have([n])})
             return OracleReading(status="not_applicable",
                                  error=f"needs {', '.join(missing)}, which this persona does not have")
-        endpoint = oracle.endpoint.format_map({k: quote(str(v), safe="") for k, v in params.items() if v is not None})
+        tmpl, root, header_tmpl = chosen
+        endpoint = tmpl.format_map({k: quote(str(v), safe="") for k, v in params.items() if v is not None})
+        headers = {k: v.format_map({n: str(x) for n, x in params.items() if x is not None})
+                   for k, v in header_tmpl.items()}
         try:
-            r = self.http.get(self.base_url + endpoint)
+            r = self.http.get(self.base_url + endpoint, headers=headers or None)
             if r.status_code >= 400:
                 return OracleReading(status="not_measured", endpoint=endpoint,
                                      error=f"HTTP {r.status_code}: {r.text[:200]}")
             doc = r.json()
+            if root:
+                doc = json_path(doc, root)
+        except KeyError:
+            return OracleReading(status="not_measured", endpoint=endpoint, error=f"root {root!r} not in the response")
         except (httpx.HTTPError, ValueError) as exc:
             return OracleReading(status="not_measured", endpoint=endpoint, error=f"{type(exc).__name__}: {exc}")
         values: dict[str, Any] = {}

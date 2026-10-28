@@ -164,7 +164,7 @@ details.exact pre{margin:6px 0 0;padding:10px;background:#FAFAF7;border:1px soli
     {% if c.oracles %}<div class="row spread" style="margin-top:8px"><b>Oracle endpoints</b>{{ state("oracles:all") }}</div>
     <div class="muted">{% for o in c.oracles %}<code>{{ o.endpoint }}</code>{% if not loop.last %} · {% endif %}{% endfor %}</div>{% endif %}
     {% if c.app %}<div class="row spread" style="margin-top:8px"><b>App and hooks</b>{{ state("app:" ~ c.app.name) }}</div>
-    <div class="muted">{{ c.app.base_url }} · releases {{ c.app.releases|join(", ") }} · persona {{ c.app.hooks.persona }} · clock {{ c.app.hooks.clock or "none (time-triggered surfaces not measured)" }}</div>{% endif %}
+    <div class="muted">{{ c.app.base_url }} · releases {{ c.app.releases|join(", ") }} · persona {{ c.app.hooks.persona or "created by scenario steps" }} · clock {{ c.app.hooks.clock or "none (time-triggered surfaces not measured)" }}</div>{% endif %}
   </div>
 
   <h2 id="exact">Exact content of every approval item</h2>

@@ -16,7 +16,7 @@ from semaudit.story.episode import Episode, OracleReading
 from semaudit.story.model import Event, Evidence, Story
 
 CHANNEL_ATTRS = ("data-channel",)
-KIND_CHANNEL = {"email": "email", "push": "push", "chat": "chat", "pdf": "pdf"}
+KIND_CHANNEL = {"email": "email", "push": "push", "chat": "chat", "pdf": "pdf", "text": "text"}
 
 
 def fact_value(fact: Fact, state: dict[str, OracleReading], feature: str | None = None) -> Any:
@@ -80,7 +80,8 @@ def story_from_episode(ep: Episode, contract: Contract) -> Story:
         initiated = bool(user_turn and prev and all(prev.attrs.get(k) == v for k, v in user_turn.items()))
         feat = features.get(m["feature"])
         el = cap.elements[m["element"]]
-        attr_src = "dom_attr" if cap.kind in ("web", "chat") else "header"
+        attr_src = m.get("attribution") if m.get("attribution") not in (None, "dom_attr") else \
+            ("dom_attr" if cap.kind in ("web", "chat") else "header")
         evidence = Evidence(episode=ep.id, step=m["step"], capture_id=cap.id, element=m["element"],
                             locator=el.locator, capture_sha256=dict(cap.sha256),
                             attribution={"method": attr_src, "confidence": 1.0})

@@ -31,7 +31,7 @@ FEATURE_ATTRS = ("data-feature", "X-Feature")
 COMPONENT_ATTRS = ("data-component",)
 SHOWN_AT_ATTRS = ("data-shown-at", "sent_at")
 
-CaptureKind = Literal["web", "email", "push", "chat", "pdf"]
+CaptureKind = Literal["web", "email", "push", "chat", "pdf", "text"]
 StepStatus = Literal["done", "skipped_not_offered", "failed"]
 CaptureStatus = Literal["captured", "not_measured"]
 
@@ -52,11 +52,20 @@ class Element(Strict):
       notification_id {notification_id, field, span}   push
       chat_turn    {turn, span}                 chat: turn index + character span
       pdf_page     {page, span}                 PDF: page number (1-based) + span into that page's text layer
+      text_section {section, heading, span}     text: headed section index + character span into the raw text
+
+    `attribution` is set when the product does not mark the text itself and the contract's surface sections
+    assign it: {method: "contract_map", feature, component, key, section}. The key is a text-template signature
+    (digits normalized), so the same block with a different number pairs across releases as changed.
+    `obscured` names why the user could not read the text (blur, transparent, hidden, covered, visually_hidden):
+    it was captured, but it is not a message the user was shown.
     """
     locator: dict[str, Any]
     text: str
     attrs: dict[str, str] = Field(default_factory=dict)       # every attribute (web) or header/field (email, push)
     bbox: BBox | None = None
+    attribution: dict[str, Any] | None = None
+    obscured: str | None = None
 
 
 class Capture(Strict):
@@ -127,14 +136,18 @@ class Episode(Strict):
 
         A message is identified by (capture kind, surface, message key, time shown): a chat transcript that
         repeats an earlier turn does not count it twice. Elements without a message key (the user's own chat
-        turn, PDF text lines) are not messages. Meaning is not extracted here; this only reads the markers.
+        turn, PDF text lines) are not messages, and neither is text the user could not read (`obscured`).
+        Meaning is not extracted here; this only reads the markers (the app's, or the contract's section map).
         """
         seen: set[tuple] = set()
         out: list[dict[str, Any]] = []
         for step in self.steps:
             for cap in step.captures:
                 for i, el in enumerate(cap.elements):
-                    key = _first(el.attrs, KEY_ATTRS)
+                    if el.obscured:
+                        continue
+                    mapped = el.attribution or {}
+                    key = _first(el.attrs, KEY_ATTRS) or mapped.get("key")
                     if not key:
                         continue
                     shown = _first(el.attrs, SHOWN_AT_ATTRS)
@@ -143,8 +156,9 @@ class Episode(Strict):
                         continue
                     seen.add(ident)
                     out.append({
-                        "key": key, "feature": _first(el.attrs, FEATURE_ATTRS),
-                        "component": _first(el.attrs, COMPONENT_ATTRS), "shown_at": shown,
+                        "key": key, "feature": _first(el.attrs, FEATURE_ATTRS) or mapped.get("feature"),
+                        "component": _first(el.attrs, COMPONENT_ATTRS) or mapped.get("component"),
+                        "shown_at": shown, "attribution": "dom_attr" if _first(el.attrs, KEY_ATTRS) else mapped.get("method"),
                         "kind": cap.kind, "surface": cap.surface, "text": el.text, "attrs": el.attrs,
                         "step": step.seq, "capture": cap.id, "element": i, "phase": cap.phase,
                     })

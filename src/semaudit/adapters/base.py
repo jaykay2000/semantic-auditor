@@ -50,12 +50,20 @@ class PdfDownload:
 
 
 @dataclass
+class TextCapture:
+    surface: str                          # contract surface id of kind text, e.g. "ai_export"
+    text: str                             # exactly what the user got (e.g. read back from the clipboard)
+    source: str = ""                      # how it was obtained, recorded in the capture's meta
+
+
+@dataclass
 class StepResult:
     offered: bool = True                  # False: the app does not offer this action here (see Step.when_offered)
     landed: str | None = None             # surface id of the page the step ended on; the runner captures it
     error: str | None = None              # set when the verb ran but the app answered with a failure
     chat: list[ChatTurn] | None = None    # the transcript, when `landed` is a chat surface
     pdf: PdfDownload | None = None        # a document the step downloaded
+    text: TextCapture | None = None       # plain text the step gave the user (copied, exported)
 
 
 @dataclass
