@@ -252,6 +252,8 @@ def step_oracle(issue: Issue, stories: dict[str, Story], contract: Contract) -> 
     facts = set(check.get("claims", []))
     if check.get("must") == "agree_across_surfaces":
         return _step_agreement(issue, stories, facts, contract.state, {f.id: f for f in contract.facts})
+    if check.get("must") == "agree_across_states":
+        return _step_states(issue, stories, contract)
     gaps = []
     for o in issue.occurrences:
         story = stories[o.persona]
@@ -284,6 +286,24 @@ def _step_agreement(issue: Issue, stories: dict[str, Story], facts: set[str], mo
     return {"result": "pass" if ok else "fail",
             "detail": "cited messages on different surfaces state different values" if ok else
                       {p: "no readable disagreement among the cited messages" for p, v in per.items() if not v}}
+
+
+def _step_states(issue: Issue, stories: dict[str, Story], contract: Contract) -> dict:
+    """Re-derive a before/after disagreement from the cited messages alone (plus the story's user actions, which
+    the state model reads): the rule must still find a violated claim among them."""
+    from semaudit.relate.rules import eval_agree_across_states
+    rule = contract.rule(issue.rule)
+    per = {}
+    for o in issue.occurrences:
+        story = stories[o.persona]
+        cited = {e.id for e in cited_events(o.entry, story)}
+        only = story.model_copy(update={"events": [e for e in story.events
+                                                   if e.kind == "user_action" or e.id in cited]})
+        per[o.persona] = any(x.status == "violated" for x in eval_agree_across_states(rule, only, contract))
+    ok = all(per.values())
+    return {"result": "pass" if ok else "fail",
+            "detail": "cited messages state different values before and after" if ok else
+                      {p: "no readable before/after disagreement among the cited messages" for p, v in per.items() if not v}}
 
 
 # ---------- status and confidence ----------

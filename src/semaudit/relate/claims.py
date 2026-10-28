@@ -59,9 +59,15 @@ def checkable(claim: dict) -> bool:
     return claim.get("role") in (None, "as_is")
 
 
+ROLE_GROUP = {"as_is": "as_is", "proposed": "level", "limit": "level", "change": "change"}
+
+
 def comparable(fact, a: dict, b: dict) -> bool:
-    """Two claims can disagree only if they are the same kind of figure (role) about the same quantity (key)."""
-    return a.get("role") == b.get("role") and same_quantity(fact, a, b)
+    """Two claims can disagree only if they are the same kind of figure about the same quantity (key). A target
+    and the cap it is set at are both the level to reach ("ramp toward $X" / "the max of $X"), so proposed and
+    limit compare with each other; the current figure and the size of a change each compare only with their own."""
+    ra, rb = a.get("role"), b.get("role")
+    return ROLE_GROUP.get(ra, ra) == ROLE_GROUP.get(rb, rb) and same_quantity(fact, a, b)
 
 
 UNKEYED = ("", "unknown", "other")   # a key that names no single quantity ("other" is a catch-all)
@@ -80,9 +86,23 @@ def same_quantity(fact, a: dict, b: dict) -> bool:
     return True
 
 
+UNWORDED = ("", "unknown", "other", "none")   # a word claim that names nothing in particular
+
+
+def word(claim: dict) -> str | None:
+    w = claim.get("word")
+    return w.strip().lower() if isinstance(w, str) and w.strip().lower() not in UNWORDED else None
+
+
 def compare(claim: dict, truth: Any, truth_precision: float = 0.0) -> str:
     """`truth_precision` is the displayed precision of the other side when the truth is itself a shown claim: two
-    roundings agree when they are within half the coarser step of each other."""
+    roundings agree when they are within half the coarser step of each other. A word claim (`word`: an action
+    id, yes/no) matches a word truth exactly, ignoring case; an unknown word is unreadable."""
+    if "word" in claim and claim.get("value") is None and (isinstance(truth, str) or truth is None):
+        w = word(claim)
+        if w is None or not isinstance(truth, str) or truth.strip().lower() in UNWORDED:
+            return UNREADABLE
+        return MATCH if w == truth.strip().lower() else MISMATCH
     if is_temporal(truth):
         return _compare_time(claim.get("when"), _as_datetime(truth))
     v = claim.get("value")
@@ -127,13 +147,15 @@ def _states_seconds(when: str) -> bool:
 def stated(claim: dict):
     """The value a claim states, in the form `compare` takes as a truth: its moment if it has one, else its
     amount. None when it states neither (unreadable)."""
-    return claim.get("when") or claim.get("value")
+    return claim.get("when") or (claim.get("value") if claim.get("value") is not None else word(claim))
 
 
 def shown(claim: dict) -> str:
     """The claim as the message states it, for issue text and the page."""
     if claim.get("when"):
         return str(claim["when"])
+    if claim.get("value") is None and word(claim):
+        return word(claim)
     v = claim.get("value")
     if v is None:
         return "?"

@@ -69,6 +69,11 @@ def _claim_schema(contract: Contract, observed: set[str] = frozenset()) -> dict:
     if displayed_facts(contract):
         props["precision"] = {"type": ["number", "null"]}
         required.append("precision")
+    if word_facts(contract):
+        props["value"] = {"type": ["number", "null"]}
+        props["word"] = {"type": ["string", "null"],
+                         "enum": sorted({w for f in contract.facts for w in f.words} | {"unknown"}) + [None]}
+        required.append("word")
     if contract_roles(contract):
         props["role"] = {"type": ["string", "null"], "enum": list(ROLES) + [None]}
         required.append("role")
@@ -82,6 +87,19 @@ def _claim_schema(contract: Contract, observed: set[str] = frozenset()) -> dict:
 ROLES = ("as_is", "proposed", "change", "limit")
 
 
+def word_facts(contract) -> list:
+    return [f for f in contract.facts if f.words]
+
+
+def word_prompt(contract) -> str:
+    facts = word_facts(contract)
+    if not facts:
+        return ""
+    return ("Claims: some facts state a word, not an amount. For a claim of one of these, put the word in `word` "
+            "and set `value` null ('unknown' when the message does not say which); for every other claim set "
+            "`word` null.\n" + "".join(f"- {f.id}: one of {', '.join(f.words)}\n" for f in facts))
+
+
 def contract_roles(contract) -> bool:
     app = getattr(contract, "app", None)
     return bool(getattr(app, "claim_roles", False))
@@ -91,10 +109,10 @@ ROLE_PROMPT = ("Claims: `role` says what the figure is. 'as_is': the user's figu
                "product states about them now (their balance, rate, score, date today). 'proposed': a figure they "
                "would have or should reach if they act or if something changes (a target, a what-if, a projection "
                "under a change: \"bring your balance to $3,000\", \"you would finish in 2031\"). 'change': the size "
-               "of a change (\"$150/mo more\", \"save $900 a year\", \"two years sooner\"). 'limit': a cap, "
-               "allowance or remaining room a figure is measured against (\"a credit limit of $5,000\", \"$800 of "
-               "room left this year\"). A message's `around` text is only there to read a short block: never take "
-               "claims from it.\n")
+               "of a change or a gap, including room left below a cap (\"$150/mo more\", \"save $900 a year\", "
+               "\"two years sooner\", \"$800 of room left this year\"). 'limit': a cap or allowance itself "
+               "(\"a credit limit of $5,000\", \"the most you can put in is $6,000\"). A message's `around` text "
+               "is only there to read a short block: never take claims from it.\n")
 
 
 def key_fields(contract: Contract) -> dict[str, set[str]]:
@@ -146,7 +164,7 @@ def key_prompt(contract: Contract) -> str:
 def _prompt(contract: Contract, observed: set[str] = frozenset()) -> str:
     return (PROMPT + (DATETIME_PROMPT if temporal_facts(contract, observed) else "")
             + (PRECISION_PROMPT if displayed_facts(contract) else "") + key_prompt(contract)
-            + (ROLE_PROMPT if contract_roles(contract) else ""))
+            + (ROLE_PROMPT if contract_roles(contract) else "") + word_prompt(contract))
 
 
 def message_key(m) -> tuple:

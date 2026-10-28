@@ -207,6 +207,8 @@ class Fact(Strict):
                                                               # value that rounds to it (the claim records its step)
     key: list[FactKey] = Field(default_factory=list)          # a family fact: two claims are the same quantity only
                                                               # when every key field names the same, known value
+    words: list[str] = Field(default_factory=list)            # a word-valued fact (an action id, yes/no): its claims
+                                                              # state one of these words, not an amount
 
 
 # ---------- derived state ----------

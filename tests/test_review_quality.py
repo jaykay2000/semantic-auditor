@@ -41,6 +41,9 @@ def test_a_target_is_not_compared_with_the_current_figure():
         {("a", "violated"), ("b", "violated")}
     assert agree(msg("a", "report", 1875, 0, "proposed"), msg("b", "export", 1900, 1, "proposed")) == \
         {("a", "violated"), ("b", "violated")}                              # two targets for one thing still disagree
+    assert agree(msg("a", "report", 7500, 0, "proposed"), msg("b", "export", 8600, 1, "limit")) == \
+        {("a", "violated"), ("b", "violated")}                              # a target vs the cap it is set at
+    assert agree(msg("a", "report", 12500, 0, "change"), msg("b", "export", 35750, 1, "limit")) == set()
 
 
 def test_only_a_current_figure_is_checked_against_the_oracle():

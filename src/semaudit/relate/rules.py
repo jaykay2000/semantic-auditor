@@ -161,6 +161,45 @@ def eval_agree_across_surfaces(rule: Rule, story: Story, contract: Contract | No
     return out
 
 
+def eval_agree_across_states(rule: Rule, story: Story, contract: Contract | None = None) -> list[Entry]:
+    """The same fact reads the same before and after a state change the rule names (check.states: {var: [before,
+    after]}, e.g. account: [guest, signed_in]). A claim shown in the `before` state is compared with every claim of
+    the same quantity shown in the `after` state, on any surface, when every OTHER state variable reads the same at
+    both moments and the oracle's true value did not change between them. One entry per claim shown before."""
+    facts = set(rule.check.get("claims", []))
+    (var, (before, after)), = rule.check["states"].items()
+    model = contract.state if contract is not None else []
+    defs = {f.id: f for f in getattr(contract, "facts", [])}
+    state = {e.id: story.state_at(e.at, model, inclusive=True) for e in story.messages()}
+    shown_at = [(e, c) for e in story.messages() if e.extraction for c in e.extraction.claims if c["type"] in facts]
+    rest = lambda s: {k: v for k, v in s.items() if k != var}  # noqa: E731
+
+    def pair(a, b, fact):
+        if state[a.id].get(var) != before or state[b.id].get(var) != after or rest(state[a.id]) != rest(state[b.id]):
+            return False
+        ta, tb = story.truth_at(fact, a.at, a.feature), story.truth_at(fact, b.at, b.feature)
+        return ta is None or tb is None or ta == tb
+
+    out, seen = [], set()
+    for e, c in shown_at:
+        if (e.id, c["type"]) in seen or stated(c) is None:
+            continue
+        seen.add((e.id, c["type"]))
+        others = [(o, oc) for o, oc in shown_at if oc["type"] == c["type"] and pair(e, o, c["type"])
+                  and comparable(defs.get(c["type"]), c, oc) and stated(oc) is not None]
+        if not others:
+            continue
+        verdicts = [(o, compare(c, stated(oc), precision(oc))) for o, oc in others]
+        bad = [o for o, v in verdicts if v == MISMATCH]
+        if not bad and all(v == UNREADABLE for _, v in verdicts):
+            continue
+        note = (f"{c['type']} {shown(c)} on {e.surface} as {before}; " +
+                "; ".join(f"{shown(oc)} on {o.surface} as {after}" for o, oc in others if o in bad)) if bad else ""
+        out.append(Entry(rule.id, e.id, "violated" if bad else "passed", note=note,
+                         meta={"events": [e.id, *dict.fromkeys(o.id for o in bad)], "fact": c["type"]} if bad else {}))
+    return out
+
+
 def eval_match_charge(rule: Rule, story: Story) -> list[Entry]:
     out = []
     for e in story.messages():
@@ -374,6 +413,8 @@ def evaluate(story: Story, contract: Contract, interpret: Interpreter) -> list[E
         must = r.check.get("must")
         if r.kind == "universal" and must == "agree_across_surfaces":
             entries += eval_agree_across_surfaces(r, story, contract)
+        elif r.kind == "universal" and must == "agree_across_states":
+            entries += eval_agree_across_states(r, story, contract)
         elif r.kind == "universal" and must in universal:
             entries += universal[must](r, story)
         elif r.kind == "universal" and must == "precondition_holds_at_shown_time":
