@@ -16,7 +16,7 @@ The frozen result (5e32f9a) is unchanged. Everything here is reported beside it,
    06f72a1 (relate/claims.py: one comparison, at the claim's own precision; an unreadable claim is never raised).
 2. **Misses: 6 of 7 were a decision-filing gap.** An action listed under two decisions; the model filed the message
    under the other one (normalize overruled nothing: 0 of 293 messages), so the rule never ran. The 7th was a
-   date/time claim that was never extracted. Fixed on branch `fix/shared-action-decisions` (8f0071e, not merged):
+   date/time claim that was never extracted. Fixed on branch `fix/shared-action-decisions` (4cfc0a2, not merged):
    a shared action bears on every decision that lists it.
 - The verifier removed nothing. It can only drop a finding whose verification `failed`, and the misses never
   reached it.
