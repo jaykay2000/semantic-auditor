@@ -182,6 +182,8 @@ An **episode** is one run of one scenario, for one persona, on one release:
   - `supported`: the oracle agrees;
   - `contradicted`: the oracle disagrees. Only this status can raise a false-claim issue;
   - `unverifiable`: no oracle exists. Missing evidence is not evidence of falsehood, so this becomes an owner question (or a low-confidence note on an AI-generated surface), never a false claim.
+  - `unreadable`: an oracle exists, but the claim's value could not be read in the form the truth takes (for example a date/time claim with no readable moment, or a relative time like "tomorrow at 9"). This is an extraction gap, not a product fault, so it is recorded and never raised.
+  - All of these come from ONE comparison, `semaudit.relate.claims.compare`: rule evaluation, exception conditions, issue text and the page's per-claim verdict all call it. A fact whose contract `unit` is `datetime` states a moment: its claims carry `when` (ISO 8601, as precise as the message), compared at the claim's own precision. Contracts without such a fact keep the original extraction schema byte for byte. *(Added 2026-10-28 after the sealed W13b run: 34 of 34 auditor false alarms were correct date/time messages that the old `value == truth` comparison could never pass.)*
 - **(b) Messages** — `{message_id, capture_id, locator, exact_text, feature_id, attribution{method: dom_attr | contract_map | release_diff | model, confidence}, claims[]}`.
 - **(c) Message kind** — `information` · `directive` (recommends an action) · `retrospective` (judges a choice already made).
 - **(d) Directives** — for any message that recommends something:

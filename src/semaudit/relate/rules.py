@@ -13,6 +13,7 @@ from itertools import combinations
 from typing import Any, Callable
 
 from semaudit.contract.schema import Contract, Rule
+from semaudit.relate.claims import MISMATCH, UNREADABLE, compare, shown
 from semaudit.story.model import Event, Story
 
 
@@ -79,6 +80,11 @@ def live_at(live: Live, t: datetime) -> bool:
 
 # ---------- universal rules ----------
 
+def _status(verdict: str) -> str:
+    """mismatch -> violated; an unreadable claim is recorded but never a violation (an extraction gap)."""
+    return {"mismatch": "violated", "unreadable": "unreadable"}.get(verdict, "passed")
+
+
 def eval_match_oracle(rule: Rule, story: Story) -> list[Entry]:
     """Claims of the given types must equal the named oracle; a missing oracle is unverifiable, not false."""
     out = []
@@ -89,8 +95,8 @@ def eval_match_oracle(rule: Rule, story: Story) -> list[Entry]:
             truth = story.truth_at(c["type"], e.at, e.feature)
             if truth is None:
                 continue                      # unverifiable: an owner question, never a violation
-            status = "passed" if c["value"] == truth else "violated"
-            out.append(Entry(rule.id, e.id, status, note=f"claim {c['value']} vs true {c['type']} {truth}"))
+            out.append(Entry(rule.id, e.id, _status(compare(c, truth)),
+                             note=f"claim {shown(c)} vs true {c['type']} {truth}"))
     return out
 
 
@@ -102,8 +108,8 @@ def eval_match_charge(rule: Rule, story: Story) -> list[Entry]:
                 charged = story.final_truth(rule.check["charge"], e.feature)   # ultimately charged, same feature
                 if charged is None:       # no transaction in this story: not applicable
                     continue
-                status = "passed" if c["value"] == charged else "violated"
-                out.append(Entry(rule.id, e.id, status, note=f"shown {c['value']} vs charged {charged}"))
+                out.append(Entry(rule.id, e.id, _status(compare(c, charged)),
+                                 note=f"shown {shown(c)} vs charged {charged}"))
     return out
 
 
@@ -145,7 +151,10 @@ def condition_value(cond, e: Event, story: Story) -> str:
         truth = story.truth_at(cond.claim, e.at, e.feature)
         if not claims or truth is None:
             return "unknown"
-        return "met" if all(c["value"] == truth for c in claims) else "not_met"
+        verdicts = [compare(c, truth) for c in claims]
+        if UNREADABLE in verdicts:
+            return "unknown"                   # a claim we could not read is never evidence either way
+        return "not_met" if MISMATCH in verdicts else "met"
     return "unknown"
 
 

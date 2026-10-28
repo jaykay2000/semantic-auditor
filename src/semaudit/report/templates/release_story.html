@@ -334,13 +334,6 @@ function rail(p) {
       ${open ? (nr.map(nrItem).join('') || '<div class="muted">nothing evaluated and cleared in this story</div>') + (others.length ? `<div class="muted" style="font-size:12px">elsewhere: ${others.map(x => `${esc(x.persona)} (${esc(x.rule)}${x.label ? ' ' + esc(x.label.replace(/_/g, ' ')) : ''})`).join(' · ')}</div>` : '') : ''}</div>`;
 }
 
-function truthAt(p, e, fact) {
-  let best = null;
-  for (const s of p.state) if (t(s.at) <= t(e.at)) best = s;
-  if (!best) return null;
-  return best.truth[`${fact}@${e.feature}`] ?? best.truth[fact] ?? null;
-}
-
 function moment(p, e, mark, base) {
   const x = e.extraction || {};
   let visual = '';
@@ -357,8 +350,11 @@ function moment(p, e, mark, base) {
     const head = {email: `✉ ${esc(FNAME[e.feature] || e.feature)} → ${esc(p.name)}`, push: `▣ push notification`, chat: `💬 ${esc(FNAME[e.feature] || e.feature)} chat`}[c.kind] || esc(c.kind);
     visual = `<div class="envelope"><b style="color:var(--ink)">${head}</b> · sent ${hm(e.at)} · ${where}</div>`;
   }
-  const claims = (x.claims || []).map(cl => { const tv = truthAt(p, e, cl.type); if (tv === null) return `<span class="chip conf" title="no oracle value at this moment">${esc(cl.type.replace(/_/g, ' '))} ${cl.value}</span>`;
-    return Number(tv) === Number(cl.value) ? `<span class="chip ver">${esc(cl.type.replace(/_/g, ' '))} ${cl.value} ✓ true</span>` : `<span class="chip sev-critical">${esc(cl.type.replace(/_/g, ' '))} ${cl.value} ✗ true value ${tv}</span>`; }).join('');
+  const claims = (x.claims || []).map(cl => { const name = esc(cl.type.replace(/_/g, ' ')), val = esc(String(cl.shown ?? cl.when ?? cl.value));
+    // the verdict comes from review.json (relate/claims.py), never compared here
+    if (cl.verdict == null) return `<span class="chip conf" title="no oracle value at this moment">${name} ${val}</span>`;
+    if (cl.verdict === 'unreadable') return `<span class="chip conf" title="this claim could not be read in the form the true value takes">${name} ${val} · not readable</span>`;
+    return cl.verdict === 'match' ? `<span class="chip ver">${name} ${val} ✓ true</span>` : `<span class="chip sev-critical">${name} ${val} ✗ true value ${esc(String(cl.truth))}</span>`; }).join('');
   return `<div class="moment f-${cls(e.feature)}">
     <div class="muted" style="font-size:12px">${mark ? `<b style="color:var(--ink)">${mark}</b> · ` : ''}<span class="mono">${rel(e.at)}</span> · ${esc(FNAME[e.feature] || e.feature)} · ${esc(e.surface.replace(/_/g, ' '))} · ${esc(e.channel)}</div>
     ${visual}<div class="quote">“${esc(e.text)}”</div>

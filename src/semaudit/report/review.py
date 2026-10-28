@@ -14,6 +14,7 @@ from typing import Any
 from semaudit.contract.schema import Contract
 from semaudit.decide.issues import Issue, apply_delta, build_issues, condition_details
 from semaudit.decide.pipeline import ReleaseEval
+from semaudit.relate.claims import compare, shown
 from semaudit.relate.rules import validity
 from semaudit.story.align import align
 from semaudit.story.model import Story
@@ -66,6 +67,18 @@ def capture_view(ep, evidence) -> dict | None:
             "bbox": el.bbox.model_dump() if el.bbox else None}
 
 
+def _with_verdicts(e, story: Story) -> dict:
+    """The extraction, with each claim's true value and verdict from the one comparison (relate/claims.py),
+    so the page never compares a claim itself."""
+    x = e.extraction.model_dump()
+    for c in x["claims"]:
+        truth = story.truth_at(c["type"], e.at, e.feature)
+        c["truth"] = truth.isoformat() if hasattr(truth, "isoformat") else truth
+        c["verdict"] = None if truth is None else compare(c, truth)
+        c["shown"] = shown(c)
+    return x
+
+
 def event_row(e, story: Story, contract: Contract, ep=None) -> dict:
     row: dict[str, Any] = {"id": e.id, "at": e.at.isoformat(), "kind": e.kind}
     if e.kind == "user_action":
@@ -74,7 +87,7 @@ def event_row(e, story: Story, contract: Contract, ep=None) -> dict:
     live = validity(e, story, contract) if e.extraction and e.extraction.message_kind == "directive" else None
     row.update(feature=e.feature, component=e.component, surface=e.surface, channel=e.channel, text=e.text, message_key=e.copy_key,
                user_initiated=e.user_initiated,
-               extraction=e.extraction.model_dump() if e.extraction else None,
+               extraction=_with_verdicts(e, story) if e.extraction else None,
                evidence=e.evidence.model_dump() if e.evidence else None,
                capture=capture_view(ep, e.evidence),
                live_until=(live.end.isoformat() if live.end else None) if live else None,

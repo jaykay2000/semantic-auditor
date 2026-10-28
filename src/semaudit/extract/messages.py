@@ -28,17 +28,45 @@ def extraction_schema(contract: Contract) -> dict:
             "strength": {"type": "string", "enum": ["inform", "suggest", "urge", "require"]},
             "urgency_cue": {"type": "string", "enum": ["U-a", "U-b", "U-c", "none"]},
             "explains_own_tradeoff": {"type": "boolean"},
-            "claims": {"type": "array", "items": {
-                "type": "object", "additionalProperties": False, "required": ["type", "value", "unit"],
-                "properties": {"type": {"type": "string", "enum": [f.id for f in contract.facts] or ["none"]},
-                               "value": {"type": "number"}, "unit": {"type": "string"}}}},
+            "claims": {"type": "array", "items": _claim_schema(contract)},
         },
     }
     return {"type": "object", "additionalProperties": False, "required": ["messages"],
             "properties": {"messages": {"type": "array", "items": item}}}
 
 
+DATETIME = "datetime"      # a fact whose contract `unit` is this states a moment, not an amount
+
+
+def temporal_facts(contract: Contract) -> set[str]:
+    return {f.id for f in contract.facts if f.unit == DATETIME}
+
+
+def _claim_schema(contract: Contract) -> dict:
+    """An amount claim is a number. A contract with a date/time fact (unit: datetime) also gets `when`, so its
+    claims can carry a moment. A contract without one gets the original schema, unchanged, so its extractions
+    and cached answers are not disturbed."""
+    props = {"type": {"type": "string", "enum": [f.id for f in contract.facts] or ["none"]},
+             "value": {"type": "number"}, "unit": {"type": "string"}}
+    if not temporal_facts(contract):
+        return {"type": "object", "additionalProperties": False, "required": ["type", "value", "unit"],
+                "properties": props}
+    props.update(value={"type": ["number", "null"]}, when={"type": ["string", "null"]})
+    return {"type": "object", "additionalProperties": False, "required": ["type", "value", "unit", "when"],
+            "properties": props}
+
+
 PROMPT = "Classify every message below independently, using the rubric. Return one entry per id.\n"
+
+DATETIME_PROMPT = ("Claims: a claim that states an amount or count goes in `value` (with its `unit`), and `when` "
+                   "is null. A claim that states a date or time goes in `when` as ISO 8601, exactly as precise as the message "
+                   "(YYYY-MM-DD for a date only, YYYY-MM-DDTHH:MM for a date and time, with a UTC offset only if the "
+                   "message gives a time zone), and `value` is null. If the message gives a time but not its date, or "
+                   "a relative time (\"tomorrow\", \"in 2 hours\"), set `when` null: it cannot be read on its own.\n")
+
+
+def _prompt(contract: Contract) -> str:
+    return PROMPT + (DATETIME_PROMPT if temporal_facts(contract) else "")
 
 
 def normalize(x: Extraction, contract: Contract) -> Extraction:
@@ -54,7 +82,7 @@ def extract_story(story: Story, contract: Contract, router: Router, *, fresh: bo
                   role: str = "extractor") -> dict[str, Extraction]:
     msgs = story.messages()
     listing = [{"id": m.id, "feature": m.feature, "channel": m.channel, "text": m.text} for m in msgs]
-    prompt = (PROMPT + json.dumps(listing, ensure_ascii=False, indent=1))
+    prompt = (_prompt(contract) + json.dumps(listing, ensure_ascii=False, indent=1))
     r = router.complete(role, [{"role": "system", "content": contract.rubric},
                                {"role": "user", "content": prompt}],
                         schema=extraction_schema(contract), schema_name="extraction", fresh=fresh)
@@ -78,7 +106,7 @@ def extract_unique(messages: list[dict], contract: Contract, router: Router, *, 
     for i in range(0, len(uniq), batch):
         chunk = uniq[i:i + batch]
         listing = [{"id": f"m{j}", "feature": f, "channel": c, "text": t} for j, (f, c, t) in enumerate(chunk)]
-        prompt = (PROMPT + json.dumps(listing, ensure_ascii=False, indent=1))
+        prompt = (_prompt(contract) + json.dumps(listing, ensure_ascii=False, indent=1))
         r = router.complete(role, [{"role": "system", "content": contract.rubric},
                                    {"role": "user", "content": prompt}],
                             schema=extraction_schema(contract), schema_name="extraction", fresh=fresh)

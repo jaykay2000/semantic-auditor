@@ -14,6 +14,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from semaudit.contract.schema import SEVERITY, Contract, Rule
+from semaudit.relate.claims import shown
 from semaudit.relate.rules import Entry
 from semaudit.story.model import Event, Story
 
@@ -188,7 +189,7 @@ def condition_details(r: Rule, entry: Entry, e: Event, story: Story) -> list[dic
                 text = (f"{name} {span} after the message ({'≤' if ok else '>'} {c.hours:g} h)" if secs >= 0
                         else f"the {name} has already passed")
         elif c is not None and c.test == "claim_matches_oracle":
-            claimed = [x["value"] for x in e.extraction.claims if x["type"] == c.claim]
+            claimed = [shown(x) for x in e.extraction.claims if x["type"] == c.claim]
             truth = story.truth_at(c.claim, e.at, e.feature)
             text = f"claims {claimed[0] if claimed else '?'} {c.claim.replace('_', ' ')}; true value {truth}"
         elif c is not None and c.kind == "judged":
