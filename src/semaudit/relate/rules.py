@@ -13,7 +13,7 @@ from itertools import combinations
 from typing import Any, Callable
 
 from semaudit.contract.schema import Contract, Rule
-from semaudit.relate.claims import MISMATCH, UNREADABLE, compare, precision, shown, stated
+from semaudit.relate.claims import MISMATCH, UNREADABLE, compare, precision, same_quantity, shown, stated
 from semaudit.story.model import Event, Story
 
 
@@ -138,6 +138,7 @@ def eval_agree_across_surfaces(rule: Rule, story: Story, contract: Contract | No
     facts = set(rule.check.get("claims", []))
     shown_at = [(e, c) for e in story.messages() if e.extraction for c in e.extraction.claims if c["type"] in facts]
     model = contract.state if contract is not None else []
+    defs = {f.id: f for f in getattr(contract, "facts", [])}
     same = lambda a, b, fact: same_state(story, model, a, b, fact)  # noqa: E731
 
     out, seen = [], set()
@@ -146,7 +147,7 @@ def eval_agree_across_surfaces(rule: Rule, story: Story, contract: Contract | No
             continue
         seen.add((e.id, c["type"]))
         others = [(o, oc) for o, oc in shown_at if o.surface != e.surface and oc["type"] == c["type"] and same(e, o, c["type"])
-                  and stated(oc) is not None]
+                  and same_quantity(defs.get(c["type"]), c, oc) and stated(oc) is not None]
         verdicts = [(o, compare(c, stated(oc), precision(oc))) for o, oc in others]
         if any(v == UNREADABLE for _, v in verdicts) and not any(v == MISMATCH for _, v in verdicts):
             continue                                   # nothing readable to compare it with

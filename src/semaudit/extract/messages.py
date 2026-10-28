@@ -69,7 +69,23 @@ def _claim_schema(contract: Contract, observed: set[str] = frozenset()) -> dict:
     if displayed_facts(contract):
         props["precision"] = {"type": ["number", "null"]}
         required.append("precision")
+    for name, values in key_fields(contract).items():
+        props[name] = ({"type": ["string", "null"], "enum": sorted(values | {"unknown"}) + [None]} if values
+                       else {"type": ["string", "null"]})
+        required.append(name)
     return {"type": "object", "additionalProperties": False, "required": required, "properties": props}
+
+
+def key_fields(contract: Contract) -> dict[str, set[str]]:
+    """Every key field a family fact declares -> the values allowed for it (union over facts; empty: free text).
+    A field free in any fact is free everywhere, so no fact's values are refused."""
+    values: dict[str, set[str]] = {}
+    free: set[str] = set()
+    for k in (k for f in contract.facts for k in f.key):
+        values.setdefault(k.field, set()).update(k.values)
+        if not k.values:
+            free.add(k.field)
+    return {n: (set() if n in free else v) for n, v in values.items()}
 
 
 def displayed_facts(contract: Contract) -> set[str]:
@@ -92,9 +108,23 @@ PRECISION_PROMPT = ("Claims: `precision` is the size of the last digit the messa
                     "52, 1; \"22%\" -> 22, 1. Use null when the claim has no value.\n")
 
 
+def key_prompt(contract: Contract) -> str:
+    keyed = [f for f in contract.facts if f.key]
+    if not keyed:
+        return ""
+    lines = ["Claims: some facts are families of different quantities. For a claim of one of these facts, also set "
+             "the fields below to say which quantity it is ('unknown' when the message does not say); for any other "
+             "claim, set them null."]
+    for f in keyed:
+        parts = [f"`{k.field}` ({k.describe + ': ' if k.describe else ''}"
+                 f"{'one of ' + ', '.join(k.values) if k.values else 'short text'})" for k in f.key]
+        lines.append(f"- {f.id}: " + "; ".join(parts))
+    return "\n".join(lines) + "\n"
+
+
 def _prompt(contract: Contract, observed: set[str] = frozenset()) -> str:
     return (PROMPT + (DATETIME_PROMPT if temporal_facts(contract, observed) else "")
-            + (PRECISION_PROMPT if displayed_facts(contract) else ""))
+            + (PRECISION_PROMPT if displayed_facts(contract) else "") + key_prompt(contract))
 
 
 def normalize(x: Extraction, contract: Contract) -> Extraction:

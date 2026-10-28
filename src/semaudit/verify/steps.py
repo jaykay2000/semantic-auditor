@@ -250,7 +250,7 @@ def step_oracle(issue: Issue, stories: dict[str, Story], contract: Contract) -> 
     check = contract.rule(issue.rule).check
     facts = set(check.get("claims", []))
     if check.get("must") == "agree_across_surfaces":
-        return _step_agreement(issue, stories, facts, contract.state)
+        return _step_agreement(issue, stories, facts, contract.state, {f.id: f for f in contract.facts})
     gaps = []
     for o in issue.occurrences:
         story = stories[o.persona]
@@ -263,11 +263,12 @@ def step_oracle(issue: Issue, stories: dict[str, Story], contract: Contract) -> 
     return {"result": "fail" if gaps else "pass", "detail": gaps or "claims compared with oracle readings"}
 
 
-def _step_agreement(issue: Issue, stories: dict[str, Story], facts: set[str], model: list | None = None) -> dict:
+def _step_agreement(issue: Issue, stories: dict[str, Story], facts: set[str], model: list | None = None,
+                    defs: dict | None = None) -> dict:
     """Agreement issues have no oracle: re-derive the disagreement from the cited messages themselves, by the
     one comparison. Passes only if, for every occurrence, two cited messages on different surfaces, shown in the
     same state, state readable, different values of the same fact."""
-    from semaudit.relate.claims import MISMATCH, compare, precision, stated
+    from semaudit.relate.claims import MISMATCH, compare, precision, same_quantity, stated
     from semaudit.relate.rules import same_state
     per = {}
     for o in issue.occurrences:
@@ -276,6 +277,7 @@ def _step_agreement(issue: Issue, stories: dict[str, Story], facts: set[str], mo
               for c in e.extraction.claims if c["type"] in facts]
         per[o.persona] = any(a.surface != b.surface and ca["type"] == cb["type"] and stated(cb) is not None
                              and same_state(story, model or [], a, b, ca["type"])
+                             and same_quantity((defs or {}).get(ca["type"]), ca, cb)
                              and compare(ca, stated(cb), precision(cb)) == MISMATCH for a, ca in cl for b, cb in cl)
     ok = all(per.values())
     return {"result": "pass" if ok else "fail",

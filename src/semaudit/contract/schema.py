@@ -190,6 +190,14 @@ class FactSource(Strict):
     scale: float = 1.0                                   # e.g. 0.01 for cents -> whole currency units
 
 
+class FactKey(Strict):
+    """One field that says WHICH quantity a claim of a family fact is about (a sub-score's category, the action a
+    dollar amount is for). The extractor sets it on every claim of the fact; 'unknown' when it cannot tell."""
+    field: str
+    values: list[str] = Field(default_factory=list)   # the allowed values; empty: free text
+    describe: str = ""                                 # what the field names, for the extractor
+
+
 class Fact(Strict):
     """A kind of claim a message can make, and where its true value comes from (first source that reads)."""
     id: str
@@ -197,6 +205,8 @@ class Fact(Strict):
     sources: list[FactSource] = Field(default_factory=list)   # empty: claims of this fact are unverifiable
     match: Literal["exact", "displayed"] = "exact"            # displayed: a rounded figure ("$1.2M") matches any
                                                               # value that rounds to it (the claim records its step)
+    key: list[FactKey] = Field(default_factory=list)          # a family fact: two claims are the same quantity only
+                                                              # when every key field names the same, known value
 
 
 # ---------- derived state ----------

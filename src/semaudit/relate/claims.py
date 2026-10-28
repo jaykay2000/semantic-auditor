@@ -52,6 +52,22 @@ def precision(claim: dict) -> float:
     return float(p) if isinstance(p, (int, float)) and not isinstance(p, bool) and p > 0 else 0.0
 
 
+UNKEYED = ("", "unknown", "other")   # a key that names no single quantity ("other" is a catch-all)
+
+
+def same_quantity(fact, a: dict, b: dict) -> bool:
+    """Two claims of one fact are about the same quantity. Always, for a plain fact. For a family fact (`key`),
+    only when every key field names the same known value in both: an unknown, catch-all ('other'), missing or
+    out-of-vocabulary key is never compared, because two different quantities would read as a disagreement."""
+    for k in (fact.key if fact is not None else []):
+        va, vb = a.get(k.field), b.get(k.field)
+        if not isinstance(va, str) or va.strip().lower() in UNKEYED or (k.values and va not in k.values):
+            return False
+        if va.strip().lower() != (vb or "").strip().lower():
+            return False
+    return True
+
+
 def compare(claim: dict, truth: Any, truth_precision: float = 0.0) -> str:
     """`truth_precision` is the displayed precision of the other side when the truth is itself a shown claim: two
     roundings agree when they are within half the coarser step of each other."""
