@@ -39,11 +39,18 @@ def test_a_target_is_not_compared_with_the_current_figure():
     assert agree(msg("now", "report", 1200, 0, "as_is"), msg("goal", "export", 1875, 1, "proposed")) == set()
     assert agree(msg("a", "report", 1200, 0, "as_is"), msg("b", "export", 1500, 1, "as_is")) == \
         {("a", "violated"), ("b", "violated")}
-    assert agree(msg("a", "report", 1875, 0, "proposed"), msg("b", "export", 1900, 1, "proposed")) == \
-        {("a", "violated"), ("b", "violated")}                              # two targets for one thing still disagree
-    assert agree(msg("a", "report", 7500, 0, "proposed"), msg("b", "export", 8600, 1, "limit")) == \
+    # a plain (unkeyed) fact: two what-ifs name no shared scenario, so they are not compared
+    assert agree(msg("a", "report", 1875, 0, "proposed"), msg("b", "export", 1900, 1, "proposed")) == set()
+
+
+def test_targets_and_limits_compare_when_the_fact_says_they_state_its_truth():
+    lim = SimpleNamespace(facts=[Fact(id="monthly_saved", truth_roles=["limit", "proposed"])], state=[],
+                          app=SimpleNamespace(claim_roles=True))
+    story = lambda *e: Story(id="s", release="r", persona="p", events=list(e))  # noqa: E731
+    got = lambda *e: {(x.subject, x.status) for x in eval_agree_across_surfaces(RULE, story(*e), lim)}  # noqa: E731
+    assert got(msg("a", "report", 7500, 0, "proposed"), msg("b", "export", 8600, 1, "limit")) == \
         {("a", "violated"), ("b", "violated")}                              # a target vs the cap it is set at
-    assert agree(msg("a", "report", 12500, 0, "change"), msg("b", "export", 35750, 1, "limit")) == set()
+    assert got(msg("a", "report", 12500, 0, "change"), msg("b", "export", 35750, 1, "limit")) == set()
 
 
 def test_only_a_current_figure_is_checked_against_the_oracle():
@@ -93,3 +100,20 @@ def test_a_different_disagreement_on_the_same_block_is_a_different_issue():
     assert signature(e(), [page, exp1]) == signature(e(), [page, exp1])
     plain = Entry("U1", "p", "violated")
     assert signature(plain, [page]) == ("U1", "plan", "plan.k1", ())             # other rules: unchanged
+
+
+def test_a_monthly_claim_is_checked_against_a_yearly_truth_in_the_same_period():
+    room = Fact(id="room", period="year", truth_roles=["change"])
+    c = SimpleNamespace(facts=[room])
+    rule = SimpleNamespace(id="H", check={"claims": ["room"], "must": "match_oracle"})
+    def run(value, per, precision=1):
+        x = Extraction(message_kind="information", decision="none", action="none", strength="inform",
+                       urgency_cue="none", explains_own_tradeoff=False,
+                       claims=[{"type": "room", "value": value, "unit": "USD", "role": "change", "per": per,
+                                "precision": precision}])
+        s = Story(id="s", release="r", persona="p", truth={"room": 10100},
+                  events=[Event(id="m", at=T0, kind="message", feature="f", surface="d", text="x", extraction=x)])
+        return [x.status for x in eval_match_oracle(rule, s, c)]
+    assert run(800, "month", 100) == ["passed"]          # $800/mo shown to the hundred: 9,600 +/- 600
+    assert run(500, "month", 100) == ["violated"]
+    assert run(10100, "year") == ["passed"] and run(800, None) == ["violated"]   # no period stated: as before

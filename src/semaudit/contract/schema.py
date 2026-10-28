@@ -212,6 +212,8 @@ class Fact(Strict):
                                                               # when every key field names the same, known value
     words: list[str] = Field(default_factory=list)            # a word-valued fact (an action id, yes/no): its claims
                                                               # state one of these words, not an amount
+    period: Literal["month", "year"] | None = None            # the period the true value is per; a claim keyed
+                                                              # `per` month/year is scaled to it before comparing
     truth_roles: list[str] = Field(default_factory=lambda: ["as_is"])   # with claim roles: the roles whose claims
                                                               # state this fact's true value (a limit fact: limit)
 

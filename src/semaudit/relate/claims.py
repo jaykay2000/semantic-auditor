@@ -63,11 +63,27 @@ def checkable(claim: dict, fact=None) -> bool:
 ROLE_GROUP = {"as_is": "as_is", "proposed": "level", "limit": "level", "change": "change"}
 
 
+PER_YEAR = {"month": 12, "year": 1}
+
+
+def in_period(claim: dict, fact) -> dict:
+    """The claim restated in the period the fact's truth is per ("$800/mo" against a yearly truth: 9,600, at a
+    displayed step of 1,200). Unchanged when either period is not stated."""
+    period, per = getattr(fact, "period", None), claim.get("per")
+    if period not in PER_YEAR or per not in PER_YEAR or per == period or not isinstance(claim.get("value"), (int, float)):
+        return claim
+    k = PER_YEAR[per] / PER_YEAR[period]
+    return {**claim, "value": claim["value"] * k, "precision": precision(claim) * k, "per": period}
+
+
 def comparable(fact, a: dict, b: dict) -> bool:
     """Two claims can disagree only if they are the same kind of figure about the same quantity (key). A target
     and the cap it is set at are both the level to reach ("ramp toward $X" / "the max of $X"), so proposed and
     limit compare with each other; the current figure and the size of a change each compare only with their own."""
     ra, rb = a.get("role"), b.get("role")
+    if fact is not None and not fact.key and not (checkable(a, fact) and checkable(b, fact)):
+        return False          # a target or what-if of a plain fact ("-> age 56 if you save more") names no scenario
+                              # a second claim could share; only the roles its truth describes are comparable
     return ROLE_GROUP.get(ra, ra) == ROLE_GROUP.get(rb, rb) and same_quantity(fact, a, b)
 
 

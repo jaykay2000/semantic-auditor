@@ -13,7 +13,7 @@ from itertools import combinations
 from typing import Any, Callable
 
 from semaudit.contract.schema import Contract, Rule
-from semaudit.relate.claims import MISMATCH, UNREADABLE, checkable, comparable, compare, precision, shown, stated
+from semaudit.relate.claims import MISMATCH, UNREADABLE, checkable, comparable, compare, in_period, precision, shown, stated
 from semaudit.story.model import Event, Story
 
 
@@ -107,7 +107,7 @@ def eval_match_oracle(rule: Rule, story: Story, contract: Contract | None = None
             truth = story.truth_at(c["type"], e.at, e.feature)
             if truth is None:
                 continue                      # unverifiable: an owner question, never a violation
-            out.append(Entry(rule.id, e.id, _status(compare(c, truth)),
+            out.append(Entry(rule.id, e.id, _status(compare(in_period(c, defs.get(c["type"])), truth)),
                              note=f"claim {shown(c)} vs true {c['type']} {truth}"))
     return out
 
