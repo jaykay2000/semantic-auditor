@@ -259,7 +259,7 @@ def step_oracle(issue: Issue, stories: dict[str, Story], contract: Contract) -> 
         story = stories[o.persona]
         for e in cited_events(o.entry, story):
             for c in (e.extraction.claims if e.extraction else []):
-                if c["type"] not in facts or not checkable(c):
+                if c["type"] not in facts or not checkable(c, next((f for f in contract.facts if f.id == c["type"]), None)):
                     continue
                 if story.truth_at(c["type"], e.at, e.feature) is None and story.final_truth(c["type"], e.feature) is None:
                     gaps.append(f"{o.persona}/{e.id}: no oracle value for {c['type']}")

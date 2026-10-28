@@ -114,4 +114,4 @@ def story_from_episode(ep: Episode, contract: Contract) -> Story:
     snaps = [snapshot(scenario.day0, ep.initial_state, contract)] if ep.initial_state else []
     snaps += [snapshot(st.at, st.state, contract) for st in ep.steps if st.state]
     return Story(id=ep.id.replace("/", "__"), release=ep.release, persona=ep.persona, context=context,
-                 snapshots=snaps, events=events)
+                 truth=dict(persona.reference), snapshots=snaps, events=events)

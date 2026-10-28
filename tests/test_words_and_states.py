@@ -99,3 +99,23 @@ def test_a_change_in_the_true_value_between_the_two_is_not_a_violation():
     story.snapshots = [{"at": T0, "truth": {"score": 55}}, {"at": T0 + timedelta(minutes=2, seconds=30),
                                                          "truth": {"score": 61}}]
     assert [x for x in eval_agree_across_states(STATES, story, C) if x.status == "violated"] == []
+
+
+def test_a_persona_reference_value_is_the_truth_when_no_oracle_reads_the_fact():
+    from semaudit.relate.rules import eval_match_oracle
+    story = Story(id="s", release="r", persona="p", truth={"limit_401k": 35750}, events=[
+        msg("page", "report", 0, fact="limit_401k", value=24500, role="limit"),
+        msg("pdf", "pdf_report", 1, fact="limit_401k", value=35750, role="limit")])
+    rule = SimpleNamespace(id="R", check={"claims": ["limit_401k"], "must": "match_oracle"})
+    assert eval_match_oracle(rule, story) == []                       # a limit claim does not state a current value
+    lim = SimpleNamespace(facts=[Fact(id="limit_401k", truth_roles=["limit", "proposed"])])
+    assert {(x.subject, x.status) for x in eval_match_oracle(rule, story, lim)} == \
+        {("page", "violated"), ("pdf", "passed")}                     # ...unless the fact IS the limit
+    snap = story.model_copy(update={"snapshots": [{"at": T0, "truth": {"limit_401k": 24500}}]})
+    assert snap.truth_at("limit_401k", T0 + timedelta(minutes=1)) == 24500   # a measured oracle reading wins
+
+
+def test_story_building_carries_the_persona_reference():
+    import inspect
+    from semaudit.story import build
+    assert "truth=dict(persona.reference)" in inspect.getsource(build.story_from_episode)

@@ -96,12 +96,13 @@ def _status(verdict: str) -> str:
     return {"mismatch": "violated", "unreadable": "unreadable"}.get(verdict, "passed")
 
 
-def eval_match_oracle(rule: Rule, story: Story) -> list[Entry]:
+def eval_match_oracle(rule: Rule, story: Story, contract: Contract | None = None) -> list[Entry]:
     """Claims of the given types must equal the named oracle; a missing oracle is unverifiable, not false."""
+    defs = {f.id: f for f in getattr(contract, "facts", [])}
     out = []
     for e in story.messages():
         for c in e.extraction.claims:
-            if c["type"] not in rule.check["claims"] or not checkable(c):
+            if c["type"] not in rule.check["claims"] or not checkable(c, defs.get(c["type"])):
                 continue
             truth = story.truth_at(c["type"], e.at, e.feature)
             if truth is None:
@@ -415,6 +416,8 @@ def evaluate(story: Story, contract: Contract, interpret: Interpreter) -> list[E
             entries += eval_agree_across_surfaces(r, story, contract)
         elif r.kind == "universal" and must == "agree_across_states":
             entries += eval_agree_across_states(r, story, contract)
+        elif r.kind == "universal" and must == "match_oracle":
+            entries += eval_match_oracle(r, story, contract)
         elif r.kind == "universal" and must in universal:
             entries += universal[must](r, story)
         elif r.kind == "universal" and must == "precondition_holds_at_shown_time":

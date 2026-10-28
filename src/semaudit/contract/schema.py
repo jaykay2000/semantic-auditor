@@ -209,6 +209,8 @@ class Fact(Strict):
                                                               # when every key field names the same, known value
     words: list[str] = Field(default_factory=list)            # a word-valued fact (an action id, yes/no): its claims
                                                               # state one of these words, not an amount
+    truth_roles: list[str] = Field(default_factory=lambda: ["as_is"])   # with claim roles: the roles whose claims
+                                                              # state this fact's true value (a limit fact: limit)
 
 
 # ---------- derived state ----------
@@ -293,6 +295,9 @@ class Persona(Strict):
     context: dict[str, Any] = Field(default_factory=dict)       # values for the contract's Subject.context
     experiments: dict[str, Any] = Field(default_factory=dict)   # experiment arms the app assigns
     world: dict[str, Any] = Field(default_factory=dict)         # oracle state seeded before the scenario
+    reference: dict[str, Any] = Field(default_factory=dict)     # fact id -> its true value from an outside source
+                                                                # (a statutory limit for this persona's age); the
+                                                                # truth for a fact no oracle reads
     role: str | None = None              # hero | negative | boundary | factual (documentation only)
 
     def value(self, fid: str, subject: "Subject") -> Any:
