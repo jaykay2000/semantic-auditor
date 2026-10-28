@@ -402,6 +402,8 @@ class Launch(Strict):
     sink_root: str | None = None
     health: str = "/"                    # GET until it answers (any status below 500)
     startup_timeout: float = 30.0
+    per_episode: bool = False            # start a fresh app for every episode (for apps with no reset hook, so one
+                                         # persona's server-side state, e.g. caches, cannot reach the next)
 
 
 class App(Strict):

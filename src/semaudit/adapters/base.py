@@ -64,6 +64,7 @@ class StepResult:
     chat: list[ChatTurn] | None = None    # the transcript, when `landed` is a chat surface
     pdf: PdfDownload | None = None        # a document the step downloaded
     text: TextCapture | None = None       # plain text the step gave the user (copied, exported)
+    note: str | None = None               # how the step went, when it is worth recording (e.g. it needed a retry)
 
 
 @dataclass

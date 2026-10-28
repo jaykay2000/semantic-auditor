@@ -99,6 +99,7 @@ class StepRecord(Strict):
     when_offered: bool = False
     status: StepStatus
     error: str | None = None
+    note: str | None = None                                   # the adapter's note on how the step went (retries...)
     clock: dict[str, Any] | None = None                       # what was sent to the clock hook and what it answered
     captures: list[Capture] = Field(default_factory=list)
     state: dict[str, OracleReading] = Field(default_factory=dict)

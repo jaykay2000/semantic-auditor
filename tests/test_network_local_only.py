@@ -68,3 +68,27 @@ def test_the_runner_applies_the_policy_and_records_it_on_the_episode(tmp_path):
         ep = r.run_episode(c.app.releases[-1], persona, c.scenario_for(persona.id)[0])
     assert ep.network == {"policy": "local_only", "blocked": {}}       # Northbound loads nothing external
     assert all(s.status != "failed" for s in ep.steps)
+
+
+def test_per_episode_starts_a_fresh_app_for_every_episode(tmp_path, monkeypatch):
+    """An app with no reset hook can keep server-side state (caches) between personas; per_episode prevents it."""
+    from semaudit.capture import runner as R
+    from semaudit.contract.schema import load_contract
+    starts, stops = [], []
+
+    class Fake:
+        def __init__(self, release):
+            self.release, self.base_url, self.sink_root = release, "http://127.0.0.1:1", None
+            starts.append(release)
+
+        def stop(self):
+            stops.append(self.release)
+    monkeypatch.setattr(R, "launch", lambda app, d, release: Fake(release))
+    c = load_contract(ROOT / "examples" / "northbound" / "contract")
+    for per_episode, want in ((True, 2), (False, 1)):
+        starts.clear()
+        c.app = c.app.model_copy(update={"launch": c.app.launch.model_copy(update={"per_episode": per_episode})})
+        r = R.Runner(ROOT / "examples" / "northbound" / "contract", contract=c, runs_dir=tmp_path)
+        r._app("2.4", fresh=per_episode)
+        r._app("2.4", fresh=per_episode)
+        assert len(starts) == want

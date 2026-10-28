@@ -112,7 +112,9 @@ class Runner:
             self._browser = self._pw.chromium.launch(headless=self.headless)
         return self._browser
 
-    def _app(self, release: str) -> RunningApp:
+    def _app(self, release: str, *, fresh: bool = False) -> RunningApp:
+        if fresh and release in self._apps:
+            self._apps.pop(release).stop()
         if release not in self._apps:
             if self.contract.app.launch is None:
                 self._apps[release] = RunningApp(release, self.base_url or self.contract.app.base_url, self.sink_root)
@@ -134,7 +136,8 @@ class Runner:
 
     def run_episode(self, release: str, persona: Persona, scenario: Scenario) -> Episode:
         contract, adapter = self.contract, self.adapter
-        app = self._app(release)
+        launch_spec = contract.app.launch
+        app = self._app(release, fresh=bool(launch_spec and launch_spec.per_episode))
         http = httpx.Client(timeout=15.0)
         hooks = HookClient(app.base_url, contract.app.hooks, http)
         oracles = OracleClient(app.base_url, contract.oracles, http)
@@ -223,6 +226,8 @@ class Runner:
             elif result.error:
                 error = result.error
 
+        if result is not None and result.note:
+            rec.note = result.note
         if result is not None and result.offered:
             if result.landed:
                 self._capture_page(ectx, sess, result.landed, chat=result.chat)
