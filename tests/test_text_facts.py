@@ -25,3 +25,21 @@ def test_a_word_still_states_a_text_fact():
 def test_money_facts_are_unchanged():
     assert checkable({"type": "order_total", "value": 48.59}, TOTAL)
     assert comparable(TOTAL, {"type": "order_total", "value": 48.59}, {"type": "order_total", "value": 0})
+
+
+def test_a_rule_that_checks_only_wordless_text_facts_is_not_measured():
+    from semaudit.relate.claims import unmeasurable_rules
+    rule = SimpleNamespace(id="U9", check={"claims": ["ship_to"], "must": "match_oracle"})
+    money = SimpleNamespace(id="U1", check={"claims": ["order_total", "ship_to"], "must": "match_oracle"})
+    c = SimpleNamespace(facts=[SimpleNamespace(**vars(SHIP_TO), words=[]), SimpleNamespace(**vars(TOTAL), words=[])],
+                        rules=[rule, money])
+    assert [r["rule"] for r in unmeasurable_rules(c)] == ["U9"]
+
+
+def test_spree_like_contract_review_is_incomplete_when_a_rule_cannot_fire():
+    from semaudit.report.review import measurement
+    rel = SimpleNamespace(complete=True, not_measured={})
+    c = SimpleNamespace(facts=[SimpleNamespace(**vars(SHIP_TO), words=[])],
+                        rules=[SimpleNamespace(id="U9", check={"claims": ["ship_to"]})])
+    m = measurement(rel, rel, c)
+    assert m["complete"] is False and m["rules_not_measured"][0]["rule"] == "U9"

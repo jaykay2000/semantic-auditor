@@ -57,7 +57,8 @@ def verify_report(review_path: Path, *, root: Path | None = None) -> list[str]:
     except ModelError as e:
         raise CannotVerify(f"cannot re-derive offline: {e}") from e
 
-    if r["measurement"] != {"complete": b.complete and h.complete, "base": b.not_measured, "head": h.not_measured}:
+    from semaudit.report.review import measurement
+    if r["measurement"] != measurement(b, h, contract):
         problems.append("measurement differs from what the episodes show")
     head_issues = build_issues(head, h.results, contract)
     resolved, unconfirmed = apply_delta(head_issues, build_issues(base, b.results, contract), set(b.results),

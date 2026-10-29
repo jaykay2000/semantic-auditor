@@ -22,6 +22,18 @@ from semaudit.story.model import Story
 CLEARED_LABELS = {"explained_tradeoff", "compatible"}
 
 
+def measurement(base: ReleaseEval, head: ReleaseEval, contract: Contract) -> dict:
+    """What was measured: both releases' capture problems, and rules that cannot be evaluated at all. A rule that
+    cannot fire makes the measurement incomplete: its silence is not a pass."""
+    from semaudit.relate.claims import unmeasurable_rules
+    rules = unmeasurable_rules(contract)
+    out = {"complete": base.complete and head.complete and not rules, "base": base.not_measured,
+           "head": head.not_measured}
+    if rules:
+        out["rules_not_measured"] = rules
+    return out
+
+
 def not_raised(head: ReleaseEval, failed: list[Issue], contract: Contract, set_aside: list[Issue] = ()) -> list[dict]:
     out = []
     coherence = {r.id for r in contract.rules_of("coherence")}   # a contract may have none (Spree)
@@ -213,7 +225,7 @@ def assemble(base: ReleaseEval, head: ReleaseEval, contract: Contract, verified:
              "verification": i.verification["status"]} for i in open_issues]
     row, idx = contract.policy.evaluate(rows)
     fired_by = [open_issues[k].id for k in contract.policy.fired_by(row, rows)]
-    measured = base.complete and head.complete
+    measured = measurement(base, head, contract)["complete"]
     stories = {p: s for p, (s, _) in head.results.items()}
     base_stories = {p: s for p, (s, _) in base.results.items()}
     issues = []
@@ -232,7 +244,7 @@ def assemble(base: ReleaseEval, head: ReleaseEval, contract: Contract, verified:
         "policy": {"recommendation": row.recommendation, "row": idx + 1, "rule_fired": row.text,
                    "fired_by": fired_by},
         "outcome": outcome_of(row.recommendation, measured, approval),
-        "measurement": {"complete": measured, "base": base.not_measured, "head": head.not_measured},
+        "measurement": measurement(base, head, contract),
         "approval": approval,
         "issues": issues,
         "resolved": [issue_dict(i, base_stories, contract, review_path) for i in resolved],

@@ -62,6 +62,20 @@ def numberless(claim: dict, fact) -> bool:
     return fact is not None and getattr(fact, "unit", None) in TEXT_UNITS and word(claim) is None
 
 
+def unmeasurable_rules(contract) -> list[dict]:
+    """Rules that can never fire: every fact they check is a text fact with no word vocabulary, which the
+    extraction cannot carry (see `numberless`). The review reports them as not measured, never as passed."""
+    defs = {f.id: f for f in getattr(contract, "facts", [])}
+    out = []
+    for r in getattr(contract, "rules", []):
+        claims = (r.check or {}).get("claims") if isinstance(r.check, dict) else None
+        if claims and all(c in defs and getattr(defs[c], "unit", None) in TEXT_UNITS and not defs[c].words
+                          for c in claims):
+            out.append({"rule": r.id, "reason": "every fact it checks is text with no word list; the extraction "
+                                               "cannot state it, so the rule cannot be evaluated"})
+    return out
+
+
 def checkable(claim: dict, fact=None, roles_on: bool = False) -> bool:
     """A claim the fact's true value can check: one whose role is a role the fact's truth describes (by default
     as_is, the figure as it is now). A target, what-if or change is not the user's current figure and is never
