@@ -98,7 +98,10 @@ def story_from_episode(ep: Episode, contract: Contract) -> Story:
     seen = Counter()
     for m in ep.messages():
         cap = captures[m["capture"]]
-        at = datetime.fromisoformat(m["shown_at"]) if m["shown_at"] else cap.at
+        # A time the app states (data-shown-at, an email's sent_at) is on the episode's clock only when the app
+        # runs on the simulated clock; otherwise it is wall time, days away from the steps, and the capture's
+        # (step) time places the message.
+        at = datetime.fromisoformat(m["shown_at"]) if m["shown_at"] and ep.clock_measured else cap.at
         seen[m["key"]] += 1
         eid = m["key"] if seen[m["key"]] == 1 else f"{m['key']}#{seen[m['key']]}"
         channel = next((m["attrs"][a] for a in CHANNEL_ATTRS if a in m["attrs"]), None) \

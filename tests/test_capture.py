@@ -943,3 +943,17 @@ def test_serve_records_a_decision_through_the_same_path(run, runner, owner, tmp_
         if "srv" in captured:
             captured["srv"].shutdown()
     assert [d["issue"] for d in _mem.load(owner)["issues"]] == [KAI]
+
+
+def test_an_app_stated_time_places_a_message_only_on_the_simulated_clock(run):
+    """Northbound runs on the simulated clock, so an email's sent_at is its time. Without a clock hook (Spree) the
+    same sent_at is wall time and the message is placed at its capture (step) time instead."""
+    ep = run("2.4", "maya")
+    caps = {c.id: c for c in ep.captures()}
+    assert any(m["shown_at"] for m in ep.messages()), "fixture has no message with a stated time"
+    on_clock = {e.id: e.at for e in story_from_episode(ep, _C).messages()}
+    off = ep.model_copy(update={"clock_measured": False})
+    off_clock = story_from_episode(off, _C).messages()
+    moved = [e for e in off_clock if on_clock.get(e.id) != e.at]
+    assert moved, "turning the clock off changed no message time"
+    assert all(e.at == caps[e.evidence.capture_id].at for e in moved)

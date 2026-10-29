@@ -38,3 +38,4 @@ def test_send_time_is_used_when_the_app_runs_on_the_simulated_clock(tmp_path):
     cap = _drain(tmp_path, clock=True)
     assert cap.at == datetime.fromisoformat(WALL)
     assert "sent_at_wall" not in cap.meta
+
