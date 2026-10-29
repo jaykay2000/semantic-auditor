@@ -191,3 +191,33 @@ def test_a_head_issue_the_base_reading_missed_is_pre_existing_only_if_base_showe
     head = [issue(ev, p, 0, "$0.00", F1)]
     reader.reader_delta(head, [], ev, setup(base_ev, p, {0: "Your total shipping is $5.00 today"}))
     assert head[0].delta == "new"
+
+
+# ---- second audit ----
+
+def test_refusals_are_counted_per_finding_even_when_ids_repeat_across_chunks(ev, p):
+    a, b = m(ev, p, 0), m(ev, p, 1)
+    good = finding("B-judge-1-001", R1, p, [(a, "$0.00")], f"{F1} wrong", a)            # chunk 1
+    bad = finding("B-judge-1-001", R1, p, [(b, "never shown anywhere at all")], f"{F2} wrong", b)  # chunk 2
+    issues, refused = reader.build_reader_issues([good, bad], ev, C)
+    (i,) = issues
+    assert i.verification["steps"]["evidence_linked"]["result"] == "pass" and i.confidence["level"] == "medium"
+    assert len(refused) == 1
+
+
+def test_a_bare_figure_shown_elsewhere_does_not_block_resolution(base_ev, p, ev):
+    base = [issue(ev, p, 1, "$5.00", F1)]
+    head_ev = setup(base_ev, p, {1: "Standard delivery costs $0.00 for this order", 2: "Order total $5.00"})
+    resolved, unconfirmed = reader.reader_delta([], base, head_ev, ev)
+    assert [b.delta for b in resolved] == ["resolved"] and not unconfirmed
+
+
+def test_a_two_sided_rule_needs_both_messages_evidenced(ev, p):
+    c2 = copy.deepcopy(C)
+    c2.rule(R2).check = {**(c2.rule(R2).check or {}), "must": "agree_across_surfaces"}
+    a, b = m(ev, p, 0), m(ev, p, 1)
+    one = finding("F1", R2, p, [(a, "$0.00"), (b, "text never shown anywhere")], f"{F1} differs", a)
+    both = finding("F2", R2, p, [(a, "$0.00"), (b, "$5.00")], f"{F1} differs", a)
+    assert reader.build_reader_issues([one], ev, c2)[0] == []
+    (i,), _ = reader.build_reader_issues([both], ev, c2)
+    assert sorted(i.occurrences[0].events) == sorted([a.id, b.id])

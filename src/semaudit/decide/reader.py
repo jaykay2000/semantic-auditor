@@ -46,6 +46,7 @@ from semaudit.models.router import Router
 from semaudit.relate.rules import Entry
 from semaudit.story.model import Story
 
+TWO_SIDED = {"agree_across_surfaces", "agree_across_states"}   # a disagreement needs both messages evidenced
 PROMPT = "judge_one"          # the frozen benchmark prompt, reused verbatim so the measured context is what ships
 
 
@@ -90,7 +91,8 @@ def check_citations(f: Finding, stories: dict[str, Story]) -> tuple[dict[str, li
             failed.append(f"{c.persona}/{c.event_id}: no quote given")
             continue
         holding = [x for x in s.events if x.kind == "message" and q in _norm(x.text)]
-        at = next((x for x in holding if x.id == c.event_id), None)
+        same_id = [x for x in holding if x.id == c.event_id]       # ids can repeat across captures
+        at = next((x for x in same_id if x.surface == f.target.surface), same_id[0] if same_id else None)
         words = len(re.findall(r"[a-z]{3,}", q))
         if at is not None and not (re.search(r"\d", q) or words >= 2):
             failed.append(f"{c.persona}/{c.event_id}: quote {c.quote[:30]!r} states no figure (in {len(holding)} "
@@ -200,7 +202,7 @@ def build_reader_issues(findings: list[Finding], ev: ReleaseEval, contract: Cont
             continue
         found, bad, mv = check_citations(f, stories)
         checked.append((f, found))
-        problems[f.id] = (bad, mv)
+        problems[id(f)] = (bad, mv)          # by object: finding ids restart in every chunk
     issues, refused = [], []
     for key, items in group(checked, [x.id for x in contract.facts]):
         items.sort(key=lambda it: order[it[0].rule])
@@ -215,7 +217,7 @@ def build_reader_issues(findings: list[Finding], ev: ReleaseEval, contract: Cont
         moved: list[str] = []
         rated = []
         for f, found in items:
-            bad, mv = problems[f.id]
+            bad, mv = problems[id(f)]
             failed += bad
             moved += mv
             rated.append(f.confidence or "low")
@@ -225,6 +227,12 @@ def build_reader_issues(findings: list[Finding], ev: ReleaseEval, contract: Cont
                     if c not in side.setdefault(p, []):
                         side[p].append(c)
         evidence = {p: cs for p, cs in evidence.items() if cs}
+        if rule.check.get("must") in TWO_SIDED and items and all(f.rule == rule.id for f, _ in items):
+            sides = {p: {(c[1], c[2]) for c in evidence.get(p, []) + compared.get(p, [])} for p in evidence}
+            one_sided = sorted(p for p, ms in sides.items() if len(ms) < 2)
+            for p in one_sided:
+                failed.append(f"{p}: only one side of the comparison has an accepted quote")
+                evidence.pop(p)
         others = sorted({f.rule for f, _ in items if f.rule != rule.id}, key=order.get)
         sig = ("reader", *key)
         if not evidence:
@@ -276,13 +284,21 @@ def build_reader_issues(findings: list[Finding], ev: ReleaseEval, contract: Cont
     return issues, refused
 
 
+def _specific(q: str) -> bool:
+    q = _norm(q)
+    return bool(re.search(r"\d", q)) and len(re.findall(r"[a-z]{3,}", q)) >= 2
+
+
 def _quotes_shown(o: Occurrence, story, *, same_message: bool) -> bool:
-    """Every quote of this occurrence is in `story`: in the same message (surface + key), or anywhere."""
+    """Every quote of this occurrence is in `story`: in the same message (surface + key), or, when
+    same_message is False, anywhere for a specific quote (a figure and two words). A bare figure is only looked for
+    in the same message: "$43.19" may be a correct total elsewhere."""
     msgs = {tuple(m) for m in o.entry.meta.get("messages", [])}
-    texts = [_norm(e.text) for e in story.events if e.kind == "message"
-             and (not same_message or (e.surface or "", _base(e.id)) in msgs)]
+    own = [_norm(e.text) for e in story.events if e.kind == "message" and (e.surface or "", _base(e.id)) in msgs]
+    every = [_norm(e.text) for e in story.events if e.kind == "message"]
     quotes = o.entry.meta.get("quotes", [])
-    return bool(quotes) and bool(texts) and all(any(_norm(q) in t for t in texts) for q in quotes)
+    return bool(quotes) and all(any(_norm(q) in t for t in (every if (not same_message and _specific(q)) else own))
+                                for q in quotes)
 
 
 def _has_messages(o: Occurrence, story) -> bool:
@@ -313,8 +329,12 @@ def reader_delta(head: list[Issue], base: list[Issue], head_ev: ReleaseEval,
         old = [o for o in i.occurrences if o.persona in base_ev.results
                and _quotes_shown(o, base_ev.results[o.persona][0], same_message=True)]
         if old and len(old) == len(i.occurrences):
+            qs = [q for o in i.occurrences for q in o.entry.meta.get("quotes", [])]
+            bare = sum(not _specific(q) for q in qs)
             i.delta, i.delta_basis = "pre_existing", ("every quote was already shown to the same persona in the "
-                                                      "same message in base; the base reading did not report it")
+                                                      "same message in base; the base reading did not report it"
+                                                      + (f" ({bare} of {len(qs)} quotes are bare figures, weaker "
+                                                         f"evidence)" if bare else ""))
         else:
             i.delta, i.delta_basis = "new", "no matching base issue, and the quoted text is not in base"
     resolved, unconfirmed = [], []
