@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>s01b hook: the sum</title>
+<link rel="stylesheet" href="slides.css">
+<link rel="stylesheet" href="email.css">
+<style>
+.hook .left{width:640px;top:196px}
+.hook h1{font-size:72px}
+.mail{width:1000px}
+.tot .r{display:grid;grid-template-columns:1fr 200px 190px;gap:0}
+.tot .r .a{padding-right:28px}
+.tot .r .run{font:600 24px var(--mono);color:var(--accent);text-align:right;border-left:2px dashed var(--accentln);padding:0 0 0 20px;height:100%;display:flex;align-items:center;justify-content:flex-end;font-variant-numeric:tabular-nums}
+.tot .r .run.hidden{color:transparent}
+.tot .grp{display:grid;grid-template-columns:1fr 190px}
+.tot .grp i{border-left:2px dashed var(--accentln);height:100%}
+.runhead{display:grid;grid-template-columns:1fr 190px;font-size:16px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--accent);margin-top:2px}
+.runhead span{border-left:2px dashed var(--accentln);padding-left:20px;text-align:right}
+.tot .total .run{color:var(--bad);font:750 34px var(--disp)}
+.result{margin-top:22px;display:flex;align-items:center;justify-content:center;gap:34px;padding:18px 26px;border-radius:16px;background:var(--badbg);border:1.5px solid var(--newln)}
+.result .n{font:750 46px var(--disp);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.result .n.sum{color:var(--accent)}
+.result .neq{font:600 44px var(--disp);color:var(--bad)}
+.result small{display:block;font:600 17px var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--ink2)}
+.fix{display:flex;flex-direction:column;gap:14px;margin-top:26px;padding:26px 30px;border-radius:20px;background:var(--panel);border:1.5px solid var(--line);box-shadow:var(--shadow)}
+.fix .t{font:700 32px var(--disp);letter-spacing:-.015em}
+.fix .t .mono{font-size:28px}
+.item{padding:8px 0}
+</style>
+</head><body>
+<div class="slide hook">
+  <div class="bar"><div class="brand"><span class="logo">SRA</span>Semantic Release Auditor</div></div>
+
+  <div class="left">
+    <div class="eyebrow">Spree 6.0.0.beta2 · Jo's confirmation email</div>
+    <h1>The lines add up to <span class="tnum" style="color:var(--accent)">$227.16</span>.</h1>
+    <p class="lede">The same email states an order total of <b class="tnum" style="color:var(--ink)">$232.16</b>.</p>
+    <div class="fix">
+      <span class="d resolved" style="align-self:flex-start">Fixed upstream in beta3</span>
+      <div class="t">Spree PR <span class="mono">#14725</span></div>
+    </div>
+  </div>
+
+  <div class="mail box">
+    <div class="mhead">
+      <div class="subj">Shop Order Confirmation #R1003</div>
+      <div class="from">no-reply@example.com <span>to</span> jo@example.test</div>
+    </div>
+    <div class="mbody">
+      <div class="sum">Order R1003 Summary</div>
+      <div class="item"><div><b>Beard Trimmer 3000</b><small>Color: Matte Black</small></div><div class="q">3 x $49.99</div><div class="a">$149.97</div></div>
+      <div class="item"><div><b>4-Slice Toaster</b><small>Color: Matte Black</small></div><div class="q">1 x $64.99</div><div class="a">$64.99</div></div>
+      <div class="tot">
+        <div class="runhead"><b></b><span>running sum</span></div>
+        <div class="r"><span>Subtotal:</span><span class="a">$214.96</span><span class="run">$214.96</span></div>
+        <div class="grp"><span>Promotion</span><i></i></div>
+        <div class="r"><span>Promotion (Free Shipping)</span><span class="a">-$5.00</span><span class="run">$209.96</span></div>
+        <div class="grp"><span>Shipping</span><i></i></div>
+        <div class="r"><span>Standard</span><span class="a">$0.00</span><span class="run">$209.96</span></div>
+        <div class="r"><span>Tax</span><span class="a">$17.20</span><span class="run">$227.16</span></div>
+        <div class="r total"><span>Order Total:</span><span class="a">$232.16</span><span class="run">≠</span></div>
+      </div>
+      <div class="result">
+        <div><small>lines add up to</small><span class="n sum">$227.16</span></div>
+        <span class="neq">≠</span>
+        <div><small>order total stated</small><span class="n">$232.16</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="src"><b>Source:</b> Jo's beta2 confirmation email, text as captured (runs/spree-scale-2t) · running sum is plain addition of the email's own lines · fix: Spree PR #14725, merged before beta3</div>
+</div>
+</body></html>

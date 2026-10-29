@@ -1,0 +1,13 @@
+{
+  "_README": "PLACEHOLDER VALUES. Fill after blind grading (spree-plain-agent-protocol), then run: python3 slides-src/render.py s05b. While status is \"TBD\" the slide prints a DRAFT badge. Use null for any number not measured; it renders as TBD.",
+  "status": "TBD",
+  "eyebrow": "TBD: benchmark name · same app, same releases",
+  "headline": "TBD: one line on the plain agent, as measured",
+  "known_issues": null,
+  "rows": [
+    {"label": "Muse Spark reading SRA's context", "sub": "semaudit review --reader", "found": null, "false_alarms": null, "highlight": true},
+    {"label": "Plain agent", "sub": "TBD: agent, model and what it was given", "found": null, "false_alarms": null, "highlight": false}
+  ],
+  "note": "TBD: grading method · runs per arm",
+  "source": "TBD: grading file and commit"
+}

@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>s03b shoppers</title>
+<link rel="stylesheet" href="slides.css">
+<style>
+.head{margin-top:56px;display:flex;align-items:flex-end;justify-content:space-between;gap:40px}
+.head h1 .num{color:var(--accent)}
+.axes{font-size:26px;color:var(--ink2);margin-top:14px}
+.m{margin-top:36px;display:grid;grid-template-columns:300px repeat(4,1fr);grid-template-rows:auto auto 1fr 1fr;gap:12px;height:600px}
+.gh{font:650 18px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);text-align:center;border-bottom:2px solid var(--line);padding-bottom:8px}
+.ch{font:650 24px var(--sans);text-align:center;color:var(--ink)}
+.rh{display:flex;flex-direction:column;justify-content:center;gap:2px;padding-right:12px}
+.rh .t{font:700 34px var(--disp);letter-spacing:-.015em}
+.rh .s{font-size:21px;color:var(--ink2)}
+.rh .c{font:700 22px var(--sans);color:var(--ink3);margin-top:6px}
+.cell{background:var(--panel);border:1.5px solid var(--line);border-radius:18px;padding:16px 20px 12px;display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:end;box-shadow:0 1px 0 rgba(20,22,27,.04),0 1px 3px rgba(20,22,27,.05)}
+.cell .n{font:750 64px/1 var(--disp);letter-spacing:-.03em;font-variant-numeric:tabular-nums;align-self:start}
+.cell .n.lo{color:var(--ink3)}
+.bars{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;height:100%;align-items:end}
+.col{display:flex;flex-direction:column-reverse;align-items:center;gap:5px}
+.col i{width:20px;height:20px;border-radius:50%;background:var(--ink2);display:block}
+.col b{font:500 15px var(--mono);color:var(--ink3);margin-top:4px}
+.legend{margin-top:18px;display:flex;gap:30px;font-size:21px;color:var(--ink3);align-items:center}
+.legend .dot{display:inline-block;width:16px;height:16px;border-radius:50%;background:var(--ink2);vertical-align:-1px;margin-right:8px}
+</style></head><body>
+<div class="slide">
+  <div class="bar"><div class="brand"><span class="logo">SRA</span>Semantic Release Auditor</div>
+    <div class="right mini"><span class="done">Docs</span><i>→</i><span class="done">Rules</span><i>→</i><span class="on">Shoppers</span><i>→</i><span>Captures + truth</span><i>→</i><span>Muse Spark</span><i>→</i><span>Release review</span></div></div>
+
+  <div class="head"><div>
+    <div class="eyebrow">Spree · building the context · 2 of 4</div>
+    <h1><span class="num" id="total"></span> shoppers per release, chosen to hit the rules.</h1>
+    <div class="axes">tax <span class="faint">×</span> basket <span class="faint">×</span> promo code <span class="faint">×</span> delivery</div>
+  </div></div>
+
+  <div class="m" id="m"></div>
+  <div class="legend"><span><span class="dot"></span>one shopper, stacked by units in the basket (1–4, over 1 or 2 products)</span><span id="pay"></span></div>
+
+  <div class="src"><b>Source:</b> every persona's <span class="mono">context</span> in the Spree reader review (runs/spree-scale-2t), tallied by slides-src/extract_spree.py → scenes-data/spree-shoppers.json · tax: <span id="taxf"></span></div>
+</div>
+<script>
+const D = window.DATA['spree-shoppers'];
+document.getElementById('total').textContent = D.shoppers;
+document.getElementById('taxf').textContent = D.tax_feature;
+document.getElementById('pay').textContent = 'all pay by ' + D.payment_methods.join(', ').toLowerCase();
+const cols = [['FREESHIP','Standard'],['FREESHIP','Express'],['none','Standard'],['none','Express']];
+const st = D.states, untaxed = Object.keys(st).filter(s => s !== 'NY').sort();
+const rows = [['tax','Taxed','ships to NY · 8%', st.NY],
+              ['notax','Not taxed','ships to ' + untaxed.join(' · '), untaxed.reduce((a,s)=>a+st[s],0)]];
+let h = '<div></div><div class="gh" style="grid-column:span 2">FREESHIP code</div><div class="gh" style="grid-column:span 2">no code</div>';
+h += '<div></div>' + cols.map(c => `<div class="ch">${c[1]}</div>`).join('');
+let sum = 0;
+for (const [k,t,s,c] of rows) {
+  h += `<div class="rh"><span class="t">${t}</span><span class="s">${s}</span><span class="c">${c} shoppers</span></div>`;
+  for (const [p,dl] of cols) {
+    const cell = D.cells[`${k}|${p}|${dl}`] || {};
+    const n = Object.values(cell).reduce((a,b)=>a+b,0); sum += n;
+    const bars = [1,2,3,4].map(u => `<div class="col"><b>${u}</b>${'<i></i>'.repeat(cell[u]||0)}</div>`).join('');
+    h += `<div class="cell"><span class="n${n<3?' lo':''}">${n}</span><div class="bars">${bars}</div></div>`;
+  }
+}
+document.getElementById('m').innerHTML = h;
+if (sum !== D.shoppers) throw new Error('cells do not add up to shoppers');
+</script>
+</body></html>

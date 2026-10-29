@@ -1,0 +1,27 @@
+/* s01 / s01b: the captured confirmation email, redrawn */
+.hook .left{position:absolute;left:112px;top:178px;width:760px;display:flex;flex-direction:column;gap:28px}
+.hook h1{font-size:72px}
+.hook .lede{max-width:700px}
+.op{margin:22px 0 0;display:flex;flex-direction:column;gap:14px}
+.op figcaption{font-size:20px;color:var(--ink3)}
+.op figcaption .k{color:var(--ink);font-weight:650}
+.op img{width:640px;border-radius:16px;border:1.5px solid var(--line);box-shadow:var(--shadow);background:#fff}
+
+.mail{position:absolute;right:112px;top:112px;width:860px;display:flex;flex-direction:column}
+.mhead{padding:24px 36px 20px;border-bottom:1.5px solid var(--line2);background:var(--sunk);border-radius:22px 22px 0 0}
+.subj{font:700 28px var(--sans);letter-spacing:-.01em}
+.from{font-size:19px;color:var(--ink2);margin-top:4px}.from span{color:var(--ink3);margin:0 6px}
+.mbody{padding:26px 44px 34px;display:flex;flex-direction:column}
+.shop{font:800 22px var(--disp);letter-spacing:.02em;color:var(--ink3);text-transform:uppercase}
+.ttl{font:700 34px var(--disp);letter-spacing:-.015em;margin:4px 0 12px}
+.hey{margin:0 0 14px;font-size:21px;line-height:1.4;color:var(--ink)}
+.hey span{color:var(--ink2)}
+.sum{font:650 18px var(--sans);letter-spacing:.07em;text-transform:uppercase;color:var(--ink3);padding-bottom:6px;border-bottom:1.5px solid var(--line2)}
+.item{display:grid;grid-template-columns:1fr 160px 140px;align-items:center;padding:12px 0;border-bottom:1.5px solid var(--line2);font-size:23px}
+.item b{font-weight:600;display:block}.item small{font-size:17px;color:var(--ink3)}
+.item .q{color:var(--ink2);text-align:right;font-variant-numeric:tabular-nums}
+.a{text-align:right;font-variant-numeric:tabular-nums}
+.tot{display:flex;flex-direction:column;padding-top:8px}
+.tot .r{display:flex;justify-content:space-between;align-items:center;font-size:26px;padding:4px 0;position:relative}
+.tot .grp{font-size:16px;font-weight:650;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3);margin-top:10px}
+.tot .total{border-top:2px solid var(--ink);margin-top:12px;padding-top:12px;font-weight:750;font-size:32px}

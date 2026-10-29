@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>s04b Lena</title>
+<link rel="stylesheet" href="slides.css">
+<style>
+.head{margin-top:160px;display:flex;flex-direction:column;gap:16px}
+.chat{margin-top:60px;padding:36px 40px;display:flex;flex-direction:column;gap:20px;background:var(--goodbg);border-color:#C6E6D3}
+.chat .meta{display:flex;align-items:center;gap:14px;font-size:22px;color:var(--ink2)}
+.chat .meta .tm{font:600 22px var(--mono);color:var(--ink)}
+.chat .meta b{color:var(--ink);font-weight:650}
+.chat q{font:600 44px/1.3 var(--disp);letter-spacing:-.015em;quotes:"“" "”";max-width:1560px}
+.chat q em{font-style:normal;background:#CDEBD9;border-radius:6px;padding:0 4px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.res{margin-top:48px;display:flex;align-items:center;gap:18px}
+.res .t{font:700 34px var(--disp);letter-spacing:-.015em}
+.cleared{display:inline-flex;align-items:center;gap:10px;font:650 26px var(--sans);color:var(--good);background:#fff;border:1.5px solid #B5DEC7;padding:8px 20px;border-radius:999px}
+.res .why{font-size:26px;color:var(--ink2)}
+</style></head><body>
+<div class="slide">
+  <div class="bar"><div class="brand"><span class="logo">SRA</span>Semantic Release Auditor</div><span class="sep"></span><span class="app">Northbound 2.3 → 2.4</span><span class="tag strong">fictional benchmark app</span></div>
+
+  <div class="head">
+    <div class="eyebrow">Same release · Lena, also flexible, also 42 days out</div>
+    <h1>Lena is told how to choose. Cleared.</h1>
+  </div>
+
+  <div class="chat box">
+    <div class="meta"><span class="tm">10:04</span><b>Concierge</b><span>· chat</span></div>
+    <q>Prices on your dates are likely to drop, but this fare has 2 seats left. <em>If you can move your dates, wait for the alert; if not, locking protects this price.</em></q>
+  </div>
+
+  <div class="res">
+    <span class="cleared">✓ Cleared</span>
+    <span class="why">explained tradeoff, while both offers were live and before she decided</span>
+  </div>
+
+  <div class="src"><b>Source:</b> Northbound release review 2.3 → 2.4 (runs/e2e-2), Lena's story: nothing raised in 2.4; rule P2 passed (explained tradeoff, cg.reconcile at 10:04:00)</div>
+</div>
+</body></html>

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>s02 what SRA is</title>
+<link rel="stylesheet" href="slides.css">
+<style>
+.hero{margin-top:190px;display:flex;flex-direction:column;gap:26px}
+.hero h1{font-size:112px;letter-spacing:-.035em}
+.hero .lede{font-size:36px;max-width:1300px}
+.pipe{position:absolute;left:112px;right:112px;top:640px;display:flex;align-items:stretch;gap:0}
+.node{flex:1;display:flex;flex-direction:column;gap:10px;padding:26px 24px 24px;border-radius:20px;background:var(--panel);border:1.5px solid var(--line);box-shadow:var(--shadow);min-width:0}
+.node .n{font:600 18px var(--mono);color:var(--ink3)}
+.node .t{font:700 32px/1.1 var(--disp);letter-spacing:-.02em}
+.node .g{font-size:20px;line-height:1.35;color:var(--ink2)}
+.node.model{background:var(--accentbg);border-color:var(--accentln)}
+.node.model .t{color:var(--accent)}
+.node.out{background:var(--ink);border-color:var(--ink)}
+.node.out .t{color:#fff}.node.out .g,.node.out .n{color:#B9BCC4}
+.arr{flex:none;width:44px;display:grid;place-items:center;color:var(--ink3);font:500 30px var(--disp)}
+.legend{position:absolute;left:112px;top:880px;display:flex;gap:12px;align-items:center;font-size:21px;color:var(--ink3)}
+.brk{position:absolute;top:598px;height:22px;border:2px solid var(--line);border-bottom:0;border-radius:10px 10px 0 0}
+.brklbl{position:absolute;top:560px;font:650 18px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
+</style></head><body>
+<div class="slide">
+  <div class="hero">
+    <h1>Semantic Release Auditor</h1>
+    <p class="lede">the context a model needs to review a release the way users live it</p>
+  </div>
+
+  <div class="pipe">
+    <div class="node"><span class="n">01</span><span class="t">Docs</span><span class="g">what the team already wrote</span></div>
+    <div class="arr">→</div>
+    <div class="node"><span class="n">02</span><span class="t">Rules</span><span class="g">what must hold for every user</span></div>
+    <div class="arr">→</div>
+    <div class="node"><span class="n">03</span><span class="t">Shoppers</span><span class="g">who to play, chosen to hit the rules</span></div>
+    <div class="arr">→</div>
+    <div class="node" style="flex:1.5"><span class="n">04</span><span class="t">Captures + truth</span><span class="g">every page and email, beside the app's own record</span></div>
+    <div class="arr">→</div>
+    <div class="node model"><span class="n">05</span><span class="t">Muse Spark</span><span class="g">reads it all and judges</span></div>
+    <div class="arr">→</div>
+    <div class="node out"><span class="n">06</span><span class="t">Release review</span><span class="g">new · resolved · evidence · ticket</span></div>
+  </div>
+
+  <div class="src"><b>Pipeline</b> as run on Spree 6.0.0.beta2 → beta3, Northbound 2.3 → 2.4 and Finablo v706 → v707</div>
+</div>
+</body></html>

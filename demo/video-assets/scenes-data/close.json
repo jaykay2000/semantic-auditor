@@ -1,0 +1,4 @@
+{
+  "_README": "Set repo_url once the repository is public, then run: python3 slides-src/render.py s08. While it contains TBD the slide shows a dashed placeholder.",
+  "repo_url": "TBD"
+}
