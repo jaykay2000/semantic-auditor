@@ -22,11 +22,12 @@ from semaudit.story.model import Story
 CLEARED_LABELS = {"explained_tradeoff", "compatible"}
 
 
-def measurement(base: ReleaseEval, head: ReleaseEval, contract: Contract) -> dict:
+def measurement(base: ReleaseEval, head: ReleaseEval, contract: Contract, reader: bool = False) -> dict:
     """What was measured: both releases' capture problems, and rules that cannot be evaluated at all. A rule that
-    cannot fire makes the measurement incomplete: its silence is not a pass."""
+    cannot fire makes the measurement incomplete: its silence is not a pass. In reader mode no extraction runs
+    (the model reads the raw text), so the extraction schema's limits do not apply."""
     from semaudit.relate.claims import unmeasurable_rules
-    rules = unmeasurable_rules(contract)
+    rules = [] if reader else unmeasurable_rules(contract)
     out = {"complete": base.complete and head.complete and not rules, "base": base.not_measured,
            "head": head.not_measured}
     if rules:
@@ -218,19 +219,21 @@ def outcome_of(policy_rec: str, measured: bool, approval: dict) -> dict:
 def assemble(base: ReleaseEval, head: ReleaseEval, contract: Contract, verified: list[Issue],
              resolved: list[Issue], spent_usd: float, *, approval: dict,
              unconfirmed: list[Issue] = (), manifest: dict | None = None, review_path: str | None = None,
-             set_aside: list[Issue] = ()) -> dict:
+             set_aside: list[Issue] = (), reader: dict | None = None) -> dict:
+    """`reader`: set in reader mode ({"refused": not_raised rows, "base"/"head": accounting}); the issues then
+    come from decide/reader.py and carry no replay command (re-reading needs a fresh capture)."""
     open_issues = [i for i in verified if i.verification.get("status") != "failed"]
     failed = [i for i in verified if i.verification.get("status") == "failed"]
     rows = [{"severity": i.severity["level"], "confidence": i.confidence["level"],
              "verification": i.verification["status"]} for i in open_issues]
     row, idx = contract.policy.evaluate(rows)
     fired_by = [open_issues[k].id for k in contract.policy.fired_by(row, rows)]
-    measured = measurement(base, head, contract)["complete"]
+    measured = measurement(base, head, contract, reader is not None)["complete"]
     stories = {p: s for p, (s, _) in head.results.items()}
     base_stories = {p: s for p, (s, _) in base.results.items()}
     issues = []
     for i in open_issues:
-        d = issue_dict(i, stories, contract, review_path)
+        d = issue_dict(i, stories, contract, None if reader is not None else review_path)
         d["other_rules"] = other_rules(i, head.results)
         issues.append(d)
     return {
@@ -244,12 +247,15 @@ def assemble(base: ReleaseEval, head: ReleaseEval, contract: Contract, verified:
         "policy": {"recommendation": row.recommendation, "row": idx + 1, "rule_fired": row.text,
                    "fired_by": fired_by},
         "outcome": outcome_of(row.recommendation, measured, approval),
-        "measurement": measurement(base, head, contract),
+        "measurement": measurement(base, head, contract, reader is not None),
         "approval": approval,
         "issues": issues,
-        "resolved": [issue_dict(i, base_stories, contract, review_path) for i in resolved],
+        "resolved": [issue_dict(i, base_stories, contract, None if reader is not None else review_path)
+                     for i in resolved],
         "unconfirmed": [issue_dict(i, base_stories, contract) for i in unconfirmed],
-        "not_raised": not_raised(head, failed, contract, set_aside),
+        "not_raised": not_raised(head, failed, contract, set_aside) + list((reader or {}).get("refused", [])),
+        "mode": "reader" if reader is not None else "rules",
+        "reader": {k: v for k, v in (reader or {}).items() if k != "refused"} or None,
         "personas": [persona_view(p, s, base_stories.get(p), contract, head, base) for p, s in sorted(stories.items())],
         "cost_usd": round(spent_usd, 4),
         "manifest": manifest,

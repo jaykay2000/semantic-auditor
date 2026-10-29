@@ -23,10 +23,13 @@ from semaudit.verify.steps import verify
 
 def run_review(contract_dir: Path, base: str, head: str, *, run_id: str, runs_dir: Path, max_usd: float,
                reuse: bool = False, fresh: bool = False, models: bool = True, root: Path | None = None,
-               ablation: str | None = None) -> Path:
+               ablation: str | None = None, reader: bool = False, reader_chunk: int = 11) -> Path:
     """`ablation` (benchmark only, never a product mode): "no-exceptions" drops every rule's exceptions,
     "no-verifier" reports candidates without verification, "no-generators" replaces the code generators with a
-    model-only candidate pass. The review is written beside the normal one, named for the ablation."""
+    model-only candidate pass. The review is written beside the normal one, named for the ablation.
+    `reader`: the model reads SRA's context (contract + every captured story) and names the issues; SRA checks
+    each citation against the captures, groups and dates the findings (decide/reader.py). Written as
+    review-<base>-<head>.reader.json."""
     recorded = mem.snapshot(contract_dir)
     contract = load_contract(contract_dir, memory=recorded["issues"])
     router = Router(root=root or Path.cwd(), max_usd=max_usd)
@@ -40,11 +43,16 @@ def run_review(contract_dir: Path, base: str, head: str, *, run_id: str, runs_di
         generator = model_generator(contract, router, fresh=fresh)
     elif ablation not in (None, "no-verifier"):
         raise ValueError(f"unknown ablation {ablation!r}")
+    if reader and ablation:
+        raise ValueError("reader mode takes no ablation")
     run_dir = runs_dir / run_id
     if not (reuse and (run_dir / "episodes" / base).exists() and (run_dir / "episodes" / head).exists()):
         with Runner(contract_dir, runs_dir=runs_dir, run_id=run_id) as r:
             r.capture(base)
             r.capture(head)
+    if reader:
+        return _reader_review(contract_dir, contract, recorded, router, run_dir, base, head, max_usd=max_usd,
+                              fresh=fresh, chunk=reader_chunk, runs_dir=runs_dir, run_id=run_id)
     shared = {} if getattr(contract.app, "share_readings", False) else None
     b = evaluate_release(run_dir, base, contract, router, fresh=fresh, generator=generator, readings=shared)
     h = evaluate_release(run_dir, head, contract, router, fresh=fresh, generator=generator, readings=shared)
@@ -77,4 +85,28 @@ def run_review(contract_dir: Path, base: str, head: str, *, run_id: str, runs_di
     review = assemble(b, h, contract, head_issues, resolved, router.spent_usd,
                       approval=approval_state(contract_dir, contract), unconfirmed=unconfirmed,
                       manifest=manifest, review_path=str(out), set_aside=applied.set_aside)
+    return write(review, out)
+
+
+def _reader_review(contract_dir, contract, recorded, router, run_dir, base, head, *, max_usd, fresh, chunk,
+                   runs_dir, run_id) -> Path:
+    from semaudit.decide.reader import build_reader_issues, read_release, reader_delta
+    router.tag = f"semaudit-reader:{base}-{head}:{run_id}"
+    b, bf, bacct = read_release(run_dir, base, contract, router, chunk=chunk, fresh=fresh)
+    h, hf, hacct = read_release(run_dir, head, contract, router, chunk=chunk, fresh=fresh)
+    head_issues, head_refused = build_reader_issues(hf, h, contract)
+    base_issues, _ = build_reader_issues(bf, b, contract)
+    resolved, unconfirmed = reader_delta(head_issues, base_issues, h, b)
+    applied = mem.apply(head_issues, resolved, unconfirmed, recorded["issues"], contract,
+                        {p: s for p, (s, _) in h.results.items()})
+    head_issues = [i for i in head_issues if all(i is not s for s in applied.set_aside)]
+    out = run_dir / f"review-{base}-{head}.reader.json"
+    manifest = mf.build(contract_dir, contract, run_dir, base, head, router=router, models=True, max_usd=max_usd,
+                        repro_run=None, memory=recorded)
+    manifest["mode"] = "reader"
+    manifest["reader_prompt"] = "bench/conditions/prompts/judge_one.md"
+    review = assemble(b, h, contract, head_issues, resolved, router.spent_usd,
+                      approval=approval_state(contract_dir, contract), unconfirmed=unconfirmed,
+                      manifest=manifest, review_path=str(out), set_aside=applied.set_aside,
+                      reader={"refused": head_refused, "chunk": chunk, "base": bacct, "head": hacct})
     return write(review, out)

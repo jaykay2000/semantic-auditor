@@ -41,14 +41,10 @@ def measurement_problems(ep: Episode) -> list[str]:
     return out
 
 
-def evaluate_release(run_dir: Path, release: str, contract: Contract, router: Router, *,
-                     fresh: bool = False, seed: str = "0", personas: set[str] | None = None,
-                     generator=None, readings: dict | None = None) -> ReleaseEval:
-    """`personas`: the personas this run was meant to capture (default: every persona the contract schedules).
-    `generator`: replaces the code candidate generators and rule evaluation with a function story -> entries
-    (the no-generators ablation); extraction still runs, so verification sees the same readings.
-    `readings`: a message-key -> extraction map shared with the other release's evaluation; only messages not
-    in it are extracted, and the new answers are added to it."""
+def load_release(run_dir: Path, release: str, contract: Contract, personas: set[str] | None = None
+                 ) -> tuple[dict[str, Episode], dict[str, list[str]], dict[str, Story]]:
+    """A release's episodes, what could not be measured (and why), and the stories of the measured personas.
+    `personas`: the personas this run was meant to capture (default: every persona the contract schedules)."""
     episodes = {}
     for p in sorted((run_dir / "episodes" / release).glob("*.json")):
         ep = Episode.read(p)
@@ -62,6 +58,18 @@ def evaluate_release(run_dir: Path, release: str, contract: Contract, router: Ro
             if ep is None or ep.scenario != sc.id:
                 not_measured.setdefault(pid, []).append(f"no {release} episode for scenario {sc.id}")
     stories = {p: story_from_episode(ep, contract) for p, ep in episodes.items() if p not in not_measured}
+    return episodes, not_measured, stories
+
+
+def evaluate_release(run_dir: Path, release: str, contract: Contract, router: Router, *,
+                     fresh: bool = False, seed: str = "0", personas: set[str] | None = None,
+                     generator=None, readings: dict | None = None) -> ReleaseEval:
+    """`personas`: the personas this run was meant to capture (default: every persona the contract schedules).
+    `generator`: replaces the code candidate generators and rule evaluation with a function story -> entries
+    (the no-generators ablation); extraction still runs, so verification sees the same readings.
+    `readings`: a message-key -> extraction map shared with the other release's evaluation; only messages not
+    in it are extracted, and the new answers are added to it."""
+    episodes, not_measured, stories = load_release(run_dir, release, contract, personas)
     msgs = [e for s in stories.values() for e in s.messages()]
     if readings is not None:
         msgs = [m for m in msgs if message_key(m) not in readings]

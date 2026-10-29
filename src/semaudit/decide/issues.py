@@ -42,7 +42,7 @@ class Issue:
     occurrences: list[Occurrence]
     severity: dict[str, Any]
     why: str
-    delta: str = "new"                 # new | pre_existing | resolved | not_measured_in_head; with an owner
+    delta: str = "new"                 # new | pre_existing | resolved | not_measured_in_head | unconfirmed (reader); with an owner
                                        # fix decision also still_open | regressed (decide.memory)
     delta_basis: str = ""
     confidence: dict[str, Any] = field(default_factory=dict)
