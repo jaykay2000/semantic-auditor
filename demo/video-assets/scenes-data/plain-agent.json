@@ -1,13 +1,16 @@
 {
-  "_README": "PLACEHOLDER VALUES. Fill after blind grading (spree-plain-agent-protocol), then run: python3 slides-src/render.py s05b. While status is \"TBD\" the slide prints a DRAFT badge. Use null for any number not measured; it renders as TBD.",
-  "status": "TBD",
-  "eyebrow": "TBD: benchmark name · same app, same releases",
-  "headline": "TBD: one line on the plain agent, as measured",
-  "known_issues": null,
+  "_README": "Filled 2026-10-29 from blind grading (spree-plain-agent-protocol: grading/key.json + grader A/B grades). found = known issues K1 (free-shipping email, fixed in beta3, delta required) + K2 (tax-inclusive line amount, both releases). false_alarms = distinct items graded false alarm (in-run duplicates once). Re-render: python3 slides-src/render.py s05b",
+  "status": "final",
+  "eyebrow": "Plain-agent benchmark · Spree beta2 → beta3 · blind-graded on the live stores",
+  "headline": "With SRA's context, Muse Spark found both known issues and raised no false alarms.",
+  "known_issues": 2,
   "rows": [
-    {"label": "Muse Spark reading SRA's context", "sub": "semaudit review --reader", "found": null, "false_alarms": null, "highlight": true},
-    {"label": "Plain agent", "sub": "TBD: agent, model and what it was given", "found": null, "false_alarms": null, "highlight": false}
+    {"label": "Muse Spark reading SRA's context", "sub": "semaudit review --reader · 1 run", "found": 2, "false_alarms": 0, "highlight": true},
+    {"label": "Muse Spark alone, run 1", "sub": "browser + Python tools · stopped at its $8 cap", "found": 0, "false_alarms": 5, "highlight": false},
+    {"label": "Muse Spark alone, run 2", "sub": "browser + Python tools · stopped at its $8 cap", "found": 2, "false_alarms": 2, "highlight": false},
+    {"label": "Claude Opus alone, run 1", "sub": "shell + Playwright · +15 other real issues", "found": 2, "false_alarms": 3, "highlight": false},
+    {"label": "Claude Opus alone, run 2", "sub": "shell + Playwright · +8 other real issues", "found": 2, "false_alarms": 0, "highlight": false}
   ],
-  "note": "TBD: grading method · runs per arm",
-  "source": "TBD: grading file and commit"
+  "note": "Known issues: the free-shipping email (fixed in beta3) and tax-inclusive line amounts (both releases). Two outside graders re-ran every finding. Claude also found issues SRA's rules don't cover.",
+  "source": "spree-plain-agent-protocol · grading/key.json + blind grades A/B · 2026-10-29"
 }
