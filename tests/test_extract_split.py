@@ -50,3 +50,15 @@ def test_a_single_unreadable_message_still_fails(monkeypatch):
     monkeypatch.setattr(M, "_prompt", lambda contract, observed: "")
     with pytest.raises(UnreadableReply):
         M.extract_unique(_msgs(2), C, FakeRouter(limit=0), batch=2)
+
+
+def test_not_raised_works_for_a_contract_without_a_coherence_rule():
+    from types import SimpleNamespace
+    from semaudit.report.review import not_raised
+
+    class C:
+        def rules_of(self, kind):
+            return []
+    e = SimpleNamespace(status="passed", rule="U1", label=None, meta={}, subject="x", conditions=[], id="e1")
+    head = SimpleNamespace(results={"ana": (SimpleNamespace(events=[]), [e])})
+    assert not_raised(head, [], C()) == []

@@ -24,6 +24,7 @@ CLEARED_LABELS = {"explained_tradeoff", "compatible"}
 
 def not_raised(head: ReleaseEval, failed: list[Issue], contract: Contract, set_aside: list[Issue] = ()) -> list[dict]:
     out = []
+    coherence = {r.id for r in contract.rules_of("coherence")}   # a contract may have none (Spree)
     for persona, (story, entries) in sorted(head.results.items()):
         by = {e.id: e for e in story.events}
         for e in entries:
@@ -36,7 +37,7 @@ def not_raised(head: ReleaseEval, failed: list[Issue], contract: Contract, set_a
                             "exception": ex.id if ex else None,
                             "reason": f"exception {ex.id if ex else ''}{origin} applies: "
                                       + ", ".join(f"({c}) {v}" for c, v in e.conditions)})
-            elif e.rule == contract.rules_of("coherence")[0].id and e.status == "passed" and e.label in CLEARED_LABELS:
+            elif e.rule in coherence and e.status == "passed" and e.label in CLEARED_LABELS:
                 rid = e.meta.get("reconciler")
                 when = f" by {rid} at {by[rid].at:%H:%M:%S}" if rid in by else ""
                 out.append({"persona": persona, "rule": e.rule, "subjects": [e.subject], "status": "passed",
