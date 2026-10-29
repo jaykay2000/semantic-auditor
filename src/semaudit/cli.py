@@ -153,6 +153,21 @@ def report_cmd(review: Path = typer.Argument(..., exists=True, dir_okay=False),
     typer.echo(f"wrote {build(review, out)}")
 
 
+@app.command("ticket")
+def ticket_cmd(issue_id: str = typer.Argument(None, help="an issue id from the review; omit to list them"),
+               review: Path = typer.Option(..., "--review", exists=True, dir_okay=False, help="the review JSON"),
+               out: Path = typer.Option(None, "--out", help="output file (default: tickets/<id>.md beside the review)")):
+    """Draft a bug ticket for one issue (markdown). Drafting files nothing."""
+    import json as _json
+
+    from .report.ticket import summary, write_ticket
+    if not issue_id:
+        for row in summary(_json.loads(review.read_text())):
+            typer.echo(f"{row['id']}  [{row['delta']}]  {row['why'][:100]}")
+        return
+    typer.echo(f"wrote {write_ticket(review, issue_id, out)}")
+
+
 @app.command("repro")
 def repro_cmd(issue_id: str = typer.Argument(..., help="an issue id from the review, e.g. I-2.4-P2-…"),
               review: Path = typer.Option(..., "--review", exists=True, dir_okay=False, help="the review JSON"),

@@ -126,3 +126,9 @@ def test_two_wrong_facts_in_one_message_are_two_issues():
     room = Entry("H1", "p", "violated", note="claim 12500 vs true room_401k", meta={"fact": "room_401k"})
     assert signature(lim, [pdf]) != signature(room, [pdf])
     assert signature(lim, [pdf]) == signature(lim, [pdf])
+
+
+def test_a_wider_reading_context_shows_the_column_a_chart_label_belongs_to():
+    cap = SimpleNamespace(kind="web", elements=[el("TODAY"), el("$1.1M"), el("age 38"), el("FREEDOM"), el("$2.0M")])
+    assert around(cap, 2) == "$1.1M | [this] | FREEDOM"                       # default: unchanged
+    assert around(cap, 2, 2) == "TODAY | $1.1M | [this] | FREEDOM | $2.0M"

@@ -56,7 +56,7 @@ def snapshot(at: datetime, state: dict[str, OracleReading], contract: Contract) 
 SHORT_WORDS = 4      # a block this short ("$860K", "Net worth") is read with its neighbours
 
 
-def around(cap, index: int) -> str | None:
+def around(cap, index: int, width: int = 1) -> str | None:
     """For a short block on a page, the readable text just before and after it: a figure's label often sits in
     its own block, and "$860K" alone cannot be told from any other amount. Context only, never a claim source.
     Only for blocks the contract map cut out of a page; a message the app marks itself is already a whole unit."""
@@ -66,10 +66,18 @@ def around(cap, index: int) -> str | None:
     sec = lambda e: (getattr(e, "attribution", None) or {}).get("section")  # noqa: E731
     readable = lambda e: (bool((e.text or "").strip()) and not e.obscured  # noqa: E731
                           and sec(e) == sec(el))                                  # never across a section boundary
-    before = next((e.text for e in reversed(cap.elements[:index]) if readable(e)), "")
-    after = next((e.text for e in cap.elements[index + 1:] if readable(e)), "")
     clip = lambda t: " ".join(t.split())[:80]  # noqa: E731
-    return f"{clip(before)} | [this] | {clip(after)}" if before or after else None
+    before = [clip(e.text) for e in reversed(cap.elements[:index]) if readable(e)][:width][::-1]
+    after = [clip(e.text) for e in cap.elements[index + 1:] if readable(e)][:width]
+    if not before and not after:
+        return None
+    return " | ".join(before or [""]) + " | [this] | " + " | ".join(after or [""])
+
+
+def _around_width(surface, el) -> int:
+    i = (getattr(el, "attribution", None) or {}).get("section")
+    secs = getattr(surface, "sections", None) or []
+    return secs[i].around if isinstance(i, int) and 0 <= i < len(secs) else 1
 
 
 def story_from_episode(ep: Episode, contract: Contract) -> Story:
@@ -109,7 +117,8 @@ def story_from_episode(ep: Episode, contract: Contract) -> Story:
             id=eid, at=at, kind="message", feature=m["feature"], surface=cap.surface, channel=channel,
             component=m["component"] or default_component, topic=feat.topic if feat else None,
             user_initiated=initiated, copy_key=m["key"], text=m["text"],
-            around=around(cap, m["element"]) if attr_src == "contract_map" else None,
+            around=around(cap, m["element"], _around_width(surfaces.get(cap.surface), el))
+            if attr_src == "contract_map" else None,
             evidence=evidence))
 
     events.sort(key=lambda e: (e.at, 0 if e.kind == "user_action" else 1))
