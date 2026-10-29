@@ -7,6 +7,8 @@ can change while the other two stay fixed.
 
 from __future__ import annotations
 
+import re
+
 import json
 import random
 from pathlib import Path
@@ -97,7 +99,7 @@ def step_evidence(issue: Issue, stories: dict[str, Story], episodes: dict[str, E
 def step_reproduced(issue: Issue, stories: dict[str, Story], repro: dict[str, Story] | None) -> dict:
     if repro is None:
         return {"result": "not_run", "detail": "no re-capture"}
-    missing = []
+    missing, loose = [], []
     for o in issue.occurrences:
         fresh = repro.get(o.persona)
         if fresh is None:
@@ -107,9 +109,38 @@ def step_reproduced(issue: Issue, stories: dict[str, Story], repro: dict[str, St
         new_by_key = {new_k[e.id]: e for e in fresh.events}
         for e in cited_events(o.entry, stories[o.persona]):
             again = new_by_key.get(old_k[e.id])
-            if again is None or again.text != e.text or again.at != e.at:
+            if again is None or again.at != e.at:
                 missing.append(f"{o.persona}/{e.id}")
-    return {"result": "fail" if missing else "pass", "detail": missing or "same events, same text, same time"}
+            elif again.text != e.text:
+                why = unread_number_change(e, again.text)
+                if why is None:
+                    missing.append(f"{o.persona}/{e.id}")
+                else:
+                    loose.append(f"{o.persona}/{e.id}: {why}")
+    if missing:
+        return {"result": "fail", "detail": missing}
+    return {"result": "pass", "detail": "same events, same text, same time" + (f"; {loose}" if loose else "")}
+
+
+_NUM = re.compile(r"\d(?:[\d,.]*\d)?")
+
+
+def unread_number_change(e, text: str) -> str | None:
+    """The re-captured text differs from the cited one only in numbers no claim of it reads (a generation date,
+    a counter): the same words, and every number that changed is no claimed value. None otherwise."""
+    if _NUM.sub("#", e.text or "") != _NUM.sub("#", text or ""):
+        return None
+    claimed = set()
+    for c in (e.extraction.claims if e.extraction else []):
+        v = c.get("value")
+        if isinstance(v, (int, float)) and not isinstance(v, bool):
+            claimed.add(float(v))
+    old, new = _NUM.findall(e.text or ""), _NUM.findall(text or "")
+    changed = [(a, b) for a, b in zip(old, new) if a != b]
+    as_num = lambda t: float(t.replace(",", "").rstrip(".")) if t.replace(",", "").rstrip(".").replace(".", "", 1).isdigit() else None  # noqa: E731
+    if any(as_num(a) in claimed or as_num(b) in claimed for a, b in changed):
+        return None
+    return "only unclaimed numbers changed: " + ", ".join(f"{a}->{b}" for a, b in changed)
 
 
 def _cross_one(issue: Issue, o, story: Story, contract: Contract, router: Router, *, fresh: bool,

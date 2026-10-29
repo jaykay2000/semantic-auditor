@@ -132,3 +132,22 @@ def test_a_wider_reading_context_shows_the_column_a_chart_label_belongs_to():
     cap = SimpleNamespace(kind="web", elements=[el("TODAY"), el("$1.1M"), el("age 38"), el("FREEDOM"), el("$2.0M")])
     assert around(cap, 2) == "$1.1M | [this] | FREEDOM"                       # default: unchanged
     assert around(cap, 2, 2) == "TODAY | $1.1M | [this] | FREEDOM | $2.0M"
+
+
+def test_a_recapture_that_differs_only_in_an_unclaimed_date_still_reproduces():
+    from semaudit.verify.steps import unread_number_change
+    ex = SimpleNamespace(claims=[{"type": "limit_401k", "value": 24500}])
+    e = SimpleNamespace(text="IRS max ($24,500/yr)\\nGenerated October 28, 2026", extraction=ex)
+    assert unread_number_change(e, "IRS max ($24,500/yr)\\nGenerated October 29, 2026") == "only unclaimed numbers changed: 28->29"
+    assert unread_number_change(e, "IRS max ($25,500/yr)\\nGenerated October 28, 2026") is None    # a claimed figure
+    assert unread_number_change(e, "IRS limit ($24,500/yr)\\nGenerated October 28, 2026") is None  # a word
+
+
+def test_one_message_with_two_wrong_facts_under_one_rule_is_two_issues_other_rules_ride_along():
+    from semaudit.decide.issues import _split_by_fact
+    a = Entry("H1", "x", "violated", meta={"fact": "limit_401k"})
+    b = Entry("H1", "x", "violated", meta={"fact": "limit_ira"})
+    c = Entry("H2", "x", "violated", meta={"fact": "limit_ira", "events": ["x", "y"]})
+    out = _split_by_fact([a, b, c])
+    assert [p.meta["fact"] for p, _ in out] == ["limit_401k", "limit_ira"] and out[0][1] == [c] and out[1][1] == []
+    assert _split_by_fact([a, c]) == [(a, [c])]                                   # one fact: unchanged
