@@ -98,11 +98,24 @@ def signature(entry: Entry, events: list[Event]) -> tuple:
         # unordered: A-vs-B and B-vs-A are one disagreement, whichever message the entry was raised on
         members = ",".join(sorted({x.copy_key or x.text or "" for x in events}))
         return (entry.rule, entry.meta["fact"], members, failing)
+    if entry.meta.get("fact"):
+        # one message can state two different facts wrongly (a limit and the room under it): two defects
+        return (entry.rule, f"{e.feature or ''}{FACT_MARK}{entry.meta['fact']}", e.copy_key or e.text or "", failing)
     return (entry.rule, e.feature or "", e.copy_key or e.text or "", failing)
+
+
+FACT_MARK = "|fact:"
+
+
+def rule_fact_split(sig: tuple) -> bool:
+    """A single-message signature that carries the fact it is about (`<feature>|fact:<fact>`)."""
+    return isinstance(sig[1], str) and FACT_MARK in sig[1]
 
 
 def issue_id(release: str, sig: tuple) -> str:
     rule, what, label, failing = sig
+    if rule_fact_split(sig):
+        what = what.split(FACT_MARK)[0]         # the fact names the issue only when two would share an id
     tail = "-".join(x for x in (_slug(what.split("@")[0].replace("|", "-")), _slug(label), "-".join(failing)) if x)
     return f"I-{release}-{rule}-{tail}" if tail else f"I-{release}-{rule}"
 
@@ -238,11 +251,17 @@ def build_issues(release: str, results: dict[str, tuple[Story, list[Entry]]], co
             group.append(Occurrence(persona, story.id, [e.id for e in evs], primary,
                                     timing_of(evs, story, contract), also))
     issues = []
+    ids: dict[str, int] = {}
+    for sig in groups:
+        ids[issue_id(release, sig)] = ids.get(issue_id(release, sig), 0) + 1
     for sig, occ in groups.items():
         rule = contract.rule(sig[0])
         story, _ = results[occ[0].persona]
         evs = cited_events(occ[0].entry, story)
-        it = Issue(id=issue_id(release, sig), signature=sig, rule=rule.id, rule_kind=rule.kind,
+        iid = issue_id(release, sig)
+        if ids[iid] > 1 and rule_fact_split(sig):
+            iid = f"{iid}-{_slug(sig[1].split(FACT_MARK)[1])}"
+        it = Issue(id=iid, signature=sig, rule=rule.id, rule_kind=rule.kind,
                    layer="factual" if rule.check.get("must") in FACTUAL_CHECKS else "release",
                    label=occ[0].entry.label, occurrences=occ, severity=severity_of(rule, occ),
                    why=explain(occ[0].entry, evs, story, contract))

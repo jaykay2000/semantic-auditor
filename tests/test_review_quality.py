@@ -118,3 +118,11 @@ def test_a_monthly_claim_is_checked_against_a_yearly_truth_in_the_same_period():
     assert run(800, "month", 100) == ["passed"]          # $800/mo shown to the hundred: 9,600 +/- 600
     assert run(500, "month", 100) == ["violated"]
     assert run(10100, "year") == ["passed"] and run(800, None) == ["violated"]   # no period stated: as before
+
+
+def test_two_wrong_facts_in_one_message_are_two_issues():
+    pdf = Event(id="p", at=T0, kind="message", feature="pdf", copy_key="pdf.plan", text="$24,500 ... $12,500")
+    lim = Entry("H1", "p", "violated", note="claim 24500 vs true limit_401k 32500", meta={"fact": "limit_401k"})
+    room = Entry("H1", "p", "violated", note="claim 12500 vs true room_401k", meta={"fact": "room_401k"})
+    assert signature(lim, [pdf]) != signature(room, [pdf])
+    assert signature(lim, [pdf]) == signature(lim, [pdf])

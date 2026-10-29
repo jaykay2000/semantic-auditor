@@ -109,7 +109,7 @@ def eval_match_oracle(rule: Rule, story: Story, contract: Contract | None = None
             if truth is None:
                 continue                      # unverifiable: an owner question, never a violation
             out.append(Entry(rule.id, e.id, _status(compare(in_period(c, defs.get(c["type"])), truth)),
-                             note=f"claim {shown(c)} vs true {c['type']} {truth}"))
+                             note=f"claim {shown(c)} vs true {c['type']} {truth}", meta={"fact": c["type"]}))
     return out
 
 
