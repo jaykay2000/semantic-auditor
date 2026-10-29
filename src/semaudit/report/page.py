@@ -34,14 +34,83 @@ def owner_data(review_path: Path, review: dict, *, interactive: bool = False, by
             "issues": decided["issues"], "release": decided["release"]}
 
 
+def _cited(review: dict) -> set[str]:
+    return {o["persona"] for k in ("issues", "resolved", "unconfirmed") for i in review.get(k) or []
+            for o in i.get("occurrences", [])}
+
+
+def _base_snapshots(run_dir: Path, base: str, persona: str, contract) -> list[dict] | None:
+    """The base release's record snapshots for one persona, read from its episode (review.json carries the head
+    release's snapshots only; an issue that is resolved or unconfirmed was seen in base)."""
+    from semaudit.story.build import snapshot
+    from semaudit.story.episode import Episode
+    for f in sorted((run_dir / "episodes" / base).glob(f"{persona}__S-*.json")):
+        if f.stem.rsplit("__S-", 1)[0] != persona:
+            continue
+        ep = Episode.read(f)
+        snaps = [snapshot(ep.day0, ep.initial_state, contract)] if ep.initial_state else []
+        snaps += [snapshot(st.at, st.state, contract) for st in ep.steps if st.state]
+        return [{"at": s["at"].isoformat() if hasattr(s["at"], "isoformat") else s["at"], "truth": s["truth"]}
+                for s in snaps]
+    return None
+
+
+def page_extras(review_path: Path, review: dict) -> dict:
+    """What the page shows beside review.json, never in place of it: each cited persona's reference values from the
+    contract and its base-release record snapshots (so a resolved issue's true value is the base record, not the
+    head's), and the draft ticket for each issue (semaudit.report.ticket, the same text `semaudit ticket` writes).
+    Anything that cannot be read is left out, and the page then says what it does not know."""
+    from semaudit.report.ticket import ticket
+    out: dict = {"truth": {}, "tickets": {}}
+    m = review.get("manifest") or {}
+    contract = None
+    if m.get("contract"):
+        try:
+            from semaudit.contract.schema import load_contract
+            contract = load_contract(Path(m["contract"]["dir"]))
+        except Exception:                       # a moved contract: the page shows the reader's own statement
+            contract = None
+    run_dir = Path(m["run_dir"]) if m.get("run_dir") else review_path.parent
+    if not (run_dir / "episodes").is_dir():
+        run_dir = review_path.parent
+    base = review["release"]["base"]
+    for pid in sorted(_cited(review)):
+        t: dict = {}
+        if contract is not None:
+            try:
+                ref = contract.persona(pid).reference
+                if ref:
+                    t["reference"] = json.loads(json.dumps(dict(ref), default=str))
+            except Exception:
+                pass
+            try:
+                snaps = _base_snapshots(run_dir, base, pid, contract)
+                if snaps is not None:
+                    t["base_state"] = json.loads(json.dumps(snaps, default=str))
+            except Exception:
+                pass
+        if t:
+            out["truth"][pid] = t
+    for k in ("issues", "resolved"):
+        for i in review.get(k) or []:
+            try:
+                out["tickets"][i["id"]] = ticket(review, i["id"])
+            except Exception:
+                pass
+    return out
+
+
+def _blob(obj) -> str:
+    return json.dumps(obj, ensure_ascii=False, default=str).replace("</", "<\\/")
+
+
 def render(review_path: Path, *, interactive: bool = False, by: str | None = None) -> str:
     review = json.loads(review_path.read_text())
     data = json.dumps(review, ensure_ascii=False).replace("</", "<\\/")
-    owner = json.dumps(owner_data(review_path, review, interactive=interactive, by=by),
-                       ensure_ascii=False, default=str).replace("</", "<\\/")
+    owner = _blob(owner_data(review_path, review, interactive=interactive, by=by))
     title = f"{review['app']['name'] if review.get('app') else ''} {review['release']['base']} → {review['release']['head']}"
-    return (TEMPLATE.read_text().replace("__REVIEW_JSON__", data).replace("__OWNER_JSON__", owner)
-            .replace("__TITLE__", title))
+    return (TEMPLATE.read_text().replace("__OWNER_JSON__", owner).replace("__EXTRAS_JSON__", _blob(page_extras(review_path, review)))
+            .replace("__TITLE__", title).replace("__REVIEW_JSON__", data))
 
 
 def build(review_path: Path, out_dir: Path | None = None) -> Path:
