@@ -50,6 +50,7 @@ class _EpisodeCtx:
     out_dir: Path                         # captures/<release>/<persona>__<scenario>, under the run dir
     seen: dict[str, set[str]] = field(default_factory=dict)
     step: _StepCtx | None = None
+    clock: bool = False                   # the app runs on the simulated clock (a clock hook)
 
 
 class Runner:
@@ -155,7 +156,7 @@ class Runner:
         out_dir = self.run_dir / "captures" / release / f"{persona.id}__{scenario.id}"
         if out_dir.exists():
             shutil.rmtree(out_dir)
-        ectx = _EpisodeCtx(release, persona, scenario, app, out_dir)
+        ectx = _EpisodeCtx(release, persona, scenario, app, out_dir, clock=hooks.has("clock"))
         sink_surfaces = [s for s in contract.surfaces if s.sink and s.kind in ("email", "push")]
         for s in sink_surfaces:
             d = self._sink_dir(ectx, s)
@@ -388,8 +389,13 @@ class Runner:
                     out.append(Capture(id=cid, kind=s.kind, surface=s.id, at=sctx.at, phase=sctx.phase,
                                        status="not_measured", error=f"{path.name}: {exc}"))
                     continue
-                cap = Capture(id=cid, kind=s.kind, surface=s.id, at=sinks.sent_at(doc) or sctx.at, phase=sctx.phase,
-                              meta={"sink_file": path.name})
+                sent = sinks.sent_at(doc)
+                # A message's own send time is on the episode's clock only when the app runs on the simulated
+                # clock. Otherwise it is wall time (days away from the simulated steps), so the message is placed
+                # at the step that received it and the wall time is kept as a note.
+                at = sent if (sent and ectx.clock) else sctx.at
+                meta = {"sink_file": path.name, **({"sent_at_wall": sent.isoformat()} if sent and not ectx.clock else {})}
+                cap = Capture(id=cid, kind=s.kind, surface=s.id, at=at, phase=sctx.phase, meta=meta)
                 self._write(ectx, cid, "raw", "json", path.read_bytes(), cap)
                 cap.elements = [sinks.sink_element(s.kind, doc, path.stem)]
                 out.append(cap)
