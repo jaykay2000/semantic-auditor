@@ -232,16 +232,16 @@ def conditional_why(r: Rule, entry: Entry, e: Event, story: Story) -> str:
 
 
 def _split_by_fact(es: list[Entry]) -> list[tuple[Entry, list[Entry]]]:
-    """One event, one issue, except that the first rule failing on two different facts of the event (a limit and
-    the room under it) is two defects. Other rules are carried on the first."""
-    first = es[0].rule
-    facts = list(dict.fromkeys(e.meta.get("fact") for e in es if e.rule == first and e.meta.get("fact")))
+    """One event, one issue, except that two different facts wrong on the same event are two defects (a limit and
+    the room under it, or a freedom age and a limit), whichever rules raised them: otherwise one that is dismissed
+    hides the other. Entries that name no fact ride along on the first."""
+    facts = list(dict.fromkeys(e.meta.get("fact") for e in es if e.meta.get("fact")))
     if len(facts) <= 1:
         return [(es[0], es[1:])]
     out = []
     for n, f in enumerate(facts):
-        mine = [e for e in es if e.rule == first and e.meta.get("fact") == f]
-        rest = [e for e in es if e.rule != first] if n == 0 else []
+        mine = [e for e in es if e.meta.get("fact") == f]
+        rest = [e for e in es if not e.meta.get("fact")] if n == 0 else []
         out.append((mine[0], mine[1:] + rest))
     return out
 

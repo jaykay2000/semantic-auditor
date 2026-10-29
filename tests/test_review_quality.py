@@ -149,5 +149,8 @@ def test_one_message_with_two_wrong_facts_under_one_rule_is_two_issues_other_rul
     b = Entry("H1", "x", "violated", meta={"fact": "limit_ira"})
     c = Entry("H2", "x", "violated", meta={"fact": "limit_ira", "events": ["x", "y"]})
     out = _split_by_fact([a, b, c])
-    assert [p.meta["fact"] for p, _ in out] == ["limit_401k", "limit_ira"] and out[0][1] == [c] and out[1][1] == []
-    assert _split_by_fact([a, c]) == [(a, [c])]                                   # one fact: unchanged
+    assert out == [(a, []), (b, [c])]                       # c is about the IRA too: it rides on the IRA issue
+    d = Entry("U2", "x", "violated", meta={"fact": "freedom_age", "events": ["x", "z"]})
+    plain = Entry("P1", "x", "violated")
+    assert _split_by_fact([d, a, plain]) == [(d, [plain]), (a, [])]   # another rule's fact is its own issue
+    assert _split_by_fact([a, plain]) == [(a, [plain])]                                # one fact: unchanged
