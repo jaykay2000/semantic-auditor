@@ -19,8 +19,13 @@ import httpx
 
 PROVIDERS = {
     "meta": {"base_url": "https://api.meta.ai/v1", "key_env": "META_MODEL_API_KEY"},
-    "baseten": {"base_url": "https://inference.baseten.co/v1", "key_env": "BASETEN_API_KEY"},
+    "baseten": {"base_url": "https://inference.baseten.co/v1", "key_env": "BASETEN_API_KEY",
+                # Muse Spark Open under a strict JSON schema can run away printing whitespace until the
+                # server's 32,768-token limit ($0.14 a call, unreadable). Normal replies stay under ~5K tokens.
+                "max_completion_tokens": 16000},
 }
+
+UNREADABLE_RETRIES = 1    # a schema reply that is not JSON is retried this many times (another seed), never cached
 
 # USD per million tokens (input, output). Standard mode only; unverified entries stay None
 # so the ledger records "unpriced" rather than a misleading $0.
@@ -75,6 +80,14 @@ class ModelError(RuntimeError):
     pass
 
 
+def _readable(raw: dict) -> bool:
+    try:
+        json.loads(raw["choices"][0]["message"].get("content") or "")
+        return True
+    except (ValueError, KeyError, IndexError):
+        return False
+
+
 class Router:
     def __init__(self, root: Path | None = None, config_path: Path | None = None,
                  max_usd: float | None = None, offline: bool = False):
@@ -117,6 +130,7 @@ class Router:
             body["tools"] = tools
         if seed is not None:
             body["seed"] = seed
+        max_completion_tokens = max_completion_tokens or PROVIDERS[provider].get("max_completion_tokens")
         if max_completion_tokens:
             body["max_completion_tokens"] = max_completion_tokens
 
@@ -127,32 +141,19 @@ class Router:
             raw, latency = json.loads(cache_file.read_text()), 0.0
             cached = True
         else:
-            if self.offline:
-                raise ModelError(f"offline: no cached answer for {role} ({digest[:12]})")
-            if self.max_usd is not None and self.spent_usd >= self.max_usd:
-                raise ModelError(f"budget exhausted: spent ${self.spent_usd:.4f} of ${self.max_usd}")
-            if self.max_usd is not None and not PRICES_PER_MTOK.get(model):
-                raise ModelError(f"{model} has no price, so a ${self.max_usd} cap could not count it: refused")
-            t0 = time.monotonic()
-            resp = None
-            for attempt in range(4):           # transient failures: timeouts, 429, 5xx
-                try:
-                    resp = httpx.post(f"{PROVIDERS[provider]['base_url']}/chat/completions", json=body,
-                                      headers={"Authorization": f"Bearer {self._key(provider)}"},
-                                      timeout=timeout_s)
-                except (httpx.TimeoutException, httpx.TransportError) as e:
-                    if attempt == 3:
-                        raise ModelError(f"{provider}/{model} transport error after retries: {e}") from e
-                    time.sleep(2 ** attempt * 2)
-                    continue
-                if resp.status_code in (429, 500, 502, 503, 504) and attempt < 3:
-                    time.sleep(2 ** attempt * 2)
-                    continue
-                break
-            latency = time.monotonic() - t0
-            if resp.status_code != 200:
-                raise ModelError(f"{provider}/{model} HTTP {resp.status_code}: {resp.text[:500]}")
-            raw = resp.json()
+            raw = None
+            for unreadable in range(UNREADABLE_RETRIES + 1):
+                send = body if unreadable == 0 else {**body, "seed": (seed or 0) + 1000 + unreadable}
+                raw, latency = self._fetch(role, provider, model, send, digest, timeout_s)
+                if schema is None or _readable(raw):
+                    break
+                cost = self._cost(model, raw.get("usage", {}))   # charged though unusable: count and log it
+                self.spent_usd += cost or 0.0
+                self._log(role, model, raw.get("usage", {}), cost, False, latency, digest + ":unreadable")
+                if unreadable == UNREADABLE_RETRIES:
+                    fin = raw["choices"][0].get("finish_reason")
+                    raise ModelError(f"{provider}/{model}: reply is not JSON (finish_reason={fin}) after "
+                                     f"{UNREADABLE_RETRIES + 1} tries; not cached")
             self.cache_dir.mkdir(exist_ok=True)
             cache_file.write_text(json.dumps(raw))
             cached = False
@@ -177,6 +178,35 @@ class Router:
         self._log(role, model, usage, cost, cached, latency, digest)
         result = Result(role, model, content, parsed, usage, cost, cached, latency, raw)
         return result
+
+    def _fetch(self, role, provider, model, body, digest, timeout_s):
+        if self.offline:
+            raise ModelError(f"offline: no cached answer for {role} ({digest[:12]})")
+        if self.max_usd is not None and self.spent_usd >= self.max_usd:
+            raise ModelError(f"budget exhausted: spent ${self.spent_usd:.4f} of ${self.max_usd}")
+        if self.max_usd is not None and not PRICES_PER_MTOK.get(model):
+            raise ModelError(f"{model} has no price, so a ${self.max_usd} cap could not count it: refused")
+        t0 = time.monotonic()
+        resp = None
+        for attempt in range(4):           # transient failures: timeouts, 429, 5xx
+            try:
+                resp = httpx.post(f"{PROVIDERS[provider]['base_url']}/chat/completions", json=body,
+                                  headers={"Authorization": f"Bearer {self._key(provider)}"},
+                                  timeout=timeout_s)
+            except (httpx.TimeoutException, httpx.TransportError) as e:
+                if attempt == 3:
+                    raise ModelError(f"{provider}/{model} transport error after retries: {e}") from e
+                time.sleep(2 ** attempt * 2)
+                continue
+            if resp.status_code in (429, 500, 502, 503, 504) and attempt < 3:
+                time.sleep(2 ** attempt * 2)
+                continue
+            break
+        latency = time.monotonic() - t0
+        if resp.status_code != 200:
+            raise ModelError(f"{provider}/{model} HTTP {resp.status_code}: {resp.text[:500]}")
+        raw = resp.json()
+        return raw, latency
 
     def accounting(self) -> dict:
         """Spend for this router's lifetime: actually spent (cache hits cost 0) vs. the same calls made fresh."""
