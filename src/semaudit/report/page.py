@@ -91,12 +91,13 @@ def page_extras(review_path: Path, review: dict) -> dict:
                 pass
         if t:
             out["truth"][pid] = t
-    for k in ("issues", "resolved"):
+    for k in ("issues", "resolved", "unconfirmed"):
         for i in review.get(k) or []:
-            try:
-                out["tickets"][i["id"]] = ticket(review, i["id"])
-            except Exception:
-                pass
+            for pid in dict.fromkeys(o["persona"] for o in i["occurrences"]):   # one draft per persona shown
+                try:
+                    out["tickets"].setdefault(i["id"], {})[pid] = ticket(review, i["id"], pid)
+                except Exception:
+                    pass
     return out
 
 

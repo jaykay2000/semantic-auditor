@@ -994,10 +994,12 @@ function mdLite(md) {
 function ticketModal() {
   const i = byId(state.issue);
   if (!state.ticket || !i) return '';
-  const md = (X.tickets || {})[i.id];
-  const cmd = `semaudit ticket ${i.id} --review ${O.review}`;
+  const drafts = (X.tickets || {})[i.id] || {};
+  const who = drafts[state.persona] ? state.persona : Object.keys(drafts)[0];
+  const md = who ? drafts[who] : null;
+  const cmd = `semaudit ticket ${i.id} --review ${O.review}${who ? ` --persona ${who}` : ''}`;
   return `<div class="modal" data-close-ticket="1"><div class="sheet" role="dialog" aria-label="Draft ticket"><header><b>Draft ticket</b><span class="d unconfirmed" style="border-style:solid">draft · not filed</span><span class="muted">filing it is a person's decision</span><button class="btn" style="margin-left:auto" data-close-ticket="1">Close</button></header>
-    <div class="tk">${md ? mdLite(md) : `<p class="muted">No draft for this issue: <span class="mono">semaudit ticket</span> drafts open and resolved issues; an unconfirmed one needs a fresh reading first.</p>`}</div>
+    <div class="tk">${md ? mdLite(md) : `<p class="muted">No draft for this issue.</p>`}</div>
     <footer>${md ? `<button class="btn primary" data-copy="${esc(md)}">Copy markdown</button>` : ''}${copyCmd(cmd)}</footer></div></div>`;
 }
 

@@ -248,7 +248,8 @@ def build_reader_issues(findings: list[Finding], ev: ReleaseEval, contract: Cont
                           meta={"quotes": [c[3] for c in evidence[p]],
                                 "messages": sorted({(c[1], c[2]) for c in evidence[p]}),
                                 "compared_with": [{"event": c[0], "quote": c[3]} for c in compared.get(p, [])]})
-            also = [Entry(r, ids[0], "violated", None, note="also named by the reader") for r in others]
+            also = [Entry(r, ids[0], "violated", None, note=next(f.why for f, _ in items if f.rule == r))
+                    for r in others]
             occ.append(Occurrence(p, stories[p].id, ids, entry, "", also))
         named_only = sorted({p for f, _ in items for p in f.personas} - set(evidence))
         detail = []

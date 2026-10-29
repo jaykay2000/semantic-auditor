@@ -34,3 +34,25 @@ def test_a_long_message_is_quoted_at_the_lines_that_state_the_figure():
     text = "\n".join(["intro line"] * 40 + ["Step 3: toward the IRS max ($24,500/yr for 401(k))"] + ["tail"] * 40)
     q = _quote(text, "claim 24500 vs true limit_401k 32500")
     assert "$24,500/yr" in q and q.count("intro line") == 1 and "…" in q
+
+
+def test_list_context_fills_count_and_quantity():
+    from types import SimpleNamespace as NS
+
+    from semaudit.report.review import context_summary
+    c = NS(subject=NS(context=[NS(id="items", show="{n} line(s), {qty} unit(s)", type="list")]))
+    assert context_summary({"items": ["trimmer|Black|3", "toaster|Black|1"]}, c, None) == ["2 line(s), 4 unit(s)"]
+    assert context_summary({"items": [{"qty": 2}, {"quantity": 5}]}, c, None) == ["2 line(s), 7 unit(s)"]
+
+
+def test_also_lines_are_counted_once_and_the_ticket_follows_the_chosen_persona():
+    from semaudit.report.ticket import ticket
+    occ = lambda p: {"persona": p, "events": [], "also": [{"rule": "U2", "note": "differs"}]}  # noqa: E731
+    review = {"release": {"base": "b", "head": "h"}, "app": {"name": "X"},
+              "rules": [{"id": "U1", "title": "T", "text": "t"}],
+              "personas": [{"id": p, "role": "r", "summary": [p], "steps": [], "events": []} for p in ("a", "b")],
+              "issues": [{"id": "I1", "rule": "U1", "why": "w", "delta": "new", "occurrences": [occ("a"), occ("b")],
+                          "severity": {"level": "major"}, "confidence": {"level": "low"},
+                          "verification": {"status": "unverified"}}]}
+    md = ticket(review, "I1", "b")
+    assert md.count("Also breaks U2") == 1 and "(2 of 2 personas)" in md and "Persona `b`" in md

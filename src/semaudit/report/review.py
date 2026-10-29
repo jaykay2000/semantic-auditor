@@ -129,6 +129,14 @@ def context_summary(context: dict, contract: Contract, start) -> list[str]:
         else:
             text = f.show
         when = _span((v - start).total_seconds() / 3600) if f.type == "time" and start is not None else ""
+        if isinstance(v, list):                   # a list field: {n} entries, {qty} their summed quantity
+            def _q(x):                            # {"qty": 3} / {"quantity": 3} / "slug|variant|3" / anything else: 1
+                if isinstance(x, dict):
+                    return int(x.get("qty", x.get("quantity", 1)) or 0)
+                last = str(x).rsplit("|", 1)[-1]
+                return int(last) if "|" in str(x) and last.isdigit() else 1
+            qty = sum(_q(x) for x in v)
+            text = text.replace("{n}", str(len(v))).replace("{qty}", str(qty))
         out.append(text.replace("{v}", str(v)).replace("{in}", when))
     return out
 

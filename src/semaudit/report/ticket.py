@@ -20,7 +20,7 @@ def _find(review: dict, issue_id: str) -> tuple[dict, bool]:
     for i in review.get("issues", []):
         if i["id"] == issue_id:
             return i, False
-    for i in review.get("resolved", []):
+    for i in review.get("resolved", []) + review.get("unconfirmed", []):
         if i["id"] == issue_id:
             return i, True
     raise KeyError(f"no issue {issue_id!r} in this review")
@@ -69,14 +69,15 @@ def _steps(persona: dict, base: bool, until: str | None) -> list[str]:
     return out
 
 
-def ticket(review: dict, issue_id: str) -> str:
+def ticket(review: dict, issue_id: str, persona: str | None = None) -> str:
+    """`persona`: draft from this persona's occurrence (default: the first)."""
     issue, resolved = _find(review, issue_id)
     rel = review.get("release") or {}
     app = (review.get("app") or {}).get("name") or "app"
     rules = {r["id"]: r for r in review.get("rules", [])}
     rule = rules.get(issue["rule"], {})
     personas = {p["id"]: p for p in review.get("personas", [])}
-    occ = issue["occurrences"][0]
+    occ = next((o for o in issue["occurrences"] if o["persona"] == persona), issue["occurrences"][0])
     persona = personas.get(occ["persona"], {})
     evs = {e["id"]: e for e in persona.get("base_events" if resolved else "events") or []}
     cited = [evs[x] for x in occ["events"] if x in evs and evs[x].get("kind") == "message"]
@@ -97,9 +98,14 @@ def ticket(review: dict, issue_id: str) -> str:
              f"**Personas affected:** {', '.join(issue.get('personas') or sorted({o['persona'] for o in issue['occurrences']}))}",
              "", "## What is wrong", "", issue.get("why", ""), "",
              f"Rule {issue['rule']}: {rule.get('text') or issue.get('rule_text', '')}", ""]
+    also = {}
     for o in issue["occurrences"]:
         for a in o.get("also") or []:
-            lines.append(f"Also breaks {a['rule']}: {a.get('note', '')}")
+            also.setdefault((a["rule"], a.get("note", "")), 0)
+            also[(a["rule"], a.get("note", ""))] += 1
+    n = len(issue["occurrences"])
+    for (rule_id, note), k in also.items():
+        lines.append(f"Also breaks {rule_id}: {note}" + (f" ({k} of {n} personas)" if n > 1 else ""))
     lines += ["", "## Steps to reproduce", "",
               f"Persona `{persona.get('id', occ['persona'])}` ({persona.get('role', '')}): "
               + "; ".join(persona.get("summary") or []), ""]
@@ -116,9 +122,9 @@ def ticket(review: dict, issue_id: str) -> str:
     return "\n".join(lines) + "\n"
 
 
-def write_ticket(review_path: Path, issue_id: str, out: Path | None = None) -> Path:
+def write_ticket(review_path: Path, issue_id: str, out: Path | None = None, persona: str | None = None) -> Path:
     review = json.loads(Path(review_path).read_text())
-    md = ticket(review, issue_id)
+    md = ticket(review, issue_id, persona)
     out = out or Path(review_path).parent / "tickets" / f"{issue_id}.md"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(md)
