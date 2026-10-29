@@ -9,6 +9,7 @@ beyond what the review records. The ticket is a draft: filing it is a person's d
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -25,10 +26,34 @@ def _find(review: dict, issue_id: str) -> tuple[dict, bool]:
     raise KeyError(f"no issue {issue_id!r} in this review")
 
 
-def _quote(text: str) -> str:
+def _forms(why: str) -> list[str]:
+    """The figures the issue names, as a page may print them ("24500" -> "24,500", "24500", "24.5K")."""
+    out = []
+    for n in re.findall(r"\d+(?:\.\d+)?", why or ""):
+        v = float(n)
+        if v < 10:
+            continue
+        i = int(v) if v == int(v) else None
+        out += [n] + ([f"{i:,}", f"{i/1000:g}K"] if i and i >= 1000 else [])
+    return list(dict.fromkeys(out))
+
+
+def _quote(text: str, why: str = "") -> str:
     t = (text or "").strip()
     if len(t) > QUOTE_CHARS:
-        t = t[:QUOTE_CHARS].rstrip() + " …"
+        lines = t.splitlines()
+        hit = [n for n, line in enumerate(lines) if any(f in line for f in _forms(why))]
+        if hit:                                   # the lines that state the figures, with one line around each
+            keep = sorted({k for n in hit for k in (n - 1, n, n + 1) if 0 <= k < len(lines)})
+            parts, prev = [], None
+            for k in keep:
+                if prev is not None and k != prev + 1:
+                    parts.append("…")
+                parts.append(lines[k])
+                prev = k
+            t = ("…\n" if keep[0] > 0 else "") + "\n".join(parts) + ("\n…" if keep[-1] < len(lines) - 1 else "")
+        else:
+            t = t[:QUOTE_CHARS].rstrip() + " …"
     return "\n".join("> " + line if line else ">" for line in t.splitlines()) or "> (empty)"
 
 
@@ -84,7 +109,7 @@ def ticket(review: dict, issue_id: str) -> str:
     for e in cited:
         ev = e.get("evidence") or {}
         lines += [f"**{e.get('surface')}** · {e.get('feature')} · {e.get('at', '')[:16].replace('T', ' ')} · "
-                  f"capture `{ev.get('capture_id', '')}`", "", _quote(e.get("text", "")), ""]
+                  f"capture `{ev.get('capture_id', '')}`", "", _quote(e.get("text", ""), issue.get("why", "")), ""]
     lines += ["## Reproduce", "", f"`{issue['repro']}`" if issue.get("repro") else "(no replay command recorded)", "",
               "---", f"Drafted by the Semantic Auditor from the review of {app} {rel.get('base')} → {rel.get('head')}"
               f" ({review.get('written_at', '')}). A draft: a person decides whether to file it."]

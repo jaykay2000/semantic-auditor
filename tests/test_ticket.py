@@ -27,3 +27,10 @@ def test_a_ticket_quotes_every_cited_message_and_the_steps():
 def test_an_unknown_issue_is_refused():
     with pytest.raises(KeyError):
         ticket({"issues": [], "resolved": []}, "I-x")
+
+
+def test_a_long_message_is_quoted_at_the_lines_that_state_the_figure():
+    from semaudit.report.ticket import _quote
+    text = "\n".join(["intro line"] * 40 + ["Step 3: toward the IRS max ($24,500/yr for 401(k))"] + ["tail"] * 40)
+    q = _quote(text, "claim 24500 vs true limit_401k 32500")
+    assert "$24,500/yr" in q and q.count("intro line") == 1 and "…" in q
