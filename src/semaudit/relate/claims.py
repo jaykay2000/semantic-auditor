@@ -52,12 +52,24 @@ def precision(claim: dict) -> float:
     return float(p) if isinstance(p, (int, float)) and not isinstance(p, bool) and p > 0 else 0.0
 
 
+TEXT_UNITS = ("text", "enum")   # a fact stated in words: a number cannot state it
+
+
+def numberless(claim: dict, fact) -> bool:
+    """A claim of a text fact (contract unit text/enum) that carries no word. The extraction schema has only a
+    number field for a fact with no word vocabulary, so any number it holds (a ZIP code, a quantity) is not the
+    fact: unreadable, never compared."""
+    return fact is not None and getattr(fact, "unit", None) in TEXT_UNITS and word(claim) is None
+
+
 def checkable(claim: dict, fact=None, roles_on: bool = False) -> bool:
     """A claim the fact's true value can check: one whose role is a role the fact's truth describes (by default
     as_is, the figure as it is now). A target, what-if or change is not the user's current figure and is never
     compared with the oracle's; for a fact that IS a limit, a claim stating the limit is. Without roles every
     claim is checkable, as before. With roles on, a claim whose role was not read is not checked (it could be a
     target or a what-if)."""
+    if numberless(claim, fact):
+        return False
     role = claim.get("role")
     if role is None:
         return not roles_on
@@ -86,6 +98,8 @@ def comparable(fact, a: dict, b: dict, roles_on: bool = False) -> bool:
     on, a claim whose role was not read is never compared."""
     ra, rb = a.get("role"), b.get("role")
     if roles_on and (ra is None or rb is None):
+        return False
+    if numberless(a, fact) or numberless(b, fact):
         return False
     if fact is not None and not fact.key and not (checkable(a, fact) and checkable(b, fact)):
         return False          # a target or what-if of a plain fact ("-> age 56 if you save more") names no scenario
