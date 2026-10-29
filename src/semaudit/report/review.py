@@ -185,7 +185,10 @@ def issue_dict(i: Issue, stories: dict[str, Story], contract: Contract, review_p
         "occurrences": [{"persona": x.persona, "events": x.events, "timing": x.timing,
                          "conditions": [list(c) for c in x.entry.conditions],
                          "exception": x.entry.meta.get("exception"),
-                         "also": [asdict(a) | {"conditions": [list(c) for c in a.conditions]} for a in x.also]}
+                         "also": [asdict(a) | {"conditions": [list(c) for c in a.conditions]} for a in x.also],
+                         **({"quotes": x.entry.meta["quotes"],
+                             "compared_with": x.entry.meta.get("compared_with", [])}
+                            if "quotes" in x.entry.meta else {})}
                         for x in i.occurrences],
         "severity": i.severity, "confidence": i.confidence, "verification": i.verification,
         "memory": i.memory or None,
@@ -228,7 +231,15 @@ def assemble(base: ReleaseEval, head: ReleaseEval, contract: Contract, verified:
              "verification": i.verification["status"]} for i in open_issues]
     row, idx = contract.policy.evaluate(rows)
     fired_by = [open_issues[k].id for k in contract.policy.fired_by(row, rows)]
-    measured = measurement(base, head, contract, reader is not None)["complete"]
+    measured_d = measurement(base, head, contract, reader is not None)
+    if reader is not None:                  # a reading cut short or with findings it could not express is partial
+        probs = [f"{side} reading: {what}" for side in ("base", "head") for what, bad in
+                 (("output truncated", (reader.get(side) or {}).get("truncated")),
+                  (f"{len((reader.get(side) or {}).get('dropped', []))} finding(s) dropped as malformed",
+                   (reader.get(side) or {}).get("dropped"))) if bad]
+        if probs:
+            measured_d = {**measured_d, "complete": False, "reader_problems": probs}
+    measured = measured_d["complete"]
     stories = {p: s for p, (s, _) in head.results.items()}
     base_stories = {p: s for p, (s, _) in base.results.items()}
     issues = []
@@ -247,7 +258,7 @@ def assemble(base: ReleaseEval, head: ReleaseEval, contract: Contract, verified:
         "policy": {"recommendation": row.recommendation, "row": idx + 1, "rule_fired": row.text,
                    "fired_by": fired_by},
         "outcome": outcome_of(row.recommendation, measured, approval),
-        "measurement": measurement(base, head, contract, reader is not None),
+        "measurement": measured_d,
         "approval": approval,
         "issues": issues,
         "resolved": [issue_dict(i, base_stories, contract, None if reader is not None else review_path)

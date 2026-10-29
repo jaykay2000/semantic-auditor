@@ -5,27 +5,27 @@ release, each message beside the oracle readings at that moment. The model reads
 B-judge-1 benchmark froze (bench/conditions/prompts/judge_one.md), in chunks of at most `chunk` personas so a large
 persona set fits. SRA then does the parts the model is not trusted with:
 
-  evidence   every cited quote must appear, whitespace-insensitively, in the text of the event it cites in that
-             persona's captured story. A quote found only in another message of the same persona is kept but
-             marked re-pointed; a quote found nowhere is dropped; a finding left with no citation is not raised (it
-             is listed in not_raised with the reason);
+  evidence   every cited quote must appear, whitespace-insensitively, in the message it cites in that persona's
+             captured story, and state a figure or two words. A quote found only in one other message of the
+             persona, and specific (a figure and two words), is kept but marked re-pointed; any other is refused; a finding
+             left with no accepted citation is not raised (it is listed in not_raised with the reason);
   grouping   one issue per wrong figure and the messages it appears in: the fact a finding names first (a contract
              fact id in its explanation) and the messages it targets or cites, by message key without the #N
-             occurrence suffix (as story/align.py matches messages across releases). Findings that share a
-             (fact, message) pair are one issue, across chunks and rules, so the same email bug reported by U1 on
+             occurrence suffix (as story/align.py matches messages across releases), on its surface. Findings that
+             share a (fact, message) pair are one issue, across chunks and rules, so the same email bug reported by U1 on
              the email and by U2 on the order page against the email is one issue. Relation and story findings
              group by their target. The contract's first rule among the group's is the issue's rule; the others
              are listed as "also". The issue's identity across releases is its fact and the message most personas
              cite;
-  delta      decided on the message, and checked against the captures, because one reading may name a fact the
-             other leaves unnamed, or skip a defect the other reports. A head issue is pre_existing when base has
-             an issue on the same message, or when every quote it cites was already shown to the same persona in
-             base, in the same message (the base reading missed it); otherwise new. A base issue is resolved only
-             when head has no issue on its message, every persona it reached was measured in head, and its quotes
-             are no longer shown to that persona in that message; otherwise it is "unconfirmed", with the reason;
+  delta      matched on the anchor message and the fact (an unnamed fact matches any), and checked against the
+             captures, because one reading may skip a defect the other reports. A head issue is pre_existing when a
+             base issue matches, or when every quote it cites was already shown to the same persona in the same
+             message in base; otherwise new. A base issue is resolved only when no head issue matches, every
+             persona it reached was measured in head, its cited message is still shown, and none of its quotes is
+             shown anywhere in that persona's head story; otherwise "unconfirmed", with the reason;
   severity   the rule's owner-set level, as for every other issue; the model's own rating is recorded, not used;
-  confidence at most medium: no replay, no second model and no defense run on a reader issue. An issue whose
-             citations were only partly found is low.
+  confidence at most medium: no replay, no second model and no defense run on a reader issue. An issue with a
+             refused or re-pointed citation is low.
 
 No extraction runs in this mode: the reader reads raw message text with the oracle readings, which is the context
 that measured best (docs/evidence/w13b-sealed-followups.md).
@@ -64,18 +64,64 @@ def _fact(f: Finding, facts: list[str]) -> str | None:
     return min(hits)[1] if hits else None
 
 
-def group(findings: list[Finding], facts: list[str]) -> list[tuple[tuple, list[Finding]]]:
-    """[(identity, findings)]: event findings joined by shared (fact, message); others by their target."""
-    out: dict[tuple, list[Finding]] = {}
+Cite = tuple  # (event_id, surface, message key without #N, quote)
+
+
+def _msg(surface, key) -> tuple:
+    return (surface or "", _base(key))
+
+
+def check_citations(f: Finding, stories: dict[str, Story]) -> tuple[dict[str, list[Cite]], list[str], list[str]]:
+    """persona -> accepted citations; the citations refused (with why); the citations re-pointed.
+
+    A quote in the cited message (event ids can repeat in a story, so any message with that id counts) must state a
+    figure or at least two words: a bare price message is quoted by its price, but "Shipping" alone says nothing.
+    A quote not in the cited message is re-pointed only when it holds a figure and two words and exactly one
+    message of the persona holds it ("$15.00" alone appears in dozens)."""
+    found: dict[str, list[Cite]] = {}
+    failed, moved = [], []
+    for c in f.cited:
+        s = stories.get(c.persona)
+        q = _norm(c.quote)
+        if s is None:
+            failed.append(f"{c.persona}/{c.event_id}: no captured story for this persona")
+            continue
+        if not q:
+            failed.append(f"{c.persona}/{c.event_id}: no quote given")
+            continue
+        holding = [x for x in s.events if x.kind == "message" and q in _norm(x.text)]
+        at = next((x for x in holding if x.id == c.event_id), None)
+        words = len(re.findall(r"[a-z]{3,}", q))
+        if at is not None and not (re.search(r"\d", q) or words >= 2):
+            failed.append(f"{c.persona}/{c.event_id}: quote {c.quote[:30]!r} states no figure (in {len(holding)} "
+                          f"messages)")
+            continue
+        if at is None:
+            if len(holding) != 1 or not (re.search(r"\d", q) and words >= 2):
+                failed.append(f"{c.persona}/{c.event_id}: quote " + ("in no captured message" if not holding else
+                                                                     f"not in the cited message, and in {len(holding)} others"))
+                continue
+            at = holding[0]
+            moved.append(f"{c.persona}/{c.event_id} -> {at.id}")
+        cite = (at.id, at.surface, _base(at.id), c.quote)
+        if cite not in found.setdefault(c.persona, []):
+            found[c.persona].append(cite)
+    return found, failed, moved
+
+
+def group(checked: list[tuple[Finding, dict]], facts: list[str]) -> list[tuple[tuple, list[tuple[Finding, dict]]]]:
+    """[(identity, [(finding, accepted citations)])]: event findings joined by a shared (fact, message), message =
+    (surface, message key without #N); relation and story findings by their target."""
+    out: dict[tuple, list] = {}
     events = []
-    for f in findings:
+    for f, found in checked:
         t = f.target
         if t.kind == "relation":
-            out.setdefault(("relation", *sorted(t.features), t.decision, f.label), []).append(f)
+            out.setdefault(("relation", *sorted(t.features), t.decision, f.label), []).append((f, found))
         elif t.kind == "story":
-            out.setdefault(("story", f.rule), []).append(f)
+            out.setdefault(("story", f.rule), []).append((f, found))
         else:
-            events.append(f)
+            events.append((f, found))
     parent = list(range(len(events)))
 
     def find(i):
@@ -84,27 +130,29 @@ def group(findings: list[Finding], facts: list[str]) -> list[tuple[tuple, list[F
             i = parent[i]
         return i
     owner: dict[tuple, int] = {}
-    for n, f in enumerate(events):
+    for n, (f, found) in enumerate(events):
         fact = _fact(f, facts)
-        for k in {_base(f.target.message_key)} | {_base(c.event_id) for c in f.cited}:
-            node = (fact, k)
+        msgs = {_msg(f.target.surface, f.target.message_key)} | {(c[1], c[2]) for cs in found.values() for c in cs}
+        for m in msgs:
+            node = (fact, m)
             if node in owner:
                 parent[find(n)] = find(owner[node])
             else:
                 owner[node] = n
-    comps: dict[int, list[Finding]] = {}
-    for n, f in enumerate(events):
-        comps.setdefault(find(n), []).append(f)
-    for fs in comps.values():
-        fact = _fact(fs[0], facts)
-        cites: dict[str, set] = {}
-        for f in fs:
-            for c in f.cited:
-                cites.setdefault(_base(c.event_id), set()).add(c.persona)
-        targets = {_base(f.target.message_key) for f in fs}
-        anchor = (max(sorted(cites), key=lambda k: (len(cites[k]), k in targets)) if cites
-                  else _base(fs[0].target.message_key))
-        out.setdefault(("event", fact, anchor), []).extend(fs)
+    comps: dict[int, list] = {}
+    for n, item in enumerate(events):
+        comps.setdefault(find(n), []).append(item)
+    for items in comps.values():
+        fact = _fact(items[0][0], facts)
+        cites: dict[tuple, set] = {}
+        for f, found in items:
+            for p, cs in found.items():
+                for c in cs:
+                    cites.setdefault((c[1], c[2]), set()).add(p)
+        targets = {_msg(f.target.surface, f.target.message_key) for f, _ in items}
+        anchor = (max(sorted(cites), key=lambda m: (len(cites[m]), m in targets)) if cites
+                  else _msg(items[0][0].target.surface, items[0][0].target.message_key))
+        out.setdefault(("event", fact, anchor), []).extend(items)
     for key in [k for k in out if k[0] == "event" and k[1] is None]:
         named = [k for k in out if k[0] == "event" and k[1] is not None and k[2] == key[2]]
         if len(named) == 1:                       # "the same limit reads differently" beside "limit_401k is wrong"
@@ -137,77 +185,67 @@ def read_release(run_dir: Path, release: str, contract: Contract, router: Router
     return ReleaseEval(release, episodes, results, not_measured), findings, acct
 
 
-def check_citations(f: Finding, stories: dict[str, Story]) -> tuple[dict[str, list[str]], list[str]]:
-    """persona -> event ids whose captured text holds the cited quote; the citations found nowhere; and the
-    citations whose quote is in another message of that persona than the one cited (re-pointed there)."""
-    found: dict[str, list[str]] = {}
-    failed, moved = [], []
-    for c in f.cited:
-        s = stories.get(c.persona)
-        q = _norm(c.quote)
-        e = next((x for x in s.events if x.id == c.event_id), None) if s else None
-        at = c.event_id
-        if s is None:
-            failed.append(f"{c.persona}/{c.event_id}: no captured story for this persona")
-            continue
-        if not q:
-            failed.append(f"{c.persona}/{c.event_id}: no quote given")
-            continue
-        if e is None or e.kind != "message" or q not in _norm(e.text):
-            other = next((x for x in s.events if x.kind == "message" and q in _norm(x.text)), None)
-            if other is None:
-                failed.append(f"{c.persona}/{c.event_id}: quote not in any captured message")
-                continue
-            moved.append(f"{c.persona}/{c.event_id} -> {other.id}")
-            at = other.id
-        found.setdefault(c.persona, [])
-        if at not in found[c.persona]:
-            found[c.persona].append(at)
-    return found, failed, moved
-
-
 def build_reader_issues(findings: list[Finding], ev: ReleaseEval, contract: Contract) -> tuple[list[Issue], list[dict]]:
-    """Group, check and turn the model's findings into issues. Returns (issues, not_raised rows)."""
+    """Check, group and turn the model's findings into issues. Returns (issues, not_raised rows).
+
+    An issue's evidence is what its primary rule's findings cite. A finding under another rule in the same group
+    (typically "the same figure reads differently on two surfaces") adds its citations of the issue's own messages;
+    its citations of other messages are the other side of the comparison, kept as compared_with, never as
+    evidence of the violation."""
     stories = {p: s for p, (s, _) in ev.results.items()}
     order = {r.id: k for k, r in enumerate(contract.rules)}
+    checked, problems = [], {}
+    for f in findings:
+        if f.rule not in order:
+            continue
+        found, bad, mv = check_citations(f, stories)
+        checked.append((f, found))
+        problems[f.id] = (bad, mv)
     issues, refused = [], []
-    for key, fs in group([f for f in findings if f.rule in order], [x.id for x in contract.facts]):
-        fs.sort(key=lambda f: order[f.rule])
-        primary = fs[0]
+    for key, items in group(checked, [x.id for x in contract.facts]):
+        items.sort(key=lambda it: order[it[0].rule])
+        primary = items[0][0]
         rule = contract.rule(primary.rule)
-        evidence: dict[str, list[str]] = {}
-        quotes: dict[str, list[str]] = {}
+        own = {(c[1], c[2]) for f, found in items if f.rule == rule.id for cs in found.values() for c in cs}
+        if key[0] == "event":
+            own.add(key[2])
+        evidence: dict[str, list[Cite]] = {}
+        compared: dict[str, list[Cite]] = {}
         failed: list[str] = []
         moved: list[str] = []
         rated = []
-        for f in fs:
-            found, bad, mv = check_citations(f, stories)
+        for f, found in items:
+            bad, mv = problems[f.id]
             failed += bad
             moved += mv
             rated.append(f.confidence or "low")
-            for c in f.cited:
-                if c.persona in found and _norm(c.quote):
-                    quotes.setdefault(c.persona, []).append(c.quote)
-            for p, evs in found.items():
-                evidence.setdefault(p, [])
-                evidence[p] += [x for x in evs if x not in evidence[p]]
-        others = sorted({f.rule for f in fs if f.rule != rule.id}, key=order.get)
+            for p, cs in found.items():
+                for c in cs:
+                    side = evidence if (f.rule == rule.id or (c[1], c[2]) in own) else compared
+                    if c not in side.setdefault(p, []):
+                        side[p].append(c)
+        evidence = {p: cs for p, cs in evidence.items() if cs}
+        others = sorted({f.rule for f, _ in items if f.rule != rule.id}, key=order.get)
         sig = ("reader", *key)
         if not evidence:
-            refused.append({"persona": ",".join(sorted({p for f in fs for p in f.personas})), "rule": rule.id,
-                            "subjects": [f.id for f in fs], "status": "not_raised", "label": primary.label,
-                            "conditions": [], "reason": "evidence check failed: " + "; ".join(failed[:5])})
+            refused.append({"persona": ",".join(sorted({p for f, _ in items for p in f.personas})), "rule": rule.id,
+                            "subjects": [f.id for f, _ in items], "status": "not_raised", "label": primary.label,
+                            "conditions": [], "release": ev.release,
+                            "reason": "evidence check failed: " + "; ".join(failed[:5])})
             continue
         occ = []
         for p in sorted(evidence):
-            entry = Entry(rule.id, evidence[p][0], "violated", primary.label, note=primary.why,
-                          meta={"quotes": quotes.get(p, [])})
-            also = [Entry(r, evidence[p][0], "violated", None, note="also named by the reader") for r in others]
-            occ.append(Occurrence(p, stories[p].id, evidence[p], entry, "", also))
-        named_only = sorted({p for f in fs for p in f.personas} - set(evidence))
+            ids = list(dict.fromkeys(c[0] for c in evidence[p]))
+            entry = Entry(rule.id, ids[0], "violated", primary.label, note=primary.why,
+                          meta={"quotes": [c[3] for c in evidence[p]],
+                                "messages": sorted({(c[1], c[2]) for c in evidence[p]}),
+                                "compared_with": [{"event": c[0], "quote": c[3]} for c in compared.get(p, [])]})
+            also = [Entry(r, ids[0], "violated", None, note="also named by the reader") for r in others]
+            occ.append(Occurrence(p, stories[p].id, ids, entry, "", also))
+        named_only = sorted({p for f, _ in items for p in f.personas} - set(evidence))
         detail = []
         if failed:
-            detail.append(f"{len(failed)} citation(s) found in no captured message: " + "; ".join(failed[:5]))
+            detail.append(f"{len(failed)} citation(s) refused: " + "; ".join(failed[:5]))
         if moved:
             detail.append(f"{len(moved)} citation(s) found in another message than cited: " + "; ".join(moved[:5]))
         steps = {"evidence_linked": {"result": "fail" if (failed or moved) else "pass",
@@ -215,15 +253,14 @@ def build_reader_issues(findings: list[Finding], ev: ReleaseEval, contract: Cont
                  "reproduced": {"result": "not_run"}, "cross_model": {"result": "not_run"},
                  "defended": {"result": "not_run"}}
         model_level = max(rated, key=CONFIDENCE.index)
-        level = "low" if failed else min(model_level, "medium", key=CONFIDENCE.index)
+        level = "low" if (failed or moved) else min(model_level, "medium", key=CONFIDENCE.index)
         basis = [f"reader's own rating: {model_level}", "quotes checked against the captures"
-                 + ("; some found in no message" if failed else "") + ("; some in another message than cited"
-                                                                      if moved else ""),
+                 + ("; some refused" if failed else "") + ("; some in another message than cited" if moved else ""),
                  "no replay, second model or defense on reader issues"]
         if named_only:
-            basis.append("also named without a quote (not counted): " + ", ".join(named_only))
+            basis.append("also named without a usable quote (not counted): " + ", ".join(named_only))
         digest = hashlib.sha1(repr(sig).encode()).hexdigest()[:8]
-        what = f"{key[1] or 'unnamed-fact'}-{key[2]}" if key[0] == "event" else "-".join(str(x) for x in key[1:] if x)
+        what = f"{key[1] or 'unnamed-fact'}-{key[2][1]}" if key[0] == "event" else "-".join(str(x) for x in key[1:] if x)
         it = Issue(id=f"R-{ev.release}-{rule.id}-{re.sub(r'[^a-z0-9]+', '-', str(what).lower()).strip('-')[:40]}"
                       f"-{digest}",
                    signature=sig, rule=rule.id, rule_kind=rule.kind,
@@ -233,49 +270,61 @@ def build_reader_issues(findings: list[Finding], ev: ReleaseEval, contract: Cont
                    verification={"status": "unverified", "reason": "reader issue: evidence checked, not re-derived",
                                  "steps": steps})
         it.severity["factors"]["reader_rating"] = primary.severity
-        it._features = sorted({x for f in fs for x in ([f.target.feature] if f.target.feature else
-                                                         f.target.features)})
+        it._features = sorted({x for f, _ in items for x in ([f.target.feature] if f.target.feature else
+                                                               f.target.features)})
         issues.append(it)
     return issues, refused
 
 
-def _shown(o: Occurrence, story) -> bool:
-    """Every quote of this occurrence is in the same message (by message key, #N suffix aside) in `story`."""
-    keys = {_base(x) for x in o.events}
-    texts = [_norm(e.text) for e in story.events if e.kind == "message" and _base(e.id) in keys]
+def _quotes_shown(o: Occurrence, story, *, same_message: bool) -> bool:
+    """Every quote of this occurrence is in `story`: in the same message (surface + key), or anywhere."""
+    msgs = {tuple(m) for m in o.entry.meta.get("messages", [])}
+    texts = [_norm(e.text) for e in story.events if e.kind == "message"
+             and (not same_message or (e.surface or "", _base(e.id)) in msgs)]
     quotes = o.entry.meta.get("quotes", [])
     return bool(quotes) and bool(texts) and all(any(_norm(q) in t for t in texts) for q in quotes)
 
 
-def _anchor(i: Issue):
-    return i.signature[3] if i.signature[1] == "event" else i.signature
+def _has_messages(o: Occurrence, story) -> bool:
+    msgs = {tuple(m) for m in o.entry.meta.get("messages", [])}
+    return any(e.kind == "message" and (e.surface or "", _base(e.id)) in msgs for e in story.events)
+
+
+def _matches(a: Issue, b: Issue) -> bool:
+    """Same issue across releases: same relation/story target, or same anchor message with the same fact (a fact
+    one reading left unnamed matches any)."""
+    if a.signature[1] != "event" or b.signature[1] != "event":
+        return a.signature == b.signature
+    fa, fb = a.signature[2], b.signature[2]
+    return a.signature[3] == b.signature[3] and (fa == fb or fa is None or fb is None)
 
 
 def reader_delta(head: list[Issue], base: list[Issue], head_ev: ReleaseEval,
                  base_ev: ReleaseEval) -> tuple[list[Issue], list[Issue]]:
-    """Mark head issues new / pre_existing; return (resolved, unconfirmed) base issues (see the module notes)."""
-    base_at = {_anchor(i): i for i in base}
-    head_at = {_anchor(i): i for i in head}
+    """Mark head issues new / pre_existing; return (resolved, unconfirmed) base issues. Every base issue ends in
+    exactly one place: named in a matching head issue's delta_basis, resolved, or unconfirmed."""
+    matched: set[int] = set()
     for i in head:
-        b = base_at.get(_anchor(i))
-        if b is not None:
-            i.delta, i.delta_basis = "pre_existing", f"base has an issue on the same message: {b.id}"
+        bs = [b for b in base if _matches(i, b)]
+        matched |= {id(b) for b in bs}
+        if bs:
+            i.delta, i.delta_basis = "pre_existing", "also in base as " + ", ".join(b.id for b in bs)
             continue
         old = [o for o in i.occurrences if o.persona in base_ev.results
-               and _shown(o, base_ev.results[o.persona][0])]
+               and _quotes_shown(o, base_ev.results[o.persona][0], same_message=True)]
         if old and len(old) == len(i.occurrences):
-            i.delta, i.delta_basis = "pre_existing", ("every quote was already shown to the same persona in base; "
-                                                      "the base reading did not report it")
+            i.delta, i.delta_basis = "pre_existing", ("every quote was already shown to the same persona in the "
+                                                      "same message in base; the base reading did not report it")
         else:
-            i.delta, i.delta_basis = "new", "no base issue on this message, and the quoted text is new in head"
+            i.delta, i.delta_basis = "new", "no matching base issue, and the quoted text is not in base"
     resolved, unconfirmed = [], []
     for b in base:
-        h = head_at.get(_anchor(b))
+        if id(b) in matched:
+            continue
         missing = [p for p in b.personas if p not in head_ev.results]
-        still = [o.persona for o in b.occurrences if o.persona in head_ev.results
-                 and _shown(o, head_ev.results[o.persona][0])]
-        if h is not None:
-            continue                                  # the head issue carries it as pre_existing
+        here = [o for o in b.occurrences if o.persona in head_ev.results]
+        still = [o.persona for o in here if _quotes_shown(o, head_ev.results[o.persona][0], same_message=False)]
+        gone = [o.persona for o in here if not _has_messages(o, head_ev.results[o.persona][0])]
         if missing:
             b.delta, b.delta_basis = "not_measured_in_head", "head not measured for " + ", ".join(missing)
             unconfirmed.append(b)
@@ -283,8 +332,13 @@ def reader_delta(head: list[Issue], base: list[Issue], head_ev: ReleaseEval,
             b.delta, b.delta_basis = "unconfirmed", ("the quoted text is still shown in head to " + ", ".join(still)
                                                      + "; the head reading did not report it")
             unconfirmed.append(b)
+        elif gone:
+            b.delta, b.delta_basis = "unconfirmed", ("the cited message is not in head in this form for "
+                                                     + ", ".join(gone) + " (reworded or removed): fixed or not "
+                                                     "cannot be told from the text")
+            unconfirmed.append(b)
         else:
-            b.delta, b.delta_basis = "resolved", ("no head issue on this message, every affected persona measured, "
-                                                  "and none of the quoted text is still shown")
+            b.delta, b.delta_basis = "resolved", ("no matching head issue; every affected persona measured; the "
+                                                  "cited message is still shown and no longer holds the quoted text")
             resolved.append(b)
     return resolved, unconfirmed

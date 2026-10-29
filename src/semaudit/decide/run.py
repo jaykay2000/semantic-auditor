@@ -95,7 +95,7 @@ def _reader_review(contract_dir, contract, recorded, router, run_dir, base, head
     b, bf, bacct = read_release(run_dir, base, contract, router, chunk=chunk, fresh=fresh)
     h, hf, hacct = read_release(run_dir, head, contract, router, chunk=chunk, fresh=fresh)
     head_issues, head_refused = build_reader_issues(hf, h, contract)
-    base_issues, _ = build_reader_issues(bf, b, contract)
+    base_issues, base_refused = build_reader_issues(bf, b, contract)
     resolved, unconfirmed = reader_delta(head_issues, base_issues, h, b)
     applied = mem.apply(head_issues, resolved, unconfirmed, recorded["issues"], contract,
                         {p: s for p, (s, _) in h.results.items()})
@@ -108,5 +108,5 @@ def _reader_review(contract_dir, contract, recorded, router, run_dir, base, head
     review = assemble(b, h, contract, head_issues, resolved, router.spent_usd,
                       approval=approval_state(contract_dir, contract), unconfirmed=unconfirmed,
                       manifest=manifest, review_path=str(out), set_aside=applied.set_aside,
-                      reader={"refused": head_refused, "chunk": chunk, "base": bacct, "head": hacct})
+                      reader={"refused": head_refused + base_refused, "chunk": chunk, "base": bacct, "head": hacct})
     return write(review, out)
