@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 
 from semaudit.contract.schema import Contract
-from semaudit.models.router import Router
+from semaudit.models.router import Router, UnreadableReply
 from semaudit.story.model import Extraction, Story
 
 
@@ -211,14 +211,22 @@ def extract_unique(messages: list[dict], contract: Contract, router: Router, *, 
     """
     uniq = sorted({message_key(m) for m in messages})
     out: dict[tuple[str, str, str, str], Extraction] = {}
-    for i in range(0, len(uniq), batch):
-        chunk = uniq[i:i + batch]
+    pending = [uniq[i:i + batch] for i in range(0, len(uniq), batch)]
+    while pending:
+        chunk = pending.pop(0)
         listing = [{"id": f"m{j}", "feature": f, "channel": c, "text": t, **({"around": a} if a else {})}
                    for j, (f, c, t, a) in enumerate(chunk)]
         prompt = (_prompt(contract, observed) + json.dumps(listing, ensure_ascii=False, indent=1))
-        r = router.complete(role, [{"role": "system", "content": contract.rubric},
-                                   {"role": "user", "content": prompt}],
-                            schema=extraction_schema(contract, observed), schema_name="extraction", fresh=fresh)
+        try:
+            r = router.complete(role, [{"role": "system", "content": contract.rubric},
+                                       {"role": "user", "content": prompt}],
+                                schema=extraction_schema(contract, observed), schema_name="extraction", fresh=fresh)
+        except UnreadableReply:
+            if len(chunk) == 1:
+                raise
+            half = len(chunk) // 2          # a runaway or over-long answer: the same messages, in two smaller calls
+            pending[:0] = [chunk[:half], chunk[half:]]
+            continue
         rows = {row["id"]: row for row in r.parsed["messages"]}
         missing = [x["id"] for x in listing if x["id"] not in rows]
         if missing:

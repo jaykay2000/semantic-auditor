@@ -80,6 +80,11 @@ class ModelError(RuntimeError):
     pass
 
 
+class UnreadableReply(ModelError):
+    """A schema reply that was still not JSON after the retries (a runaway, or an answer longer than the cap).
+    The caller can split its request."""
+
+
 def _readable(raw: dict) -> bool:
     try:
         json.loads(raw["choices"][0]["message"].get("content") or "")
@@ -152,7 +157,7 @@ class Router:
                 self._log(role, model, raw.get("usage", {}), cost, False, latency, digest + ":unreadable")
                 if unreadable == UNREADABLE_RETRIES:
                     fin = raw["choices"][0].get("finish_reason")
-                    raise ModelError(f"{provider}/{model}: reply is not JSON (finish_reason={fin}) after "
+                    raise UnreadableReply(f"{provider}/{model}: reply is not JSON (finish_reason={fin}) after "
                                      f"{UNREADABLE_RETRIES + 1} tries; not cached")
             self.cache_dir.mkdir(exist_ok=True)
             cache_file.write_text(json.dumps(raw))
