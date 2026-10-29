@@ -19,6 +19,7 @@ import httpx
 
 PROVIDERS = {
     "meta": {"base_url": "https://api.meta.ai/v1", "key_env": "META_MODEL_API_KEY"},
+    "baseten": {"base_url": "https://inference.baseten.co/v1", "key_env": "BASETEN_API_KEY"},
 }
 
 # USD per million tokens (input, output). Standard mode only; unverified entries stay None
@@ -27,6 +28,8 @@ PRICES_PER_MTOK: dict[str, tuple[float, float] | None] = {
     "muse-spark-1.3": (1.25, 4.25),
     "muse-spark-1.2": (1.25, 4.25),
     "muse-spark-1.1": (1.25, 4.25),
+    "meta-models/muse-spark-open-1026": (1.25, 4.25),   # Baseten hackathon model; third-party listing, not
+                                                        # Baseten's own page (2026-10-28): confirm on the invoice
     "muse-spark-1.3-contributor": None,
     "muse-spark-1.2-contributor": None,
 }
@@ -117,7 +120,8 @@ class Router:
         if max_completion_tokens:
             body["max_completion_tokens"] = max_completion_tokens
 
-        digest = hashlib.sha256(json.dumps(body, sort_keys=True).encode()).hexdigest()
+        keyed = body if provider == "meta" else {**body, "_provider": provider}   # meta keys unchanged: old cache stays valid
+        digest = hashlib.sha256(json.dumps(keyed, sort_keys=True).encode()).hexdigest()
         cache_file = self.cache_dir / f"{digest}.json"
         if not fresh and cache_file.exists():
             raw, latency = json.loads(cache_file.read_text()), 0.0
@@ -127,6 +131,8 @@ class Router:
                 raise ModelError(f"offline: no cached answer for {role} ({digest[:12]})")
             if self.max_usd is not None and self.spent_usd >= self.max_usd:
                 raise ModelError(f"budget exhausted: spent ${self.spent_usd:.4f} of ${self.max_usd}")
+            if self.max_usd is not None and not PRICES_PER_MTOK.get(model):
+                raise ModelError(f"{model} has no price, so a ${self.max_usd} cap could not count it: refused")
             t0 = time.monotonic()
             resp = None
             for attempt in range(4):           # transient failures: timeouts, 429, 5xx
