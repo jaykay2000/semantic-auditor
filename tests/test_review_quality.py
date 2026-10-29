@@ -154,3 +154,15 @@ def test_one_message_with_two_wrong_facts_under_one_rule_is_two_issues_other_rul
     plain = Entry("P1", "x", "violated")
     assert _split_by_fact([d, a, plain]) == [(d, [plain]), (a, [])]   # another rule's fact is its own issue
     assert _split_by_fact([a, plain]) == [(a, [plain])]                                # one fact: unchanged
+
+
+def test_a_quote_with_line_breaks_is_found_in_a_stored_json_email(tmp_path):
+    import json as _j
+    from semaudit.verify.evidence import _quoted_in
+    f = tmp_path / "m.raw.json"
+    f.write_text(_j.dumps({"message_id": "x", "text": "Hey Ann,\nyour total is $5.00"}))
+    assert _quoted_in("Hey Ann,\nyour total is $5.00", f)
+    assert not _quoted_in("Hey Ann,\nyour total is $6.00", f)
+    t = tmp_path / "p.raw.txt"
+    t.write_text("a\nb")
+    assert _quoted_in("a\nb", t) and not _quoted_in("a b", t)

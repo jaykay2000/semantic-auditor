@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import html
+import json
 from pathlib import Path
 
 from semaudit.story.episode import Episode
@@ -39,6 +40,31 @@ def resolve(event: Event, episode: Episode, run_dir: Path) -> tuple[bool, str]:
             return False, f"artifact {role} missing"
         if hashlib.sha256(path.read_bytes()).hexdigest() != digest:
             return False, f"artifact {role} changed since capture"
-        if role in ("dom", "raw") and event.text not in html.unescape(path.read_text(encoding="utf-8")):
+        if role in ("dom", "raw") and not _quoted_in(event.text, path):
             return False, f"quote not found in stored {role}"
     return True, "ok"
+
+
+def _strings(x):
+    if isinstance(x, str):
+        yield x
+    elif isinstance(x, dict):
+        for v in x.values():
+            yield from _strings(v)
+    elif isinstance(x, list):
+        for v in x:
+            yield from _strings(v)
+
+
+def _quoted_in(quote: str, path: Path) -> bool:
+    """The quote is in the stored artifact as a reader would see it: in its (unescaped) text, or, for a stored
+    JSON message (an email or push from a sink), in one of its decoded string values."""
+    raw = path.read_text(encoding="utf-8")
+    if quote in html.unescape(raw):
+        return True
+    if path.suffix == ".json":
+        try:
+            return any(quote in v for v in _strings(json.loads(raw)))
+        except ValueError:
+            return False
+    return False
