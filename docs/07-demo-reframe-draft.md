@@ -109,8 +109,10 @@ approves filing, 10 seconds in 1:50–2:25.
    Honest category: the app contradicting itself about one person's number, not a two-true-messages bug (that is Maya,
    Northbound, fictional). No real-app bug measured so far is of Maya's kind.
 3. **IRA dropped** from the video (SRA marks it unconfirmed; "$7,500" may be advice, not a limit claim).
-4. **Spree tax-inclusive line:** owner open to it only if it is a real wow; decision pending a 2-hour reproduction on
-   today's upstream Spree (after S1, no API spend). Filing upstream needs the owner's separate go.
+4. **Spree tax-inclusive line: reproduced on today's upstream storefront (8ba5eee) and reported by the owner:
+   https://github.com/spree/storefront/issues/283** (2026-10-30). Evidence: `demo/evidence/taxline-upstream-2026-10-30/`.
+   It is the discovery beat (found in an untargeted run, still live, unreported until now). Say "reported", never
+   "confirmed by Spree" unless a maintainer confirms it.
 
 ## Decisions for the owner
 1. ~~Make the context judge part of the product~~ **approved and built** (060db55); external audit pending. Not

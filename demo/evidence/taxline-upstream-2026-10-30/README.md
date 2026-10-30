@@ -16,3 +16,5 @@ includes the line's tax ($3.20 of the $3.60), next to a Subtotal without tax and
 (`src/components/checkout/Summary.tsx:51`; same pattern on the order page). Issue/PR search for "tax" in
 spree/storefront on 2026-10-30: nothing about this. Not filed upstream (owner decision pending).
 First flagged by SRA in the untargeted 67-shopper run (spree-scale-2t), in both beta2 and beta3.
+
+**Reported upstream:** https://github.com/spree/storefront/issues/283 (posted by the owner 2026-10-30T23:38:38Z, open, 0 comments at posting; verified with `gh api`).
