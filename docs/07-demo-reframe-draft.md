@@ -73,6 +73,25 @@ disagreement **new in v707**; that was wrong (both releases show both figures), 
   flow because the upstream fix exists.
 - The Spree tax-inclusive line (see Optional) unless it is reproduced on today's upstream code.
 
+## How to say it honestly: SRA checks the rules you write down (owner, 2026-10-30)
+Owner: "we should make it clear that it happens because it is for rules and it helps reduce false alarms."
+- **What to make clear.** SRA reports only what a written rule covers. Every finding must name the rule it breaks and
+  quote the evidence; SRA drops any finding that does not. So a bug no rule describes is not reported, even when the
+  evidence is in the recordings. This is by design, not a miss.
+- **Why it is built that way.** The rule-and-quote requirement is what keeps false alarms down. Northbound ablation,
+  same model, same captures: with SRA's rules **15 of 15, 0 false alarms**; with plain-English rules instead **10, 6
+  false alarms** (Evidence table).
+- **The cost, stated plainly.** On Spree, 11 of the 17 known bug types in the answer key fall under no rule (for
+  example, Check payment instructions promised at checkout but missing afterwards; email links pointing to
+  `localhost`). SRA cannot report them; an agent exploring freely can. Source: `spree-plain-agent-protocol/KEY-v4.md`.
+- **Suggested line (draft, to fit the 1:27–1:50 slot once Experiment A is graded):** "SRA checks what your team writes
+  down, and it only reports what it can prove with a quote. That is why it rarely raises a false alarm. It is also
+  why it won't flag a bug no rule describes; for those, keep exploring. SRA makes the release check repeatable; it
+  does not replace exploring."
+- **Do not say** "SRA finds every bug" or imply it covers bugs outside its rules. Do not add Spree-specific rules to
+  close the gap before the results (that would be tuning on the evaluated releases); general rules, tested on another
+  app, are a later step.
+
 ## Optional beat (only if confirmed before recording)
 **A new upstream issue on Spree.** Checkout review and order page show each line with tax included ($43.19 for a $39.99
 item in New York) above a separate *Tax $3.60*, so the lines do not add up; in both releases. Confirmed in captured pages
