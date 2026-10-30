@@ -54,8 +54,10 @@ def validate(c: Contract) -> list[str]:
             need("decision", r.applies_to["decision"], decisions, f"rule {r.id}")
         for k in (r.applies_to.get("state") or {}):
             need("state variable", k, state, f"rule {r.id} applies_to.state")
-        if "oracle" in r.check:
-            need("oracle", r.check["oracle"], oracles, f"rule {r.id} check")
+        if "oracle" in r.check:          # one oracle, or a list (a rule that compares two sources of truth)
+            named = r.check["oracle"]
+            for o in (named if isinstance(named, list) else [named]):
+                need("oracle", o, oracles, f"rule {r.id} check")
         for claim in r.check.get("claims", []):
             need("fact", claim, facts, f"rule {r.id} check")
         for e in r.exceptions:

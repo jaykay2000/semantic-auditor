@@ -33,7 +33,15 @@ def describe_condition(c: Condition) -> str:
 
 
 def evaluated_by(r: Rule) -> str:
+    from semaudit.relate.rules import engine_support
+    runs, gap = engine_support(r)
+    if not runs:
+        return f"not checked by the rule engine ({gap}); reported as not measured. Reader mode judges the rule's text"
     must = r.check.get("must")
+    if must in ("agree_across_surfaces", "agree_across_states"):
+        what = ("on every surface, in the same state" if must == "agree_across_surfaces"
+                else f"before and after {', '.join(r.check['states'])} changes")
+        return f"code: each {', '.join(r.check.get('claims', [])) or 'figure'} claim reads the same {what}"
     if must == "match_oracle":
         return f"code: {', '.join(r.check['claims'])} claims vs the {r.check['oracle']} oracle"
     if must == "match_charge":
@@ -50,7 +58,8 @@ def evaluated_by(r: Rule) -> str:
         return "code pairs live directives on the same decision; the model judges whether they are reconciled or explained"
     if r.kind == "load":
         n = r.count
-        return f"code: count {' and '.join(n.get('channels', []))} in any {n.get('window_hours')} h; at most {n.get('max')}"
+        return (f"code: count {' and '.join(n.get('channels', []))} in any {n.get('window_hours')} h; at most "
+                f"{n.get('max')}" + (f" ({gap})" if gap else ""))
     return "—"
 
 

@@ -13,9 +13,10 @@ from itertools import combinations
 from typing import Any, Callable
 
 from semaudit.contract.schema import Contract, Rule
+from semaudit.contract.validate import DATA_TESTS
 from semaudit.extract.messages import contract_roles
 from semaudit.relate.claims import MISMATCH, UNREADABLE, checkable, comparable, compare, in_period, precision, shown, stated
-from semaudit.story.model import Event, Story
+from semaudit.story.model import Event, Extraction, Story
 
 
 @dataclass(frozen=True)
@@ -413,22 +414,85 @@ def eval_load(rule: Rule, story: Story) -> list[Entry]:
     return [Entry(rule.id, "story", "passed")]
 
 
+# ---------- what the engine can evaluate ----------
+
+# The universal check verbs the engine has code for, and the check keys each one reads. A contract may name any
+# other verb (an owner's rule is written in their words, not ours); the engine then cannot evaluate the rule, and
+# says so (engine_support) instead of passing over it.
+_UNIVERSAL: dict[str, tuple[Callable, tuple[str, ...]]] = {
+    "agree_across_surfaces": (eval_agree_across_surfaces, ()),
+    "agree_across_states": (eval_agree_across_states, ("states",)),
+    "match_oracle": (eval_match_oracle, ("claims",)),
+    "match_charge": (lambda r, s, c: eval_match_charge(r, s), ("claims", "charge")),
+    "precondition_holds_at_shown_time": (eval_actionable, ()),
+}
+UNIVERSAL_CHECKS = frozenset(_UNIVERSAL)
+
+
+def engine_support(rule: Rule) -> tuple[bool, str | None]:
+    """(runs, gap): whether `evaluate` runs the rule, and what it does not check about it (None: everything).
+
+    The one answer for both callers: `evaluate` skips a rule that does not run, and the review reports every rule
+    with a gap as not measured (`unevaluable_rules`), so a rule the engine cannot check is never silent and its
+    silence is never read as a pass. A rule that runs with a gap (a load rule's minimum) is evaluated for what the
+    engine does check and still reported. Reader mode needs none of this: the model judges each rule's text."""
+    if rule.kind == "universal":
+        must = rule.check.get("must")
+        if isinstance(must, str) and must in _UNIVERSAL:
+            missing = [k for k in _UNIVERSAL[must][1] if k not in rule.check]
+            if missing:
+                return False, f"its check verb {must!r} needs {', '.join(missing)}, which the check does not give"
+            return True, None
+        if "message_kind" in rule.applies_to:
+            return True, None
+        if isinstance(must, list):
+            return False, (f"its check names {len(must)} verbs ({', '.join(map(str, must))}); the engine evaluates "
+                           "one verb per rule")
+        if must:
+            return False, f"check verb {must!r} is not built in the rule engine"
+        return False, "its check names no verb the rule engine knows"
+    if rule.kind == "conditional":
+        if "decision" not in rule.applies_to:
+            return False, ("the engine evaluates conditional rules on advice about a contract decision; this rule's "
+                           "applies_to names no decision")
+        for ex in rule.exceptions:
+            for c in ex.conditions:
+                if c.kind == "data" and c.test not in DATA_TESTS:
+                    return False, (f"exception {ex.id}, condition {c.id}: data test {c.test!r} is not built, so the "
+                                   "exception could never apply")
+                if c.kind == "judged" and c.field not in Extraction.model_fields:
+                    return False, (f"exception {ex.id}, condition {c.id}: judged field {c.field!r} is not one the "
+                                   "extraction fills")
+        return True, None
+    if rule.kind == "load":
+        if not all(k in rule.count for k in ("channels", "max", "window_hours")):
+            return False, "its count needs channels, max and window_hours"
+        if "min" in rule.count:
+            return True, ("partly: the engine checks the count's max (a duplicate) but not its min (a missing "
+                          "message)")
+        return True, None
+    return True, None                                 # coherence
+
+
+def unevaluable_rules(contract: Contract) -> list[dict]:
+    """Every rule the engine does not fully evaluate, with why. The review reports them as not measured."""
+    out = []
+    for r in contract.rules:
+        runs, gap = engine_support(r)
+        if gap:
+            out.append({"rule": r.id, "reason": gap if runs else f"not evaluated: {gap}"})
+    return out
+
+
 def evaluate(story: Story, contract: Contract, interpret: Interpreter) -> list[Entry]:
     entries: list[Entry] = []
-    universal = {"match_oracle": eval_match_oracle, "match_charge": eval_match_charge}
     for r in contract.rules:
+        if not engine_support(r)[0]:
+            continue                      # reported as not measured by the review (unevaluable_rules), never a pass
         must = r.check.get("must")
-        if r.kind == "universal" and must == "agree_across_surfaces":
-            entries += eval_agree_across_surfaces(r, story, contract)
-        elif r.kind == "universal" and must == "agree_across_states":
-            entries += eval_agree_across_states(r, story, contract)
-        elif r.kind == "universal" and must == "match_oracle":
-            entries += eval_match_oracle(r, story, contract)
-        elif r.kind == "universal" and must in universal:
-            entries += universal[must](r, story)
-        elif r.kind == "universal" and must == "precondition_holds_at_shown_time":
-            entries += eval_actionable(r, story, contract)
-        elif r.kind == "universal" and "message_kind" in r.applies_to:
+        if r.kind == "universal" and isinstance(must, str) and must in _UNIVERSAL:
+            entries += _UNIVERSAL[must][0](r, story, contract)
+        elif r.kind == "universal":       # engine_support admitted it on applies_to.message_kind
             entries += eval_message_kind(r, story, contract)
         elif r.kind == "conditional":
             entries += eval_conditional(r, story, contract)

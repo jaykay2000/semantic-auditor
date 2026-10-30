@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 import yaml
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_serializer, model_validator
 
 
 class Strict(BaseModel):
@@ -43,6 +43,17 @@ class Condition(Strict):
     context_field: str | None = None # time_until: the persona context time measured to (e.g. a deadline)
     claim: str | None = None
     oracle: str | None = None
+    params: dict[str, Any] = Field(default_factory=dict)   # a data test's other arguments, as the owner wrote them
+                                                           # (a test the engine lacks keeps them for reader mode)
+
+    @model_serializer(mode="wrap")
+    def _omit_empty_params(self, handler):
+        """No `params` key when there are none, so every condition written before the field existed dumps, and
+        therefore hashes (owner approvals, recorded decisions), exactly as it did."""
+        out = handler(self)
+        if not self.params:
+            out.pop("params", None)
+        return out
 
 
 class ExceptionRule(Strict):

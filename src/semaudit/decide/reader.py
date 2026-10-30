@@ -43,7 +43,7 @@ from semaudit.contract.schema import CONFIDENCE, Contract
 from semaudit.decide.issues import FACTUAL_CHECKS, Issue, Occurrence, severity_of
 from semaudit.decide.pipeline import ReleaseEval, load_release
 from semaudit.models.router import Router
-from semaudit.relate.rules import Entry
+from semaudit.relate.rules import Entry, engine_support
 from semaudit.story.model import Story
 
 TWO_SIDED = {"agree_across_surfaces", "agree_across_states"}   # a disagreement needs both messages evidenced
@@ -272,8 +272,7 @@ def build_reader_issues(findings: list[Finding], ev: ReleaseEval, contract: Cont
         what = f"{key[1] or 'unnamed-fact'}-{key[2][1]}" if key[0] == "event" else "-".join(str(x) for x in key[1:] if x)
         it = Issue(id=f"R-{ev.release}-{rule.id}-{re.sub(r'[^a-z0-9]+', '-', str(what).lower()).strip('-')[:40]}"
                       f"-{digest}",
-                   signature=sig, rule=rule.id, rule_kind=rule.kind,
-                   layer="factual" if rule.check.get("must") in FACTUAL_CHECKS else "release",
+                   signature=sig, rule=rule.id, rule_kind=rule.kind, layer=_layer(rule),
                    label=primary.label, occurrences=occ, severity=severity_of(rule, occ), why=primary.why,
                    confidence={"level": level, "basis": basis},
                    verification={"status": "unverified", "reason": "reader issue: evidence checked, not re-derived",
@@ -283,6 +282,18 @@ def build_reader_issues(findings: list[Finding], ev: ReleaseEval, contract: Cont
                                                                f.target.features)})
         issues.append(it)
     return issues, refused
+
+
+def _layer(rule) -> str:
+    """factual (a figure or a detail is wrong) or release (how the release behaves over time), as rules mode sets it.
+    A universal rule whose verb the engine has no code for is read as factual: the engine's release-layer universal
+    rules are named by verbs it knows (actionability, message kind), and an owner's other universal rules say what a
+    figure, a total or a record must show (Spree's U3-U8). Any other kind of rule is release."""
+    if rule.check.get("must") in FACTUAL_CHECKS:
+        return "factual"
+    if rule.kind == "universal" and not engine_support(rule)[0]:
+        return "factual"
+    return "release"
 
 
 def _specific(q: str) -> bool:

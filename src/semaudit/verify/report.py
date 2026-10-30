@@ -58,7 +58,8 @@ def verify_report(review_path: Path, *, root: Path | None = None) -> list[str]:
         raise CannotVerify(f"cannot re-derive offline: {e}") from e
 
     from semaudit.report.review import measurement
-    if r["measurement"] != measurement(b, h, contract):
+    measured = measurement(b, h, contract)
+    if r["measurement"] != measured:
         problems.append("measurement differs from what the episodes show")
     head_issues = build_issues(head, h.results, contract)
     resolved, unconfirmed = apply_delta(head_issues, build_issues(base, b.results, contract), set(b.results),
@@ -105,6 +106,6 @@ def verify_report(review_path: Path, *, root: Path | None = None) -> list[str]:
     if sorted(r["policy"].get("fired_by", [])) != fired:
         problems.append(f"policy: review says it fired on {sorted(r['policy'].get('fired_by', []))}, "
                         f"its issues give {fired}")
-    if outcome_of(row.recommendation, b.complete and h.complete, r["approval"]) != r["outcome"]:
+    if outcome_of(row.recommendation, measured, r["approval"]) != r["outcome"]:
         problems.append("outcome does not follow from the policy, the measurement and the recorded approval")
     return problems

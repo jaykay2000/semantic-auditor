@@ -274,6 +274,21 @@ The story is the single object that the relation layer, the issue evidence, the 
 
 **An exception to one rule never excuses another rule.** Kai (imminent trip, verified, explained urgency) is allowed under P1-E1, *and* still raised under P2 if Price Watch tells him to wait. Omar (imminent trip, false seat count) fails U1 *and* fails P1-E1 condition (b). Every story shows each rule's evaluation, including the ones that passed, so "why is Raj fine?" is answered on screen: P1 applies and P1-E1 is met; P2 has no competing directive.
 
+**A rule the engine cannot check is reported, never passed over** (built 2026-10-29). An owner writes rules in their
+own words, so a contract may name a check the engine has no code for: a verb such as `sums_to_own_total`, several
+verbs on one rule, a conditional rule that is not about a decision, an exception whose data test is not built, or a
+load rule's minimum. `relate/rules.py::engine_support` gives one answer per rule. The engine skips a rule it cannot
+run, and a rules-mode review lists every rule with a gap under `measurement.rules_not_measured`, with the reason. The
+review is then incomplete, so its outcome is `not_measurable`, never ship. The contract review page says, rule by
+rule, what the engine checks and what it does not. Until this change such a rule was skipped in silence, and the
+Spree conversion moved the 7 rules it could not encode to a side file nothing loaded.
+
+**Reader mode judges every rule.** In `review --reader` no rule engine runs: the model reads every rule of the
+contract with every captured story and names the violations, and SRA checks the quotes, groups and dates the
+findings (decide/reader.py). Every rule therefore reaches the model, including the ones the engine cannot check.
+A rule that states arithmetic (a summary adds up, tax is at the store's rate) is judged by the model there and only
+its quotes are checked, not its arithmetic, so such an issue stays at medium confidence at most.
+
 ## L5: Issues
 
 ```json

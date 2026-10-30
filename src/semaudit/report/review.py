@@ -23,11 +23,19 @@ CLEARED_LABELS = {"explained_tradeoff", "compatible"}
 
 
 def measurement(base: ReleaseEval, head: ReleaseEval, contract: Contract, reader: bool = False) -> dict:
-    """What was measured: both releases' capture problems, and rules that cannot be evaluated at all. A rule that
-    cannot fire makes the measurement incomplete: its silence is not a pass. In reader mode no extraction runs
-    (the model reads the raw text), so the extraction schema's limits do not apply."""
+    """What was measured: both releases' capture problems, and rules that are not fully evaluated: rules whose facts
+    the extraction cannot carry, and rules the engine has no check for, or checks only in part. Such a rule makes the
+    measurement incomplete: its silence is not a pass. In reader mode neither applies: no extraction runs (the model
+    reads the raw text) and no rule engine runs (the model judges every rule's text)."""
     from semaudit.relate.claims import unmeasurable_rules
-    rules = [] if reader else unmeasurable_rules(contract)
+    from semaudit.relate.rules import unevaluable_rules
+    rules: list[dict] = []
+    if not reader:
+        why: dict[str, list[str]] = {}
+        for x in unmeasurable_rules(contract) + unevaluable_rules(contract):
+            why.setdefault(x["rule"], []).append(x["reason"])
+        order = {r.id: k for k, r in enumerate(contract.rules)}
+        rules = [{"rule": r, "reason": "; ".join(why[r])} for r in sorted(why, key=order.get)]
     out = {"complete": base.complete and head.complete and not rules, "base": base.not_measured,
            "head": head.not_measured}
     if rules:
@@ -214,12 +222,19 @@ def other_rules(i: Issue, results: dict[str, tuple[Story, list]]) -> list[dict]:
             for e in entries if e.subject in cited and (e.rule, e.status) != (i.rule, "violated")]
 
 
-def outcome_of(policy_rec: str, measured: bool, approval: dict) -> dict:
+def outcome_of(policy_rec: str, measured: bool | dict, approval: dict) -> dict:
     """What the review may actually recommend. The owner's policy decides only over a complete measurement and a
-    fully approved contract; otherwise the review says why it cannot decide, and never says ship."""
-    if not measured:
+    fully approved contract; otherwise the review says why it cannot decide, and never says ship. `measured`: the
+    review's measurement dict (or a bare bool), so the reason names what was not measured."""
+    m = measured if isinstance(measured, dict) else {"complete": measured}
+    if not m["complete"]:
+        gaps = []
+        if m.get("base") or m.get("head") or m.get("reader_problems") or not isinstance(measured, dict):
+            gaps.append("some personas or surfaces could not be measured")
+        if m.get("rules_not_measured"):
+            gaps.append(f"{len(m['rules_not_measured'])} rule(s) are not fully evaluated in this mode")
         return {"status": "not_measurable", "recommendation": "not_measurable",
-                "reason": "some personas or surfaces could not be measured; see measurement"}
+                "reason": "; ".join(gaps or ["the measurement is incomplete"]) + "; see measurement"}
     if not approval["complete"]:
         return {"status": "provisional", "recommendation": "provisional", "policy_would_say": policy_rec,
                 "reason": f"{len(approval['pending'])} contract item(s) are not owner-approved at their current "
@@ -247,7 +262,6 @@ def assemble(base: ReleaseEval, head: ReleaseEval, contract: Contract, verified:
                    (reader.get(side) or {}).get("dropped"))) if bad]
         if probs:
             measured_d = {**measured_d, "complete": False, "reader_problems": probs}
-    measured = measured_d["complete"]
     stories = {p: s for p, (s, _) in head.results.items()}
     base_stories = {p: s for p, (s, _) in base.results.items()}
     issues = []
@@ -265,7 +279,7 @@ def assemble(base: ReleaseEval, head: ReleaseEval, contract: Contract, verified:
         "rules": [{"id": r.id, "kind": r.kind, "text": r.text, "title": r.title} for r in contract.rules],
         "policy": {"recommendation": row.recommendation, "row": idx + 1, "rule_fired": row.text,
                    "fired_by": fired_by},
-        "outcome": outcome_of(row.recommendation, measured, approval),
+        "outcome": outcome_of(row.recommendation, measured_d, approval),
         "measurement": measured_d,
         "approval": approval,
         "issues": issues,

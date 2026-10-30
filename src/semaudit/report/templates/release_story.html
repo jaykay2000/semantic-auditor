@@ -592,7 +592,8 @@ function verdict() {
   const lead = out.status === 'provisional' ? 'The policy would say' : out.status === 'decided' ? 'Recommendation' : 'Not measurable';
   const why = out.status === 'decided' ? policyLine
     : out.status === 'provisional' ? `<b style="color:var(--ink)">Provisional:</b> ${esc(out.reason)}. ${policyLine.replace(/^policy row/, 'Policy row')}.`
-    : `${esc(out.reason)}: ${Object.entries((R.measurement || {}).head || {}).map(([p, r]) => esc(p) + ' (' + esc(r[0]) + ')').join(', ') || 'base release'}`;
+    : `${esc(out.reason)}: ${[...Object.entries((R.measurement || {}).head || {}).map(([p, r]) => esc(p) + ' (' + esc(r[0]) + ')'),
+        ...((R.measurement || {}).rules_not_measured || []).map(x => 'rule ' + esc(x.rule) + ' (' + esc(x.reason) + ')')].join(', ') || 'base release'}`;
   const counts = Object.fromEntries(GROUPS.map(([k]) => [k, ALL.filter(i => group(i) === k).length]));
   const subs = {new: `introduced by ${HEAD}`, resolved: `fixed in ${HEAD}`, pre: `in both releases`, unconfirmed: 'cannot tell'};
   const tiles = GROUPS.map(([k, , s]) => `<button class="tile ${k} ${counts[k] ? '' : 'zero'}" data-filter="${k}" aria-pressed="${state.filter === k}"><span class="num">${counts[k]}</span><span class="lbl">${esc(s)}</span><span class="sub">${esc(subs[k])}</span></button>`).join('');

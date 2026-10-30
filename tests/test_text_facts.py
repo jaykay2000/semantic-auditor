@@ -37,9 +37,12 @@ def test_a_rule_that_checks_only_wordless_text_facts_is_not_measured():
 
 
 def test_spree_like_contract_review_is_incomplete_when_a_rule_cannot_fire():
+    from semaudit.contract.schema import Rule
     from semaudit.report.review import measurement
     rel = SimpleNamespace(complete=True, not_measured={})
-    c = SimpleNamespace(facts=[SimpleNamespace(**vars(SHIP_TO), words=[])],
-                        rules=[SimpleNamespace(id="U9", check={"claims": ["ship_to"]})])
+    u9 = Rule(id="U9", kind="universal", text="details match the record",
+              check={"claims": ["ship_to"], "must": "match_oracle", "oracle": "order"})
+    c = SimpleNamespace(facts=[SimpleNamespace(**vars(SHIP_TO), words=[])], rules=[u9])
     m = measurement(rel, rel, c)
-    assert m["complete"] is False and m["rules_not_measured"][0]["rule"] == "U9"
+    assert m["complete"] is False and [x["rule"] for x in m["rules_not_measured"]] == ["U9"]
+    assert "text with no word list" in m["rules_not_measured"][0]["reason"]
