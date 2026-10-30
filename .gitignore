@@ -6,3 +6,4 @@ runs/
 .semaudit-cache/
 examples/northbound/outbox/
 .DS_Store
+*.swp
