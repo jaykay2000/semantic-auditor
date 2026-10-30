@@ -98,6 +98,20 @@ item in New York) above a separate *Tax $3.60*, so the lines do not add up; in b
 and storefront source; not yet run on today's upstream storefront; no upstream report found. If confirmed and the owner
 approves filing, 10 seconds in 1:50–2:25.
 
+## Owner rulings for v4 (2026-10-30, after the two outside demo audits)
+1. **Spree hero = a fresh S1 run** (67 shoppers × 2 releases, all 11 rules, frozen SRA, ≤ $12 Baseten), run after S-11b.
+   Every Spree number, frame, screenshot and cost in the video comes from that one run. The owner does not look at S1's
+   review or the new Spree frames until Experiment A adjudication is done (he adjudicates blind to arm).
+2. **Cold open = Finablo first** (build for your own world), on the 401(k) case: one release showed a 61-year-old
+   $32,500 in one place and $24,500 in another; at 61 the IRS max is $35,750 (2026, where the plan allows the 60–63
+   catch-up); the next release shows $35,750 everywhere and SRA marks it resolved. Said as **before / after**, never
+   v706 / v707, and no ticket numbers (D-17). Never "found blind": target persona, rule from IRS 2026 limits.
+   Honest category: the app contradicting itself about one person's number, not a two-true-messages bug (that is Maya,
+   Northbound, fictional). No real-app bug measured so far is of Maya's kind.
+3. **IRA dropped** from the video (SRA marks it unconfirmed; "$7,500" may be advice, not a limit claim).
+4. **Spree tax-inclusive line:** owner open to it only if it is a real wow; decision pending a 2-hour reproduction on
+   today's upstream Spree (after S1, no API spend). Filing upstream needs the owner's separate go.
+
 ## Decisions for the owner
 1. ~~Make the context judge part of the product~~ **approved and built** (060db55); external audit pending. Not
    yet: a replay command for reader issues (needs a fresh capture plus a re-read), and a check that the release page
