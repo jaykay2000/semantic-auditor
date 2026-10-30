@@ -14,6 +14,8 @@
 .rule .t{font:700 34px var(--disp);letter-spacing:-.015em;align-self:center}
 .rule q{grid-column:2;font-size:30px;line-height:1.45;color:var(--ink);quotes:"“" "”"}
 .rule .from{grid-column:2;font-size:20px;color:var(--ink3)}
+.note{margin-top:26px;font-size:24px;line-height:1.4;color:var(--ink2)}
+.note b{color:var(--ink)}
 </style></head><body>
 <div class="slide">
   <div class="bar"><div class="brand"><span class="logo">SRA</span>Semantic Release Auditor</div>
@@ -37,6 +39,8 @@
     <span class="id">U1</span><span class="t">Figure differs from the order record</span>
     <q>Every figure we show a shopper about their order matches what the order actually records: item prices, quantities, line amounts, subtotal, discounts, delivery, fees, tax, total and amount due, on every surface, once the figure can be known.</q>
   </div>
+
+  <div class="note"><b>The result in this video used 4 of the 11 rules</b> (U1, U2, U9, L1). SRA now gives the model all 11.</div>
 
   <div class="src"><b>Source:</b> spree-blind-onboarding (MANIFEST, out/): the session read only the docs folder · rule U1 text from the review's <span class="mono">rules</span> (runs/spree-scale-2t reader review)</div>
 </div>
