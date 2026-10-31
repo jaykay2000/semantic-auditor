@@ -113,6 +113,14 @@ approves filing, 10 seconds in 1:50–2:25.
    https://github.com/spree/storefront/issues/283** (2026-10-30). Evidence: `demo/evidence/taxline-upstream-2026-10-30/`.
    It is the discovery beat (found in an untargeted run, still live, unreported until now). Say "reported", never
    "confirmed by Spree" unless a maintainer confirms it.
+5. **v5 storyboard (2026-10-30, after the outside review of v4): adopted, and the Meta beat is cut.** Seven beats,
+   330 words: Finablo → what SRA is ("tests check features one at a time; users live the whole release") → Spree in
+   motion (one beat) → the tax line (12 s, "reported") → Northbound led by Maya → model or context → back to Finablo.
+   Muse Spark stays named in the voice-over and labelled on every judged screen; "open weights, run on Baseten", never
+   "self-hosted". Spree: the screen shows SRA's own stated reason, and the voice-over says the email's lines show the
+   double discount; no new SRA check for that bug (it would be tuning on an evaluated release). "Every release check
+   passed" is checked (v706 deploy gate: 354 OK, 0 FAIL, SKIP 0). "Holds the release" only after the owner approves
+   the contracts. Page: https://claude.ai/artifact/UCSNZeqRxi9C6mxRHqVby5 (version 3).
 
 ## Decisions for the owner
 1. ~~Make the context judge part of the product~~ **approved and built** (060db55); external audit pending. Not
