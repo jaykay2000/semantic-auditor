@@ -1,0 +1,509 @@
+{
+ "written": "2026-10-31, before any converter code",
+ "source_files_sha256": {
+  "C1": "dbc10edb8d147cdd7642b2636b55638cb9692098ca78df208ccddc0b05ae5044",
+  "C2": "397a5a46964500251af29ec75606ee0238a1bc815b86727690738d59a57a8624",
+  "X1": "f060423052e8a341219a12b7aa1424c7d7ffd57fc8938150025a9277a20dfba9",
+  "X2": "d36aa3b99682890ba9361f94e7d170289842f712f7d33b19925544cb6656b75d",
+  "M2": "b915e6b3cab1067b834c860a8971f4b2b0fd1fb14f58eb96c41349f61f2cf186",
+  "M3": "04eacbdfe9371c2a696459e086fbdd606015fe8bfedf5f3ae40cbd1b2c2ba5d7"
+ },
+ "unit": "one entry of results-v4/grading/items-<trial>.json for the agent trials C1, C2, X1, X2, M2, M3 (61 entries)",
+ "dev": [
+  "C1#00",
+  "C1#15",
+  "C1#16"
+ ],
+ "excluded_from_measures": {
+  "C1#17": "sibling of a dev example: same agent reproduce text as C1 F12 part 1"
+ },
+ "held_out": [
+  "C1#01",
+  "C1#02",
+  "C1#03",
+  "C1#04",
+  "C1#05",
+  "C1#06",
+  "C1#07",
+  "C1#08",
+  "C1#09",
+  "C1#10",
+  "C1#11",
+  "C1#12",
+  "C1#13",
+  "C1#14",
+  "C2#00",
+  "C2#01",
+  "C2#02",
+  "C2#03",
+  "C2#04",
+  "C2#05",
+  "C2#06",
+  "C2#07",
+  "C2#08",
+  "C2#09",
+  "C2#10",
+  "C2#11",
+  "C2#12",
+  "X1#00",
+  "X1#01",
+  "X1#02",
+  "X1#03",
+  "X1#04",
+  "X1#05",
+  "X1#06",
+  "X2#00",
+  "X2#01",
+  "X2#02",
+  "X2#03",
+  "X2#04",
+  "X2#05",
+  "X2#06",
+  "X2#07",
+  "M2#00",
+  "M2#01",
+  "M2#02",
+  "M2#03",
+  "M2#04",
+  "M2#05",
+  "M2#06",
+  "M3#00",
+  "M3#01",
+  "M3#02",
+  "M3#03",
+  "M3#04",
+  "M3#05",
+  "M3#06",
+  "M3#07"
+ ],
+ "items": [
+  {
+   "id": "C1#00",
+   "trial": "C1",
+   "heading": "F1 — Line amount shown includes tax (line ≠ price × qty)",
+   "split_part": null,
+   "reproduce_sha256": "17a43996c28399fa"
+  },
+  {
+   "id": "C1#01",
+   "trial": "C1",
+   "heading": "F2 — Cart \"Total\" shown without saying delivery and tax are not included",
+   "split_part": null,
+   "reproduce_sha256": "37b0a35e8f008ecc"
+  },
+  {
+   "id": "C1#02",
+   "trial": "C1",
+   "heading": "F3 — Checkout before an address shows \"Shipping $0.00\" and a Total",
+   "split_part": null,
+   "reproduce_sha256": "03696388a02e05b6"
+  },
+  {
+   "id": "C1#03",
+   "trial": "C1",
+   "heading": "F4 — Confirmation email has no delivery address and no payment method",
+   "split_part": null,
+   "reproduce_sha256": "b0c1e4a1bac16c90"
+  },
+  {
+   "id": "C1#04",
+   "trial": "C1",
+   "heading": "F5 — Email (current) shows delivery as $0.00 AND a -$15.00 promotion; summary doesn't add up",
+   "split_part": null,
+   "reproduce_sha256": "5105f29c525aee18"
+  },
+  {
+   "id": "C1#05",
+   "trial": "C1",
+   "heading": "F6 — Admin order summary lists \"Adjustments\" as well as the promotion and tax it is made of",
+   "split_part": null,
+   "reproduce_sha256": "66643eb976b0c76d"
+  },
+  {
+   "id": "C1#06",
+   "trial": "C1",
+   "heading": "F7 — Seed order R1002: Standard delivery chosen but charged $0.00; NY address but no tax; completed before created",
+   "split_part": "1 of 4 (delivery charged $0.00)",
+   "reproduce_sha256": "609ef9bcb877c3f6"
+  },
+  {
+   "id": "C1#07",
+   "trial": "C1",
+   "heading": "F7 — Seed order R1002: Standard delivery chosen but charged $0.00; NY address but no tax; completed before created",
+   "split_part": "2 of 4 (no tax)",
+   "reproduce_sha256": "609ef9bcb877c3f6"
+  },
+  {
+   "id": "C1#08",
+   "trial": "C1",
+   "heading": "F7 — Seed order R1002: Standard delivery chosen but charged $0.00; NY address but no tax; completed before created",
+   "split_part": "3 of 4 (completed before created)",
+   "reproduce_sha256": "609ef9bcb877c3f6"
+  },
+  {
+   "id": "C1#09",
+   "trial": "C1",
+   "heading": "F7 — Seed order R1002: Standard delivery chosen but charged $0.00; NY address but no tax; completed before created",
+   "split_part": "4 of 4 (header status vs payment row)",
+   "reproduce_sha256": "609ef9bcb877c3f6"
+  },
+  {
+   "id": "C1#10",
+   "trial": "C1",
+   "heading": "F8 — Check orders recorded as \"Paid\" with amount due $0.00 the moment they are placed",
+   "split_part": null,
+   "reproduce_sha256": "f093b3edd9fa0fc3"
+  },
+  {
+   "id": "C1#11",
+   "trial": "C1",
+   "heading": "F9 — \"Store Pickup $0.00\" offered at checkout though it is not one of the store's delivery methods; pickup order still shows a \"Shipping Address\"",
+   "split_part": "1 of 3 (Store Pickup offered)",
+   "reproduce_sha256": "8dff46a60ca4a3fb"
+  },
+  {
+   "id": "C1#12",
+   "trial": "C1",
+   "heading": "F9 — \"Store Pickup $0.00\" offered at checkout though it is not one of the store's delivery methods; pickup order still shows a \"Shipping Address\"",
+   "split_part": "2 of 3 (pickup order shows shipping address)",
+   "reproduce_sha256": "8dff46a60ca4a3fb"
+  },
+  {
+   "id": "C1#13",
+   "trial": "C1",
+   "heading": "F9 — \"Store Pickup $0.00\" offered at checkout though it is not one of the store's delivery methods; pickup order still shows a \"Shipping Address\"",
+   "split_part": "3 of 3 ($0.00 promotion line)",
+   "reproduce_sha256": "8dff46a60ca4a3fb"
+  },
+  {
+   "id": "C1#14",
+   "trial": "C1",
+   "heading": "F10 — Tax line disappears when tax is $0 (non-New York orders)",
+   "split_part": null,
+   "reproduce_sha256": "1fd6984d3a24ac43"
+  },
+  {
+   "id": "C1#15",
+   "trial": "C1",
+   "heading": "F11 — Changing the cart during checkout drops the chosen Express delivery and charges $0.00 delivery with no code (MAJOR)",
+   "split_part": null,
+   "reproduce_sha256": "3587401b96417950"
+  },
+  {
+   "id": "C1#16",
+   "trial": "C1",
+   "heading": "F12 — Signed-in order history shows a raw label \"Orders.Unfulfilled\"; account order page repeats the tax-inclusive line amount",
+   "split_part": "1 of 2 (raw status label)",
+   "reproduce_sha256": "5844a0edfa615c72"
+  },
+  {
+   "id": "C1#17",
+   "trial": "C1",
+   "heading": "F12 — Signed-in order history shows a raw label \"Orders.Unfulfilled\"; account order page repeats the tax-inclusive line amount",
+   "split_part": "2 of 2 (tax-inclusive line amount)",
+   "reproduce_sha256": "5844a0edfa615c72"
+  },
+  {
+   "id": "C2#00",
+   "trial": "C2",
+   "heading": "F1. Confirmation email shows \"Shipping: Express $0.00\" and also subtracts the free-shipping promotion — summary does not add up — FIXED IN CANDIDATE",
+   "split_part": null,
+   "reproduce_sha256": "b296f38659b517d9"
+  },
+  {
+   "id": "C2#01",
+   "trial": "C2",
+   "heading": "F2. Line amount on checkout summary and order page includes tax, so lines don't add up to the subtotal — PRESENT IN BOTH",
+   "split_part": null,
+   "reproduce_sha256": "2612581b2d939306"
+  },
+  {
+   "id": "C2#02",
+   "trial": "C2",
+   "heading": "F3. Cart \"Total\" shown without saying tax and delivery are not included — PRESENT IN BOTH",
+   "split_part": null,
+   "reproduce_sha256": "eadc348a274d32dc"
+  },
+  {
+   "id": "C2#03",
+   "trial": "C2",
+   "heading": "F4. Checkout shows \"Shipping $0.00\" and a final-looking Total before the address is entered — PRESENT IN BOTH",
+   "split_part": null,
+   "reproduce_sha256": "35e4d6f6629e0f16"
+  },
+  {
+   "id": "C2#04",
+   "trial": "C2",
+   "heading": "F5. \"Store Pickup $0.00\" offered as a delivery option although the store's delivery methods do not include it — PRESENT IN BOTH",
+   "split_part": null,
+   "reproduce_sha256": "d3c0f41745620332"
+  },
+  {
+   "id": "C2#05",
+   "trial": "C2",
+   "heading": "F6. Confirmation email has no delivery address, billing address or payment method — PRESENT IN BOTH",
+   "split_part": null,
+   "reproduce_sha256": "1b317492fae594ef"
+  },
+  {
+   "id": "C2#06",
+   "trial": "C2",
+   "heading": "F7. Check orders are marked \"Paid\" the moment they are placed, and the promised payment instructions never arrive — PRESENT IN BOTH",
+   "split_part": null,
+   "reproduce_sha256": "066d484f2e777db5"
+  },
+  {
+   "id": "C2#07",
+   "trial": "C2",
+   "heading": "F7. Check orders are marked \"Paid\" the moment they are placed, and the promised payment instructions never arrive — PRESENT IN BOTH",
+   "split_part": null,
+   "reproduce_sha256": "066d484f2e777db5"
+  },
+  {
+   "id": "C2#08",
+   "trial": "C2",
+   "heading": "F8. Tax line disappears from summaries when tax is $0 (non-NY orders) — PRESENT IN BOTH",
+   "split_part": null,
+   "reproduce_sha256": "dc4ed97513e20f97"
+  },
+  {
+   "id": "C2#09",
+   "trial": "C2",
+   "heading": "F9. Promo code shown in lower case (\"freeship\") although the shopper entered FREESHIP — PRESENT IN BOTH (low)",
+   "split_part": null,
+   "reproduce_sha256": "e3b0c44298fc1c14"
+  },
+  {
+   "id": "C2#10",
+   "trial": "C2",
+   "heading": "F10. After a rejected code, admin says \"Discount code: None applied\" while the FREESHIP discount is on the order — PRESENT IN BOTH",
+   "split_part": null,
+   "reproduce_sha256": "802203e9d0bb3086"
+  },
+  {
+   "id": "C2#11",
+   "trial": "C2",
+   "heading": "F11. \"Your order has been fulfilled\" email sent when only the digital item of a mixed order was fulfilled — PRESENT IN BOTH",
+   "split_part": null,
+   "reproduce_sha256": "e4f361da271bc172"
+  },
+  {
+   "id": "C2#12",
+   "trial": "C2",
+   "heading": "F12. Cart drawer shows the crossed-out \"was\" price for the whole line next to the price of one unit — PRESENT IN BOTH",
+   "split_part": null,
+   "reproduce_sha256": "eed4ea4a6786d1cc"
+  },
+  {
+   "id": "X1#00",
+   "trial": "X1",
+   "heading": "Cart and initial checkout call an incomplete figure “Total” (major, present in both)",
+   "split_part": null,
+   "reproduce_sha256": "517f4109bc1f0727"
+  },
+  {
+   "id": "X1#01",
+   "trial": "X1",
+   "heading": "Taxed item is shown as $53.99 although its actual line amount is $49.99 (major, present in both)",
+   "split_part": null,
+   "reproduce_sha256": "500c1be44a4ae35f"
+  },
+  {
+   "id": "X1#02",
+   "trial": "X1",
+   "heading": "Admin summary repeats component adjustments, so its rows do not add up (major, present in both)",
+   "split_part": null,
+   "reproduce_sha256": "b8a04c2050bdcdbe"
+  },
+  {
+   "id": "X1#03",
+   "trial": "X1",
+   "heading": "Current FREESHIP email subtracts the delivery discount twice in its itemisation (major, fixed in candidate)",
+   "split_part": null,
+   "reproduce_sha256": "9d28c6f54d736f9e"
+  },
+  {
+   "id": "X1#04",
+   "trial": "X1",
+   "heading": "Store Pickup orders provide no pickup address or instructions (no rule; present in both)",
+   "split_part": null,
+   "reproduce_sha256": "57ed42a99a590c70"
+  },
+  {
+   "id": "X1#05",
+   "trial": "X1",
+   "heading": "Confirmation email omits the shipping address and payment method (major, present in both)",
+   "split_part": null,
+   "reproduce_sha256": "d00a98fcef7e63b9"
+  },
+  {
+   "id": "X1#06",
+   "trial": "X1",
+   "heading": "Placed order records say amount due is $0 although payment is $59.39 (critical, present in both)",
+   "split_part": null,
+   "reproduce_sha256": "eb1233afa49739a3"
+  },
+  {
+   "id": "X2#00",
+   "trial": "X2",
+   "heading": "Tax is folded into the item line amount on checkout and the order page (major; present in both)",
+   "split_part": null,
+   "reproduce_sha256": "88da59a0dc3c54ba"
+  },
+  {
+   "id": "X2#01",
+   "trial": "X2",
+   "heading": "Checkout presents an unqualified total before tax can be known (major; present in both)",
+   "split_part": null,
+   "reproduce_sha256": "73db38d0ef3cacb9"
+  },
+  {
+   "id": "X2#02",
+   "trial": "X2",
+   "heading": "Checkout offers and accepts an unconfigured Store Pickup method (major; present in both)",
+   "split_part": null,
+   "reproduce_sha256": "47d1be68f355b122"
+  },
+  {
+   "id": "X2#03",
+   "trial": "X2",
+   "heading": "Confirmation emails omit both addresses (major; present in both)",
+   "split_part": null,
+   "reproduce_sha256": "158b8def84db4b3b"
+  },
+  {
+   "id": "X2#04",
+   "trial": "X2",
+   "heading": "Candidate fixes the current email's double-counted free-shipping presentation (major; fixed in the candidate)",
+   "split_part": null,
+   "reproduce_sha256": "390824a4d4f15ca3"
+  },
+  {
+   "id": "X2#05",
+   "trial": "X2",
+   "heading": "Placed order records say amount due is zero even though payment and the rule require $86.38 (critical; present in both)",
+   "split_part": null,
+   "reproduce_sha256": "3144966ef6ee6a8f"
+  },
+  {
+   "id": "X2#06",
+   "trial": "X2",
+   "heading": "Confirmation email omits the Check payment method and the promised instructions (minor; present in both)",
+   "split_part": null,
+   "reproduce_sha256": "3adfcf6f7becf1b8"
+  },
+  {
+   "id": "X2#07",
+   "trial": "X2",
+   "heading": "Confirmation email omits the Check payment method and the promised instructions (minor; present in both)",
+   "split_part": null,
+   "reproduce_sha256": "109526b359fdc267"
+  },
+  {
+   "id": "M2#00",
+   "trial": "M2",
+   "heading": "F1 — Web line amount includes item tax; email/record show net line (R1/R2/R3) — present in both",
+   "split_part": null,
+   "reproduce_sha256": "bb2e07aa0ee736c6"
+  },
+  {
+   "id": "M2#01",
+   "trial": "M2",
+   "heading": "F2 — [corrected] Current FREESHIP email shows net shipping ($0.00) while checkout shows gross ($5.00/$15.00); candidate shows gross in both — fixed in candidate (R2/R3)",
+   "split_part": null,
+   "reproduce_sha256": "74a341873e933701"
+  },
+  {
+   "id": "M2#02",
+   "trial": "M2",
+   "heading": "F3 — Current FREESHIP email summary does not add up (R3) — present in current (consequence of F2)",
+   "split_part": null,
+   "reproduce_sha256": "c6eb3b68bd0da0b4"
+  },
+  {
+   "id": "M2#03",
+   "trial": "M2",
+   "heading": "F4 — Checkout shows only Store Pickup $0 before promo, but order is charged Standard $5 (R7/R1/R8) — present in both",
+   "split_part": null,
+   "reproduce_sha256": "e16a0761fec0934a"
+  },
+  {
+   "id": "M2#04",
+   "trial": "M2",
+   "heading": "F5 — Cart page and pre-address checkout call $49.99 the Total with no qualifier while delivery and tax are still unknown (R10) — present in both",
+   "split_part": null,
+   "reproduce_sha256": "7e6462a4c16ef7ab"
+  },
+  {
+   "id": "M2#05",
+   "trial": "M2",
+   "heading": "F6 — Confirmation email omits addresses (R11) — present in both",
+   "split_part": null,
+   "reproduce_sha256": "b8314e2828ad5bf6"
+  },
+  {
+   "id": "M2#06",
+   "trial": "M2",
+   "heading": "F7 — Admin order Summary shows an Adjustments line that double-counts promotions and tax (R3, staff-facing) — present in both",
+   "split_part": null,
+   "reproduce_sha256": "ba56f22637778c32"
+  },
+  {
+   "id": "M3#00",
+   "trial": "M3",
+   "heading": "F1 — Order-placed page shows tax-inclusive total as the line amount when item tax is nonzero (present in both)",
+   "split_part": null,
+   "reproduce_sha256": "8d076e4a5efd26b5"
+  },
+  {
+   "id": "M3#01",
+   "trial": "M3",
+   "heading": "F2 — Current confirmation email with FREESHIP shows net $0.00 shipping alongside the -$5/-$15 promotion so it does not add up (fixed in candidate)",
+   "split_part": null,
+   "reproduce_sha256": "6b3d30889adefef7"
+  },
+  {
+   "id": "M3#02",
+   "trial": "M3",
+   "heading": "F3 — Checkout briefly shows only Store Pickup $0.00 checked while the order will default to Standard $5.00 once options load (present in both; timing)",
+   "split_part": null,
+   "reproduce_sha256": "ddd22d6886ae231f"
+  },
+  {
+   "id": "M3#03",
+   "trial": "M3",
+   "heading": "F4 — Cart and pre-address checkout present a partial Total as the total with no disclaimer (present in both)",
+   "split_part": null,
+   "reproduce_sha256": "4f25c79f6906c1e0"
+  },
+  {
+   "id": "M3#04",
+   "trial": "M3",
+   "heading": "F5 — Confirmation emails carry no addresses, delivery method heading or payment method (present in both)",
+   "split_part": null,
+   "reproduce_sha256": "79d159fc9ca45339"
+  },
+  {
+   "id": "M3#05",
+   "trial": "M3",
+   "heading": "F6 — Admin Summary lists the same tax twice (Adjustments + Tax) so its rows do not sum to its Total (present in both)",
+   "split_part": null,
+   "reproduce_sha256": "bae97815d6c7de5e"
+  },
+  {
+   "id": "M3#06",
+   "trial": "M3",
+   "heading": "F7 — $0.00 CA tax row is omitted from checkout summary, order-placed page and confirmation email (present in both)",
+   "split_part": null,
+   "reproduce_sha256": "7eb1d9941ba8670b"
+  },
+  {
+   "id": "M3#07",
+   "trial": "M3",
+   "heading": "F8 — Admin Summary omits the $0.00 Shipping row for Store Pickup orders (present in both)",
+   "split_part": null,
+   "reproduce_sha256": "9897bb6cbf270203"
+  }
+ ],
+ "note": "Selection was made after seeing every item heading and its final grade (needed to place the F01 demo and an adapter_gap demo in the held-out set). The converter is developed only against the dev entries' text."
+}
