@@ -14,7 +14,7 @@ Test order R1003, shopper `taxline@example.test`. The candidate store was reset 
 Cause in code: the storefront renders each line with `item.total`, which in a US (tax added on top) store already
 includes the line's tax ($3.20 of the $3.60), next to a Subtotal without tax and a separate Tax row
 (`src/components/checkout/Summary.tsx:51`; same pattern on the order page). Issue/PR search for "tax" in
-spree/storefront on 2026-10-30: nothing about this. Not filed upstream (owner decision pending).
+spree/storefront on 2026-10-30: nothing about this. Reported upstream the same day (link below).
 First flagged by SRA in the untargeted 67-shopper run (spree-scale-2t), in both beta2 and beta3.
 
 **Reported upstream:** https://github.com/spree/storefront/issues/283 (posted by the owner 2026-10-30T23:38:38Z, open, 0 comments at posting; verified with `gh api`).
