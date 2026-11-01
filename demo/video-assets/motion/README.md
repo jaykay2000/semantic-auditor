@@ -117,3 +117,38 @@ stop before the PR's branch name and description footer, because both name a cod
 python3 slides-src/shoot_v8.py --github    # re-capture the page shots (the --github part needs network)
 python3 slides-src/render_motion.py m8     # every v8 clip + still
 ```
+
+## v9 clips (script `docs/13-demo-script-v9.md`, 2026-11-01)
+
+The owner's review of v8, applied: the owner speaks in first person; one thesis ("every discovery becomes a check
+your next release has to pass") by 0:27 and again at the close; one persistent header on every beat (SRA badge · an
+app chip with its own colour · the model pill); content scaled up and centred; anything a judge must read is at least
+24 px; slow push-ins, keyword pulses and two dark contrast frames (the SRA reveal, FAIL → PASS); the Venn is cut and
+beat 4's two FAIL → PASS clips are merged; Finablo is labelled on screen as the app under audit, not the submission.
+**No frame types a figure it shows:** every number comes from `scenes-data/v9.json` (`slides-src/extract_v9.py`,
+which records each source's sha256 and refuses on any mismatch), `beat4.json`, `brightdesk.json` or `close.json`, and
+`tests/test_demo_v9.py` fails on a typed figure.
+
+| Clip | Beat · slot | Length | Source |
+|---|---|---|---|
+| `m9-b1-hook` | 1 · 0:00–0:19.5 | 19.5 s | Finablo's freedom card (v706) → the v706 gate record (354 OK · 0 FAIL) → the two limits this user saw → $35,750 → dark frame "Tests check the code. They don't read what your users read." |
+| `m9-b2-what-sra-does` | 2 · 0:19.5–0:44.5 | 25 s | dark reveal + thesis → test users, v706 → v707 and the pages they walk → Muse Spark's three jobs (read, judge, draft) → SRA's four release categories |
+| `m9-b3-spree` | 3 · 0:44.5–1:06.5 | 22 s | Ana's order page from the review's own capture, rings from its bounding boxes; the five amounts; 25 of 67 shoppers; issue 283, PR 289 merged |
+| `m9-b4-1-discovery-to-check` | 4 · 1:06.5–1:25 | 18.5 s | the agent's finding → journey (9 verbs) → rule U3 → approved by Jayant Kumar; labelled "a bug Spree had already fixed (PR #14725)" |
+| `m9-b4-2-fail-pass-reload` | 4 · 1:25–1:35 | 10 s | dark: FAIL (beta2) / PASS (beta3) with each email's own sum, then the stored files reloaded and hashed, nothing imported, fix confirmed |
+| `m9-b5-intent` | 5 · 1:35–2:00.5 | 25.5 s | "No test assertion can express this rule", P2, Maya and Lena side by side (same offers, in sans), Flagged / Cleared |
+| `m9-b6-your-app` | 6 · 2:00.5–2:23 | 22.5 s | the agent's 49-line adapter and its 4 verbs, its endpoint, open weights, rule B1 with the broken prices, HOLD / SHIP, $0.13 |
+| `m9-b7-finablo` | 7 · 2:23–2:35.5 | 12.5 s | the 8 steps that state the limit: v706 red ($24,500 at 1, $32,500 at 7), v707 green ($35,750 at all 8) |
+| `m9-b8-close` | 8 · 2:35.5–2:51 | 15.5 s | who it is for (finance · health · commerce), the live sample review in a browser frame, the thesis |
+| `m9-b8-end-card` | end card · 2:51–2:57 | 6 s | repo URL, live sample URL, run commands, built during the hackathon, owner's name |
+
+Also: `scenes/m9-thumbnail.png` (beat 1 at 12.4 s, an extra still written by `render_motion.py`) and the sound-cue
+sheet `SOUND-CUES-v9.md`.
+
+```bash
+python3 slides-src/extract_brightdesk.py          # beat 6 data (adds the adapter and the broken prices in v9)
+python3 slides-src/extract_v9.py                  # beats 1, 3, 5, 7 data + img/v9 crops (reads the Finablo and Spree harness runs)
+python3 ../build_sample_review.py                 # docs/sample-review/, the hosted sample (beat 8, end card)
+python3 slides-src/shoot_v9.py                    # img/v9/sample-review.png, from docs/sample-review/
+python3 slides-src/render_motion.py m9            # every v9 clip + still + the thumbnail
+```

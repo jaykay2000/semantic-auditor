@@ -2,6 +2,7 @@
 
     python3 slides-src/extract_brightdesk.py                      # default: ~/Documents/src/sra-newuser-test/work/runs
     python3 slides-src/extract_brightdesk.py --runs <work/runs>   # any other copy
+    python3 slides-src/extract_brightdesk.py --app <my-app>       # the agent's app folder (default: ~/Documents/src/sra-newuser-test/my-app)
 
 Read-only on the source. Writes:
   demo/evidence/newuser-brightdesk-2026-11-01/record.json         the two reviews' outcomes and counts, the ledger
@@ -17,6 +18,7 @@ import argparse
 import hashlib
 import json
 import pathlib
+import re
 import sys
 
 HERE = pathlib.Path(__file__).resolve().parent
@@ -25,6 +27,8 @@ DEMO = ASSETS.parent
 EVIDENCE = DEMO / 'evidence' / 'newuser-brightdesk-2026-11-01'
 FRAME_DATA = ASSETS / 'scenes-data' / 'brightdesk.json'
 DEFAULT_RUNS = pathlib.Path.home() / 'Documents/src/sra-newuser-test/work/runs'
+DEFAULT_APP = pathlib.Path.home() / 'Documents/src/sra-newuser-test/my-app'
+ADAPTER = 'adapter.py'
 HOLD, SHIP, LEDGER = 't3/review-1.1-1.0.json', 't3/review-1.0-1.1.json', 'ledger.jsonl'
 LEDGER_KEEP = ('ts', 'tag', 'role', 'model', 'priced', 'cached', 'cost_usd')
 
@@ -57,6 +61,24 @@ def ledger_summary(rows):
             'models': sorted({r['model'] for r in rows}), 'by_tag': tags}
 
 
+def adapter_summary(path):
+    """The agent's adapter: its size and its verbs (the scenario steps it can drive). Read-only."""
+    text = path.read_text()
+    return {'file': 'my-app/' + ADAPTER, 'sha256': sha256(path), 'lines': len(text.splitlines()),
+            'verbs': re.findall(r'^    def verb_(\w+)\(', text, re.M)}
+
+
+def prices(hold):
+    """Each surface's Pro price on the broken release, as the hold review's issues report it ("plan_price 12 on
+    pricing; 15 on checkout; ...")."""
+    out = {}
+    for i in hold['issues']:
+        for value, surface in re.findall(r'(\d+) on (\w+)', i['why']):
+            if out.setdefault(surface, value) != value:
+                raise ValueError(f'{surface}: {out[surface]} and {value} in the same review')
+    return out
+
+
 def frame_data(record):
     """What m8-b6 shows. Called by this script and by the test, so the two cannot disagree."""
     hold, ship = record['reviews']['hold'], record['reviews']['ship']
@@ -67,7 +89,11 @@ def frame_data(record):
             'hold': {'label': hold['recommendation'].upper(), 'new': sum(i['delta'] == 'new' for i in hold['issues'])},
             'ship': {'label': ship['recommendation'].upper(), 'resolved': len(ship['resolved'])},
             'billed_calls': led['billed_calls'],
-            'cost_shown': f"${led['billed_usd']:.2f}"}
+            'cost_shown': f"${led['billed_usd']:.2f}",
+            'rule': hold['issues'][0]['rule_text'],
+            'prices_broken': {k: '$' + v for k, v in prices(hold).items()},
+            'adapter_lines': record['adapter']['lines'], 'adapter_verbs': record['adapter']['verbs'],
+            'model': led['models'][0] if len(led['models']) == 1 else None}
 
 
 def check(record, billed_rows):
@@ -79,6 +105,10 @@ def check(record, billed_rows):
         errors.append(f"{SHIP}: recommendation {ship['recommendation']!r}, expected 'ship'")
     new = sorted(i['id'] for i in hold['issues'] if i['delta'] == 'new')
     resolved = sorted(i['id'] for i in ship['resolved'])
+    if len({i['rule_text'] for i in hold['issues']}) != 1:
+        errors.append(f'{HOLD}: the new issues are not all one rule')
+    if len(set(prices(hold).values())) < 2:
+        errors.append(f'{HOLD}: the broken release shows one price everywhere')
     if not new or new != resolved:
         errors.append(f'new in the broken release {new} != resolved in the fixed one {resolved}')
     led = record['ledger']
@@ -96,7 +126,9 @@ def check(record, billed_rows):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--runs', type=pathlib.Path, default=DEFAULT_RUNS)
-    runs = ap.parse_args().runs
+    ap.add_argument('--app', type=pathlib.Path, default=DEFAULT_APP)
+    args = ap.parse_args()
+    runs = args.runs
     rows = [json.loads(line) for line in (runs / LEDGER).read_text().splitlines() if line.strip()]
     billed_rows = [{k: r[k] for k in LEDGER_KEEP if k in r} for r in rows if not r['cached']]
     record = {
@@ -105,6 +137,7 @@ def main():
         'reviews': {'hold': review_summary(HOLD, json.loads((runs / HOLD).read_text())),
                     'ship': review_summary(SHIP, json.loads((runs / SHIP).read_text()))},
         'ledger': ledger_summary(rows),
+        'adapter': adapter_summary(args.app / ADAPTER),
     }
     errors = check(record, billed_rows)
     if errors:

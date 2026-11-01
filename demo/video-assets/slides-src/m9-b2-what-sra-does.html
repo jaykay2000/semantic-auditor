@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>m9 beat 2 what SRA does</title>
+<link rel="stylesheet" href="slides.css"><link rel="stylesheet" href="motion.css"><link rel="stylesheet" href="v9.css">
+<!-- Beat 2 v9 (0:19.5-0:44.5, 25 s). Voice-over, cue = clip seconds:
+       0.3  "Semantic Release Auditor does."                                       dark frame: the name
+       2.0  "It turns every discovery into a check your next release has to pass." the thesis (by 0:27)
+       7.4  "Test users walk two releases."                                        two releases, the pages they walk
+       9.5  "Muse Spark reads every page and email your users get,"                job 1
+      13.6  "judges them against the app's own records and your rules,"           job 2 (rules in amber)
+      18.2  "and drafts new checks."                                               job 3
+      19.5  "SRA sorts each issue: new, fixed, already there, or can't tell."      the four release categories
+     Wording held on purpose (orchestrator, 2026-11-01): "reads every page and email your users get" claims nothing
+     about images, so it stays true whatever the screenshot capability test finds. Today the model reads the text of
+     each page and email; screenshots are kept for the review page only.
+     The example releases and pages are Finablo's v706/v707 journey (f73-limit-check: guest report, Copy for your AI,
+     sign-up, signed-in report, welcome email PDF, dashboard). The four categories are the review page's own
+     (release_story.html: introduced by / fixed in / in both releases / cannot tell). -->
+<style>
+.rev{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:30px}
+.rev .nm{font:820 112px/1 var(--disp);letter-spacing:-.04em}
+.rev .th{font:700 54px/1.2 var(--disp);letter-spacing:-.025em;color:#C9D2F6;max-width:1500px}
+.rev .th .hl9{--hlc:#3651D4;color:#fff}
+.flow{display:grid;grid-template-columns:560px 56px 1fr 56px 400px;align-items:stretch;gap:0}
+.ar{display:grid;place-items:center;font:600 46px var(--disp);color:var(--ink3)}
+.box9{padding:30px 32px;display:flex;flex-direction:column;gap:18px}
+.box9 .t{font:760 40px/1.1 var(--disp);letter-spacing:-.02em}
+.users{display:flex;gap:12px}
+.users span{width:58px;height:58px;border-radius:50%;background:var(--sunk);border:2px solid var(--line);display:grid;place-items:center;font:700 24px var(--sans);color:var(--ink2)}
+.rels{display:flex;align-items:center;gap:14px;font:700 34px var(--mono)}
+.rels span{padding:6px 18px;border-radius:12px;border:2px solid var(--line);background:var(--sunk)}
+.rels i{font-style:normal;color:var(--ink3);font-family:var(--disp)}
+.pages{display:flex;flex-wrap:wrap;gap:10px}
+.pages span{font:600 25px var(--sans);padding:6px 16px;border-radius:999px;border:2px solid var(--line);background:#fff;white-space:nowrap}
+.ex{font:500 24px var(--sans);color:var(--ink3)}
+.muse{background:var(--accentbg);border-color:var(--accentln)}
+.muse .t{color:var(--accent)}
+.job{display:grid;grid-template-columns:58px 1fr;gap:16px;align-items:start}
+.job .n{width:52px;height:52px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font:800 28px var(--disp)}
+.job b{display:block;font:760 36px/1.15 var(--disp);letter-spacing:-.02em;color:var(--ink)}
+.job span{font:500 28px/1.3 var(--sans);color:var(--ink2)}
+.job .r{white-space:nowrap;color:var(--rule);background:var(--rulebg);border:2px solid var(--ruleln);border-radius:10px;padding:0 10px;font-weight:650}
+.out{background:var(--ink);border-color:var(--ink);color:#fff}
+.out .t{color:#fff}
+.cats{display:flex;flex-direction:column;gap:14px}
+.cats span{font:700 31px var(--sans);padding:10px 20px;border-radius:14px;background:#2A2D35;border:2px solid #4A4E58}
+.cats .nw{color:#FFB4AA}.cats .fx{color:#9FE0BC}.cats .pr{color:#F5D08A}.cats .ct{color:#C9C2F2;border-style:dashed}
+.cats small{display:block;font:500 22px var(--sans);color:#B9BCC4;margin-top:2px}
+</style></head><body data-duration="25">
+<div id="hd"></div>
+<div class="stage">
+  <div class="flow">
+    <div class="card9 box9 in" style="--at:7.6">
+      <span class="t">Test users walk two releases</span>
+      <div class="users"><span class="pop" style="--at:7.9">A</span><span class="pop" style="--at:8.1">B</span><span class="pop" style="--at:8.3">C</span><span class="pop" style="--at:8.5">D</span><span class="pop" style="--at:8.7">…</span></div>
+      <div class="rels"><span class="pop" style="--at:8.6">v706</span><i>→</i><span class="pop" style="--at:9.0">v707</span></div>
+      <div class="pages" id="pages"></div>
+      <span class="ex fade" style="--at:9.4">Example: Finablo's own journey</span>
+    </div>
+    <div class="ar fade" style="--at:9.5">→</div>
+    <div class="card9 box9 muse in" style="--at:9.5">
+      <span class="t">Muse Spark's three jobs</span>
+      <div class="job in" style="--at:10.3"><span class="n">1</span><div><b>Read</b><span>every page and email your users get</span></div></div>
+      <div class="job in" style="--at:13.6"><span class="n">2</span><div><b>Judge</b><span>against the app's own records and <span class="r">your rules</span></span></div></div>
+      <div class="job in" style="--at:18.2"><span class="n">3</span><div><b>Draft</b><span>new checks from findings</span></div></div>
+    </div>
+    <div class="ar fade" style="--at:19.5">→</div>
+    <div class="card9 box9 out in" style="--at:19.5">
+      <span class="t">SRA sorts each issue</span>
+      <div class="cats">
+        <span class="nw pop" style="--at:21.1">New<small>introduced by this release</small></span>
+        <span class="fx pop" style="--at:21.5">Fixed<small>fixed in this release</small></span>
+        <span class="pr pop" style="--at:21.9">Already there<small>in both releases</small></span>
+        <span class="ct pop" style="--at:23.2">Can't tell<small>whether it was fixed</small></span>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="dark9 only-out" style="--out:7.3"><div class="stage rev">
+  <div class="nm in" style="--at:.3">Semantic Release Auditor</div>
+  <div class="th in" style="--at:2.0">turns every discovery into <span class="hl9" style="--at:4.6">a check your next release has to pass.</span></div>
+</div></div>
+<script src="_v9.inc.js"></script>
+<script>
+document.getElementById('hd').innerHTML = v9Head({model: 'Muse Spark · Meta'});
+const P = ['Report', 'Copy for your AI', 'Sign-up', 'Signed-in report', 'Welcome email PDF', 'Dashboard'];
+document.getElementById('pages').innerHTML = P.map((p, i) => `<span class="pop" style="--at:${8.8 + i * .12}">${p}</span>`).join('');
+</script>
+<script src="motion.js"></script>
+<script>onSeek(t => document.body.classList.toggle('dark', t < 7.3));</script>
+</body></html>

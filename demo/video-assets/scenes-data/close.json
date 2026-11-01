@@ -1,4 +1,19 @@
 {
- "_README": "The public repository URL (owner, 2026-11-01). Re-render the end cards with: python3 slides-src/render.py s7-b8 s08 && python3 slides-src/render_motion.py m7-b8",
- "repo_url": "https://github.com/jaykay2000/semantic-auditor"
+ "_README": "The end card's facts (owner, 2026-11-01). repo_url: the public repository. sample_url: where docs/sample-review/ (demo/build_sample_review.py) is served once the owner turns GitHub Pages on (main, /docs). run: two commands copied from README.md ('Capture' and 'Review a release'). built: HACKATHON.md's provenance ledger. Re-render: python3 slides-src/render_motion.py m9-b8",
+ "repo_url": "https://github.com/jaykay2000/semantic-auditor",
+ "sample_url": "https://jaykay2000.github.io/semantic-auditor/sample-review/",
+ "owner": "Jayant Kumar",
+ "run": [
+  "pip install -e '.[test]' && playwright install chromium",
+  "semaudit review --contract examples/northbound/contract --base 2.3 --head 2.4 --max-usd 3"
+ ],
+ "built": {
+  "dates": "Oct 26 – Nov 4, 2026",
+  "items": [
+   "SRA",
+   "the Spree harness",
+   "Northbound",
+   "the Finablo contract"
+  ]
+ }
 }

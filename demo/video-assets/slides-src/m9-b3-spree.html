@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>m9 beat 3 Spree: the order page contradicted itself, fixed upstream</title>
+<link rel="stylesheet" href="slides.css"><link rel="stylesheet" href="motion.css"><link rel="stylesheet" href="v9.css">
+<!-- Beat 3 v9 (0:44.5-1:06.5, 22 s). Voice-over, cue = clip seconds:
+       0.3  "Here's Spree, an open-source store with about sixteen thousand GitHub stars."
+       4.9  "SRA flagged an order line that disagreed with the store's record."    ring on $43.19, record $39.99
+      10.3  "The page contradicted itself: forty-three nineteen with tax, beside a subtotal without it."  rows light up
+      15.3  "I reported it on October thirtieth."                                  issue 283
+      17.8  "On November first, the maintainers merged a fix."                     PR 289, merged (19.5)
+     Data: window.DATA.v9.spree (extract_v9.py): Ana's order-placed page in v6.0.0.beta3 (the review's own capture,
+     cropped; rings from the review's bounding boxes), the five amounts on it, the 67 shoppers and the 25 shown it,
+     and the star count (gh api, 2026-11-01). Upstream: demo/evidence/taxline-upstream-2026-10-30/README.md. SRA did
+     not re-run anything on the fixed storefront; nothing here says SRA verified the fix. The GitHub crops stop short of
+     the PR's branch name and description footer (img/v8/gh-*.png, shoot_v8.py). -->
+<style>
+.top{display:grid;grid-template-columns:720px 1fr;gap:56px;align-items:center}
+.shotwrap{position:relative}#rings{position:absolute;left:2px;top:2px}
+.sum{padding:30px 36px;display:flex;flex-direction:column;gap:6px}
+.sum .k9{margin-bottom:8px}
+.row{display:grid;grid-template-columns:1fr 170px 290px;align-items:center;gap:16px;padding:10px 14px;border-radius:12px;font:600 34px var(--sans)}
+.row .a{font:750 38px var(--disp);text-align:right;font-variant-numeric:tabular-nums}
+.row .why{font:650 26px var(--sans);opacity:0}
+.row.on{background:var(--sunk)}.row.on .why{opacity:1}
+.row.line.on{background:var(--badbg)}.row.line.on .a,.row.line.on .why{color:var(--bad)}
+.row.sub.on .why,.row.tax.on .why{color:var(--rule)}
+.row.tot{border-top:2px solid var(--line);border-radius:0;margin-top:4px;padding-top:14px}
+.rec{margin-top:14px;font:600 28px var(--sans);color:var(--ink2)}
+.rec b{color:var(--good);font-weight:800}
+.seen{display:inline-flex;align-self:flex-start;margin-top:10px;font:650 25px var(--sans);color:var(--spr);background:var(--sprbg);border:2px solid #E9B8EE;border-radius:999px;padding:6px 18px}
+.tl{margin-top:44px;display:grid;grid-template-columns:1fr 1fr;gap:44px}
+.ev{display:flex;flex-direction:column;gap:12px}
+.ev .dd{display:flex;align-items:center;gap:14px;font:700 34px var(--disp);letter-spacing:-.015em}
+.ev .dd span{font:600 25px var(--sans);color:var(--ink3);letter-spacing:0}
+.ev .dot{width:18px;height:18px;border-radius:50%;background:var(--ink3)}
+.ev.m .dot{background:#8250DF}
+.merged{display:flex;gap:12px;align-items:center}
+</style></head><body data-duration="22">
+<div id="hd"></div>
+<div class="stage">
+  <div class="top">
+    <div class="in" style="--at:1.0"><div class="k9" style="margin-bottom:12px" id="cap"></div>
+      <div class="shotwrap push" style="--pat:1;--pd:14s;--ps:1.05;--po:85% 30%"><div class="shotbox"><img id="img" alt="Spree order-placed page"></div><div id="rings"></div></div></div>
+    <div class="card9 sum in" style="--at:4.9">
+      <div class="k9">On the same page</div>
+      <div class="row line" data-on="11.1"><span id="nm"></span><span class="a" id="v-line"></span><span class="why">includes tax</span></div>
+      <div class="row sub" data-on="13.6"><span>Subtotal</span><span class="a" id="v-subtotal"></span><span class="why">without tax</span></div>
+      <div class="row"><span>Shipping</span><span class="a" id="v-shipping"></span><span class="why"></span></div>
+      <div class="row tax" data-on="14.3"><span>Tax</span><span class="a" id="v-tax"></span><span class="why">its own row</span></div>
+      <div class="row tot"><span>Total</span><span class="a" id="v-total"></span><span class="why"></span></div>
+      <div class="rec fade" style="--at:7.6">The store's own record for the line: <b id="recv"></b></div>
+      <span class="seen fade" style="--at:8.4" id="seen"></span>
+    </div>
+  </div>
+  <div class="tl">
+    <div class="ev in" style="--at:15.3"><div class="dd"><span class="dot"></span>Reported upstream <span>Oct 30 · on Spree's latest storefront</span></div><div id="iss"></div></div>
+    <div class="ev m in" style="--at:17.8"><div class="dd"><span class="dot"></span>Fix merged <span>Nov 1 · by Spree's maintainers</span></div>
+      <div id="pr"></div><div class="merged beat" style="--at:19.5" id="mg"></div></div>
+  </div>
+</div>
+<div class="src9 fade" style="--at:.3"><b>Source:</b> SRA release review, Spree v6.0.0.beta2 → beta3, Ana's order page at 10:08 · github.com/spree/storefront issue 283, PR 289 · stars: GitHub API, Nov 1, 2026</div>
+<script src="_v9.inc.js"></script>
+<script src="_crop.js"></script>
+<script>
+const S = window.DATA.v9.spree, R = S.rows;
+document.getElementById('hd').innerHTML = v9Head({app: 'spree', note: `a real open-source store · ★ ${S.stars.count.toLocaleString('en-US')} on GitHub`, model: 'Muse Spark Open · open weights'});
+document.getElementById('cap').textContent = `${S.persona}'s order page · ${S.release.head}`;
+document.getElementById('img').src = S.crop;
+const [bx, by, bx1, by1] = S.box, W = 720, k = W / (bx1 - bx);
+const ring = (b, cls, on) => `<div class="ring9 ${cls} pop" style="--at:${on};left:${(b.x - bx) * k - 8}px;top:${(b.y - by) * k - 6}px;width:${b.width * k + 16}px;height:${Math.min(b.height, 22) * k + 12}px"></div>`;
+document.getElementById('rings').innerHTML = ring(R.line.bbox, '', 6.0) + ring(R.subtotal.bbox, 'amb', 13.6) + ring(R.tax.bbox, 'amb', 14.3);
+document.getElementById('nm').textContent = R.line.label;
+for (const k2 of ['line', 'subtotal', 'shipping', 'tax', 'total']) document.getElementById('v-' + k2).textContent = R[k2].text;
+document.getElementById('recv').textContent = S.record_item_total;
+document.getElementById('seen').textContent = `${S.shoppers_shown_it} of ${S.shoppers} test shoppers saw it · in both releases`;
+document.getElementById('iss').innerHTML = crop('img/v8/gh-issue-head.png', 0, 0, 920, 144, 800, '', 920);
+document.getElementById('pr').innerHTML = crop('img/v8/gh-pr-title.png', 0, 0, 1014, 54, 800, '', 1014);
+document.getElementById('mg').innerHTML = crop('img/v8/gh-pr-merged.png', 0, 0, 414, 44, 360, '', 414) + crop('img/v8/gh-pr-fixes.png', 0, 0, 140, 36, 150, '', 140);
+</script>
+<script src="motion.js"></script>
+<script>toggles();</script>
+</body></html>

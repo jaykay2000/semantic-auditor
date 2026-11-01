@@ -10,5 +10,19 @@
   "resolved": 3
  },
  "billed_calls": 15,
- "cost_shown": "$0.13"
+ "cost_shown": "$0.13",
+ "rule": "The Pro plan's price reads the same on every page and email a customer sees before and after subscribing.",
+ "prices_broken": {
+  "inbox": "$12",
+  "checkout": "$15",
+  "pricing": "$12"
+ },
+ "adapter_lines": 49,
+ "adapter_verbs": [
+  "open_pricing",
+  "choose_pro",
+  "subscribe",
+  "check_inbox"
+ ],
+ "model": "meta-models/muse-spark-open-1026"
 }

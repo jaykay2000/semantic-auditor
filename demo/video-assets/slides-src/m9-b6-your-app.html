@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>m9 beat 6: your app, your endpoint (Brightdesk)</title>
+<link rel="stylesheet" href="slides.css"><link rel="stylesheet" href="motion.css"><link rel="stylesheet" href="v9.css">
+<!-- Beat 6 v9 (2:00.5-2:23, 22.5 s). Voice-over, cue = clip seconds:
+       0.3  "And you don't need my apps."
+       2.8  "A fresh AI agent, given only SRA's docs, built a small app,"
+       7.8  "wrote a forty-nine-line adapter,"                                 the adapter: 49 lines, its 4 verbs
+       9.9  "and pointed SRA at its own Muse Spark Open endpoint."            the model id it configured
+      13.6  "Open weights: it can run on yours."
+      17.0  "The broken release: hold."                                        HOLD at 17.8   (sound cue: HOLD)
+      19.0  "The fixed one: ship."                                             SHIP at 19.5   (sound cue: SHIP)
+      19.9  "Thirteen cents, start to finish."                                 $0.13 at 20.2
+     Every number is window.DATA.brightdesk (extract_brightdesk.py, from the committed record
+     demo/evidence/newuser-brightdesk-2026-11-01/; tests/test_demo_brightdesk_evidence.py and tests/test_demo_v9.py keep
+     frame, data and record in step). The prices are the hold review's own issue text, with units: the page crops'
+     "15 shown · true 12" and "verified 5/5 · confidence medium" are gone (owner review). "Given only SRA's docs" is the
+     orchestrator's account of that session. No duration is claimed. The cost is the whole session (15 billed calls);
+     it is the only cost on screen in v9. The endpoint was hosted (Baseten), so "it can run on yours" is said as what
+     open weights allow, not as something shown. -->
+<style>
+.grid6{display:grid;grid-template-columns:1fr 1fr;gap:36px;align-items:start}
+.ad{padding:28px 32px;display:flex;flex-direction:column;gap:12px}
+.ad .big{display:flex;align-items:baseline;gap:18px}
+.ad .big b{font:850 104px/0.95 var(--disp);letter-spacing:-.04em;color:var(--bd)}
+.ad .big span{font:650 32px var(--sans);color:var(--ink2)}
+.ad code{display:block;font:600 27px/1.45 var(--mono);color:var(--ink)}
+.ad code i{font-style:normal;color:var(--ink3)}
+.ep{padding:28px 32px;display:flex;flex-direction:column;gap:14px;background:var(--accentbg);border-color:var(--accentln)}
+.ep code{font:600 28px var(--mono);color:var(--accent);word-break:break-all}
+.ep .ow{font:780 44px/1.1 var(--disp);letter-spacing:-.02em;color:var(--accent)}
+.ep .ow span{display:block;font:500 28px var(--sans);color:var(--ink2);letter-spacing:0;margin-top:6px}
+.rel6{margin-top:30px;display:grid;grid-template-columns:1.1fr .9fr;gap:36px;align-items:stretch}
+.br{padding:24px 30px;display:flex;flex-direction:column;gap:14px}
+.br .t{font:500 27px/1.35 var(--sans)}
+.pr{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.pr span{font:650 28px var(--sans);padding:6px 16px;border-radius:12px;border:2px solid var(--line);background:#fff}
+.pr span.bad{color:var(--bad);background:var(--badbg);border-color:#F3C2BB}
+.vs{display:flex;flex-direction:column;gap:18px;justify-content:center}
+.vrow{display:flex;align-items:center;gap:18px;font:650 30px var(--sans);color:var(--ink2)}
+.vrow .verdict{min-width:180px;justify-content:center}
+.cost{display:flex;align-items:baseline;gap:16px;margin-top:6px}
+.cost b{font:850 88px/1 var(--disp);letter-spacing:-.04em;color:var(--accent)}
+.cost span{font:600 26px/1.3 var(--sans);color:var(--ink2)}
+</style></head><body data-duration="22.5">
+<div id="hd"></div>
+<div class="stage">
+  <div class="grid6">
+    <div class="card9 ad in" style="--at:7.8"><span class="k9">Its adapter, my-app/adapter.py</span>
+      <div class="big"><b data-count="0" data-at="8.0" data-d=".9" id="lines">0</b><span>lines · <span id="nv"></span> verbs</span></div>
+      <code id="verbs"></code></div>
+    <div class="card9 ep in" style="--at:9.9"><span class="k9" style="color:var(--accent)">Its own endpoint</span><code id="model"></code>
+      <div class="ow fade" style="--at:13.6">Open weights<span>so it can run on your own endpoint</span></div></div>
+  </div>
+  <div class="rel6">
+    <div class="rule9 br in" style="--at:16.4"><span class="k9">Its rule · B1</span><span class="t" id="rule"></span>
+      <div class="pr" id="prices"></div></div>
+    <div class="vs">
+      <div class="vrow in" style="--at:17.0"><span class="verdict bad pop" style="--at:17.8" id="hold"></span><span>broken release</span></div>
+      <div class="vrow in" style="--at:19.0"><span class="verdict good pop" style="--at:19.5" id="ship"></span><span>fixed release</span></div>
+      <div class="cost in" style="--at:20.2"><b id="cost"></b><span id="costw"></span></div>
+    </div>
+  </div>
+</div>
+<div class="src9 fade" style="--at:.3"><b>Source:</b> SRA release reviews of Brightdesk 1.0 and 1.1 and their model-call ledger (demo/evidence/newuser-brightdesk-2026-11-01)</div>
+<script src="_v9.inc.js"></script>
+<script>
+const B = window.DATA.brightdesk;
+document.getElementById('hd').innerHTML = v9Head({app: 'brightdesk', note: 'a small app an AI agent built from SRA\'s docs', model: 'Muse Spark Open · open weights'});
+document.getElementById('lines').dataset.count = B.adapter_lines;
+document.getElementById('nv').textContent = B.adapter_verbs.length;
+document.getElementById('verbs').innerHTML = B.adapter_verbs.map((v, i) => `<span class="fade" style="--at:${8.4 + i * .25}"><i>def</i> verb_${esc(v)}</span>`).join('<br>');
+document.getElementById('model').textContent = B.model;
+document.getElementById('rule').textContent = '“' + B.rule + '”';
+const LBL = {pricing: 'pricing page', checkout: 'checkout', inbox: 'email'};
+const vals = Object.values(B.prices_broken), odd = vals.find(v => vals.filter(w => w === v).length === 1);
+document.getElementById('prices').innerHTML = '<span style="border:0;background:none;padding:0;font-weight:500;color:var(--ink2);flex-basis:100%">On the broken release</span>' +
+  ['pricing', 'checkout', 'inbox'].map((k, i) => `<span class="${B.prices_broken[k] === odd ? 'bad' : ''} fade" style="--at:${16.8 + i * .2}">${B.prices_broken[k]} ${LBL[k]}</span>`).join('');
+document.getElementById('hold').textContent = B.hold.label;
+document.getElementById('ship').textContent = B.ship.label;
+document.getElementById('cost').textContent = B.cost_shown;
+document.getElementById('costw').innerHTML = `in model calls, start to finish<br>${B.billed_calls} billed calls`;
+</script>
+<script src="motion.js"></script>
+<script>counters();</script>
+</body></html>

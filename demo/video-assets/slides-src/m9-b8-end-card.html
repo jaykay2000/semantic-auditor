@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>m9 end card</title>
+<link rel="stylesheet" href="slides.css"><link rel="stylesheet" href="motion.css"><link rel="stylesheet" href="v9.css">
+<!-- End card v9 (2:51-2:57, 6 s; silence or music). Owner review: a big URL, the owner's name, the run command, and
+     what was built during the hackathon. One cost story only: the end card shows no cost (v8's 5¢ / 14¢ came from a
+     different run than beat 6's $0.13). Everything is window.DATA.close (scenes-data/close.json). -->
+<style>
+body{background:#0E1014;color:#fff}
+.ec{position:absolute;left:120px;right:120px;top:60px;bottom:60px;display:flex;flex-direction:column;justify-content:center;gap:30px}
+.nm{display:flex;align-items:center;gap:24px}
+.nm .logo{height:80px;padding:0 20px;border-radius:18px;font-size:34px;background:#fff;color:var(--ink)}
+.nm .t{font:800 72px/1 var(--disp);letter-spacing:-.035em}
+.by{font:600 34px var(--sans);color:#C9CCD3}
+.th{font:700 44px/1.2 var(--disp);letter-spacing:-.02em;color:#C9D2F6}
+.url{font:800 64px/1 var(--disp);letter-spacing:-.025em;color:#fff}
+.url span{color:#9EA3AD}
+.live{font:600 32px var(--sans);color:#C9CCD3}.live b{color:#9FE0BC;font-weight:700}
+.cmd{font:500 27px/1.55 var(--mono);color:#E6E7EA;background:#181B21;border:2px solid #2E323B;border-radius:18px;padding:18px 26px}
+.cmd i{font-style:normal;color:#7C8AE8}
+.bt{font:600 28px/1.35 var(--sans);color:#C9CCD3}.bt b{color:#fff}
+.meta{font:600 28px var(--sans);color:#9EA3AD}
+</style></head><body data-duration="6">
+<div class="ec">
+  <div class="nm in" style="--at:0"><span class="logo">SRA</span><span class="t">Semantic Release Auditor</span></div>
+  <div class="th in" style="--at:.2">Every discovery becomes a check your next release has to pass.</div>
+  <div class="url in" style="--at:.4" id="repo"></div>
+  <div class="live in" style="--at:.6" id="live"></div>
+  <div class="cmd in" style="--at:.8" id="cmd"></div>
+  <div class="bt in" style="--at:1.0" id="built"></div>
+  <div class="meta in" style="--at:1.2" id="meta"></div>
+</div>
+<script src="_v9.inc.js"></script>
+<script>
+const C = window.DATA.close;
+const strip = u => u.replace(/^https:\/\//, '');
+document.getElementById('repo').innerHTML = `<span>${esc(strip(C.repo_url).split('/')[0])}/</span>${esc(strip(C.repo_url).split('/').slice(1).join('/'))}`;
+if (C.sample_url) document.getElementById('live').innerHTML = `Live sample review: <b>${esc(strip(C.sample_url))}</b>`;
+else document.getElementById('live').remove();
+document.getElementById('cmd').innerHTML = C.run.map(c => `<i>$</i> ${esc(c)}`).join('<br>');
+document.getElementById('built').innerHTML = `<b>Built during the hackathon, ${esc(C.built.dates)}:</b> ${C.built.items.map(esc).join(' · ')}`;
+document.getElementById('meta').textContent = `${C.owner} · open source, Apache-2.0 · Muse Spark Open, open weights`;
+</script>
+<script src="motion.js"></script>
+</body></html>

@@ -1,4 +1,4 @@
-"""Render the motion clips (slides-src/m7-*.html) to video, plus a matching still.
+"""Render the motion clips (slides-src/m7-*, m8-*, m9-*.html) to video, plus a matching still.
 
     python3 slides-src/render_motion.py              # every clip
     python3 slides-src/render_motion.py m7-b4        # only clips whose name starts with these prefixes
@@ -30,6 +30,9 @@ STILLS = ROOT / 'scenes'
 DATA_DIR = ROOT / 'scenes-data'
 BUILD = ROOT / '.motion-build'
 FPS = 30
+# Extra stills cut from a clip at a given second (name -> (clip, seconds)). The v9 thumbnail is beat 1 at 12.4 s:
+# both wrong figures beside the 354 passed checks, before "Neither was right" strikes them.
+EXTRA_STILLS = {'m9-thumbnail': ('m9-b1-hook', 12.4)}
 
 
 def ffmpeg():
@@ -65,7 +68,7 @@ def main(argv):
     still_only = '--still' in argv
     argv = [a for a in argv if a != '--still']
     data = {p.stem: json.loads(p.read_text()) for p in sorted(DATA_DIR.glob('*.json'))}
-    pages = sorted(HERE.glob('m[78]-*.html'))
+    pages = sorted(HERE.glob('m[789]-*.html'))
     if argv:
         pages = [p for p in pages if any(p.stem.startswith(a) for a in argv)]
     if not pages:
@@ -79,6 +82,10 @@ def main(argv):
             # the still: last frame at 2x
             pg, errs = open_page(browser, path, data, 2)
             dur = pg.evaluate('window.DURATION')
+            for extra, (clip, at) in EXTRA_STILLS.items():
+                if clip == name:
+                    pg.evaluate(f'window.__seek({at})')
+                    pg.screenshot(path=str(STILLS / f'{extra}.png'))
             pg.evaluate(f'window.__seek({dur})')
             problems = pg.evaluate(CHECK)
             pg.screenshot(path=str(STILLS / f'{name}.png'))

@@ -1,0 +1,298 @@
+{
+ "_README": "Written by slides-src/extract_v9.py from the runs' own files (see each sha256). tests/test_demo_v9.py checks the m9 frames against it.",
+ "gate": {
+  "source": "demo/evidence/finablo-gate-v706/README.md",
+  "sha256": "4ed064389e33756d1bb43621b0f85994506a1d5feeb8b73bcde1ebfdc4b98a33",
+  "release": "v706",
+  "date": "2026-09-30",
+  "ok": 354,
+  "fail": 0,
+  "summary_line": "✓ All checks passed. Safe to deploy."
+ },
+ "finablo": {
+  "shown": {
+   "report": "$24,500",
+   "copied": "$32,500",
+   "sources": {
+    "report": "10ff1e3.target_61.S-R1.s03.c01.dom.html",
+    "report_sha256": "f2b0e30559bfe3aa4e0e35c2af6e01e8d1766508555de937ede104844a94bcca",
+    "copied": "10ff1e3.target_61.S-R1.s04.c01.raw.txt",
+    "copied_sha256": "bd2d59ac944daa76206bbba91084196c64ff0ce6065acaebe988d85f94ced85f"
+   }
+  },
+  "freedom": {
+   "source": "wide-run-3k/captures/10ff1e3/target_61__S-R1/10ff1e3.target_61.S-R1.s03.c01.screenshot.png",
+   "sha256": "5d30b4a4daf0f66cf2bdcbad2172213561e4ef68ea22eeb7b4ddf540c7da4d76",
+   "box": [
+    290,
+    262,
+    1212,
+    688
+   ],
+   "crop": "img/v9/finablo-freedom-v706.png",
+   "headline": "Work could be optional at 75."
+  },
+  "limits": {
+   "source": "f73-limit-check/captures/<tree> (text, DOM and JSON captures, model-free)",
+   "steps": {
+    "v706": {
+     "$24,500": [
+      "s02"
+     ],
+     "$32,500": [
+      "s03",
+      "s05",
+      "s06",
+      "s07",
+      "s08",
+      "s09",
+      "s10"
+     ],
+     "$35,750": []
+    },
+    "v707": {
+     "$24,500": [],
+     "$32,500": [],
+     "$35,750": [
+      "s02",
+      "s03",
+      "s05",
+      "s06",
+      "s07",
+      "s08",
+      "s09",
+      "s10"
+     ]
+    }
+   },
+   "v706": {
+    "$24,500": 1,
+    "$32,500": 7,
+    "$35,750": 0
+   },
+   "v707": {
+    "$24,500": 0,
+    "$32,500": 0,
+    "$35,750": 8
+   },
+   "v707_steps_stating_a_limit": 8,
+   "places": [
+    {
+     "step": "s02",
+     "name": "Guest report, plan pending",
+     "v706": "$24,500",
+     "v707": "$35,750"
+    },
+    {
+     "step": "s03",
+     "name": "Guest report, plan ready",
+     "v706": "$32,500",
+     "v707": "$35,750"
+    },
+    {
+     "step": "s05",
+     "name": "Report after sign-up",
+     "v706": "$32,500",
+     "v707": "$35,750"
+    },
+    {
+     "step": "s06",
+     "name": "Signed-in report",
+     "v706": "$32,500",
+     "v707": "$35,750"
+    },
+    {
+     "step": "s07",
+     "name": "Signed-in report, 2nd view",
+     "v706": "$32,500",
+     "v707": "$35,750"
+    },
+    {
+     "step": "s08",
+     "name": "Copy for your AI",
+     "v706": "$32,500",
+     "v707": "$35,750"
+    },
+    {
+     "step": "s09",
+     "name": "Welcome email PDF",
+     "v706": "$32,500",
+     "v707": "$35,750"
+    },
+    {
+     "step": "s10",
+     "name": "Dashboard",
+     "v706": "$32,500",
+     "v707": "$35,750"
+    }
+   ]
+  },
+  "correct_limit": "$35,750",
+  "correct_limit_basis": "$24,500 + the $11,250 catch-up for ages 60–63 (IRS 2026)"
+ },
+ "spree": {
+  "review": "review-v6.0.0.beta2-v6.0.0.beta3.reader.json",
+  "review_sha256": "5e44beab2c155b82cb96e1b756133f3f0e3e54876f06b14e9ff09b91672c1990",
+  "issue": "R-v6.0.0.beta3-U1-line-amount-core-4f237b451a-ab6a0c63",
+  "release": {
+   "base": "v6.0.0.beta2",
+   "head": "v6.0.0.beta3"
+  },
+  "delta": "pre_existing",
+  "shoppers": 67,
+  "shoppers_shown_it": 25,
+  "rule": "U1",
+  "rule_text": "Every figure we show a shopper about their order matches what the order actually records: item prices, quantities, line amounts, subtotal, discounts, delivery, fees, tax, total and amount due, on every surface, once the figure can be known.",
+  "persona": "Ana Rivera",
+  "at": "10:08",
+  "shot": "captures/v6.0.0.beta3/ana__S-buy/v6.0.0.beta3.ana.S-buy.s09.c01.screenshot.png",
+  "shot_sha256": "ae87910989f4016519a8355184e46d641ade2c746fbf5a67e27b68c72c13fe1c",
+  "box": [
+   140,
+   380,
+   692,
+   690
+  ],
+  "crop": "img/v9/spree-order-page.png",
+  "rows": {
+   "line": {
+    "label": "2-Slice Toaster",
+    "text": "$43.19",
+    "bbox": {
+     "x": 624.64,
+     "y": 458.0,
+     "width": 42.36,
+     "height": 60.0
+    }
+   },
+   "subtotal": {
+    "label": "Subtotal",
+    "text": "$39.99",
+    "bbox": {
+     "x": 621.89,
+     "y": 551.0,
+     "width": 45.11,
+     "height": 20.0
+    }
+   },
+   "shipping": {
+    "label": "Shipping",
+    "text": "$5.00",
+    "bbox": {
+     "x": 627.91,
+     "y": 579.0,
+     "width": 39.09,
+     "height": 20.0
+    }
+   },
+   "tax": {
+    "label": "Tax",
+    "text": "$3.60",
+    "bbox": {
+     "x": 629.2,
+     "y": 607.0,
+     "width": 37.8,
+     "height": 20.0
+    }
+   },
+   "total": {
+    "label": "Total",
+    "text": "$48.59",
+    "bbox": {
+     "x": 611.92,
+     "y": 644.0,
+     "width": 55.08,
+     "height": 24.0
+    }
+   }
+  },
+  "record_item_total": "$39.99",
+  "upstream": {
+   "issue": 283,
+   "reported": "2026-10-30",
+   "pr": 289,
+   "merged": "2026-11-01",
+   "source": "demo/evidence/taxline-upstream-2026-10-30/README.md"
+  },
+  "stars": {
+   "count": 15805,
+   "read": "2026-11-01",
+   "how": "gh api repos/spree/spree (stargazers_count)"
+  }
+ },
+ "northbound": {
+  "review": "runs/e2e-2/review-2.3-2.4.json",
+  "review_sha256": "d1a5c025aed4d7a9958fa0515a19920856a52700b2a2f6ef4596e4d03f6bcd02",
+  "rules": "examples/northbound/contract/principles.yaml",
+  "rules_sha256": "14bea987f13a8171de1e69575e9ff65b6ceb984b110e52b29c6905bae3a2a1c3",
+  "release": {
+   "base": "2.3",
+   "head": "2.4"
+  },
+  "models": {
+   "interpreter": "muse-spark-1.3",
+   "extractor": "muse-spark-1.3",
+   "cross_checker_extract": "muse-spark-1.2",
+   "cross_checker_interpret": "muse-spark-1.2",
+   "defender": "muse-spark-1.2",
+   "smoke": "muse-spark-1.3"
+  },
+  "rule": {
+   "id": "P2",
+   "text": "When more than one feature gives an active recommendation about the same decision, the product must reconcile incompatible actions, or explain the material tradeoffs between otherwise compatible actions, while both are live and before the traveller decides.",
+   "key_phrase": "explain the material tradeoffs"
+  },
+  "maya": {
+   "name": "Maya",
+   "offers": [
+    {
+     "id": "pw.email.forecast",
+     "at": "10:01",
+     "feature": "price_watch",
+     "channel": "email",
+     "text": "Prices on your dates are likely to drop over the next two weeks. We suggest waiting; we'll tell you when to book."
+    },
+    {
+     "id": "fl.banner",
+     "at": "10:03",
+     "feature": "fare_lock",
+     "channel": "banner",
+     "text": "2 seats left at this fare. Lock it for 48 h for €9 total, for your whole booking."
+    }
+   ],
+   "verdict": "flagged",
+   "issue": "I-2.4-P2-fare-lock-price-watch-unexplained-tradeoff",
+   "severity": "major",
+   "delta": "new"
+  },
+  "lena": {
+   "name": "Lena",
+   "offers": [
+    {
+     "id": "pw.email.forecast",
+     "at": "10:01",
+     "feature": "price_watch",
+     "channel": "email",
+     "text": "Prices on your dates are likely to drop over the next two weeks. We suggest waiting; we'll tell you when to book."
+    },
+    {
+     "id": "fl.banner",
+     "at": "10:03",
+     "feature": "fare_lock",
+     "channel": "banner",
+     "text": "2 seats left at this fare. Lock it for 48 h for €9 total, for your whole booking."
+    }
+   ],
+   "explains": {
+    "id": "cg.reconcile",
+    "at": "10:04",
+    "feature": "concierge",
+    "channel": "chat",
+    "text": "Prices on your dates are likely to drop, but this fare has 2 seats left. If you can move your dates, wait for the alert; if not, locking protects this price."
+   },
+   "verdict": "cleared",
+   "reason": "explained tradeoff by cg.reconcile at 10:04:00, while both were live and before deciding"
+  },
+  "key_words_in_lena_message": []
+ }
+}

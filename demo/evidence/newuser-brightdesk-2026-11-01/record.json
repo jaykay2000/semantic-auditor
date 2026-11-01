@@ -135,5 +135,16 @@
     "cached_calls": 28
    }
   }
+ },
+ "adapter": {
+  "file": "my-app/adapter.py",
+  "sha256": "700980c22024b20ef5bc343cc50d4d2f7ceedb997936431c64627a453038dc94",
+  "lines": 49,
+  "verbs": [
+   "open_pricing",
+   "choose_pro",
+   "subscribe",
+   "check_inbox"
+  ]
  }
 }

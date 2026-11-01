@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>m9 beat 5: a rule no test assertion can express (Northbound)</title>
+<link rel="stylesheet" href="slides.css"><link rel="stylesheet" href="motion.css"><link rel="stylesheet" href="v9.css">
+<!-- Beat 5 v9 (1:35-2:00.5, 25.5 s). Voice-over, cue = clip seconds:
+       0.3  "No test assertion can express this rule:"
+       3.2  "when two features advise on the same decision, explain the tradeoff."   rule P2, key phrase lit at 6.5
+       8.9  "In my test travel app, Maya is told prices will likely drop, so wait."  10:01 email, both columns
+      13.6  "Two minutes later: lock this fare for nine euros."                      10:03 banner, both columns
+      17.4  "Lena gets the same two offers, plus a line explaining the choice."      10:04 concierge, Lena only
+      22.4  "SRA flags Maya and clears Lena."                                         FLAGGED 22.8 · CLEARED 24.0
+     Maya and Lena side by side (owner review). Every message is the text the review recorded, set in sans (it is what
+     the traveller read, not a machine artifact); times and verdicts are the review's. Data: window.DATA.v9.northbound
+     (extract_v9.py, from runs/e2e-2/review-2.3-2.4.json and examples/northbound/contract/principles.yaml). The line
+     under Lena's verdict is checked there: her explaining message shares no word with the rule's key phrase. -->
+<style>
+.lead{font:800 54px/1.05 var(--disp);letter-spacing:-.035em;margin:0 0 16px}
+.rl{padding:16px 28px;display:flex;flex-direction:column;gap:6px}
+.rl .t{font:500 26px/1.36 var(--sans)}
+.rl .t .hl9{--hlc:#FFD978;font-weight:700}
+.two{margin-top:20px;display:grid;grid-template-columns:1fr 1fr;gap:40px}
+.col{display:flex;flex-direction:column;gap:10px}
+.who{display:flex;align-items:center;gap:14px;font:760 36px var(--disp);letter-spacing:-.02em}
+.who span{font:500 25px var(--sans);color:var(--ink3);letter-spacing:0}
+.msg{padding:10px 18px;border-radius:16px;background:var(--panel);border:2px solid var(--line);display:flex;flex-direction:column;gap:4px}
+.msg .m{font:650 22px var(--sans);letter-spacing:.04em;text-transform:uppercase;color:var(--ink3)}
+.msg .x{font:500 25px/1.3 var(--sans);color:var(--ink)}
+.msg.ex{border-color:#9FD3B6;background:#F4FBF7}
+.vd{display:flex;align-items:center;gap:16px;margin-top:6px}
+.vd .verdict{font-size:36px;padding:6px 20px}
+.vd span{font:500 25px var(--sans);color:var(--ink2)}
+.none{font:500 24px var(--sans);color:var(--ink3)}
+</style></head><body data-duration="25.5">
+<div id="hd"></div>
+<div class="stage" style="top:118px;bottom:56px">
+  <div class="lead in" style="--at:.3">No test assertion can express this rule.</div>
+  <div class="rule9 rl in" style="--at:3.2"><span class="k9">The owner's rule · P2</span><span class="t" id="rule"></span></div>
+  <div class="two" id="two"></div>
+</div>
+<div class="src9 fade" style="--at:.3"><b>Source:</b> SRA release review, Northbound 2.3 → 2.4 (a fictional travel app I built to test SRA) · rule P2, examples/northbound/contract</div>
+<script src="_v9.inc.js"></script>
+<script>
+const N = window.DATA.v9.northbound;
+const M = N.models, model = [...new Set(Object.values(M))].sort().reverse().map(m => m.replace('muse-spark-', '')).join(' · ');
+document.getElementById('hd').innerHTML = v9Head({app: 'northbound', note: 'my test travel app (fictional)', model: `Muse Spark ${model} · Meta API`});
+document.getElementById('rule').innerHTML = '“' + esc(N.rule.text).replace(N.rule.key_phrase, `<span class="hl9" style="--at:6.5">$&</span>`) + '”';
+const FEAT = {price_watch: 'Price Watch', fare_lock: 'Fare Lock', concierge: 'Concierge'};
+const msg = (m, at, cls = '') => `<div class="msg ${cls} in" style="--at:${at}"><span class="m">${m.at} · ${FEAT[m.feature]} ${m.channel}</span><span class="x">${esc(m.text)}</span></div>`;
+const col = (p, last) => `<div class="col">
+  <div class="who in" style="--at:9.4">${p.name}<span>${p === N.maya ? 'flexible dates, books at 10:06' : 'the same trip and the same offers'}</span></div>
+  ${msg(p.offers[0], 10.6)}${msg(p.offers[1], 14.2)}${last}</div>`;
+document.getElementById('two').innerHTML =
+  col(N.maya, `<div class="vd"><span class="verdict bad pop" style="--at:22.8">Flagged</span><span class="fade" style="--at:23.1">unexplained tradeoff</span></div>`) +
+  col(N.lena, msg(N.lena.explains, 19.6, 'ex') + `<div class="vd"><span class="verdict good pop" style="--at:24.0">Cleared</span><span class="fade" style="--at:24.3">tradeoff explained, with no “explain” and no “tradeoff”</span></div>`);
+if (N.key_words_in_lena_message.length) throw new Error('Lena shares words with the rule');
+</script>
+<script src="motion.js"></script>
+</body></html>
