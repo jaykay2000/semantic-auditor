@@ -1,0 +1,18 @@
+$ PYTHONPATH=src python3 scripts/rederive_imported_checks.py --saved run3-saved-checks.json run3b-saved-checks.json
+ic-accept-run3 C1-04 base current: votes {'pass': 1, 'fail': 2} evidence partially_verified: fail -> fail
+ic-accept-run3 C1-04 head candidate: votes {'not_measurable': 1, 'pass': 2} evidence verified: pass -> pass
+ic-accept-run3 C1-04 memory: fix_confirmed -> fix_confirmed
+ic-accept-run3b C1-04 base current: votes {'fail': 3} evidence partially_verified: fail -> fail
+ic-accept-run3b C1-04 head candidate: votes {'pass': 3} evidence partially_verified: pass -> not_measurable  CHANGED
+ic-accept-run3b C1-04 memory: not_confirmed -> not_confirmed
+ic-accept-run3b C1-04-v1 base current: votes {'fail': 3} evidence partially_verified: fail -> fail
+ic-accept-run3b C1-04-v1 head candidate: votes {'pass': 3} evidence partially_verified: pass -> not_measurable  CHANGED
+ic-accept-run3b C1-04-v1 memory: not_confirmed -> not_confirmed
+
+$ PYTHONPATH=src python3 scripts/rederive_imported_checks.py run2-current.json run2-candidate.json run4-current.json run4-candidate.json
+run2-current+run2-candidate C1-04 base current: votes {'fail': 3} evidence partially_verified: fail -> fail
+run2-current+run2-candidate C1-04 head candidate: votes {'not_measurable': 2, 'pass': 1} evidence unverified: not_measurable -> not_measurable
+run2-current+run2-candidate C1-04 memory: not_confirmed -> not_confirmed
+run4-current+run4-candidate C1-04-v1 base current: votes {'fail': 3} evidence partially_verified: fail -> fail
+run4-current+run4-candidate C1-04-v1 head candidate: votes {'pass': 3} evidence verified: pass -> pass
+run4-current+run4-candidate C1-04-v1 memory: fix_confirmed -> fix_confirmed

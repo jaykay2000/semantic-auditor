@@ -61,7 +61,7 @@ margin:2px 0}.implied{color:var(--muted);font-style:italic}.outcome{font-size:17
     <div class="k">{{ row.release }}{% if row.release == c.base %} (base){% elif row.release == c.head %} (head){% endif %} · episode <code>{{ r.episode }}</code></div>
     <table>
     <tr><td>Replay</td><td><span class="pill {{ 'pass' if r.replay.status == 'succeeded' else 'fail' }}">{{ r.replay.status }}</span></td></tr>
-    <tr><td>Assertion</td><td><span class="pill {{ {'pass':'pass','fail':'fail'}.get(r.assertion.outcome, 'nm') }}">{{ r.assertion.outcome }}</span> <span class="k">votes {{ r.assertion.votes }}</span></td></tr>
+    <tr><td>Assertion</td><td><span class="pill {{ {'pass':'pass','fail':'fail'}.get(r.assertion.outcome, 'nm') }}">{{ r.assertion.outcome }}</span> <span class="k">votes {{ r.assertion.votes }}</span>{% if r.assertion.why %}<br><span class="k">{{ r.assertion.why }}</span>{% endif %}</td></tr>
     <tr><td>Semantic confidence</td><td><span class="pill info">{{ r.semantic_confidence.level }}</span> <span class="k">{{ r.semantic_confidence.agreement }} judgments agree</span></td></tr>
     <tr><td>Evidence</td><td><span class="pill {{ 'pass' if r.evidence.status == 'verified' else 'nm' }}">{{ r.evidence.status }}</span> <span class="k">per judgment {{ r.evidence.per_judgment }}</span></td></tr>
     </table>

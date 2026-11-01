@@ -27,7 +27,7 @@ TEMPLATES = Path(__file__).resolve().parents[1] / "report" / "templates"
 def _figures(result: dict) -> list[dict]:
     """The quotes the majority judgments cited (verified against the capture), de-duplicated, in order."""
     seen, out = set(), []
-    outcome = result["assertion"]["outcome"]
+    outcome = result["assertion"].get("majority") or result["assertion"]["outcome"]
     for j in result.get("judgments", []):
         if j["outcome"] != outcome:
             continue

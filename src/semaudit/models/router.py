@@ -29,6 +29,9 @@ PROVIDERS = {
 }
 
 UNREADABLE_RETRIES = 1    # a schema reply that is not JSON is retried this many times (another seed), never cached
+# A role in semaudit.toml may override both: `max_completion_tokens` (a tighter cap, so a runaway fails sooner and
+# costs less) and `unreadable_retries` (more fresh seeds before the reply is given up as unreadable). Neither changes
+# what a readable reply must satisfy; a reply that is cut off is simply not JSON and is retried like any other.
 
 # USD per million tokens (input, output). Standard mode only; unverified entries stay None
 # so the ledger records "unpriced" rather than a misleading $0.
@@ -79,6 +82,8 @@ class Result:
     cached: bool
     latency_s: float
     raw: dict = field(repr=False, default_factory=dict)
+    unreadable_attempts: int = 0          # replies discarded as not JSON before this one (each charged, logged)
+    unreadable_cost_usd: float = 0.0
 
 
 class ModelError(RuntimeError):
@@ -140,7 +145,9 @@ class Router:
             body["tools"] = tools
         if seed is not None:
             body["seed"] = seed
-        max_completion_tokens = max_completion_tokens or PROVIDERS[provider].get("max_completion_tokens")
+        max_completion_tokens = (max_completion_tokens or spec.get("max_completion_tokens")
+                                 or PROVIDERS[provider].get("max_completion_tokens"))
+        retries = int(spec.get("unreadable_retries", UNREADABLE_RETRIES))
         if max_completion_tokens:
             body["max_completion_tokens"] = max_completion_tokens
 
@@ -149,21 +156,23 @@ class Router:
         cache_file = self.cache_dir / f"{digest}.json"
         if not fresh and cache_file.exists():
             raw, latency = json.loads(cache_file.read_text()), 0.0
+            lost, lost_usd = 0, 0.0
             cached = True
         else:
-            raw = None
-            for unreadable in range(UNREADABLE_RETRIES + 1):
+            raw, lost, lost_usd = None, 0, 0.0
+            for unreadable in range(retries + 1):
                 send = body if unreadable == 0 else {**body, "seed": (seed or 0) + 1000 + unreadable}
                 raw, latency = self._fetch(role, provider, model, send, digest, timeout_s)
                 if schema is None or _readable(raw):
                     break
                 cost = self._cost(model, raw.get("usage", {}))   # charged though unusable: count and log it
                 self.spent_usd += cost or 0.0
+                lost, lost_usd = lost + 1, lost_usd + (cost or 0.0)
                 self._log(role, model, raw.get("usage", {}), cost, False, latency, digest + ":unreadable")
-                if unreadable == UNREADABLE_RETRIES:
+                if unreadable == retries:
                     fin = raw["choices"][0].get("finish_reason")
                     raise UnreadableReply(f"{provider}/{model}: reply is not JSON (finish_reason={fin}) after "
-                                     f"{UNREADABLE_RETRIES + 1} tries; not cached")
+                                     f"{retries + 1} tries; not cached")
             self.cache_dir.mkdir(exist_ok=True)
             cache_file.write_text(json.dumps(raw))
             cached = False
@@ -186,7 +195,8 @@ class Router:
         u["prompt_tokens"] += usage.get("prompt_tokens", 0)
         u["completion_tokens"] += usage.get("completion_tokens", 0)
         self._log(role, model, usage, cost, cached, latency, digest)
-        result = Result(role, model, content, parsed, usage, cost, cached, latency, raw)
+        result = Result(role, model, content, parsed, usage, cost, cached, latency, raw,
+                        0 if cached else lost, 0.0 if cached else lost_usd)
         return result
 
     def _fetch(self, role, provider, model, body, digest, timeout_s):

@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Run 3b: saved checks from storage, beta2 → beta3 (runaway fix; pass needs verified evidence)</title>
+<style>
+:root{--ink:#16181d;--muted:#5d6470;--line:#dde1e7;--bg:#f6f7f9;--card:#fff;--fail:#a2361f;--failbg:#fbece8;
+--pass:#1f6b46;--passbg:#e7f4ec;--warn:#8a5a00;--warnbg:#fbf2df;--info:#24508f;--infobg:#e9f0fb}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,"Segoe UI",
+Roboto,sans-serif}main{max-width:1080px;margin:0 auto;padding:24px 16px 64px}h1{font-size:22px;margin:0 0 4px}
+.sub{color:var(--muted);margin:0 0 20px}.label{display:inline-block;background:var(--warnbg);color:var(--warn);
+border-radius:999px;padding:2px 10px;font-size:13px;font-weight:600;margin-bottom:12px}
+section.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px;margin:0 0 20px}
+h2{font-size:18px;margin:0 0 2px}h3{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);
+margin:22px 0 8px}.k{color:var(--muted);font-size:13px}blockquote{margin:0;padding:10px 14px;border-left:3px solid
+var(--line);background:#fafbfc;border-radius:0 8px 8px 0;white-space:pre-wrap}table{border-collapse:collapse;
+width:100%;font-size:14px}td,th{border-bottom:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:top}
+th{font-size:12px;color:var(--muted);font-weight:600}code{font:13px ui-monospace,SFMono-Regular,Menlo,monospace}
+.pill{display:inline-block;border-radius:999px;padding:1px 9px;font-size:13px;font-weight:600}
+.fail{background:var(--failbg);color:var(--fail)}.pass{background:var(--passbg);color:var(--pass)}
+.nm{background:var(--warnbg);color:var(--warn)}.info{background:var(--infobg);color:var(--info)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}@media(max-width:760px){.grid{grid-template-columns:1fr}}
+.rel{border:1px solid var(--line);border-radius:10px;padding:14px}.fig{font:13px ui-monospace,Menlo,monospace;
+margin:2px 0}.implied{color:var(--muted);font-style:italic}.outcome{font-size:17px;font-weight:600}
+</style></head><body><main>
+<h1>Run 3b: saved checks from storage, beta2 → beta3 (runaway fix; pass needs verified evidence)</h1>
+<div class="label">initial prototype, one finding (two baskets)</div>
+
+<section class="card">
+  <h2>C1-04 · Email (current) shows delivery as $0.00 AND a -$15.00 promotion; summary doesn&#39;t add up</h2>
+  <div class="k">Agent trial C1 · conversion: <span class="pill pass">converted</span>
+    · drafted by <code>meta-models/muse-spark-open-1026</code>, gate rounds 2
+    · approved digest <code>f0cb1dc9ee14fc8f</code> (by acceptance-run (main session, owner plan 2026-10-31; owner has not reviewed this digest))</div>
+
+  <h3>(a) The agent's finding, as written (kept as evidence only; never shown to the judge)</h3>
+  <blockquote><b>Shown:</b> (text part): &#34;Subtotal: $179.98 / Promotion: Promotion (Free Shipping) -$15.00 / Shipping: Express $0.00 / Tax: $14.40 / Order Total: $194.38&#34;. HTML part: &#34;Shipping Express $0.00&#34;.
+<b>Should be:</b> Shipping Express $15.00 (record delivery_total 15.00, fulfillment cost 15.00, discount -15.00) — as checkout, order page and admin show. As shown, 179.98 − 15.00 + 0.00 + 14.40 = 179.38 ≠ 194.38: the free-shipping discount is counted twice.
+<b>Reproduce:</b> 2 × Drip Coffee Maker → NY address → Express → apply FREESHIP → Check → place order → read email. How checked: message read via API; compared to record /order/current/R1004 and to the candidate&#39;s email for the identical order (candidate R1004 shows &#34;Shipping: Express $15.00&#34;).</blockquote>
+
+  
+  <h3>(b) The converted journey (adapter verbs only) and the rule it keeps</h3>
+  <table><tr><th>#</th><th>Adapter verb</th><th>From the agent's words</th></tr>
+  <tr><td>1</td><td><code>open_home</code></td>
+    <td><span class="implied">prerequisite the text leaves unsaid</span></td></tr><tr><td>2</td><td><code>open_product</code></td>
+    <td>“2 × Drip Coffee Maker”</td></tr><tr><td>3</td><td><code>add_to_cart</code></td>
+    <td>“2 × Drip Coffee Maker”</td></tr><tr><td>4</td><td><code>enter_address</code></td>
+    <td>“NY address”</td></tr><tr><td>5</td><td><code>choose_delivery</code></td>
+    <td>“Express”</td></tr><tr><td>6</td><td><code>apply_promo_code</code></td>
+    <td>“apply FREESHIP”</td></tr><tr><td>7</td><td><code>choose_payment</code></td>
+    <td>“Check”</td></tr><tr><td>8</td><td><code>place_order</code></td>
+    <td>“place order”</td></tr><tr><td>9</td><td><code>read_order_email</code></td>
+    <td>“read email”</td></tr>
+  </table>
+  <p class="k">Shopper data: <code>name=Ben Beta</code> <code>country=US</code> <code>delivery_method=Express</code> <code>payment_method=Check</code> <code>promo_code=FREESHIP</code> <code>state=NY</code> <code>city=Buffalo</code> <code>zip=14201</code> <code>items=[&#39;drip-coffee-maker||2&#39;]</code> <code>email=ic-c1-04@example.test</code> </p>
+  <p><b>Rule U3: Summary does not add up.</b> Every itemised summary we show is consistent with its own total: each line amount is its unit price times its quantity, the line amounts add up to the subtotal, and subtotal + delivery + fees + tax - discounts equals the total shown, with every component counted exactly once.</p>
+  <p><b>Invariant on <code>order_email_text</code>:</b> the itemised summary shown in the order confirmation email is arithmetically consistent with its total, with each component counted exactly once, and each amount matches the order record</p>
+  
+
+  
+  <h3>(c) Four separate statuses per release</h3>
+  <div class="grid"><div class="rel">
+    <div class="k">current (base) · episode <code>current/ic_c1-04/IC-C1-04</code></div>
+    <table>
+    <tr><td>Replay</td><td><span class="pill pass">succeeded</span></td></tr>
+    <tr><td>Assertion</td><td><span class="pill fail">fail</span> <span class="k">votes {&#39;fail&#39;: 3}</span></td></tr>
+    <tr><td>Semantic confidence</td><td><span class="pill info">high</span> <span class="k">3/3 judgments agree</span></td></tr>
+    <tr><td>Evidence</td><td><span class="pill nm">partially_verified</span> <span class="k">per judgment [&#39;partially_verified&#39;, &#39;verified&#39;, &#39;verified&#39;]</span></td></tr>
+    </table>
+    <div class="k" style="margin-top:8px">What the surface showed (quotes the judges cited, each found in the capture):</div>
+    <div class="fig">DRIP-COFFEE-MAKER-BLACK Drip Coffee Maker 1.5L Color: Matte Black (2) @ $89.99 = $179.98</div><div class="fig">Subtotal: $179.98</div><div class="fig">Promotion: Promotion (Free Shipping) -$15.00</div><div class="fig">Shipping: Express $0.00</div><div class="fig">Tax: $14.40</div><div class="fig">Order Total: $194.38</div>
+    <div class="k" style="margin-top:6px">judged by <code>meta-models/muse-spark-open-1026</code></div>
+  </div><div class="rel">
+    <div class="k">candidate (head) · episode <code>candidate/ic_c1-04/IC-C1-04</code></div>
+    <table>
+    <tr><td>Replay</td><td><span class="pill pass">succeeded</span></td></tr>
+    <tr><td>Assertion</td><td><span class="pill nm">not_measurable</span> <span class="k">votes {&#39;pass&#39;: 3}</span><br><span class="k">pass without verified evidence (partially_verified)</span></td></tr>
+    <tr><td>Semantic confidence</td><td><span class="pill info">high</span> <span class="k">3/3 judgments agree</span></td></tr>
+    <tr><td>Evidence</td><td><span class="pill nm">partially_verified</span> <span class="k">per judgment [&#39;verified&#39;, &#39;partially_verified&#39;, &#39;partially_verified&#39;]</span></td></tr>
+    </table>
+    <div class="k" style="margin-top:8px">What the surface showed (quotes the judges cited, each found in the capture):</div>
+    <div class="fig">Drip Coffee Maker 1.5L Color: Matte Black (2) @ $89.99 = $179.98</div><div class="fig">Subtotal: $179.98</div><div class="fig">Promotion: Promotion (Free Shipping) -$15.00</div><div class="fig">Shipping: Express $15.00</div><div class="fig">Tax: $14.40</div><div class="fig">Order Total: $194.38</div><div class="fig">DRIP-COFFEE-MAKER-BLACK Drip Coffee Maker 1.5L Color: Matte Black (2) @ $89.99 = $179.98</div>
+    <div class="k" style="margin-top:6px">judged by <code>meta-models/muse-spark-open-1026</code></div>
+  </div></div>
+  
+
+  
+  <h3>(d) Base vs head, recorded in the decisions memory</h3>
+  <p class="outcome"><span class="pill nm">not_confirmed</span>
+   current → candidate: head passes but its evidence is partially_verified</p>
+  
+  <p class="k">Run <code>ic-accept-run3b</code> at 2026-11-01T03:38:04+00:00, loaded from storage:
+    <code>approvals.yaml</code> (f7efadc78338118f) <code>dispositions.yaml</code> (9f7e5024c0c58cb1) <code>checks/C1-04.yaml</code> (d3408fbc3d2146e2) <code>checks/C1-04-v1.yaml</code> (df192ed9b46a8907) </p>
+</section>
+
+<section class="card">
+  <h2>C1-04-v1 · Email (current) shows delivery as $0.00 AND a -$15.00 promotion; summary doesn&#39;t add up</h2>
+  <div class="k">Agent trial C1 · conversion: <span class="pill pass">converted</span>
+    · drafted by <code>meta-models/muse-spark-open-1026</code>, gate rounds 2
+    · approved digest <code>30f3f436e3fa99a5</code> (by acceptance-run (main session, owner plan 2026-10-31; owner has not reviewed this digest))</div>
+
+  <h3>(a) The agent's finding, as written (kept as evidence only; never shown to the judge)</h3>
+  <blockquote><b>Shown:</b> (text part): &#34;Subtotal: $179.98 / Promotion: Promotion (Free Shipping) -$15.00 / Shipping: Express $0.00 / Tax: $14.40 / Order Total: $194.38&#34;. HTML part: &#34;Shipping Express $0.00&#34;.
+<b>Should be:</b> Shipping Express $15.00 (record delivery_total 15.00, fulfillment cost 15.00, discount -15.00) — as checkout, order page and admin show. As shown, 179.98 − 15.00 + 0.00 + 14.40 = 179.38 ≠ 194.38: the free-shipping discount is counted twice.
+<b>Reproduce:</b> 2 × Drip Coffee Maker → NY address → Express → apply FREESHIP → Check → place order → read email. How checked: message read via API; compared to record /order/current/R1004 and to the candidate&#39;s email for the identical order (candidate R1004 shows &#34;Shipping: Express $15.00&#34;).</blockquote>
+
+  
+  <h3>(b) The converted journey (adapter verbs only) and the rule it keeps</h3>
+  <table><tr><th>#</th><th>Adapter verb</th><th>From the agent's words</th></tr>
+  <tr><td>1</td><td><code>open_home</code></td>
+    <td><span class="implied">prerequisite the text leaves unsaid</span></td></tr><tr><td>2</td><td><code>open_product</code></td>
+    <td>“2 × Drip Coffee Maker”</td></tr><tr><td>3</td><td><code>add_to_cart</code></td>
+    <td>“2 × Drip Coffee Maker”</td></tr><tr><td>4</td><td><code>enter_address</code></td>
+    <td>“NY address”</td></tr><tr><td>5</td><td><code>choose_delivery</code></td>
+    <td>“Express”</td></tr><tr><td>6</td><td><code>apply_promo_code</code></td>
+    <td>“apply FREESHIP”</td></tr><tr><td>7</td><td><code>choose_payment</code></td>
+    <td>“Check”</td></tr><tr><td>8</td><td><code>place_order</code></td>
+    <td>“place order”</td></tr><tr><td>9</td><td><code>read_order_email</code></td>
+    <td>“read email”</td></tr>
+  </table>
+  <p class="k">Shopper data: <code>name=Ben Beta</code> <code>country=US</code> <code>delivery_method=Express</code> <code>payment_method=Check</code> <code>promo_code=FREESHIP</code> <code>state=NY</code> <code>city=Buffalo</code> <code>zip=14201</code> <code>items=[&#39;personal-blender||3&#39;]</code> <code>email=ic-c1-04-v1@example.test</code> </p>
+  <p><b>Rule U3: Summary does not add up.</b> Every itemised summary we show is consistent with its own total: each line amount is its unit price times its quantity, the line amounts add up to the subtotal, and subtotal + delivery + fees + tax - discounts equals the total shown, with every component counted exactly once.</p>
+  <p><b>Invariant on <code>order_email_text</code>:</b> the itemised summary shown in the order confirmation email is arithmetically consistent with its total, with each component counted exactly once, and each amount matches the order record</p>
+  
+
+  
+  <h3>(c) Four separate statuses per release</h3>
+  <div class="grid"><div class="rel">
+    <div class="k">current (base) · episode <code>current/ic_c1-04-v1/IC-C1-04-v1</code></div>
+    <table>
+    <tr><td>Replay</td><td><span class="pill pass">succeeded</span></td></tr>
+    <tr><td>Assertion</td><td><span class="pill fail">fail</span> <span class="k">votes {&#39;fail&#39;: 3}</span></td></tr>
+    <tr><td>Semantic confidence</td><td><span class="pill info">high</span> <span class="k">3/3 judgments agree</span></td></tr>
+    <tr><td>Evidence</td><td><span class="pill nm">partially_verified</span> <span class="k">per judgment [&#39;verified&#39;, &#39;partially_verified&#39;, &#39;verified&#39;]</span></td></tr>
+    </table>
+    <div class="k" style="margin-top:8px">What the surface showed (quotes the judges cited, each found in the capture):</div>
+    <div class="fig">PERSONAL-BLENDER-WHITE Personal Blender 600ml Color: White (3) @ $49.99 = $149.97</div><div class="fig">Subtotal: $149.97</div><div class="fig">Promotion: Promotion (Free Shipping) -$15.00</div><div class="fig">Shipping: Express $0.00</div><div class="fig">Tax: $12.00</div><div class="fig">Order Total: $161.97</div>
+    <div class="k" style="margin-top:6px">judged by <code>meta-models/muse-spark-open-1026</code></div>
+  </div><div class="rel">
+    <div class="k">candidate (head) · episode <code>candidate/ic_c1-04-v1/IC-C1-04-v1</code></div>
+    <table>
+    <tr><td>Replay</td><td><span class="pill pass">succeeded</span></td></tr>
+    <tr><td>Assertion</td><td><span class="pill nm">not_measurable</span> <span class="k">votes {&#39;pass&#39;: 3}</span><br><span class="k">pass without verified evidence (partially_verified)</span></td></tr>
+    <tr><td>Semantic confidence</td><td><span class="pill info">high</span> <span class="k">3/3 judgments agree</span></td></tr>
+    <tr><td>Evidence</td><td><span class="pill nm">partially_verified</span> <span class="k">per judgment [&#39;verified&#39;, &#39;partially_verified&#39;, &#39;verified&#39;]</span></td></tr>
+    </table>
+    <div class="k" style="margin-top:8px">What the surface showed (quotes the judges cited, each found in the capture):</div>
+    <div class="fig">PERSONAL-BLENDER-WHITE Personal Blender 600ml Color: White (3) @ $49.99 = $149.97</div><div class="fig">Subtotal: $149.97</div><div class="fig">Promotion: Promotion (Free Shipping) -$15.00</div><div class="fig">Shipping: Express $15.00</div><div class="fig">Tax: $12.00</div><div class="fig">Order Total: $161.97</div>
+    <div class="k" style="margin-top:6px">judged by <code>meta-models/muse-spark-open-1026</code></div>
+  </div></div>
+  
+
+  
+  <h3>(d) Base vs head, recorded in the decisions memory</h3>
+  <p class="outcome"><span class="pill nm">not_confirmed</span>
+   current → candidate: head passes but its evidence is partially_verified</p>
+  
+  <p class="k">Run <code>ic-accept-run3b</code> at 2026-11-01T03:38:04+00:00, loaded from storage:
+    <code>approvals.yaml</code> (f7efadc78338118f) <code>dispositions.yaml</code> (9f7e5024c0c58cb1) <code>checks/C1-04.yaml</code> (d3408fbc3d2146e2) <code>checks/C1-04-v1.yaml</code> (df192ed9b46a8907) </p>
+</section>
+
+</main></body></html>

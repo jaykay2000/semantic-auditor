@@ -170,3 +170,42 @@ converts".
 
 Spend for the acceptance runs: $0.70 (of which $0.34 in Run 2, mostly four replies at the token cap). Total for the
 slice: **$9.31**, all Baseten.
+
+## Follow-up 2026-10-31: runaway fix, Run 3 again (3b), and "a PASS needs verified evidence"
+
+**Runaway fix (owner go, "fix the runaways and re-run Run 3").** Measured before the fix in `import-root/runs/ledger.jsonl`:
+49 of 230 judge calls ran to the 16,000-token cap with no JSON ($3.64 of the $9.31). Readable judge replies have a median
+of 1,575 tokens and only 2 of 181 exceed 6,000. A role in `semaudit.toml` can now set `max_completion_tokens` and
+`unreadable_retries` (router.py). The `check_judge` role is set to 6,000 tokens and 3 retries, so it gets up to 4 fresh
+seeds per judgment. The importer role is unchanged, because the converter stays frozen at b6d672b. Each judgment now
+records `runaway_retries` and their cost, so a release's `cost_usd` includes discarded replies. Tests:
+`test_role_cap_and_retries_come_from_the_role` and `test_role_retries_are_bounded`, plus two mutations; both go red.
+
+**Run 3b** (`acceptance/run3b-transcript.txt`, `run3b-saved-checks.json`): the same command as Run 3, a new run id,
+loaded from storage, and both approved checks (C1-04, C1-04-v1). Cost $0.145 for 12 judge calls; 2 runaways were retried.
+
+| check | beta2 votes | beta3 votes | quotes | evidence (beta2 / beta3) | memory |
+|---|---|---|---|---|---|
+| C1-04 | fail 3/3 | pass 3/3 | 36 of 36 found in the capture | partially / partially | not_confirmed |
+| C1-04-v1 | fail 3/3 | pass 3/3 | 36 of 36 | partially / partially | not_confirmed |
+
+There are no unreadable votes now (Run 2 had 2 of 3 on beta3). The evidence is held back only by the judges' **record
+values**, which are malformed model output (`'|1|7|9|.|9|8|'`, `'***REDACTED***'`, `'},{'`). They are not misreadings
+of the email: every quote verified.
+
+**Rule: a PASS needs both a satisfied rule and verified evidence** (owner request via the main session).
+`recheck.needs_evidence` turns a majority pass whose majority-judgment evidence is not `verified` into
+`not_measurable`, with why `pass without verified evidence (<status>)`. The votes stay as recorded and `majority`
+keeps what they said. FAIL is left as voted. The card shows the reason line. Tests:
+`test_pass_needs_verified_evidence` and `test_card_shows_why_a_pass_was_not_counted`, plus a mutation that goes red.
+**Re-derived from stored judgments only, with no model call** (`scripts/rederive_imported_checks.py`; output in
+`acceptance/rederive-pass-needs-evidence.txt`):
+
+| run | per-release outcome changes | memory status |
+|---|---|---|
+| 2 | none (beta3 was already not_measurable) | not_confirmed, unchanged |
+| 3 | none (beta3 evidence was verified) | fix_confirmed, unchanged |
+| 3b | beta3 pass → not_measurable, for both checks | not_confirmed, unchanged |
+| 4 | none | fix_confirmed, unchanged |
+
+`cards-run3b.html` is rendered from the re-derived Run 3b (`run3b-saved-checks.rederived.json`).

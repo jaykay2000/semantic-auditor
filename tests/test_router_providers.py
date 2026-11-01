@@ -122,3 +122,22 @@ def test_baseten_reply_length_is_capped(tmp_path, monkeypatch):
     r, seq = _schema_router(tmp_path, monkeypatch, [('{"a": 1}', "stop")])
     r.complete("t", [{"role": "user", "content": "x"}], schema=SCHEMA)
     assert seq.bodies[0]["max_completion_tokens"] == 16000
+
+
+def test_role_cap_and_retries_come_from_the_role(tmp_path, monkeypatch):
+    """A role may cap its reply tighter than the provider and retry more: a runaway fails sooner, more seeds are tried."""
+    r, seq = _schema_router(tmp_path, monkeypatch, [("{", "length")] * 3 + [('{"a": 2}', "stop")])
+    r.roles["t"].update(max_completion_tokens=6000, unreadable_retries=3)
+    res = r.complete("t", [{"role": "user", "content": "x"}], schema=SCHEMA, seed=1)
+    assert res.parsed == {"a": 2}
+    assert [b["max_completion_tokens"] for b in seq.bodies] == [6000] * 4
+    assert len({b["seed"] for b in seq.bodies}) == 4             # every retry is a fresh seed
+    assert res.unreadable_attempts == 3 and res.unreadable_cost_usd == pytest.approx(3 * (1000 * 1.25 + 32768 * 4.25) / 1e6)
+
+
+def test_role_retries_are_bounded(tmp_path, monkeypatch):
+    r, seq = _schema_router(tmp_path, monkeypatch, [("{", "length")] * 4)
+    r.roles["t"].update(unreadable_retries=3)
+    with pytest.raises(R.UnreadableReply, match="after 4 tries"):
+        r.complete("t", [{"role": "user", "content": "x"}], schema=SCHEMA)
+    assert len(seq.bodies) == 4

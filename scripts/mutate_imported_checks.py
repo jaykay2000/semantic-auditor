@@ -16,6 +16,7 @@ CV = "src/semaudit/imported/convert.py"
 RC = "src/semaudit/imported/recheck.py"
 MEM = "src/semaudit/decide/memory.py"
 SV = "src/semaudit/imported/saved.py"
+RT = "src/semaudit/models/router.py"
 
 # (safeguard, file, original text, mutated text, test that must go red)
 MUTATIONS = [
@@ -74,12 +75,18 @@ MUTATIONS = [
      '    if False:                    # imported checks (semaudit', "test_memory_keeps_checks_beside_issues"),
  ("saved check runs only at its approved digest", SV, '        if c.digest() != a.get("hash"):',
      "        if False:", "test_saved_checks_load_from_storage_and_refuse_a_changed_check"),
+    ("pass needs verified evidence", RC, '    if assertion["outcome"] != "pass" or evidence == "verified":',
+     "    if True:", "test_pass_needs_verified_evidence"),
+    ("role reply cap applied", RT, '(max_completion_tokens or spec.get("max_completion_tokens")',
+     "(max_completion_tokens", "test_role_cap_and_retries_come_from_the_role"),
+    ("role retries bounded", RT, '        retries = int(spec.get("unreadable_retries", UNREADABLE_RETRIES))',
+     "        retries = 99", "test_role_retries_are_bounded"),
 ]
 
 
 def run_test(name: str) -> bool:
     r = subprocess.run([sys.executable, "-m", "pytest", "-q", "-x", "-p", "no:cacheprovider",
-                        "tests/test_imported_checks.py", "-k", name], cwd=ROOT, capture_output=True, text=True)
+                        "tests/test_imported_checks.py", "tests/test_router_providers.py", "-k", name], cwd=ROOT, capture_output=True, text=True)
     return r.returncode == 0
 
 

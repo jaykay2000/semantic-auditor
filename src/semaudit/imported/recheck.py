@@ -150,8 +150,19 @@ def judge(router: Router, body: dict, *, seed: int, fresh: bool = False) -> dict
                 "seed": seed, "model": (getattr(router, "roles", {}).get(ROLE) or {}).get("model"), "cached": False,
                 "cost_usd": None, "unreadable": True}
     out = dict(r.parsed or {"outcome": "not_measurable", "why": "unreadable reply", "cited": [], "record": []})
-    out.update(seed=seed, model=r.model, cached=r.cached, cost_usd=r.cost_usd)
+    out.update(seed=seed, model=r.model, cached=r.cached, cost_usd=r.cost_usd,
+               runaway_retries=r.unreadable_attempts, runaway_cost_usd=round(r.unreadable_cost_usd, 6))
     return out
+
+
+def needs_evidence(assertion: dict, evidence: str) -> dict:
+    """A PASS needs both a satisfied rule and verified evidence. A majority pass whose majority judgments' evidence is
+    not "verified" is not measurable (the votes stay as recorded, `majority` keeps what they said). FAIL is unchanged:
+    this is stricter than the vote alone, so it can never turn a failing result into a pass."""
+    if assertion["outcome"] != "pass" or evidence == "verified":
+        return assertion
+    return {**assertion, "outcome": "not_measurable", "majority": "pass",
+            "why": f"pass without verified evidence ({evidence})"}
 
 
 # ---------- evidence ----------
@@ -263,11 +274,14 @@ def recheck(check: ImportedCheck, ep: Episode | None, contract: Contract, spec: 
     maj = [e for j, e in zip(js, evs) if j["outcome"] == outcome] if n * 2 > judgments else evs
     rank = {"verified": 2, "partially_verified": 1, "unverified": 0}
     worst = min((e["status"] for e in maj), key=rank.get) if maj else "unverified"
+    assertion = needs_evidence({"outcome": outcome, "votes": dict(votes),
+                                **({} if n * 2 > judgments else {"why": "no majority among the judgments"})}, worst)
     return {**base,
-            "assertion": {"outcome": outcome, "votes": dict(votes),
-                          **({} if n * 2 > judgments else {"why": "no majority among the judgments"})},
+            "assertion": assertion,
             "semantic_confidence": {"level": level, "agreement": f"{n}/{judgments}", "judgments": judgments},
             "evidence": {"status": worst, "per_judgment": [e["status"] for e in evs]},
             "judgments": js, "payload_sha256": hashlib.sha256(json.dumps(body, sort_keys=True,
                                                                          default=str).encode()).hexdigest()[:16],
-            "cost_usd": round(sum((j["cost_usd"] or 0.0) for j in js if not j["cached"]), 6)}
+            "runaway_retries": sum(j.get("runaway_retries", 0) for j in js),
+            "cost_usd": round(sum((j["cost_usd"] or 0.0) + j.get("runaway_cost_usd", 0.0)
+                                  for j in js if not j["cached"]), 6)}

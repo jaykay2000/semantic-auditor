@@ -463,3 +463,31 @@ def test_card_renders_every_part(tmp_path):
     for part in ("(a) The agent", "(b) The converted journey", "(c) Four separate statuses", "(d) Base vs head",
                  "(e) Not converted", "Total $12.50", "history page", "initial prototype, one finding", "pick_item"):
         assert part in html, part
+
+
+def test_pass_needs_verified_evidence(monkeypatch):
+    """safeguard: a release PASS needs both a satisfied rule and verified evidence; FAIL is left as voted."""
+    r = _recheck(monkeypatch, ["pass"] * 3, cited=[{"event_id": "m1", "quote": "Total $99.00 due"}])
+    assert r["evidence"]["status"] == "unverified"
+    a = r["assertion"]
+    assert a["outcome"] == "not_measurable" and a["votes"] == {"pass": 3} and a["majority"] == "pass"
+    assert a["why"] == "pass without verified evidence (unverified)"
+    r = _recheck(monkeypatch, ["pass"] * 3, record={"record": {"total": 12.5}})
+    assert r["assertion"]["outcome"] == "not_measurable" and "partially_verified" in r["assertion"]["why"]
+    r = _recheck(monkeypatch, ["fail"] * 3, cited=[{"event_id": "m1", "quote": "Total $99.00 due"}])
+    assert r["evidence"]["status"] == "unverified" and r["assertion"]["outcome"] == "fail"
+    assert rc.needs_evidence({"outcome": "pass", "votes": {"pass": 3}}, "verified")["outcome"] == "pass"
+
+
+def test_card_shows_why_a_pass_was_not_counted(tmp_path):
+    from semaudit.imported import card
+    a = rc.needs_evidence({"outcome": "pass", "votes": {"pass": 2, "fail": 1}}, "partially_verified")
+    res = {"r2": {**_r(release="r2"), "episode": "e2", "assertion": a,
+                  "semantic_confidence": {"level": "medium", "agreement": "2/3"},
+                  "evidence": {"status": "partially_verified", "per_judgment": ["verified", "partially_verified"]},
+                  "models": {"judging": "meta-model"},
+                  "judgments": [{"outcome": "pass", "cited": [{"event_id": "m1", "quote": "Total $15.00"}]}]}}
+    html = card.render([card.card_data(_check(), FIX, res, None, None, "r2")], tmp_path / "c.html",
+                       title="t").read_text()
+    assert "pass without verified evidence (partially_verified)" in html and "not_measurable" in html
+    assert "Total $15.00" in html            # what the majority cited is still shown

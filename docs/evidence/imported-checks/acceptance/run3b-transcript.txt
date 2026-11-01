@@ -1,0 +1,25 @@
+$ ls -la contract-imported/approvals.yaml contract-imported/dispositions.yaml contract-imported/checks/C1-04.yaml contract-imported/checks/C1-04-v1.yaml
+-rw-r--r--  1 jayantkumar  staff    423 Oct 31 19:04 contract-imported/approvals.yaml
+-rw-r--r--  1 jayantkumar  staff   4359 Oct 31 19:04 contract-imported/checks/C1-04-v1.yaml
+-rw-r--r--  1 jayantkumar  staff   4198 Oct 31 17:09 contract-imported/checks/C1-04.yaml
+-rw-r--r--  1 jayantkumar  staff  11175 Oct 31 19:07 contract-imported/dispositions.yaml
+
+$ shasum -a 256 (first 16) of the stored files
+f7efadc78338118f  contract-imported/approvals.yaml
+9f7e5024c0c58cb1  contract-imported/dispositions.yaml
+d3408fbc3d2146e2  contract-imported/checks/C1-04.yaml
+df192ed9b46a8907  contract-imported/checks/C1-04-v1.yaml
+
+$ python3 imported_checks.py run-saved --base current --head candidate --run ic-accept-run3b --max-usd 0.6
+current: preflight ok (Demo Store, no beta name)
+current: store reset after run: {'release': 'current', 'seconds': 28.1}
+candidate: preflight ok (Demo Store, no beta name)
+candidate: store reset after run: {'release': 'candidate', 'seconds': 8.4}
+C1-04 current: replay=succeeded assertion=fail {'fail': 3} confidence=3/3 evidence=partially_verified judged_by=meta-models/muse-spark-open-1026
+C1-04 candidate: replay=succeeded assertion=pass {'pass': 3} confidence=3/3 evidence=partially_verified judged_by=meta-models/muse-spark-open-1026
+C1-04 current->candidate: not_confirmed (head passes but its evidence is partially_verified)
+C1-04-v1 current: replay=succeeded assertion=fail {'fail': 3} confidence=3/3 evidence=partially_verified judged_by=meta-models/muse-spark-open-1026
+C1-04-v1 candidate: replay=succeeded assertion=pass {'pass': 3} confidence=3/3 evidence=partially_verified judged_by=meta-models/muse-spark-open-1026
+C1-04-v1 current->candidate: not_confirmed (head passes but its evidence is partially_verified)
+{"tag": "saved:ic-accept-run3b", "fresh": true, "calls": 12, "cached": 0, "spent_usd": 0.144544, "if_fresh_usd": 0.144544, "by_role": {"check_judge": {"calls": 12, "cached": 0, "spent_usd": 0.144544, "if_fresh_usd": 0.144544, "prompt_tokens": 44565, "completion_tokens": 20903}}}
+exit=0
