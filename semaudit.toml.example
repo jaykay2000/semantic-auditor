@@ -1,12 +1,13 @@
 # Role -> model routing. Copy to semaudit.toml in the folder you run semaudit from (with a .env holding the keys).
-# Only [roles] is read (src/semaudit/models/router.py). A role left out here uses the router's default.
+# [roles] and [providers] are read (src/semaudit/models/router.py). A role left out here uses the router's default.
 #
 # These are the settings the recorded runs used (README, "Models (measured)"):
 #   Northbound and Finablo reviews: Muse Spark 1.3 / 1.2 on the Meta Model API (the router's defaults, repeated below).
 #   Spree reviews, and every reusable-check conversion and judgment: Muse Spark Open on Baseten.
 # Every role in one model family means a second pass is not independent: confidence is capped at medium.
 #
-# Providers: "meta" (META_MODEL_API_KEY) and "baseten" (BASETEN_API_KEY).
+# Built-in providers: "meta" (META_MODEL_API_KEY), "baseten" (BASETEN_API_KEY) and "anthropic" (ANTHROPIC_API_KEY,
+# needs the [anthropic] extra). Another OpenAI-compatible endpoint is added under [providers] (end of this file).
 # Optional per role: reasoning_effort, max_completion_tokens, unreadable_retries.
 
 # ---- release review: Meta Model API ----
@@ -52,3 +53,18 @@ model = "meta-models/muse-spark-open-1026"
 reasoning_effort = "medium"
 max_completion_tokens = 6000     # a runaway reply stops sooner
 unreadable_retries = 3           # up to 4 fresh seeds per reading
+
+# ---- another OpenAI-compatible endpoint (optional; see docs/10-add-your-app.md, "Use another model") ----
+# A new name only: meta, baseten and anthropic cannot be redefined. The key stays in .env, never here.
+#
+# [providers.myhost]
+# base_url = "https://llm.example.com/v1"     # semaudit POSTs to {base_url}/chat/completions
+# key_env = "MYHOST_API_KEY"                  # sent as "Authorization: Bearer $MYHOST_API_KEY"
+# max_completion_tokens = 8000                # optional default reply cap for this provider
+#
+# [providers.myhost.prices]                   # optional, USD per million tokens [input, output]; without it the
+# "my-model" = [0.5, 1.5]                     # ledger records the calls as unpriced, and --max-usd refuses them
+#
+# [roles.extractor]
+# provider = "myhost"
+# model = "my-model"
