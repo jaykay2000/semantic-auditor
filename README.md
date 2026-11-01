@@ -145,7 +145,9 @@ All from [docs/evidence/imported-checks/README.md](docs/evidence/imported-checks
 - **Earlier runs, kept as they came out.** Run 2 did not pass: the newer release was `not_measurable` because 2 of 3
   readings ran to the reply-length cap. In Run 3, one reading wrongly passed the broken email and was outvoted 2 to 1;
   that is why agreement is its own status.
-- **Cost** (Muse Spark Open on Baseten): about $0.05 per conversion; $0.035 to $0.087 per replay on the held-out set.
+- **Cost** (Muse Spark Open on Baseten): about $0.05 per conversion; $0.035 to $0.087 per replay on the held-out set,
+  before the two judging fixes. With them, Run 3c cost $0.54 all-in for 2 checks on 2 releases, about $0.14 per check
+  per release, because garbled replies are asked again.
   Run 3c cost $0.54 for 12 readings, because garbled record values forced re-asks.
 
 ### Limits
