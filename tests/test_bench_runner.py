@@ -11,7 +11,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "runs/e2e-2"
-pytestmark = pytest.mark.skipif(not (SRC / "episodes/2.4").exists(), reason="needs runs/e2e-2 (local)")
+pytestmark = pytest.mark.skipif(not (SRC / "episodes/2.4").exists(), reason="needs runs/e2e-2, the recorded Northbound demo run (10 MB of captures, kept out of git); these tests check facts of that one run")
 
 
 def load():

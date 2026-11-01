@@ -12,7 +12,7 @@ from semaudit.report.ticket import ticket  # noqa: E402
 REVIEW = ROOT / "runs" / "e2e-2" / "review-2.3-2.4.json"
 
 
-@pytest.mark.skipif(not REVIEW.exists(), reason="needs the e2e-2 review")
+@pytest.mark.skipif(not REVIEW.exists(), reason="needs runs/e2e-2, the recorded Northbound demo run (10 MB of captures, kept out of git); these tests check facts of that one run")
 def test_a_ticket_quotes_every_cited_message_and_the_steps():
     r = json.loads(REVIEW.read_text())
     i = r["issues"][0]

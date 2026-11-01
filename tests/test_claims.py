@@ -120,7 +120,7 @@ def test_northbound_captures_measure_no_datetime_fact():
     from semaudit.extract.messages import observed_temporal
     run = Path(__file__).resolve().parents[1] / "runs/e2e-2"
     if not (run / "episodes/2.4").exists():
-        pytest.skip("needs runs/e2e-2 (local)")
+        pytest.skip("needs runs/e2e-2, the recorded Northbound demo run (10 MB of captures, kept out of git); these tests check facts of that one run")
     assert observed_temporal(judge.stories_for(run, "2.4", load_contract(NORTHBOUND)).values()) == set()
 
 

@@ -38,6 +38,7 @@ def local_server():
     srv.shutdown()
 
 
+@pytest.mark.browser
 def test_only_loopback_is_reached_and_every_blocked_host_is_counted(local_server):
     pw = pytest.importorskip("playwright.sync_api")
     reached = []
@@ -56,6 +57,7 @@ def test_only_loopback_is_reached_and_every_blocked_host_is_counted(local_server
     assert all(u.startswith(local_server) for u in reached)          # nothing non-local finished
 
 
+@pytest.mark.browser
 def test_the_runner_applies_the_policy_and_records_it_on_the_episode(tmp_path):
     pytest.importorskip("playwright.sync_api")
     from semaudit.capture.runner import Runner

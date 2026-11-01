@@ -125,7 +125,7 @@ def test_stability_refuses_cached_runs():
         jaccard([a, a])
 
 
-@pytest.mark.skipif(REVIEW is None, reason="needs runs/e2e-2 (local)")
+@pytest.mark.skipif(REVIEW is None, reason="needs runs/e2e-2, the recorded Northbound demo run (10 MB of captures, kept out of git); these tests check facts of that one run")
 def test_the_auditor_review_converts_and_reports_also_violated_rules():
     fs = from_review(REVIEW)
     omar = [f for f in fs.findings if f.personas == ["omar"]]
@@ -134,7 +134,7 @@ def test_the_auditor_review_converts_and_reports_also_violated_rules():
     assert s["recall"] == 1.0 and s["fp"] == 0          # dev fixture: the auditor was tuned here
 
 
-@pytest.mark.skipif(REVIEW is None, reason="needs runs/e2e-2 (local)")
+@pytest.mark.skipif(REVIEW is None, reason="needs runs/e2e-2, the recorded Northbound demo run (10 MB of captures, kept out of git); these tests check facts of that one run")
 def test_dropping_a_finding_lowers_recall_and_names_it():
     fs = from_review(REVIEW)
     fs.findings = [f for f in fs.findings if f.rule != "U4"]

@@ -314,6 +314,27 @@ The verifier records "reduced independence" and caps confidence at medium.
 contract from the owner's docs (`src/semaudit/onboard/` and `explore/` are empty). The router can also call a non-Meta provider, added for a
 control experiment; no result in this README or the demo comes from it.
 
+## Run the tests
+
+No model key, no app and no network beyond the package install. Python 3.12:
+
+```bash
+git clone <this repo> semantic-auditor && cd semantic-auditor
+python3.12 -m venv .venv
+.venv/bin/pip install -e '.[test]'
+.venv/bin/python -m playwright install chromium
+.venv/bin/pytest
+.venv/bin/ruff check .
+```
+
+- `.[test]` installs the demo app's server (FastAPI, uvicorn, fpdf2), the `anthropic` SDK (the router supports it;
+  its tests mock every call), pytest and the pinned ruff.
+- Without the `playwright install chromium` step, the tests that drive a real browser **skip** with that reason;
+  everything else still runs.
+- About 40 tests always skip on a fresh clone: they check facts of `runs/e2e-2`, the recorded Northbound demo run
+  (10 MB of captures, kept out of git), and say so in their skip reason.
+- Every model call in the suite is mocked.
+
 ## Documents
 
 - [Vision](docs/01-vision.md)

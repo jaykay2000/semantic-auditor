@@ -386,6 +386,7 @@ def _cli(tmp_path, *args):
                           capture_output=True, text=True, env=env, cwd=ROOT)
 
 
+@pytest.mark.browser
 def test_cli_capture_writes_episodes_and_exits_0(tmp_path):
     r = _cli(tmp_path, "--release", "2.4", "--persona", "theo")
     assert r.returncode == 0, r.stdout + r.stderr
@@ -408,6 +409,7 @@ def _contract_copy(tmp_path, edit):
     return d
 
 
+@pytest.mark.browser
 def test_cli_capture_exits_2_when_something_could_not_be_measured(tmp_path):
     """Without 'only if offered', the same missing hotel page is a step that could not run: exit 2."""
     def required(sc):

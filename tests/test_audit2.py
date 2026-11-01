@@ -4,6 +4,8 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from types import SimpleNamespace
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 from semaudit.contract.schema import Fact, StateVar  # noqa: E402
@@ -107,6 +109,7 @@ def test_loopback_means_every_loopback_address():
     assert not any(is_loopback(h) for h in ("192.168.1.5", "10.0.0.1", "example.test", "", "127.0.0.1.example"))
 
 
+@pytest.mark.browser
 def test_a_websocket_to_another_host_never_connects_and_is_counted(tmp_path):
     import http.server
     import threading

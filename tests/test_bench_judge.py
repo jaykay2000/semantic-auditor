@@ -14,7 +14,7 @@ from semaudit.contract.schema import load_contract  # noqa: E402
 
 C = load_contract(ROOT / "examples/northbound/contract")
 RUN = ROOT / "runs/e2e-2"
-pytestmark = pytest.mark.skipif(not (RUN / "episodes/2.4").exists(), reason="needs runs/e2e-2 (local)")
+pytestmark = pytest.mark.skipif(not (RUN / "episodes/2.4").exists(), reason="needs runs/e2e-2, the recorded Northbound demo run (10 MB of captures, kept out of git); these tests check facts of that one run")
 
 
 class FakeRouter:

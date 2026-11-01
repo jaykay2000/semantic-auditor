@@ -18,7 +18,7 @@ from semaudit.decide.pipeline import ReleaseEval, load_release  # noqa: E402
 
 C = load_contract(ROOT / "examples/northbound/contract")
 RUN = ROOT / "runs/e2e-2"
-pytestmark = pytest.mark.skipif(not (RUN / "episodes/2.4").exists(), reason="needs runs/e2e-2 (local)")
+pytestmark = pytest.mark.skipif(not (RUN / "episodes/2.4").exists(), reason="needs runs/e2e-2, the recorded Northbound demo run (10 MB of captures, kept out of git); these tests check facts of that one run")
 FACTS = [f.id for f in C.facts]
 F1, F2 = FACTS[0], FACTS[1]
 R1, R2 = C.rules[0].id, C.rules[1].id
