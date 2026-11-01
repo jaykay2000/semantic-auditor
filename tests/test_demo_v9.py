@@ -122,10 +122,34 @@ def test_the_end_card_commands_are_the_readme_s():
     assert CLOSE["repo_url"] == "https://github.com/jaykay2000/semantic-auditor"
 
 
-def test_beat2_makes_no_vision_claim():
-    src = _visible(SLIDES / "m9-b2-what-sra-does.html").lower()
-    for phrase in ("sees", "screenshot", "image", "vision", "the way a user would", "looks at"):
-        assert phrase not in src, phrase
+def test_beat2_claims_screenshots_only_as_the_opt_in_check():
+    src = _visible(SLIDES / "m9-b2-what-sra-does.html")
+    low = src.lower()
+    for phrase in ("sees the page", "as images", "image", "vision", "the way a user would", "looks at", "every screenshot"):
+        assert phrase not in low, phrase
+    # the one mention of a screenshot is the opt-in check, said with "can"
+    lines = [ln for ln in low.splitlines() if "screenshot" in ln]
+    assert len(lines) == 1 and "can check a screenshot" in lines[0] and "opt-in" in lines[0], lines
+
+
+def test_beat3_visual_confirmation_is_the_committed_run():
+    v, s = V9["visual"], V9["spree"]
+    ev = ROOT / v["source"]
+    assert hashlib.sha256((ev / "visual.json").read_bytes()).hexdigest() == v["visual_sha256"]
+    assert hashlib.sha256((ev / "control.json").read_bytes()).hexdigest() == v["control_sha256"]
+    assert hashlib.sha256((ev / "crop.png").read_bytes()).hexdigest() == v["crop_sha256"]
+    run = json.loads((ev / "visual.json").read_text())
+    ctl = json.loads((ev / "control.json").read_text())
+    assert run["issue"] == s["issue"] and run["visual"]["event"] == s["event"]
+    assert run["visual"]["screenshot"] == s["shot"] and run["visual"]["sent_sha256"] == v["crop_sha256"]
+    assert run["visual"]["quote"] == run["visual"]["reads"] == v["reads"] == s["rows"]["line"]["text"]
+    assert run["visual"]["result"] == v["result"] == "confirmed"
+    assert ctl["visual"]["quote"] == v["control"]["quote"] == s["rows"]["subtotal"]["text"]
+    assert ctl["visual"]["result"] == v["control"]["result"] == "contradicted"
+    assert ctl["visual"]["sent_sha256"] == v["crop_sha256"]                       # the same image, a different claim
+    assert run["verification_status_before_and_after"] == "unverified"             # it never changes a verdict
+    src = re.sub(r"<title>.*?</title>", "", _visible(SLIDES / "m9-b3-spree.html"))   # the title says "contradicted itself"
+    assert not re.search(r"\b(confirmed|contradicted)\b", src, re.I), "beat 3 types the visual result"
 
 
 def test_the_sample_review_is_safe_to_publish():

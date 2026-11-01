@@ -1,12 +1,20 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><title>m9 beat 3 Spree: the order page contradicted itself, fixed upstream</title>
 <link rel="stylesheet" href="slides.css"><link rel="stylesheet" href="motion.css"><link rel="stylesheet" href="v9.css">
-<!-- Beat 3 v9 (0:44.5-1:06.5, 22 s). Voice-over, cue = clip seconds:
-       0.3  "Here's Spree, an open-source store with about sixteen thousand GitHub stars."
-       4.9  "SRA flagged an order line that disagreed with the store's record."    ring on $43.19, record $39.99
-      10.3  "The page contradicted itself: forty-three nineteen with tax, beside a subtotal without it."  rows light up
-      15.3  "I reported it on October thirtieth."                                  issue 283
-      17.8  "On November first, the maintainers merged a fix."                     PR 289, merged (19.5)
+<!-- Beat 3 v9 (0:48-1:10.5, 22.5 s). Voice-over, cue = clip seconds:
+       0.3  "Here's Spree, an open-source store."
+       2.4  "SRA flagged an order line that disagreed with the store's record."    ring on $43.19 (3.6), shown vs record
+       7.0  "Muse Spark Open then read the screenshot itself: forty-three nineteen, confirmed."   the crop it was sent,
+            what it read, confirmed (10.4); the control on the same crop, contradicted (10.8)
+      11.5  "The page contradicted itself: the line included tax, the subtotal didn't."   rows light up (13.6, 15.3)
+      16.1  "I reported it on October thirtieth."                                  issue 283
+      19.0  "On November first, the maintainers merged a fix."                     PR 289, merged (20.7)
+     Visual confirmation (window.DATA.v9.visual; docs/evidence/visual-confirm-spree-2026-11-01): the opt-in
+     `semaudit visual` sent Muse Spark Open the screenshot crop around this flagged value and asked whether it is what
+     the shopper sees. One issue, one seed, plus one control; it never changes a verdict. extract_v9.py refuses unless
+     the run is on this issue, event and screenshot, read back the quoted value as "confirmed", the control came back
+     "contradicted", and the committed crop is the image sent (sha256). Not claimed: that every page is read as an
+     image, or any rate across many issues.
      Data: window.DATA.v9.spree (extract_v9.py): Ana's order-placed page in v6.0.0.beta3 (the review's own capture,
      cropped; rings from the review's bounding boxes), the five amounts on it, the 67 shoppers and the 25 shown it,
      and the star count (gh api, 2026-11-01). Upstream: demo/evidence/taxline-upstream-2026-10-30/README.md. SRA did
@@ -27,37 +35,62 @@
 .rec{margin-top:14px;font:600 28px var(--sans);color:var(--ink2)}
 .rec b{color:var(--good);font-weight:800}
 .seen{display:inline-flex;align-self:flex-start;margin-top:10px;font:650 25px var(--sans);color:var(--spr);background:var(--sprbg);border:2px solid #E9B8EE;border-radius:999px;padding:6px 18px}
-.tl{margin-top:44px;display:grid;grid-template-columns:1fr 1fr;gap:44px}
+.tl{margin-top:28px;display:grid;grid-template-columns:1fr 1fr;gap:44px}
 .ev{display:flex;flex-direction:column;gap:12px}
 .ev .dd{display:flex;align-items:center;gap:14px;font:700 34px var(--disp);letter-spacing:-.015em}
 .ev .dd span{font:600 25px var(--sans);color:var(--ink3);letter-spacing:0}
 .ev .dot{width:18px;height:18px;border-radius:50%;background:var(--ink3)}
 .ev.m .dot{background:#8250DF}
 .merged{display:flex;gap:12px;align-items:center}
-</style></head><body data-duration="22">
+.rcol{display:grid}.rcol>*{grid-area:1/1;align-self:center}
+.flag{padding:30px 36px;display:flex;flex-direction:column;gap:16px}
+.flag .two{display:flex;align-items:center;gap:26px}
+.flag .two div{display:flex;flex-direction:column}.flag .two b{font:850 84px/1 var(--disp);letter-spacing:-.04em}
+.flag .two span{font:600 26px var(--sans);color:var(--ink2)}.flag .two .ne{font:700 60px var(--disp);color:var(--ink3)}
+.vis{padding:24px 30px;display:flex;flex-direction:column;gap:14px;background:var(--accentbg);border-color:var(--accentln)}
+.vis .k9{color:var(--accent)}
+.vis img{display:block;width:600px;border-radius:12px;border:2px solid var(--accentln)}
+.vis .rd{display:flex;align-items:center;gap:20px;font:650 30px var(--sans);color:var(--ink2)}
+.vis .rd b{font:850 64px/1 var(--disp);letter-spacing:-.03em;color:var(--ink)}
+.vis .rd .verdict{font-size:40px;padding:6px 20px}
+.vis .ctl{font:500 24px var(--sans);color:var(--ink2)}.vis .ctl em{font-style:normal;font-weight:700;color:var(--bad)}
+</style></head><body data-duration="22.5">
 <div id="hd"></div>
 <div class="stage">
   <div class="top">
     <div class="in" style="--at:1.0"><div class="k9" style="margin-bottom:12px" id="cap"></div>
       <div class="shotwrap push" style="--pat:1;--pd:14s;--ps:1.05;--po:85% 30%"><div class="shotbox"><img id="img" alt="Spree order-placed page"></div><div id="rings"></div></div></div>
-    <div class="card9 sum in" style="--at:4.9">
+    <div class="rcol">
+    <div class="card9 flag in out" style="--at:2.6;--out:6.8">
+      <div class="k9">SRA flagged the line</div>
+      <div class="two"><div><b class="bad" id="f-shown"></b><span>shown to the shopper</span></div><span class="ne">≠</span>
+        <div><b class="good" id="f-rec"></b><span>in the store's own record</span></div></div>
+      <span class="seen fade" style="--at:4.6" id="seen"></span>
+    </div>
+    <div class="card9 vis in out" style="--at:7.0;--out:11.3">
+      <div class="k9">Muse Spark Open, reading the screenshot</div>
+      <img id="vimg" alt="the screenshot crop sent to the model, the flagged value outlined">
+      <div class="rd fade" style="--at:9.3">reads&nbsp;<b id="v-reads"></b><span class="verdict good pop" style="--at:10.4" id="v-res"></span></div>
+      <div class="ctl fade" style="--at:10.8" id="v-ctl"></div>
+    </div>
+    <div class="card9 sum in" style="--at:11.5">
       <div class="k9">On the same page</div>
-      <div class="row line" data-on="11.1"><span id="nm"></span><span class="a" id="v-line"></span><span class="why">includes tax</span></div>
-      <div class="row sub" data-on="13.6"><span>Subtotal</span><span class="a" id="v-subtotal"></span><span class="why">without tax</span></div>
+      <div class="row line" data-on="13.6"><span id="nm"></span><span class="a" id="v-line"></span><span class="why">includes tax</span></div>
+      <div class="row sub" data-on="15.3"><span>Subtotal</span><span class="a" id="v-subtotal"></span><span class="why">without tax</span></div>
       <div class="row"><span>Shipping</span><span class="a" id="v-shipping"></span><span class="why"></span></div>
-      <div class="row tax" data-on="14.3"><span>Tax</span><span class="a" id="v-tax"></span><span class="why">its own row</span></div>
+      <div class="row tax" data-on="15.8"><span>Tax</span><span class="a" id="v-tax"></span><span class="why">its own row</span></div>
       <div class="row tot"><span>Total</span><span class="a" id="v-total"></span><span class="why"></span></div>
-      <div class="rec fade" style="--at:7.6">The store's own record for the line: <b id="recv"></b></div>
-      <span class="seen fade" style="--at:8.4" id="seen"></span>
+      <div class="rec fade" style="--at:12.0">The store's own record for the line: <b id="recv"></b></div>
+    </div>
     </div>
   </div>
   <div class="tl">
-    <div class="ev in" style="--at:15.3"><div class="dd"><span class="dot"></span>Reported upstream <span>Oct 30 · on Spree's latest storefront</span></div><div id="iss"></div></div>
-    <div class="ev m in" style="--at:17.8"><div class="dd"><span class="dot"></span>Fix merged <span>Nov 1 · by Spree's maintainers</span></div>
-      <div id="pr"></div><div class="merged beat" style="--at:19.5" id="mg"></div></div>
+    <div class="ev in" style="--at:16.1"><div class="dd"><span class="dot"></span>Reported upstream <span>Oct 30 · on Spree's latest storefront</span></div><div id="iss"></div></div>
+    <div class="ev m in" style="--at:19.0"><div class="dd"><span class="dot"></span>Fix merged <span>Nov 1 · by Spree's maintainers</span></div>
+      <div id="pr"></div><div class="merged beat" style="--at:20.7" id="mg"></div></div>
   </div>
 </div>
-<div class="src9 fade" style="--at:.3"><b>Source:</b> SRA release review, Spree v6.0.0.beta2 → beta3, Ana's order page at 10:08 · github.com/spree/storefront issue 283, PR 289 · stars: GitHub API, Nov 1, 2026</div>
+<div class="src9 fade" style="--at:.3"><b>Source:</b> SRA release review, Spree v6.0.0.beta2 → beta3, Ana's order page at 10:08 · semaudit visual (docs/evidence/visual-confirm-spree-2026-11-01) · spree/storefront issue 283, PR 289</div>
 <script src="_v9.inc.js"></script>
 <script src="_crop.js"></script>
 <script>
@@ -67,7 +100,14 @@ document.getElementById('cap').textContent = `${S.persona}'s order page · ${S.r
 document.getElementById('img').src = S.crop;
 const [bx, by, bx1, by1] = S.box, W = 720, k = W / (bx1 - bx);
 const ring = (b, cls, on) => `<div class="ring9 ${cls} pop" style="--at:${on};left:${(b.x - bx) * k - 8}px;top:${(b.y - by) * k - 6}px;width:${b.width * k + 16}px;height:${Math.min(b.height, 22) * k + 12}px"></div>`;
-document.getElementById('rings').innerHTML = ring(R.line.bbox, '', 6.0) + ring(R.subtotal.bbox, 'amb', 13.6) + ring(R.tax.bbox, 'amb', 14.3);
+document.getElementById('rings').innerHTML = ring(R.line.bbox, '', 3.6) + ring(R.subtotal.bbox, 'amb', 15.3) + ring(R.tax.bbox, 'amb', 15.8);
+document.getElementById('f-shown').textContent = R.line.text;
+document.getElementById('f-rec').textContent = S.record_item_total;
+const VZ = window.DATA.v9.visual;
+document.getElementById('vimg').src = VZ.crop;
+document.getElementById('v-reads').textContent = VZ.reads;
+document.getElementById('v-res').textContent = VZ.result[0].toUpperCase() + VZ.result.slice(1);
+document.getElementById('v-ctl').innerHTML = `Control, same crop, claim changed to ${esc(VZ.control.quote)}: <em>${esc(VZ.control.result)}</em> · opt-in, one issue`;
 document.getElementById('nm').textContent = R.line.label;
 for (const k2 of ['line', 'subtotal', 'shipping', 'tax', 'total']) document.getElementById('v-' + k2).textContent = R[k2].text;
 document.getElementById('recv').textContent = S.record_item_total;

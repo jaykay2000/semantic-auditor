@@ -134,6 +134,7 @@
   "review": "review-v6.0.0.beta2-v6.0.0.beta3.reader.json",
   "review_sha256": "5e44beab2c155b82cb96e1b756133f3f0e3e54876f06b14e9ff09b91672c1990",
   "issue": "R-v6.0.0.beta3-U1-line-amount-core-4f237b451a-ab6a0c63",
+  "event": "core.4f237b451a#8",
   "release": {
    "base": "v6.0.0.beta2",
    "head": "v6.0.0.beta3"
@@ -294,5 +295,23 @@
    "reason": "explained tradeoff by cg.reconcile at 10:04:00, while both were live and before deciding"
   },
   "key_words_in_lena_message": []
+ },
+ "visual": {
+  "source": "docs/evidence/visual-confirm-spree-2026-11-01",
+  "visual_sha256": "b345b510115f70517b574fa502740c765a66f571a8099bdae9e7cced63a409f4",
+  "control_sha256": "f9cc35404f2278986e09d12f3644b4ce0495e0cd743850a9217dcc6c6a42189e",
+  "crop_sha256": "57d2a56ac62160b1f55eae90fef0e5361b3ee3ea10e053faf6a9912028fcda6a",
+  "crop": "img/v9/visual-crop.png",
+  "model": "meta-models/muse-spark-open-1026",
+  "quote": "$43.19",
+  "reads": "$43.19",
+  "result": "confirmed",
+  "control": {
+   "quote": "$39.99",
+   "reads": "$43.19",
+   "result": "contradicted"
+  },
+  "opt_in": true,
+  "changes_verdict": false
  }
 }

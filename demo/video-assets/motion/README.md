@@ -132,22 +132,23 @@ which records each source's sha256 and refuses on any mismatch), `beat4.json`, `
 | Clip | Beat · slot | Length | Source |
 |---|---|---|---|
 | `m9-b1-hook` | 1 · 0:00–0:19.5 | 19.5 s | Finablo's freedom card (v706) → the v706 gate record (354 OK · 0 FAIL) → the two limits this user saw → $35,750 → dark frame "Tests check the code. They don't read what your users read." |
-| `m9-b2-what-sra-does` | 2 · 0:19.5–0:44.5 | 25 s | dark reveal + thesis → test users, v706 → v707 and the pages they walk → Muse Spark's three jobs (read, judge, draft) → SRA's four release categories |
-| `m9-b3-spree` | 3 · 0:44.5–1:06.5 | 22 s | Ana's order page from the review's own capture, rings from its bounding boxes; the five amounts; 25 of 67 shoppers; issue 283, PR 289 merged |
-| `m9-b4-1-discovery-to-check` | 4 · 1:06.5–1:25 | 18.5 s | the agent's finding → journey (9 verbs) → rule U3 → approved by Jayant Kumar; labelled "a bug Spree had already fixed (PR #14725)" |
-| `m9-b4-2-fail-pass-reload` | 4 · 1:25–1:35 | 10 s | dark: FAIL (beta2) / PASS (beta3) with each email's own sum, then the stored files reloaded and hashed, nothing imported, fix confirmed |
-| `m9-b5-intent` | 5 · 1:35–2:00.5 | 25.5 s | "No test assertion can express this rule", P2, Maya and Lena side by side (same offers, in sans), Flagged / Cleared |
-| `m9-b6-your-app` | 6 · 2:00.5–2:23 | 22.5 s | the agent's 49-line adapter and its 4 verbs, its endpoint, open weights, rule B1 with the broken prices, HOLD / SHIP, $0.13 |
-| `m9-b7-finablo` | 7 · 2:23–2:35.5 | 12.5 s | the 8 steps that state the limit: v706 red ($24,500 at 1, $32,500 at 7), v707 green ($35,750 at all 8) |
-| `m9-b8-close` | 8 · 2:35.5–2:51 | 15.5 s | who it is for (finance · health · commerce), the live sample review in a browser frame, the thesis |
-| `m9-b8-end-card` | end card · 2:51–2:57 | 6 s | repo URL, live sample URL, run commands, built during the hackathon, owner's name |
+| `m9-b2-what-sra-does` | 2 · 0:19.5–0:48 | 28.5 s | dark reveal + thesis → test users, v706 → v707 and the pages they walk → Muse Spark's three jobs (read, with the opt-in "can check a screenshot"; judge; draft) → SRA's four release categories |
+| `m9-b3-spree` | 3 · 0:48–1:10.5 | 22.5 s | Ana's order page from the review's own capture, rings from its bounding boxes; $43.19 ≠ $39.99, 25 of 67 shoppers; **visual confirmation**: the crop `semaudit visual` sent Muse Spark Open, which read $43.19 (confirmed; the control claiming $39.99 on the same crop, contradicted; `docs/evidence/visual-confirm-spree-2026-11-01`); the five amounts; issue 283, PR 289 merged |
+| `m9-b4-1-discovery-to-check` | 4 · 1:10.5–1:29 | 18.5 s | the agent's finding → journey (9 verbs) → rule U3 → approved by Jayant Kumar; labelled "a bug Spree had already fixed (PR #14725)" |
+| `m9-b4-2-fail-pass-reload` | 4 · 1:29–1:39 | 10 s | dark: FAIL (beta2) / PASS (beta3) with each email's own sum, then the stored files reloaded and hashed, nothing imported, fix confirmed |
+| `m9-b5-intent` | 5 · 1:39–2:02.5 | 23.5 s | "No test assertion can express this rule", P2, Maya and Lena side by side (same offers, in sans), Flagged / Cleared |
+| `m9-b6-your-app` | 6 · 2:02.5–2:22.5 | 20 s | the agent's 49-line adapter and its 4 verbs, its endpoint, open weights, rule B1 with the broken prices, HOLD / SHIP, $0.13 |
+| `m9-b7-finablo` | 7 · 2:22.5–2:35 | 12.5 s | the 8 steps that state the limit: v706 red ($24,500 at 1, $32,500 at 7), v707 green ($35,750 at all 8) |
+| `m9-b8-close` | 8 · 2:35–2:50.5 | 15.5 s | who it is for (finance · health · commerce), the live sample review in a browser frame, the thesis |
+| `m9-b8-end-card` | end card · 2:50.5–2:56.5 | 6 s | repo URL, live sample URL, run commands, built during the hackathon, owner's name |
 
 Also: `scenes/m9-thumbnail.png` (beat 1 at 12.4 s, an extra still written by `render_motion.py`) and the sound-cue
 sheet `SOUND-CUES-v9.md`.
 
 ```bash
 python3 slides-src/extract_brightdesk.py          # beat 6 data (adds the adapter and the broken prices in v9)
-python3 slides-src/extract_v9.py                  # beats 1, 3, 5, 7 data + img/v9 crops (reads the Finablo and Spree harness runs)
+python3 slides-src/extract_v9.py                  # beats 1, 3, 5, 7 data + img/v9 crops (reads the Finablo and Spree harness runs
+                                                  # and docs/evidence/visual-confirm-spree-2026-11-01)
 python3 ../build_sample_review.py                 # docs/sample-review/, the hosted sample (beat 8, end card)
 python3 slides-src/shoot_v9.py                    # img/v9/sample-review.png, from docs/sample-review/
 python3 slides-src/render_motion.py m9            # every v9 clip + still + the thumbnail

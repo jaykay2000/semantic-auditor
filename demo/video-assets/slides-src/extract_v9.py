@@ -9,12 +9,17 @@ Read-only on every source. Writes:
   demo/video-assets/slides-src/img/v9/    two crops (untracked, like every PNG here):
       finablo-freedom-v706.png   the report's "Your freedom" card, v706, the beat-1 test user (61)
       spree-order-page.png       Ana's order-placed page, Spree v6.0.0.beta3 (the page the review cites)
+      visual-crop.png            the crop semaudit visual sent to the model (a copy of the committed evidence file)
 
 Refuses to write when a value the frames rely on is not what the source says:
   beat 1  the v706 gate record must say "354 OK", "0 FAIL" and the gate's own "All checks passed" line
   beat 3  the Spree issue must be pre-existing (both releases), cite $43.19 for Ana, and her order page must show a
           $43.19 line beside a $39.99 subtotal, a $3.60 tax row and a $48.59 total, where 39.99 + 5.00 + 3.60 = 48.59
           but 43.19 + 5.00 + 3.60 does not
+  beat 3  visual confirmation (semaudit visual, opt-in): the run must be on this issue, this event and this
+          screenshot, must quote the line amount the page shows, must read it back and be "confirmed"; the control on
+          the same crop (claim changed to the subtotal) must be "contradicted"; the committed crop must be the image
+          that was sent (its sha256)
   beat 5  Maya must be flagged under P2, Lena cleared under P2, both shown the same two offers, and Lena's
           explaining message must share no word with the rule's key phrase ("explain the material tradeoffs")
   beat 7  on v706 no capture states $35,750; on v707 every step that states a limit states $35,750 and only that
@@ -42,6 +47,7 @@ FINABLO = pathlib.Path(os.environ.get('FINABLO_HARNESS_DIR', SRC / 'finablo-sema
 SPREE = pathlib.Path(os.environ.get('SPREE_HARNESS_DIR', SRC / 'spree-semaudit')) / 'runs' / 'spree-scale-2t'
 GATE = SRA / 'demo' / 'evidence' / 'finablo-gate-v706' / 'README.md'
 NB_REVIEW = SRA / 'runs' / 'e2e-2' / 'review-2.3-2.4.json'
+VISUAL = SRA / 'docs' / 'evidence' / 'visual-confirm-spree-2026-11-01'   # semaudit visual, one issue + one control
 NB_RULES = SRA / 'examples' / 'northbound' / 'contract' / 'principles.yaml'
 
 # Finablo: the beat-1 user (wide-run-3k, target_61, S-R1, v706) and the beat-7 limit check (f73-limit-check)
@@ -175,7 +181,7 @@ def spree(errors):
     shot = SPREE / shot_rel
     IMG.mkdir(parents=True, exist_ok=True)
     Image.open(shot).crop(ORDER_BOX).save(IMG / 'spree-order-page.png')
-    return {'review': SPREE_REVIEW, 'review_sha256': sha256(review), 'issue': SPREE_ISSUE,
+    return {'review': SPREE_REVIEW, 'review_sha256': sha256(review), 'issue': SPREE_ISSUE, 'event': ev_id,
             'release': d['release'], 'delta': issue['delta'], 'shoppers': len(d['personas']),
             'shoppers_shown_it': len(issue['personas']), 'rule': issue['rule'], 'rule_text': issue['rule_text'],
             'persona': ana['name'] if isinstance(ana.get('name'), str) else 'Ana Rivera', 'at': ev['at'][11:16],
@@ -184,6 +190,29 @@ def spree(errors):
             'upstream': {'issue': 283, 'reported': '2026-10-30', 'pr': 289, 'merged': '2026-11-01',
                          'source': 'demo/evidence/taxline-upstream-2026-10-30/README.md'},
             'stars': {'count': 15805, 'read': '2026-11-01', 'how': 'gh api repos/spree/spree (stargazers_count)'}}
+
+
+def visual(errors, sp):
+    v = json.loads((VISUAL / 'visual.json').read_text())
+    c = json.loads((VISUAL / 'control.json').read_text())
+    crop = VISUAL / 'crop.png'
+    V, C = v['visual'], c['visual']
+    occ_event = sp.get('event')
+    want = {'issue': (v['issue'], sp.get('issue')), 'event': (V['event'], occ_event),
+            'screenshot': (V['screenshot'], sp.get('shot')), 'quote': (V['quote'], sp['rows']['line']['text']),
+            'reads': (V['reads'], V['quote']), 'result': (V['result'], 'confirmed'),
+            'control quote': (C['quote'], sp['rows']['subtotal']['text']), 'control result': (C['result'], 'contradicted'),
+            'control image': (C['sent_sha256'], V['sent_sha256']), 'crop': (sha256(crop), V['sent_sha256'])}
+    for k, (got, exp) in want.items():
+        if got != exp:
+            errors.append(f'visual {k}: {got!r}, expected {exp!r}')
+    IMG.mkdir(parents=True, exist_ok=True)
+    (IMG / 'visual-crop.png').write_bytes(crop.read_bytes())
+    return {'source': str(VISUAL.relative_to(SRA)), 'visual_sha256': sha256(VISUAL / 'visual.json'),
+            'control_sha256': sha256(VISUAL / 'control.json'), 'crop_sha256': V['sent_sha256'],
+            'crop': 'img/v9/visual-crop.png', 'model': V['model'], 'quote': V['quote'], 'reads': V['reads'],
+            'result': V['result'], 'control': {'quote': C['quote'], 'reads': C['reads'], 'result': C['result']},
+            'opt_in': True, 'changes_verdict': False}
 
 
 def northbound(errors):
@@ -231,6 +260,8 @@ def main():
     data = {'_README': 'Written by slides-src/extract_v9.py from the runs\' own files (see each sha256). '
                        'tests/test_demo_v9.py checks the m9 frames against it.',
             'gate': gate(errors), 'finablo': finablo(errors), 'spree': spree(errors), 'northbound': northbound(errors)}
+    if data['spree']:
+        data['visual'] = visual(errors, data['spree'])
     if errors:
         sys.exit('refusing to write:\n  ' + '\n  '.join(errors))
     OUT.write_text(json.dumps(data, indent=1, ensure_ascii=False) + '\n')

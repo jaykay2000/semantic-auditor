@@ -1,17 +1,19 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><title>m9 beat 2 what SRA does</title>
 <link rel="stylesheet" href="slides.css"><link rel="stylesheet" href="motion.css"><link rel="stylesheet" href="v9.css">
-<!-- Beat 2 v9 (0:19.5-0:44.5, 25 s). Voice-over, cue = clip seconds:
+<!-- Beat 2 v9 (0:19.5-0:48, 28.5 s). Voice-over, cue = clip seconds:
        0.3  "Semantic Release Auditor does."                                       dark frame: the name
        2.0  "It turns every discovery into a check your next release has to pass." the thesis (by 0:27)
        7.4  "Test users walk two releases."                                        two releases, the pages they walk
        9.5  "Muse Spark reads every page and email your users get,"                job 1
-      13.6  "judges them against the app's own records and your rules,"           job 2 (rules in amber)
-      18.2  "and drafts new checks."                                               job 3
-      19.5  "SRA sorts each issue: new, fixed, already there, or can't tell."      the four release categories
-     Wording held on purpose (orchestrator, 2026-11-01): "reads every page and email your users get" claims nothing
-     about images, so it stays true whatever the screenshot capability test finds. Today the model reads the text of
-     each page and email; screenshots are kept for the review page only.
+      13.6  "can check a screenshot to confirm what they see,"                    job 1's opt-in chip
+      17.4  "judges them against the app's own records and your rules,"           job 2 (rules in amber)
+      22.0  "and drafts new checks."                                               job 3
+      23.2  "SRA sorts each issue: new, fixed, already there, or can't tell."      the four release categories
+     Wording (orchestrator, 2026-11-01): the model reads the text of every page and email. "can check a screenshot"
+     is the opt-in `semaudit visual` (commit 10e6ee3): for a flagged issue it sends the model the screenshot crop
+     around the flagged value and asks whether that value is what the user sees. Said with "can" because it is
+     opt-in; it never changes a verdict. No claim that pages are read as images.
      The example releases and pages are Finablo's v706/v707 journey (f73-limit-check: guest report, Copy for your AI,
      sign-up, signed-in report, welcome email PDF, dashboard). The four categories are the review page's own
      (release_story.html: introduced by / fixed in / in both releases / cannot tell). -->
@@ -38,6 +40,7 @@
 .job .n{width:52px;height:52px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font:800 28px var(--disp)}
 .job b{display:block;font:760 36px/1.15 var(--disp);letter-spacing:-.02em;color:var(--ink)}
 .job span{font:500 28px/1.3 var(--sans);color:var(--ink2)}
+.opt{margin:-6px 0 0 74px;align-self:flex-start;font:650 24px var(--sans);color:var(--accent);background:#fff;border:2px dashed var(--accentln);border-radius:12px;padding:6px 14px}
 .job .r{white-space:nowrap;color:var(--rule);background:var(--rulebg);border:2px solid var(--ruleln);border-radius:10px;padding:0 10px;font-weight:650}
 .out{background:var(--ink);border-color:var(--ink);color:#fff}
 .out .t{color:#fff}
@@ -45,7 +48,7 @@
 .cats span{font:700 31px var(--sans);padding:10px 20px;border-radius:14px;background:#2A2D35;border:2px solid #4A4E58}
 .cats .nw{color:#FFB4AA}.cats .fx{color:#9FE0BC}.cats .pr{color:#F5D08A}.cats .ct{color:#C9C2F2;border-style:dashed}
 .cats small{display:block;font:500 22px var(--sans);color:#B9BCC4;margin-top:2px}
-</style></head><body data-duration="25">
+</style></head><body data-duration="28.5">
 <div id="hd"></div>
 <div class="stage">
   <div class="flow">
@@ -60,17 +63,18 @@
     <div class="card9 box9 muse in" style="--at:9.5">
       <span class="t">Muse Spark's three jobs</span>
       <div class="job in" style="--at:10.3"><span class="n">1</span><div><b>Read</b><span>every page and email your users get</span></div></div>
-      <div class="job in" style="--at:13.6"><span class="n">2</span><div><b>Judge</b><span>against the app's own records and <span class="r">your rules</span></span></div></div>
-      <div class="job in" style="--at:18.2"><span class="n">3</span><div><b>Draft</b><span>new checks from findings</span></div></div>
+      <div class="opt pop" style="--at:13.6">+ can check a screenshot, to confirm what users see · opt-in</div>
+      <div class="job in" style="--at:17.4"><span class="n">2</span><div><b>Judge</b><span>against the app's own records and <span class="r">your rules</span></span></div></div>
+      <div class="job in" style="--at:22.0"><span class="n">3</span><div><b>Draft</b><span>new checks from findings</span></div></div>
     </div>
-    <div class="ar fade" style="--at:19.5">→</div>
-    <div class="card9 box9 out in" style="--at:19.5">
+    <div class="ar fade" style="--at:23.2">→</div>
+    <div class="card9 box9 out in" style="--at:23.2">
       <span class="t">SRA sorts each issue</span>
       <div class="cats">
-        <span class="nw pop" style="--at:21.1">New<small>introduced by this release</small></span>
-        <span class="fx pop" style="--at:21.5">Fixed<small>fixed in this release</small></span>
-        <span class="pr pop" style="--at:21.9">Already there<small>in both releases</small></span>
-        <span class="ct pop" style="--at:23.2">Can't tell<small>whether it was fixed</small></span>
+        <span class="nw pop" style="--at:24.9">New<small>introduced by this release</small></span>
+        <span class="fx pop" style="--at:25.3">Fixed<small>fixed in this release</small></span>
+        <span class="pr pop" style="--at:25.7">Already there<small>in both releases</small></span>
+        <span class="ct pop" style="--at:27.0">Can't tell<small>whether it was fixed</small></span>
       </div>
     </div>
   </div>
