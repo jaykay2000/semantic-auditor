@@ -43,13 +43,16 @@ def valid_check_id(check_id: str) -> str:
 
 
 def check_path(directory: Path, check_id: str) -> Path:
-    """<directory>/<id>.yaml for a valid id, refused unless it resolves inside <directory> (a symlinked record that
-    points elsewhere is refused too). Every read and write of a check record goes through here."""
-    root = Path(directory).resolve()
-    p = Path(directory) / f"{valid_check_id(check_id)}.yaml"
-    if not p.resolve().is_relative_to(root):
-        raise ValueError(f"check {check_id!r} resolves outside {directory}")
-    return p
+    """<directory>/<id>.yaml for a valid id. Containment is anchored to the resolved contract folder (the parent of
+    `directory`): the path must resolve to exactly <contract>/<checks>/<id>.yaml, so a symlink anywhere on it (the
+    checks folder itself or the record file) is refused. Every read and write of a check record goes through here."""
+    d = Path(directory)
+    name = f"{valid_check_id(check_id)}.yaml"
+    expected = d.parent.resolve() / d.name / name
+    if d.is_symlink() or (d / name).is_symlink() or (d / name).resolve() != expected:
+        raise ValueError(f"check {check_id!r}: {d / name} is not a plain file inside the contract folder "
+                         "(a symlink on the checks path is refused)")
+    return d / name
 
 
 # ---------- the consumer's import vocabulary (imports.yaml beside the contract) ----------

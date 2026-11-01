@@ -123,3 +123,34 @@ def test_writing_or_approving_a_bad_id_is_refused(tmp_path):
     with pytest.raises(ValueError):
         approve_check(tmp_path, "../escape", "abc", by="owner")
     assert not (tmp_path / "approvals.yaml").exists()
+
+
+# ---------- re-audit R2-02: a symlinked checks/ folder must not move the root outside the contract ----------
+
+def test_a_symlinked_checks_folder_is_refused_for_writing(tmp_path):
+    contract, outside = tmp_path / "contract", tmp_path / "outside"
+    contract.mkdir()
+    outside.mkdir()
+    os.symlink(outside, contract / "checks")
+    with pytest.raises(ValueError, match="symlink"):
+        ImportedCheck(**_check("C1-01")).write(contract / "checks")
+    assert list(outside.iterdir()) == []
+
+
+def test_a_symlinked_checks_folder_is_refused_for_reading(tmp_path):
+    contract, outside = tmp_path / "contract", tmp_path / "outside"
+    contract.mkdir()
+    outside.mkdir()
+    (outside / "C1-01.yaml").write_text(yaml.safe_dump(_check("C1-01")))
+    os.symlink(outside, contract / "checks")
+    with pytest.raises(ValueError, match="symlink"):
+        ImportedCheck.load(contract, "C1-01")
+    (contract / "approvals.yaml").write_text(yaml.safe_dump({"check:C1-01": {"hash": "x", "by": "o"}}))
+    ok, refused = saved_checks(contract)
+    assert ok == [] and len(refused) == 1 and "symlink" in refused[0]
+
+
+def test_a_plain_checks_folder_still_works(tmp_path):
+    c = ImportedCheck(**_check("C1-01"))
+    p = c.write(tmp_path / "checks")
+    assert p == tmp_path / "checks" / "C1-01.yaml" and ImportedCheck.load(tmp_path, "C1-01").id == "C1-01"
