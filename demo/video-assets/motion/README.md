@@ -90,3 +90,30 @@ leaves out discarded attempts (v7).
   so the label sits inside the lens. Sizes and overlap width still encode nothing.
 - **Beat 6:** the rule text and the "fictional test app" label are now one overlay file, not editor retyping.
 - The `s7-*` stills are unchanged. The `m7-*` stills are the recommended replacements wherever a clip is not used.
+
+## v8 clips (script `docs/12-demo-script-v8.md`, 2026-11-01)
+
+The owner's direction for v8 was to put the wins on screen and the caveats in the README. The v8 clips (`m8-*`) drop
+the prototype pill, the vote breakdowns, the "provisional" chips and the long source footers (`slides-src/v8.css`
+keeps a short source line on every frame). Every claim is still sourced; see the v8 script's source table. Page shots
+come from `slides-src/shoot_v8.py`, which writes 2x captures into `slides-src/img/v8/` (untracked). It covers the
+Spree, Northbound and Brightdesk review pages, plus tight crops of the public GitHub issue 283 and PR 289. The crops
+stop before the PR's branch name and description footer, because both name a coding agent.
+
+| Clip | Beat · slot | Length | Source |
+|---|---|---|---|
+| `m8-b1-finablo-limits` | 1 · 0:00–0:14 | 14 s | `m8-b1-finablo-limits.html`. `m7-b1` retimed to the v8 hook |
+| `m8-b2-what-sra-does` | 2 · 0:14–0:34 | 20 s | `m8-b2-what-sra-does.html`. Test users → two releases (page, email, the app's records) → Muse Spark Open, against your own rules → release review |
+| `m8-b3-upstream-fix` | 3 · 0:34–1:01 | 28 s | `m8-b3-upstream-fix.html`, `img/v8/spree-tax-line.png`, `gh-*.png`. Spree review crop, $43.19 ≠ $39.99, reported Oct 30 (issue 283, closed), fix merged Nov 1 (PR #289, "Fixes #283") |
+| `m8-b4-0-agents-intro` | 4 · 1:01–1:06 | 5.5 s | `m8-b4-0-agents-intro.html`. Two runs of one agent overlap in part; no numbers |
+| `m8-b4-1/2/3-*` | 4 · 1:06–1:39 | 16.5 / 11 / 11 s | the m7 beat-4 layouts with `window.V8`: no prototype pill, no votes, "Approved by Jayant Kumar" (run `ic-owner-rec-1`) |
+| `m8-b5-intent` | 5 · 1:39–2:02 | 22 s | `m8-b5-intent.html`. Rule P2, Maya's two messages (crops), flagged; then Lena, cleared |
+| `m8-b6-your-app` | 6 · 2:02–2:21 | 19 s | `m8-b6-your-app.html`. Brightdesk reviews (HOLD: 3 new; SHIP: 3 resolved), $0.13 in model calls. sra-newuser-test `work/runs/t3`, ledger 15 billed calls $0.1323 |
+| `m8-b7-finablo-v706-v707` | 7 · 2:21–2:33 | 12 s | `m7-b7` retimed |
+| `m8-b8-close` | 8 · 2:33–2:48 | 15 s | `m8-b8-close.html`. The three review pages side by side, plus the one-line idea |
+| `m8-b8-end-card` | end card · 2:48–2:54 | 6 s | `m7-b8` with the one-line idea; repo URL from `scenes-data/close.json` |
+
+```bash
+python3 slides-src/shoot_v8.py --github    # re-capture the page shots (the --github part needs network)
+python3 slides-src/render_motion.py m8     # every v8 clip + still
+```

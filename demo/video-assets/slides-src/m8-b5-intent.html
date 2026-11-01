@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>m8 beat 5 intent, not strings: Northbound</title>
+<link rel="stylesheet" href="slides.css"><link rel="stylesheet" href="motion.css"><link rel="stylesheet" href="v8.css"><link rel="stylesheet" href="v8-common.css">
+<!-- Beat 5 v8 (1:40-2:04, 24 s). Voice-over v8: "Checks keep intent, not strings. In a test travel app, the owner's
+     rule: when two features advise on the same decision, explain the tradeoff. (0-8) One says prices will likely drop,
+     so wait. (8-11) Two minutes later another offers a 48-hour lock for nine euros. (11-15) SRA flags the unexplained
+     tradeoff, (15-17.5) and clears the traveller whose app explains it. (17.5-21)"
+     Rule: examples/northbound/contract/principles.yaml P2 (elided as in v7). Messages and verdicts: the Northbound
+     review page (img/v8/northbound-maya.png, northbound-lena.png). -->
+<style>
+.rule8{margin-top:22px;padding:20px 28px;border-radius:20px;background:#14161B;color:#fff;display:flex;flex-direction:column;gap:6px}
+.rule8 .k{font:650 17px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:#B9BCC4}
+.rule8 .t{font:500 29px/1.36 var(--sans)}.rule8 .t b{color:#FFE59A;font-weight:700}
+.ab{align-items:start;position:absolute;left:112px;right:112px;top:470px;display:grid;grid-template-columns:1fr 70px 1fr}
+.ab .x{text-align:center;font:700 44px var(--disp);color:var(--bad)}
+.flag{position:absolute;left:112px;top:720px;display:flex;align-items:center;gap:16px}
+.flag .p{font:750 30px var(--disp);padding:10px 22px;border-radius:14px;border:2.5px solid #F3C2BB;background:var(--badbg);color:var(--bad)}
+.flag span{font-size:24px;color:var(--ink2)}
+.lena{position:absolute;left:112px;right:112px;top:470px}
+.okp{font:750 30px var(--disp);padding:10px 22px;border-radius:14px;border:2.5px solid #9FD3B6;background:var(--goodbg);color:var(--good)}
+.tag2{font:650 18px var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);margin:0 0 8px 2px}
+</style></head><body data-duration="22">
+<div class="slide">
+  <div class="hd8 in" style="--at:0"><span class="kick">Northbound · a fictional travel app we built to test SRA</span></div>
+  <h2 class="h2big in" style="--at:.2;margin-top:6px">Checks keep intent, not strings</h2>
+  <div class="rule8 in" style="--at:2.0"><span class="k">The owner's rule · P2</span>
+    <span class="t">“When more than one feature gives an active recommendation about the same decision, the product must … <b>explain the material tradeoffs</b> … before the traveller decides.”</span></div>
+  <div class="ab only-out" style="--out:17.4">
+    <div class="in" style="--at:8.0"><div class="tag2">Maya · 10:01 · Price Watch email</div><div id="a"></div></div>
+    <div class="x fade" style="--at:11.0">⇄</div>
+    <div class="in" style="--at:11.0"><div class="tag2">Maya · 10:03 · Fare Lock banner</div><div id="b"></div></div>
+  </div>
+  <div class="flag only-out" style="--out:17.4"><span class="p pop" style="--at:15.0">Flagged: unexplained tradeoff</span><span class="fade" style="--at:15.4">both messages true; nothing helps Maya choose</span></div>
+  <div class="lena fade" style="--at:17.8"><div class="tag2">Lena · same two offers · 10:04 · concierge chat</div><div id="c"></div>
+    <div style="margin-top:22px"><span class="okp pop" style="--at:18.6">✓ Cleared: the tradeoff is explained</span></div></div>
+  <div class="src fade" style="--at:.3"><b>Source:</b> SRA release review, Northbound 2.3 → 2.4</div>
+</div>
+<script src="_crop.js"></script>
+<script>
+const I = 'img/v8/';
+document.getElementById('a').innerHTML = crop(I + 'northbound-maya.png', 612, 716, 530, 116, 800);
+document.getElementById('b').innerHTML = crop(I + 'northbound-maya.png', 1216, 842, 532, 70, 800);
+document.getElementById('c').innerHTML = crop(I + 'northbound-lena.png', 612, 540, 1134, 98, 1696);
+</script>
+<script src="motion.js"></script>
+</body></html>

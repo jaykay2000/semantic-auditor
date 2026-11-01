@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>m8 beat 4 intro: agents find different bugs; SRA keeps them</title>
+<link rel="stylesheet" href="slides.css"><link rel="stylesheet" href="motion.css"><link rel="stylesheet" href="v8.css">
+<!-- Beat 4 v8 opener (1:02-1:07, 5 s). Voice-over: "Coding agents find bugs too, but every run finds different ones."
+     The two circles are two runs of one agent on Spree (spree-plain-agent-protocol grading, overlap.json); no numbers
+     here, and size encodes nothing. -->
+<style>
+.c{position:absolute;top:250px;width:560px;height:560px;border-radius:50%}
+.c1{left:560px;background:rgba(54,81,212,.08);border:3px solid var(--accentln)}
+.c2{left:800px;background:rgba(18,115,71,.07);border:3px solid var(--resln)}
+.lab{position:absolute;top:500px;font:650 30px var(--sans);color:var(--ink2)}
+.line{position:absolute;left:0;right:0;bottom:120px;text-align:center;font:750 58px/1.1 var(--disp);letter-spacing:-.03em}
+.line span{color:var(--accent)}
+.kick2{position:absolute;left:0;right:0;top:150px;text-align:center}
+</style></head><body data-duration="5.5">
+<div class="kick2 kick fade" style="--at:0">two runs of one coding agent, same store, same rules</div>
+<div class="c c1 in" id="c1" style="--at:.1"></div><div class="c c2 in" id="c2" style="--at:.1"></div>
+<div class="lab fade" style="--at:1.2;left:700px">run 1</div><div class="lab fade" style="--at:1.2;left:1150px">run 2</div>
+<div class="line in" style="--at:2.2">Every run finds different bugs. <span>SRA makes each one permanent.</span></div>
+<script src="motion.js"></script>
+<script>onSeek(t => { const p = 1 - Math.pow(1 - clamp01((t - .1) / 1.2), 3);
+  document.getElementById('c1').style.left = (380 + 180 * p) + 'px'; document.getElementById('c2').style.left = (980 - 180 * p) + 'px'; });</script>
+</body></html>

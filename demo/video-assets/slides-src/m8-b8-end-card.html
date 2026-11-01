@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>m8 beat 8 end card</title>
+<link rel="stylesheet" href="slides.css"><link rel="stylesheet" href="motion.css"><link rel="stylesheet" href="v8.css">
+<!-- End card (2:40-2:46, 6 s). Same content as s7-b8-end-card.html, staggered in over the first 2 s, then held.
+     The repo URL still reads TBD until scenes-data/close.json carries it; re-render after filling it. -->
+<style>
+.name{margin-top:230px;display:flex;align-items:center;gap:26px}
+.name .logo{height:84px;padding:0 20px;border-radius:18px;font-size:36px}
+.name .t{font:750 76px/1.05 var(--disp);letter-spacing:-.03em}
+.facts{margin-top:70px;display:flex;flex-direction:column;gap:22px}
+.facts .r{display:flex;align-items:center;gap:20px;font:600 34px var(--sans);color:var(--ink2)}
+.facts .r b{color:var(--ink);font-weight:700}
+.facts .dot{color:#C4C6CC}
+.cost{margin-top:8px;display:flex;gap:28px}
+.cost .c{padding:22px 28px;border-radius:20px;background:var(--panel);border:1.5px solid var(--line);box-shadow:var(--shadow);display:flex;align-items:baseline;gap:16px}
+.cost .c b{font:750 56px/1 var(--disp);letter-spacing:-.03em;color:var(--accent)}
+.cost .c span{font:600 26px var(--sans);color:var(--ink2)}
+.repo{font:700 30px var(--mono);color:var(--unc);border:2.5px dashed var(--unc);background:var(--uncbg);border-radius:12px;padding:10px 22px}
+.tagl{margin-top:34px;font:600 40px/1.25 var(--disp);letter-spacing:-.015em;color:var(--ink2)}
+.facts{margin-top:46px}
+.name{margin-top:200px}
+</style></head><body data-duration="6">
+<div class="slide">
+  <div class="name in" style="--at:0" ><span hidden></span><span class="logo">SRA</span><div class="t">Semantic Release Auditor</div></div>
+  <div class="tagl in" style="--at:.3">Every discovery becomes a check your next release has to pass.</div>
+  <div class="facts">
+    <div class="r in" style="--at:.5"><span class="repo" id="repo">REPO URL · TBD</span><span class="dot">·</span><b>open source</b><span class="dot">·</span><span>Muse Spark Open (on Baseten)</span></div>
+    <div class="cost">
+      <div class="c in" style="--at:1.0"><b>about 5¢</b><span>to turn a finding into a check</span></div>
+      <div class="c in" style="--at:1.4"><b>about 14¢</b><span>to re-check it on a release</span></div>
+    </div>
+  </div>
+  <div class="src fade" style="--at:1.6"><b>Costs:</b> measured on the Spree runs (README)</div>
+</div>
+<script>
+const u = (window.DATA['close'] || {}).repo_url;
+if (u && !/TBD/.test(u)) { const r = document.getElementById('repo'); r.textContent = u; r.style.cssText = 'color:var(--ink);border:1.5px solid var(--line);background:var(--panel);font-weight:600'; }
+</script>
+<script src="motion.js"></script>
+</body></html>

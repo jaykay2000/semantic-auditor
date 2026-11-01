@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>m8 beat 6 bring your own app and model</title>
+<link rel="stylesheet" href="slides.css"><link rel="stylesheet" href="motion.css"><link rel="stylesheet" href="v8.css"><link rel="stylesheet" href="v8-common.css">
+<!-- Beat 6 v8 (2:04-2:23, 19 s). Voice-over v8: "And it isn't tied to my apps. A fresh AI agent, given only SRA's docs,
+     built its own small app, plugged in its own Muse Spark endpoint, and ran SRA: (0-10) hold on the broken version,
+     (10-12.5) ship on the fixed one. (12.5-14.5) Thirteen cents in model calls. (14.5-17)"
+     Sources: sra-newuser-test work/runs/t3/review-1.1-1.0.json (recommendation hold, 3 new) and review-1.0-1.1.json
+     (ship, 3 resolved); runs/ledger.jsonl: 15 billed calls, $0.1323; provider [providers.mybaseten],
+     meta-models/muse-spark-open-1026. Pages built with semaudit.report.page.build (img/v8/brightdesk-*.png).
+     The agent is not named. No duration is claimed (the run's files span about 16 minutes; how long the session
+     read the docs first is not recorded). -->
+<style>
+.cols6{position:absolute;left:112px;right:112px;top:300px;display:grid;grid-template-columns:1fr 1fr;gap:44px}
+.col6{display:flex;flex-direction:column;gap:16px}
+.col6 .h{display:flex;align-items:center;gap:14px;font:700 32px var(--disp);letter-spacing:-.015em}
+.v{font:800 54px/1 var(--disp);padding:6px 24px;border-radius:16px;border:3px solid}
+.v.hold{color:var(--bad);background:var(--badbg);border-color:#F3C2BB}.v.ship{color:var(--good);background:var(--goodbg);border-color:#9FD3B6}
+.cost{position:absolute;left:112px;right:112px;bottom:96px;display:flex;align-items:baseline;gap:22px}
+.cost b{font:800 110px/1 var(--disp);letter-spacing:-.045em;color:var(--accent)}
+.cost span{font:600 30px var(--sans);color:var(--ink2)}
+</style></head><body data-duration="19">
+<div class="slide">
+  <div class="hd8 in" style="--at:0"><span class="kick">Brightdesk · a small app a fresh AI agent built from SRA's docs</span></div>
+  <h2 class="h2big in" style="--at:.2;margin-top:6px">Your app, your model endpoint</h2>
+  <div class="cols6">
+    <div class="col6 in" style="--at:9.6"><div class="h">The broken version <span class="v hold pop" style="--at:10.2">HOLD</span></div><div id="h1"></div><div id="h2"></div></div>
+    <div class="col6 in" style="--at:12.4"><div class="h">The fixed version <span class="v ship pop" style="--at:13.0">SHIP</span></div><div id="s1"></div></div>
+  </div>
+  <div class="cost in" style="--at:14.6"><b>$0.13</b><span>in model calls, start to finish · Muse Spark Open on the agent's own endpoint</span></div>
+  <div class="src fade" style="--at:.3"><b>Source:</b> SRA release reviews of Brightdesk 1.0 and 1.1, and their model-call ledger</div>
+</div>
+<script src="_crop.js"></script>
+<script>
+const I = 'img/v8/';
+document.getElementById('h1').innerHTML = crop(I + 'brightdesk-hold.png', 1124, 100, 654, 128, 826);
+document.getElementById('h2').innerHTML = crop(I + 'brightdesk-hold.png', 150, 470, 412, 112, 560);
+document.getElementById('s1').innerHTML = crop(I + 'brightdesk-ship.png', 1124, 94, 654, 124, 826);
+</script>
+<script src="motion.js"></script>
+</body></html>

@@ -65,7 +65,7 @@ def main(argv):
     still_only = '--still' in argv
     argv = [a for a in argv if a != '--still']
     data = {p.stem: json.loads(p.read_text()) for p in sorted(DATA_DIR.glob('*.json'))}
-    pages = sorted(HERE.glob('m7-*.html'))
+    pages = sorted(HERE.glob('m[78]-*.html'))
     if argv:
         pages = [p for p in pages if any(p.stem.startswith(a) for a in argv)]
     if not pages:
