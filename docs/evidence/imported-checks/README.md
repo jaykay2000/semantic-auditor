@@ -147,8 +147,9 @@ check (6 checks took about 8-9 min per release run). No Meta API spend.
 Every model call in this slice, conversion and judging, used a Meta model: `meta-models/muse-spark-open-1026` (Muse
 Spark Open on Baseten): 57/57 check records, every judgment, and all ledger rows. Every re-check result now records
 `models: {conversion, judging}`. The approval of C1-04 and C1-04-v1 is recorded as
-`acceptance-run (main session, owner plan 2026-10-31; owner has not reviewed this digest)`: the owner has not looked at
-these digests.
+`acceptance-run (main session, owner plan 2026-10-31; owner has not reviewed this digest)` for runs 2 to 4 and 3b/3c,
+which keep that record. **On 2026-11-01 the owner approved both digests under their own name** and ran the saved
+checks again (row 6 and "Owner-approved run, 2026-11-01" below).
 
 | Run | Pass condition | Outcome as it came out | Evidence |
 |---|---|---|---|

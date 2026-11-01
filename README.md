@@ -161,9 +161,12 @@ All from [docs/evidence/imported-checks/README.md](docs/evidence/imported-checks
   a re-ask, up to 3 times, when a reading writes a garbled record value. A clean number that is wrong is never
   re-asked. Neither touches the frozen converter, the gate or the rule. One rule was made stricter at the same time:
   a PASS now needs verified evidence.
-- **Approval in the recorded runs.** The approvals of C1-04 and its blender variant, used in every acceptance run,
-  were written by the build session under the owner's plan. The harness's `approvals.yaml` labels them "owner has
-  not reviewed this digest".
+- **Approval in the recorded runs.** For the acceptance runs up to Run 3c, the approvals of C1-04 and its blender
+  variant were written by the build session under the owner's plan and labelled "owner has not reviewed this digest";
+  those runs keep that record. On 2026-11-01 the owner approved both digests under their own name and ran the saved
+  checks again from storage (`ic-owner-rec-1`): C1-04 `fix_confirmed`; the blender variant `not_confirmed`, because
+  one reading's record values could not be verified
+  ([evidence](docs/evidence/imported-checks/README.md), [cards](docs/evidence/imported-checks/acceptance/cards-run-owner-2026-11-01.html)).
 - **The "next" release changes only the storefront.** No newer Spree backend was available, so the emails did not
   change between beta3 and the next release.
 - The converter was run once; how much conversion varies between runs was not measured.

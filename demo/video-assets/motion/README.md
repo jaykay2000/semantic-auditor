@@ -33,7 +33,9 @@ python3 slides-src/extract_beat4.py \
 python3 slides-src/render_motion.py m7-b4
 ```
 
-`extract_beat4.py` prints a **WARNING** while the run's approval record reads "owner has not reviewed this digest".
+**As of 2026-11-01 the beat-4 clips come from `ic-owner-rec-1`, approved by the owner under their own name** (C1-04
+fix_confirmed; the older release's card shows every vote: 2 fail · 1 not measurable, confidence 2/3).
+`extract_beat4.py` prints a **WARNING** while a run's approval record reads "owner has not reviewed this digest".
 The transition-1 stamp prints that record verbatim (amber while unreviewed, green once it is the owner's), so the
 voice-over line "The owner approves it" only matches the screen after the owner's approval and a fresh run. If the
 recording-day run comes back `not_measurable`, the extract refuses ("this clip shows an older-release FAIL and a
