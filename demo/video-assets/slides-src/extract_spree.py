@@ -1,13 +1,19 @@
 """Derive the shopper matrix for s03b from the Spree reader review (read-only).
 
     python3 slides-src/extract_spree.py   # writes scenes-data/spree-shoppers.json
+
+The review is in the Spree harness repo (spree-semaudit, its uncommitted runs/ folder). Point SPREE_HARNESS_DIR at
+that checkout; the default is a sibling of this repo. The output names the source relative to the harness, so no
+local path is written.
 """
 import collections
 import json
 import os
 
-SRC = os.path.expanduser('~/Documents/src/spree-semaudit/runs/spree-scale-2t/'
-                         'review-v6.0.0.beta2-v6.0.0.beta3.reader.json')
+HARNESS = os.environ.get('SPREE_HARNESS_DIR',
+                         os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', 'spree-semaudit'))
+REL = 'runs/spree-scale-2t/review-v6.0.0.beta2-v6.0.0.beta3.reader.json'
+SRC = os.path.join(HARNESS, REL)
 OUT = os.path.join(os.path.dirname(__file__), '..', 'scenes-data', 'spree-shoppers.json')
 d = json.load(open(SRC))
 cells = collections.defaultdict(lambda: collections.Counter())
@@ -20,7 +26,7 @@ for p in d['personas']:
     key = f"{'tax' if taxed else 'notax'}|{'FREESHIP' if cx['promo_code'] else 'none'}|{cx['delivery_method']}"
     cells[key][units] += 1
 out = {
-    'source': SRC,
+    'source': f'spree-semaudit:{REL}',
     'shoppers': len(d['personas']),
     'states': dict(states),
     'tax_feature': [f['name'] for f in d['features'] if f['id'] == 'tax'][0],

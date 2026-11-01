@@ -1,5 +1,5 @@
 {
- "source": "/Users/jayantkumar/Documents/src/spree-semaudit/runs/spree-scale-2t/review-v6.0.0.beta2-v6.0.0.beta3.reader.json",
+ "source": "spree-semaudit:runs/spree-scale-2t/review-v6.0.0.beta2-v6.0.0.beta3.reader.json",
  "shoppers": 67,
  "states": {
   "NY": 36,

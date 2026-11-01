@@ -17,6 +17,7 @@ target_61__wide in contract-wide/personas.yaml have identical context):
 """
 import hashlib
 import json
+import os
 import pathlib
 import sys
 
@@ -24,7 +25,8 @@ from PIL import Image
 
 HERE = pathlib.Path(__file__).resolve().parent
 ROOT = HERE.parent
-RUNS = pathlib.Path.home() / 'Documents/src/finablo-semaudit/runs'
+# The Finablo harness checkout (finablo-semaudit, its uncommitted runs/ folder); default: a sibling of this repo.
+RUNS = pathlib.Path(os.environ.get('FINABLO_HARNESS_DIR', ROOT.parents[2] / 'finablo-semaudit')) / 'runs'
 TREES = {'v706': '10ff1e3', 'v707': 'a183626'}
 
 def sr1(t, step, kind):
