@@ -242,7 +242,10 @@ Rules the router enforces:
   'myhost' needs it`. The value is never printed.
 - **Unpriced means unpriced.** Without a `prices` entry the ledger (`runs/ledger.jsonl`) records each call with
   `"cost_usd": null, "priced": false`, never $0, and `--max-usd` refuses the model rather than guess.
-- A price for a model that already has a built-in price is refused.
+- **Prices belong to the provider.** Your provider's calls are priced only by its own `prices` table, even when
+  the model has the same name as one a built-in provider prices (for example `meta-models/muse-spark-open-1026`
+  served by your own host is unpriced until you price it). Each ledger row of your provider also records
+  `"provider": "<name>"`; rows of the built-in providers are unchanged and carry no `provider` field.
 
 What the endpoint must support:
 
