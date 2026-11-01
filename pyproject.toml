@@ -16,7 +16,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-demo = ["fastapi>=0.115", "uvicorn>=0.30", "fpdf2>=2.7"]
+demo = ["fastapi>=0.115", "uvicorn>=0.30", "fpdf2>=2.7", "python-multipart>=0.0.9"]
 anthropic = ["anthropic>=0.40"]
 test = ["semantic-auditor[demo,anthropic]", "pytest>=8", "ruff==0.17.3"]
 dev = ["semantic-auditor[test]"]
