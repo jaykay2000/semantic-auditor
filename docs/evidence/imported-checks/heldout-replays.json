@@ -1,0 +1,1089 @@
+{
+ "C1-01": {
+  "current": {
+   "raw_replay": [
+    "succeeded",
+    "failed",
+    "succeeded"
+   ],
+   "replay": [
+    "succeeded",
+    "succeeded",
+    "succeeded"
+   ],
+   "assertion": [
+    "fail",
+    "fail",
+    "fail"
+   ],
+   "votes": [
+    {
+     "fail": 3
+    },
+    {
+     "fail": 3
+    },
+    {
+     "fail": 3
+    }
+   ],
+   "agreement": [
+    "3/3",
+    "3/3",
+    "3/3"
+   ],
+   "evidence": [
+    "partially_verified",
+    "verified",
+    "partially_verified"
+   ],
+   "per_judgment_evidence": [
+    [
+     "partially_verified",
+     "verified",
+     "verified"
+    ],
+    [
+     "verified",
+     "verified",
+     "verified"
+    ],
+    [
+     "verified",
+     "verified",
+     "partially_verified"
+    ]
+   ],
+   "cost": 0.0718
+  },
+  "candidate": {
+   "raw_replay": [
+    "succeeded",
+    "succeeded",
+    "succeeded"
+   ],
+   "replay": [
+    "succeeded",
+    "succeeded",
+    "succeeded"
+   ],
+   "assertion": [
+    "fail",
+    "fail",
+    "fail"
+   ],
+   "votes": [
+    {
+     "fail": 3
+    },
+    {
+     "fail": 3
+    },
+    {
+     "fail": 3
+    }
+   ],
+   "agreement": [
+    "3/3",
+    "3/3",
+    "3/3"
+   ],
+   "evidence": [
+    "verified",
+    "partially_verified",
+    "verified"
+   ],
+   "per_judgment_evidence": [
+    [
+     "verified",
+     "verified",
+     "verified"
+    ],
+    [
+     "partially_verified",
+     "verified",
+     "verified"
+    ],
+    [
+     "verified",
+     "verified",
+     "verified"
+    ]
+   ],
+   "cost": 0.0772
+  },
+  "next": {
+   "raw_replay": [
+    "succeeded",
+    "succeeded",
+    "succeeded"
+   ],
+   "replay": [
+    "succeeded",
+    "succeeded",
+    "succeeded"
+   ],
+   "assertion": [
+    "fail",
+    "fail",
+    "fail"
+   ],
+   "votes": [
+    {
+     "fail": 3
+    },
+    {
+     "fail": 3
+    },
+    {
+     "fail": 3
+    }
+   ],
+   "agreement": [
+    "3/3",
+    "3/3",
+    "3/3"
+   ],
+   "evidence": [
+    "partially_verified",
+    "verified",
+    "partially_verified"
+   ],
+   "per_judgment_evidence": [
+    [
+     "verified",
+     "partially_verified",
+     "verified"
+    ],
+    [
+     "verified",
+     "verified",
+     "verified"
+    ],
+    [
+     "partially_verified",
+     "verified",
+     "verified"
+    ]
+   ],
+   "cost": 0.0703
+  },
+  "current->candidate": [
+   "still_open",
+   "still_open",
+   "still_open"
+  ],
+  "candidate->next": [
+   "still_open",
+   "still_open",
+   "still_open"
+  ]
+ },
+ "C1-04": {
+  "current": {
+   "raw_replay": [
+    "succeeded",
+    "failed",
+    "succeeded"
+   ],
+   "replay": [
+    "succeeded",
+    "succeeded",
+    "succeeded"
+   ],
+   "assertion": [
+    "fail",
+    "fail",
+    "fail"
+   ],
+   "votes": [
+    {
+     "fail": 3
+    },
+    {
+     "fail": 3
+    },
+    {
+     "fail": 3
+    }
+   ],
+   "agreement": [
+    "3/3",
+    "3/3",
+    "3/3"
+   ],
+   "evidence": [
+    "partially_verified",
+    "partially_verified",
+    "partially_verified"
+   ],
+   "per_judgment_evidence": [
+    [
+     "partially_verified",
+     "verified",
+     "partially_verified"
+    ],
+    [
+     "verified",
+     "partially_verified",
+     "partially_verified"
+    ],
+    [
+     "verified",
+     "partially_verified",
+     "partially_verified"
+    ]
+   ],
+   "cost": 0.1227
+  },
+  "candidate": {
+   "raw_replay": [
+    "succeeded",
+    "failed",
+    "succeeded"
+   ],
+   "replay": [
+    "succeeded",
+    "succeeded",
+    "succeeded"
+   ],
+   "assertion": [
+    "pass",
+    "pass",
+    "pass"
+   ],
+   "votes": [
+    {
+     "pass": 3
+    },
+    {
+     "pass": 2,
+     "not_measurable": 1
+    },
+    {
+     "pass": 3
+    }
+   ],
+   "agreement": [
+    "3/3",
+    "2/3",
+    "3/3"
+   ],
+   "evidence": [
+    "partially_verified",
+    "verified",
+    "partially_verified"
+   ],
+   "per_judgment_evidence": [
+    [
+     "verified",
+     "partially_verified",
+     "partially_verified"
+    ],
+    [
+     "verified",
+     "unverified",
+     "verified"
+    ],
+    [
+     "partially_verified",
+     "verified",
+     "partially_verified"
+    ]
+   ],
+   "cost": 0.1163
+  },
+  "next": {
+   "raw_replay": [
+    "succeeded",
+    "succeeded",
+    "succeeded"
+   ],
+   "replay": [
+    "succeeded",
+    "succeeded",
+    "succeeded"
+   ],
+   "assertion": [
+    "pass",
+    "pass",
+    "not_measurable"
+   ],
+   "votes": [
+    {
+     "pass": 3
+    },
+    {
+     "pass": 3
+    },
+    {
+     "not_measurable": 2,
+     "pass": 1
+    }
+   ],
+   "agreement": [
+    "3/3",
+    "3/3",
+    "2/3"
+   ],
+   "evidence": [
+    "partially_verified",
+    "verified",
+    "unverified"
+   ],
+   "per_judgment_evidence": [
+    [
+     "partially_verified",
+     "verified",
+     "partially_verified"
+    ],
+    [
+     "verified",
+     "verified",
+     "verified"
+    ],
+    [
+     "unverified",
+     "unverified",
+     "partially_verified"
+    ]
+   ],
+   "cost": 0.075
+  },
+  "current->candidate": [
+   "not_confirmed",
+   "fix_confirmed",
+   "not_confirmed"
+  ],
+  "candidate->next": [
+   "not_reproduced",
+   "not_reproduced",
+   "not_confirmed"
+  ]
+ },
+ "C2-02": {
+  "current": {
+   "raw_replay": [
+    "succeeded",
+    "succeeded",
+    "succeeded"
+   ],
+   "replay": [
+    "succeeded",
+    "succeeded",
+    "succeeded"
+   ],
+   "assertion": [
+    "fail",
+    "fail",
+    "fail"
+   ],
+   "votes": [
+    {
+     "fail": 3
+    },
+    {
+     "fail": 3
+    },
+    {
+     "fail": 3
+    }
+   ],
+   "agreement": [
+    "3/3",
+    "3/3",
+    "3/3"
+   ],
+   "evidence": [
+    "verified",
+    "partially_verified",
+    "verified"
+   ],
+   "per_judgment_evidence": [
+    [
+     "verified",
+     "verified",
+     "verified"
+    ],
+    [
+     "verified",
+     "partially_verified",
+     "verified"
+    ],
+    [
+     "verified",
+     "verified",
+     "verified"
+    ]
+   ],
+   "cost": 0.0904
+  },
+  "candidate": {
+   "raw_replay": [
+    "succeeded",
+    "succeeded",
+    "failed"
+   ],
+   "replay": [
+    "succeeded",
+    "succeeded",
+    "succeeded"
+   ],
+   "assertion": [
+    "fail",
+    "fail",
+    "fail"
+   ],
+   "votes": [
+    {
+     "fail": 3
+    },
+    {
+     "fail": 3
+    },
+    {
+     "fail": 3
+    }
+   ],
+   "agreement": [
+    "3/3",
+    "3/3",
+    "3/3"
+   ],
+   "evidence": [
+    "partially_verified",
+    "partially_verified",
+    "partially_verified"
+   ],
+   "per_judgment_evidence": [
+    [
+     "partially_verified",
+     "verified",
+     "verified"
+    ],
+    [
+     "partially_verified",
+     "verified",
+     "partially_verified"
+    ],
+    [
+     "partially_verified",
+     "verified",
+     "verified"
+    ]
+   ],
+   "cost": 0.1033
+  },
+  "next": {
+   "raw_replay": [
+    "succeeded",
+    "succeeded",
+    "succeeded"
+   ],
+   "replay": [
+    "succeeded",
+    "succeeded",
+    "succeeded"
+   ],
+   "assertion": [
+    "fail",
+    "fail",
+    "fail"
+   ],
+   "votes": [
+    {
+     "fail": 3
+    },
+    {
+     "fail": 3
+    },
+    {
+     "fail": 3
+    }
+   ],
+   "agreement": [
+    "3/3",
+    "3/3",
+    "3/3"
+   ],
+   "evidence": [
+    "verified",
+    "partially_verified",
+    "partially_verified"
+   ],
+   "per_judgment_evidence": [
+    [
+     "verified",
+     "verified",
+     "verified"
+    ],
+    [
+     "partially_verified",
+     "partially_verified",
+     "partially_verified"
+    ],
+    [
+     "verified",
+     "partially_verified",
+     "verified"
+    ]
+   ],
+   "cost": 0.0992
+  },
+  "current->candidate": [
+   "still_open",
+   "still_open",
+   "still_open"
+  ],
+  "candidate->next": [
+   "still_open",
+   "still_open",
+   "still_open"
+  ]
+ },
+ "X2-00": {
+  "current": {
+   "raw_replay": [
+    "succeeded",
+    "failed",
+    "succeeded"
+   ],
+   "replay": [
+    "succeeded",
+    "succeeded",
+    "succeeded"
+   ],
+   "assertion": [
+    "fail",
+    "fail",
+    "fail"
+   ],
+   "votes": [
+    {
+     "fail": 3
+    },
+    {
+     "fail": 3
+    },
+    {
+     "fail": 3
+    }
+   ],
+   "agreement": [
+    "3/3",
+    "3/3",
+    "3/3"
+   ],
+   "evidence": [
+    "verified",
+    "partially_verified",
+    "partially_verified"
+   ],
+   "per_judgment_evidence": [
+    [
+     "verified",
+     "verified",
+     "verified"
+    ],
+    [
+     "verified",
+     "verified",
+     "partially_verified"
+    ],
+    [
+     "verified",
+     "partially_verified",
+     "partially_verified"
+    ]
+   ],
+   "cost": 0.1688
+  },
+  "candidate": {
+   "raw_replay": [
+    "succeeded",
+    "succeeded",
+    "failed"
+   ],
+   "replay": [
+    "succeeded",
+    "succeeded",
+    "succeeded"
+   ],
+   "assertion": [
+    "fail",
+    "fail",
+    "fail"
+   ],
+   "votes": [
+    {
+     "fail": 3
+    },
+    {
+     "fail": 3
+    },
+    {
+     "fail": 2,
+     "not_measurable": 1
+    }
+   ],
+   "agreement": [
+    "3/3",
+    "3/3",
+    "2/3"
+   ],
+   "evidence": [
+    "partially_verified",
+    "partially_verified",
+    "verified"
+   ],
+   "per_judgment_evidence": [
+    [
+     "verified",
+     "verified",
+     "partially_verified"
+    ],
+    [
+     "verified",
+     "partially_verified",
+     "partially_verified"
+    ],
+    [
+     "verified",
+     "verified",
+     "unverified"
+    ]
+   ],
+   "cost": 0.1248
+  },
+  "next": {
+   "raw_replay": [
+    "succeeded",
+    "succeeded",
+    "succeeded"
+   ],
+   "replay": [
+    "succeeded",
+    "succeeded",
+    "succeeded"
+   ],
+   "assertion": [
+    "fail",
+    "fail",
+    "fail"
+   ],
+   "votes": [
+    {
+     "fail": 2,
+     "not_measurable": 1
+    },
+    {
+     "fail": 2,
+     "pass": 1
+    },
+    {
+     "fail": 3
+    }
+   ],
+   "agreement": [
+    "2/3",
+    "2/3",
+    "3/3"
+   ],
+   "evidence": [
+    "partially_verified",
+    "verified",
+    "partially_verified"
+   ],
+   "per_judgment_evidence": [
+    [
+     "verified",
+     "partially_verified",
+     "unverified"
+    ],
+    [
+     "verified",
+     "verified",
+     "verified"
+    ],
+    [
+     "partially_verified",
+     "verified",
+     "partially_verified"
+    ]
+   ],
+   "cost": 0.1573
+  },
+  "current->candidate": [
+   "still_open",
+   "still_open",
+   "still_open"
+  ],
+  "candidate->next": [
+   "still_open",
+   "still_open",
+   "still_open"
+  ]
+ },
+ "M3-00": {
+  "current": {
+   "raw_replay": [
+    "succeeded",
+    "failed",
+    "succeeded"
+   ],
+   "replay": [
+    "succeeded",
+    "succeeded",
+    "succeeded"
+   ],
+   "assertion": [
+    "fail",
+    "fail",
+    "fail"
+   ],
+   "votes": [
+    {
+     "fail": 3
+    },
+    {
+     "fail": 3
+    },
+    {
+     "fail": 3
+    }
+   ],
+   "agreement": [
+    "3/3",
+    "3/3",
+    "3/3"
+   ],
+   "evidence": [
+    "verified",
+    "partially_verified",
+    "verified"
+   ],
+   "per_judgment_evidence": [
+    [
+     "verified",
+     "verified",
+     "verified"
+    ],
+    [
+     "partially_verified",
+     "partially_verified",
+     "verified"
+    ],
+    [
+     "verified",
+     "verified",
+     "verified"
+    ]
+   ],
+   "cost": 0.0943
+  },
+  "candidate": {
+   "raw_replay": [
+    "succeeded",
+    "succeeded",
+    "succeeded"
+   ],
+   "replay": [
+    "succeeded",
+    "succeeded",
+    "succeeded"
+   ],
+   "assertion": [
+    "fail",
+    "fail",
+    "fail"
+   ],
+   "votes": [
+    {
+     "fail": 3
+    },
+    {
+     "fail": 3
+    },
+    {
+     "fail": 3
+    }
+   ],
+   "agreement": [
+    "3/3",
+    "3/3",
+    "3/3"
+   ],
+   "evidence": [
+    "verified",
+    "verified",
+    "verified"
+   ],
+   "per_judgment_evidence": [
+    [
+     "verified",
+     "verified",
+     "verified"
+    ],
+    [
+     "verified",
+     "verified",
+     "verified"
+    ],
+    [
+     "verified",
+     "verified",
+     "verified"
+    ]
+   ],
+   "cost": 0.0982
+  },
+  "next": {
+   "raw_replay": [
+    "succeeded",
+    "succeeded",
+    "succeeded"
+   ],
+   "replay": [
+    "succeeded",
+    "succeeded",
+    "succeeded"
+   ],
+   "assertion": [
+    "fail",
+    "fail",
+    "fail"
+   ],
+   "votes": [
+    {
+     "fail": 2,
+     "not_measurable": 1
+    },
+    {
+     "fail": 3
+    },
+    {
+     "fail": 3
+    }
+   ],
+   "agreement": [
+    "2/3",
+    "3/3",
+    "3/3"
+   ],
+   "evidence": [
+    "verified",
+    "verified",
+    "partially_verified"
+   ],
+   "per_judgment_evidence": [
+    [
+     "verified",
+     "verified",
+     "unverified"
+    ],
+    [
+     "verified",
+     "verified",
+     "verified"
+    ],
+    [
+     "partially_verified",
+     "verified",
+     "verified"
+    ]
+   ],
+   "cost": 0.0889
+  },
+  "current->candidate": [
+   "still_open",
+   "still_open",
+   "still_open"
+  ],
+  "candidate->next": [
+   "still_open",
+   "still_open",
+   "still_open"
+  ]
+ },
+ "M3-02": {
+  "current": {
+   "raw_replay": [
+    "succeeded",
+    "failed",
+    "succeeded"
+   ],
+   "replay": [
+    "succeeded",
+    "succeeded",
+    "succeeded"
+   ],
+   "assertion": [
+    "pass",
+    "pass",
+    "pass"
+   ],
+   "votes": [
+    {
+     "pass": 3
+    },
+    {
+     "pass": 2,
+     "not_measurable": 1
+    },
+    {
+     "pass": 3
+    }
+   ],
+   "agreement": [
+    "3/3",
+    "2/3",
+    "3/3"
+   ],
+   "evidence": [
+    "partially_verified",
+    "verified",
+    "partially_verified"
+   ],
+   "per_judgment_evidence": [
+    [
+     "partially_verified",
+     "verified",
+     "verified"
+    ],
+    [
+     "verified",
+     "verified",
+     "unverified"
+    ],
+    [
+     "verified",
+     "partially_verified",
+     "partially_verified"
+    ]
+   ],
+   "cost": 0.1016
+  },
+  "candidate": {
+   "raw_replay": [
+    "succeeded",
+    "succeeded",
+    "failed"
+   ],
+   "replay": [
+    "succeeded",
+    "succeeded",
+    "succeeded"
+   ],
+   "assertion": [
+    "pass",
+    "pass",
+    "pass"
+   ],
+   "votes": [
+    {
+     "pass": 3
+    },
+    {
+     "pass": 3
+    },
+    {
+     "pass": 3
+    }
+   ],
+   "agreement": [
+    "3/3",
+    "3/3",
+    "3/3"
+   ],
+   "evidence": [
+    "partially_verified",
+    "partially_verified",
+    "partially_verified"
+   ],
+   "per_judgment_evidence": [
+    [
+     "partially_verified",
+     "partially_verified",
+     "partially_verified"
+    ],
+    [
+     "partially_verified",
+     "verified",
+     "verified"
+    ],
+    [
+     "partially_verified",
+     "verified",
+     "partially_verified"
+    ]
+   ],
+   "cost": 0.1069
+  },
+  "next": {
+   "raw_replay": [
+    "succeeded",
+    "succeeded",
+    "succeeded"
+   ],
+   "replay": [
+    "succeeded",
+    "succeeded",
+    "succeeded"
+   ],
+   "assertion": [
+    "pass",
+    "pass",
+    "pass"
+   ],
+   "votes": [
+    {
+     "pass": 3
+    },
+    {
+     "pass": 3
+    },
+    {
+     "pass": 3
+    }
+   ],
+   "agreement": [
+    "3/3",
+    "3/3",
+    "3/3"
+   ],
+   "evidence": [
+    "partially_verified",
+    "partially_verified",
+    "partially_verified"
+   ],
+   "per_judgment_evidence": [
+    [
+     "partially_verified",
+     "partially_verified",
+     "verified"
+    ],
+    [
+     "partially_verified",
+     "verified",
+     "verified"
+    ],
+    [
+     "partially_verified",
+     "partially_verified",
+     "verified"
+    ]
+   ],
+   "cost": 0.1199
+  },
+  "current->candidate": [
+   "not_reproduced",
+   "not_reproduced",
+   "not_reproduced"
+  ],
+  "candidate->next": [
+   "not_reproduced",
+   "not_reproduced",
+   "not_reproduced"
+  ]
+ }
+}

@@ -1,0 +1,281 @@
+{
+ "check": "C1-04",
+ "check_digest": "f0cb1dc9ee14fc8f",
+ "approved": false,
+ "release": "current",
+ "episode": "current/ic_c1-04/IC-C1-04",
+ "replay": {
+  "status": "succeeded",
+  "reasons": [],
+  "notes": [],
+  "surface_messages": 1
+ },
+ "assertion": {
+  "outcome": "fail",
+  "votes": {
+   "fail": 3
+  }
+ },
+ "semantic_confidence": {
+  "level": "high",
+  "agreement": "3/3",
+  "judgments": 3
+ },
+ "evidence": {
+  "status": "partially_verified",
+  "per_judgment": [
+   "verified",
+   "partially_verified",
+   "partially_verified"
+  ]
+ },
+ "judgments": [
+  {
+   "outcome": "fail",
+   "why": "Email shows Subtotal $179.98 + Shipping $0.00 + Tax $14.40 - Promotion $15.00 = $179.38, but shown Order Total is $194.38 (delta $15.00). Shipping $0.00 also does not match order.delivery_total $15.00 / fulfillment cost $15.00. Correct total per record is 179.98+15.00-15.00+14.40=194.38, so display arithmetic and shipping amount are inconsistent.",
+   "cited": [
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "DRIP-COFFEE-MAKER-BLACK Drip Coffee Maker 1.5L Color: Matte Black (2) @ $89.99 = $179.98"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Subtotal: $179.98"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Promotion: Promotion (Free Shipping) -$15.00"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Shipping: Express $0.00"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Tax: $14.40"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Order Total: $194.38"
+    }
+   ],
+   "record": [
+    {
+     "field": "order.items[0].price",
+     "value": "89.99"
+    },
+    {
+     "field": "order.items[0].quantity",
+     "value": "2"
+    },
+    {
+     "field": "order.item_total",
+     "value": "179.98"
+    },
+    {
+     "field": "order.discount_total",
+     "value": "-15.0"
+    },
+    {
+     "field": "order.delivery_total",
+     "value": "15.0"
+    },
+    {
+     "field": "order.tax_total",
+     "value": "14.4"
+    },
+    {
+     "field": "order.total",
+     "value": "194.38"
+    },
+    {
+     "field": "fulfillments[0].cost",
+     "value": "15.0"
+    },
+    {
+     "field": "fulfillments[0].total",
+     "value": "0.0"
+    },
+    {
+     "field": "fulfillments[0].discount_total",
+     "value": "-15.0"
+    }
+   ],
+   "seed": 1,
+   "model": "meta-models/muse-spark-open-1026",
+   "cached": false,
+   "cost_usd": 0.0130835,
+   "evidence": {
+    "status": "verified",
+    "quotes_ok": 6,
+    "quotes_bare": [],
+    "quotes_refused": [],
+    "record_ok": [
+     "order.items[0].price = 89.99",
+     "order.items[0].quantity = 2",
+     "order.item_total = 179.98",
+     "order.discount_total = -15.0",
+     "order.delivery_total = 15.0",
+     "order.tax_total = 14.4",
+     "order.total = 194.38",
+     "fulfillments[0].cost = 15.0",
+     "fulfillments[0].total = 0.0",
+     "fulfillments[0].discount_total = -15.0"
+    ],
+    "record_refused": []
+   }
+  },
+  {
+   "outcome": "fail",
+   "why": "Email shows line 2\u00d789.99=179.98 correct and Subtotal 179.98. It shows Shipping $0.00 and Promotion -$15.00 and Tax $14.40 with Order Total $194.38. Arithmetic on shown figures: 179.98 (subtotal) + 0.00 (delivery shown) + 14.40 (tax) - 15.00 (discount) = 179.38, not 194.38 shown. Using record gross delivery 15.00, correct total is 179.98+15.00+14.40-15.00=194.38 which matches record total, but email shows delivery as 0.00 so the summary as shown is inconsistent and the shipping amount does not match record delivery_total (15.00) while still counting the free-shipping discount separately.",
+   "cited": [
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "DRIP-COFFEE-MAKER-BLACK Drip Coffee Maker 1.5L Color: Matte Black (2) @ $89.99 = $179.98"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Subtotal: $179.98"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Promotion: Promotion (Free Shipping) -$15.00"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Shipping: Express $0.00"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Tax: $14.40"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Order Total: $194.38"
+    }
+   ],
+   "record": [
+    {
+     "field": "order.item_total",
+     "value": "}]} \n\n{"
+    }
+   ],
+   "seed": 2,
+   "model": "meta-models/muse-spark-open-1026",
+   "cached": false,
+   "cost_usd": 0.01386125,
+   "evidence": {
+    "status": "partially_verified",
+    "quotes_ok": 6,
+    "quotes_bare": [],
+    "quotes_refused": [],
+    "record_ok": [],
+    "record_refused": [
+     "order.item_total: judgment read '}]} \\n\\n{', record holds 179.98"
+    ]
+   }
+  },
+  {
+   "outcome": "fail",
+   "why": "Email shows line 89.99*2=179.98 correct, line sum to subtotal correct. But total arithmetic fails if every displayed component counted once: 179.98 (subtotal) + 0.00 (shipping) + 14.40 (tax) - 15.00 (promotion) = 179.38, not displayed 194.38 (difference 15.00). Displayed total 194.38 equals 179.98+0.00+14.40 only if discount ignored, meaning discount is either double-counted or not counted. Record shows gross delivery 15.00 and discount -15.00, total 194.38 = 179.98+15.00+14.40-15.00. Email shows shipping $0.00 (net) not $15.00, so amount does not match order.delivery_total.",
+   "cited": [
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "DRIP-COFFEE-MAKER-BLACK Drip Coffee Maker 1.5L Color: Matte Black (2) @ $89.99 = $179.98"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Subtotal: $179.98"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Promotion: Promotion (Free Shipping) -$15.00"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Shipping: Express $0.00"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Tax: $14.40"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Order Total: $194.38"
+    }
+   ],
+   "record": [
+    {
+     "field": "order.items[0].price",
+     "value": ", "
+    },
+    {
+     "field": "  89.99\" } , {\"field\": \" order.items[0].quantity\" ",
+     "value": "  ,  "
+    },
+    {
+     "field": "order.item_total",
+     "value": ", "
+    },
+    {
+     "field": "  179.98\" } , {\"field\": \" order.discount_total\" ",
+     "value": "  ,  "
+    },
+    {
+     "field": "order.delivery_total",
+     "value": ", "
+    },
+    {
+     "field": "  15.0\" } , {\"field\": \" order.tax_total\" ",
+     "value": ", "
+    },
+    {
+     "field": "  14.4\" } , {\"field\": \" order.total\" ",
+     "value": ", "
+    },
+    {
+     "field": "  194.38\" } , {\"field\": \" order.fulfillments[0].cost\" ",
+     "value": "  ,  "
+    },
+    {
+     "field": "order.fulfillments[0].total",
+     "value": ", "
+    },
+    {
+     "field": "  0.0\" } , {\"field\": \" order.fulfillments[0].discount_total\" ",
+     "value": ", "
+    },
+    {
+     "field": "  -15.0\" } , {\"field\": \" order.discounts[0].amount\" ",
+     "value": "  ,  "
+    }
+   ],
+   "seed": 3,
+   "model": "meta-models/muse-spark-open-1026",
+   "cached": false,
+   "cost_usd": 0.0150215,
+   "evidence": {
+    "status": "partially_verified",
+    "quotes_ok": 6,
+    "quotes_bare": [],
+    "quotes_refused": [],
+    "record_ok": [],
+    "record_refused": [
+     "order.items[0].price: judgment read ', ', record holds 89.99",
+     "  89.99\" } , {\"field\": \" order.items[0].quantity\" : not in the record",
+     "order.item_total: judgment read ', ', record holds 179.98",
+     "  179.98\" } , {\"field\": \" order.discount_total\" : not in the record",
+     "order.delivery_total: judgment read ', ', record holds 15.0",
+     "  15.0\" } , {\"field\": \" order.tax_total\" : not in the record",
+     "  14.4\" } , {\"field\": \" order.total\" : not in the record",
+     "  194.38\" } , {\"field\": \" order.fulfillments[0].cost\" : not in the record",
+     "order.fulfillments[0].total: judgment read ', ', record holds 0.0",
+     "  0.0\" } , {\"field\": \" order.fulfillments[0].discount_total\" : not in the record",
+     "  -15.0\" } , {\"field\": \" order.discounts[0].amount\" : not in the record"
+    ]
+   }
+  }
+ ],
+ "payload_sha256": "be25178087bbb700",
+ "cost_usd": 0.041966
+}

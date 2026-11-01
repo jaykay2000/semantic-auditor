@@ -1,0 +1,66 @@
+id: C2-11
+source:
+  ref: C2#11
+  trial: C2
+  heading: F11. "Your order has been fulfilled" email sent when only the digital item
+    of a mixed order was fulfilled — PRESENT IN BOTH
+  claim: '"Your order has been fulfilled" email sent when only the digital item of
+    a mixed order was fulfilled. The shaver has not shipped. The words say the whole
+    order is fulfilled.'
+  where: 'second email to the shopper of R1013 (current c2-nm-cur@example.test, candidate
+    c2-nm-cand@example.test): Rotary Shaver 9000 (physical, Express) + The Spree Commerce
+    Handbook (digital).'
+  shown: 'subject `Demo Store Fulfillment Notification #R1013`; body `Your order R1013
+    has been fulfilled` … `SPREE-HANDBOOK The Spree Commerce Handbook`.'
+  should_be: 'the order''s real fulfillment status is `partial` (record `fulfillment_status:
+    "partial"`)'
+  reproduce: order one physical product plus The Spree Commerce Handbook, pay by Check.
+  rule: R9 ("status words match the order's real status"), minor.
+  sha256: 8686277fdc154dff
+clauses:
+- text: 'order one physical product plus The Spree Commerce Handbook, '
+  kind: action
+  steps:
+  - 1
+  - 2
+  - 7
+  sets:
+  - items
+  unmapped: null
+- text: pay by Check.
+  kind: action
+  steps:
+  - 6
+  sets:
+  - payment_method
+  unmapped: null
+persona: {}
+scenario: {}
+invariant: null
+conversion:
+  status: not_converted
+  reasons:
+  - step 4 (enter_address) carries out no clause and is not a declared prerequisite
+  - material field 'state' = 'NY' comes from no clause and is not its default
+  gaps: []
+  unmapped: []
+  alternatives: []
+  defaulted: []
+  implied_steps: []
+  gate_rounds: 2
+  gate_errors:
+  - - step 4 (enter_address) cites clause 0 ('order one physical product plus The
+      Spree Commerce Handbook,'), whose words do not describe enter_address; an action
+      no verb does is an unmapped clause, not another verb
+    - step 4 (enter_address) needs persona field 'state', which the draft does not
+      set
+    - step 4 (enter_address) needs persona field 'city', which the draft does not
+      set
+    - step 4 (enter_address) needs persona field 'zip', which the draft does not set
+  - - step 4 (enter_address) carries out no clause and is not a declared prerequisite
+    - material field 'state' = 'NY' comes from no clause and is not its default
+  model: meta-models/muse-spark-open-1026
+  cost_usd: 0.045009
+converter:
+  sra_commit: b6d672b
+  prompt_sha: 128b9f7b9ac3e616

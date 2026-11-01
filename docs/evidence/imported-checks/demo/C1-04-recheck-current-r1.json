@@ -1,0 +1,277 @@
+{
+ "check": "C1-04",
+ "check_digest": "f0cb1dc9ee14fc8f",
+ "approved": false,
+ "release": "current",
+ "episode": "current/ic_c1-04/IC-C1-04",
+ "replay": {
+  "status": "succeeded",
+  "reasons": [],
+  "notes": [],
+  "surface_messages": 1
+ },
+ "assertion": {
+  "outcome": "fail",
+  "votes": {
+   "fail": 3
+  }
+ },
+ "semantic_confidence": {
+  "level": "high",
+  "agreement": "3/3",
+  "judgments": 3
+ },
+ "evidence": {
+  "status": "partially_verified",
+  "per_judgment": [
+   "partially_verified",
+   "verified",
+   "partially_verified"
+  ]
+ },
+ "judgments": [
+  {
+   "outcome": "fail",
+   "why": "Email shows Subtotal $179.98 + Promotion -$15.00 + Shipping $0.00 + Tax $14.40 = $179.38, but Email Order Total is $194.38 (difference $15.00). Record shows true delivery cost $15.00 (delivery_total 15.0 / fulfillments[0].cost 15.0) with discount -$15.00 netting to $0.00 (fulfillments[0].total 0.0). Email displays net shipping $0.00 AND the $15 discount separately, so arithmetic using displayed figures does not reconcile to displayed total, and Shipping amount does not match record delivery cost. Expected total from record components: 179.98 + 15.00 + 14.40 - 15.00 = 194.38.",
+   "cited": [
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "DRIP-COFFEE-MAKER-BLACK Drip Coffee Maker 1.5L Color: Matte Black (2) @ $89.99 = $179.98"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Subtotal: $179.98"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Promotion: Promotion (Free Shipping) -$15.00"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Shipping: Express $0.00"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Tax: $14.40"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Order Total: $194.38"
+    }
+   ],
+   "record": [
+    {
+     "field": "order.item_total",
+     "value": "}, {"
+    }
+   ],
+   "seed": 1,
+   "model": "meta-models/muse-spark-open-1026",
+   "cached": false,
+   "cost_usd": 0.013585,
+   "evidence": {
+    "status": "partially_verified",
+    "quotes_ok": 6,
+    "quotes_bare": [],
+    "quotes_refused": [],
+    "record_ok": [],
+    "record_refused": [
+     "order.item_total: judgment read '}, {', record holds 179.98"
+    ]
+   }
+  },
+  {
+   "outcome": "fail",
+   "why": "Line amount is correct: 2 * 89.99 = 179.98 matches Subtotal 179.98. Tax at 8% is correct: 179.98 * 0.08 = 14.3984 -> 14.40. But total arithmetic fails when every shown component is counted once: Subtotal 179.98 + Shipping 0.00 + Tax 14.40 - Discount 15.00 = 179.38, not the shown Order Total 194.38 (short by 15.00). This reflects double-counting: record has delivery_total 15.00 with separate discount -15.00 (179.98+15.00+14.40-15.00=194.38), while email shows net Shipping 0.00 plus the same -15.00 discount, so amounts do not match record and sum is inconsistent.",
+   "cited": [
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "DRIP-COFFEE-MAKER-BLACK Drip Coffee Maker 1.5L Color: Matte Black (2) @ $89.99 = $179.98"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Subtotal: $179.98"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Promotion: Promotion (Free Shipping) -$15.00"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Shipping: Express $0.00"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Tax: $14.40"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Order Total: $194.38"
+    }
+   ],
+   "record": [
+    {
+     "field": "order.item_total",
+     "value": ": 179.98"
+    },
+    {
+     "field": "order.delivery_total",
+     "value": ": 15.0"
+    },
+    {
+     "field": "order.discount_total",
+     "value": ": -15.0"
+    },
+    {
+     "field": "order.tax_total",
+     "value": ": 14.4"
+    },
+    {
+     "field": "order.total",
+     "value": ": 194.38"
+    },
+    {
+     "field": "order.items[0].price",
+     "value": ": 89.99"
+    },
+    {
+     "field": "order.items[0].quantity",
+     "value": ": 2"
+    },
+    {
+     "field": "order.items[0].total",
+     "value": ": 194.38"
+    },
+    {
+     "field": "fulfillments[0].cost",
+     "value": ": 15.0"
+    },
+    {
+     "field": "fulfillments[0].total",
+     "value": ": 0.0"
+    },
+    {
+     "field": "fulfillments[0].discount_total",
+     "value": ": -15.0"
+    }
+   ],
+   "seed": 2,
+   "model": "meta-models/muse-spark-open-1026",
+   "cached": false,
+   "cost_usd": 0.0130325,
+   "evidence": {
+    "status": "verified",
+    "quotes_ok": 6,
+    "quotes_bare": [],
+    "quotes_refused": [],
+    "record_ok": [
+     "order.item_total = : 179.98",
+     "order.delivery_total = : 15.0",
+     "order.discount_total = : -15.0",
+     "order.tax_total = : 14.4",
+     "order.total = : 194.38",
+     "order.items[0].price = : 89.99",
+     "order.items[0].quantity = : 2",
+     "order.items[0].total = : 194.38",
+     "fulfillments[0].cost = : 15.0",
+     "fulfillments[0].total = : 0.0",
+     "fulfillments[0].discount_total = : -15.0"
+    ],
+    "record_refused": []
+   }
+  },
+  {
+   "outcome": "fail",
+   "why": "Line-item arithmetic is correct (2 x $89.99 = $179.98) and line sum equals subtotal ($179.98). However subtotal + delivery + tax - discount as shown does not equal total: $179.98 (subtotal) + $0.00 (Shipping) + $14.40 (Tax) - $15.00 (Promotion) = $179.38, not the $194.38 Order Total shown (difference $15.00). Using the order record's undiscounted delivery cost ($15.00) the total would reconcile ($179.98+15.00+14.40-15.00=$194.38) but the email shows $0.00 for shipping, so the displayed shipping amount does not match the record and the displayed components cannot sum to the displayed total with each component counted exactly once.",
+   "cited": [
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Drip Coffee Maker 1.5L Color: Matte Black (2) @ $89.99 = $179.98"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Subtotal: $179.98"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Promotion: Promotion (Free Shipping) -$15.00"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Shipping: Express $0.00"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Tax: $14.40"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Order Total: $194.38"
+    }
+   ],
+   "record": [
+    {
+     "field": "order.item_total",
+     "value": "}}]} {"
+    },
+    {
+     "field": "order.discount_total",
+     "value": "-15"
+    },
+    {
+     "field": "order.delivery_total",
+     "value": "15"
+    },
+    {
+     "field": "order.tax_total",
+     "value": "14.4"
+    },
+    {
+     "field": "order.total",
+     "value": "194.38"
+    },
+    {
+     "field": "order.items[0].price",
+     "value": "89.99"
+    },
+    {
+     "field": "order.items[0].quantity",
+     "value": "2"
+    },
+    {
+     "field": "fulfillments[0].cost",
+     "value": "15"
+    },
+    {
+     "field": "fulfillments[0].total",
+     "value": "0"
+    }
+   ],
+   "seed": 3,
+   "model": "meta-models/muse-spark-open-1026",
+   "cached": false,
+   "cost_usd": 0.0131515,
+   "evidence": {
+    "status": "partially_verified",
+    "quotes_ok": 6,
+    "quotes_bare": [],
+    "quotes_refused": [],
+    "record_ok": [
+     "order.discount_total = -15",
+     "order.delivery_total = 15",
+     "order.tax_total = 14.4",
+     "order.total = 194.38",
+     "order.items[0].price = 89.99",
+     "order.items[0].quantity = 2",
+     "fulfillments[0].cost = 15",
+     "fulfillments[0].total = 0"
+    ],
+    "record_refused": [
+     "order.item_total: judgment read '}}]} {', record holds 179.98"
+    ]
+   }
+  }
+ ],
+ "payload_sha256": "acd7391a7ce677c1",
+ "cost_usd": 0.039769
+}

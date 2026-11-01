@@ -1,0 +1,107 @@
+id: C1-16
+source:
+  ref: C1#16
+  trial: C1
+  heading: F12 — Signed-in order history shows a raw label "Orders.Unfulfilled"; account
+    order page repeats the tax-inclusive line amount
+  claim: Signed-in order history shows a raw label "Orders.Unfulfilled"
+  where: '`/us/en/account/orders` for test shopper o1.cur@example.test (current, R1017)
+    and o1.cand@example.test (candidate, R1017): Oli Omicron, Albany NY 12207, Robot
+    Vacuum $349.99, Standard, FREESHIP, Check. (Accounts created on the local storefronts.)'
+  shown: 'list row "#R1017 Oct 30, 2026 Paid **Orders.Unfulfilled** $1,133.97 View"
+    (candidate: "… Orders.Unfulfilled $755.98 …").'
+  should_be: 'a status word ("Unfulfilled"/"Not shipped"), not a translation key (R9:
+    status words match the real status).'
+  reproduce: 'How checked: signed in as the test shopper; record /order/<ver>/R1017
+    (fulfillment_status "unfulfilled", items[0].price 349.99, quantity 3 in current
+    / 2 in candidate — the quantity differs only because my earlier failed sign-in
+    attempts left items in that account''s cart).'
+  rule: R9 (status wording, minor)
+  sha256: da02e7b464a3dfd4
+clauses:
+- text: 'How checked: '
+  kind: observation
+  steps: []
+  sets: []
+  unmapped: null
+- text: signed in as the test shopper
+  kind: action
+  steps: []
+  sets: []
+  unmapped:
+    reason: no_verb
+    missing_verb: sign_in
+    why: sign-in has no verb in harness
+- text: ; record /order/<ver>/R1017 (fulfillment_status "unfulfilled", items[0].price
+    349.99, quantity 3 in current / 2 in candidate
+  kind: context
+  steps: []
+  sets:
+  - items
+  unmapped: null
+- text: ' — the quantity differs only because my earlier failed sign-in attempts left
+    items in that account''s cart).'
+  kind: alternative
+  steps: []
+  sets: []
+  unmapped: null
+persona:
+  id: ic_c1-16
+  name: Oli Omicron
+  role: imported
+  context:
+    component: order
+    name: Oli Omicron
+    country: US
+    delivery_method: Standard
+    payment_method: Check
+    promo_code: FREESHIP
+    exchange_to: null
+    state: NY
+    city: Albany
+    zip: '12207'
+    items:
+    - robot-vacuum||3
+    email: ic-c1-16@example.test
+scenario:
+  id: IC-C1-16
+  description: imported check C1-16
+  day0: '2026-11-02T00:00:00+00:00'
+  personas:
+  - ic_c1-16
+  steps: []
+invariant:
+  rule: U9
+  surface: ''
+  statement: every order row shown in the signed-in order history displays a human-readable
+    fulfillment status word that matches the order record's fulfillment_status and
+    is not a raw translation or code key
+conversion:
+  status: adapter_gap
+  reasons:
+  - 'needs verb ''sign_in'': ''signed in as the test shopper'''
+  - 'the cited surface is not one the harness reaches: ''/us/en/account/orders - signed-in
+    order history list'''
+  - 'context clause reads like an action (\bfulfil): ''; record /order/<ver>/R1017
+    (fulfillment_status "unfulfilled", items[0].price 349.99, quan'''
+  - no action clause is carried out by any step
+  gaps:
+  - sign_in
+  - 'surface: /us/en/account/orders - signed-in order history list'
+  unmapped:
+  - signed in as the test shopper
+  alternatives:
+  - ' — the quantity differs only because my earlier failed sign-in attempts left
+    items in that account''s cart).'
+  defaulted:
+  - component
+  - exchange_to
+  implied_steps: []
+  gate_rounds: 1
+  gate_errors:
+  - []
+  model: meta-models/muse-spark-open-1026
+  cost_usd: 0.025403
+converter:
+  sra_commit: 2379f13-dirty
+  prompt_sha: 128b9f7b9ac3e616
