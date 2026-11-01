@@ -53,9 +53,9 @@ $24,500 in 0, $32,500 in 0, $35,750 in 8.
 
 **So "$35,750 everywhere" holds for the stated limit on v707, with one caveat.** The same report pages on BOTH builds
 also say "There's roughly $12,500 of unused 401(k) headroom annually". That is $24,500 − $12,000 (the persona's
-yearly contribution), the under-50 limit; at $35,750 the room would be $23,750. Finlearn already tracks this as the
-open ledger row `AGE-BLIND-401K-AUTHORS`. A rule that counted the room figure (the wide contract's H1 did) would still
-fail v707.
+yearly contribution), the under-50 limit; at $35,750 the room would be $23,750. Finlearn's ledger row
+`AGE-BLIND-401K-AUTHORS` covers it: OPEN at v707, CLOSED 2026-10-04 by §74 (PR #439, prod v708). A rule that counted
+the room figure (the wide contract's H1 did) would still fail v707, and would need v708 or later as the "fixed" release.
 
 Note: the harness's `launch_finablo.py` carried another session's uncommitted edit during this capture (the email
 sink's message key); it touches the welcome email's pairing key only, not any page text above.
