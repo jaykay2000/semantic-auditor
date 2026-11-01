@@ -17,7 +17,14 @@ reliability.**
 | Spree harness | `spree-semaudit/contract-imported/` (`imports.yaml`, `catalog.json`), `imported_checks.py`, `imported_checks_aggregate.py` | the store's import vocabulary (15 verbs, words that must describe each verb, prerequisites, the 38-product catalog, defaults, R1-R11 -> U1..L1) and the driver |
 
 **Tests:** `tests/test_imported_checks.py` (34). `scripts/mutate_imported_checks.py` removes each of 26 safeguards in
-turn: 26 tests go red, 0 survive (checked at `b6d672b` and again at `f8ee336`). Full suite: 404 passed.
+turn: 26 tests go red, 0 survive (checked at `b6d672b` and again at `f8ee336`). Today 33 safeguards, 0 survive.
+
+**Full suite, measured in a clean environment** (2026-11-01, commit `9235ca1`, a fresh `git clone`, Python 3.12.5,
+`pip install -e '.[test]'`, then `pytest` from the repo root, as in the README's "Run the tests"):
+483 passed, 42 skipped with Chromium installed (`python -m playwright install chromium`); 407 passed, 118 skipped
+without it (the browser tests skip, with the reason). The 42 always-skipped tests need `runs/e2e-2`, a local
+capture run not in git. Earlier counts in this file's history (404, 414) came from the author's working copy
+with that run present and other extras installed, and are superseded.
 
 ## Method and the no-tuning rule
 
@@ -218,7 +225,7 @@ Examples: `'|1|7|9|.|9|8|'`, `'***REDACTED***'`, `'},{'`, `'  1 4 . 4'`. **A cle
 re-asked** and still counts against the evidence. If garbage persists, the last judgment stands and is graded as it
 is. Discarded judgments are kept, with what was malformed and what they cost. Tests:
 `test_garbage_record_value_is_asked_again`, `test_wrong_clean_number_is_not_asked_again`,
-`test_garbage_re_asks_are_bounded`, plus three mutations, all red (33 of 33 overall). 414 tests pass.
+`test_garbage_re_asks_are_bounded`, plus three mutations, all red (33 of 33 overall). Suite counts: see Tests above.
 
 **Run 3c** (`acceptance/run3c-transcript.txt`, `run3c-saved-checks.json`, `cards-run3c.html`): the same command from
 storage, run id `ic-accept-run3c`.
