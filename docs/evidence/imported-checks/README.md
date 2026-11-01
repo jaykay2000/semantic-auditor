@@ -231,3 +231,7 @@ storage, run id `ic-accept-run3c`.
 The cost is the catch: **$0.543** for 12 judgments, which needed 23 readable calls plus 6 runaways. There were 11
 garbage re-asks across the 12 judgments, so the model writes garbage record values in most first replies. Running
 total **$10.06** (ledger), past the $10 ask-first line by $0.06. The run's own cap (`--max-usd 0.6`) held.
+
+**Chosen for the video (owner, 2026-10-31): Run 3c**, using `acceptance/cards-run3c.html` and `run3c-transcript.txt`
+as they came out. Owner on spend: model spend is not a concern when it helps the video demo or the open-source repo,
+so the $10 ask-first line no longer applies to that work.
