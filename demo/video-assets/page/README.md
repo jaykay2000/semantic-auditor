@@ -1,8 +1,8 @@
 # Release review page: video stills
 
 Rendered with Playwright (Chromium) from the built `file://` pages at 1920×1080, device scale 2 (3840×2160 PNGs),
-network blocked. Each page was built with `semaudit.report.page.build` into `/private/tmp/claude-501/page-design/<app>/`;
-nothing was written into a run folder. Scene numbers refer to `docs/archive/07-demo-reframe-draft.md` (superseded).
+network blocked. Each page was built with `semaudit.report.page.build` into a scratch folder outside any run folder
+(the same as `semaudit report <review.json> --out <folder>`); nothing was written into a run folder. Scene numbers refer to `docs/archive/07-demo-reframe-draft.md` (superseded).
 
 | File | Scene | What it shows |
 |---|---|---|
@@ -22,7 +22,9 @@ nothing was written into a run folder. Scene numbers refer to `docs/archive/07-d
 
 Deep links (open the built page with these hashes): Jo `#persona=jo&mode=base&issue=R-v6.0.0.beta2-U1-delivery-total-order-email-order-confirm-b3efaba3&step=s11`
 (add `&ticket=1` for the ticket); Finablo `#persona=target_61&mode=base&issue=R-10ff1e3-H1-unnamed-fact-first-move-plan-882347a724-a698fc88`;
-Lena `#persona=lena&mode=head&issue=`. Regenerate the stills with `/private/tmp/claude-501/page-design/final.py`.
+Lena `#persona=lena&mode=head&issue=`. To regenerate a still, rebuild the page with
+`semaudit report <review.json> --out <folder>` and screenshot `<folder>/index.html#<deep link>` at 1920×1080 (the
+one-off script that rendered these stills is not kept).
 
 ## Design decisions
 

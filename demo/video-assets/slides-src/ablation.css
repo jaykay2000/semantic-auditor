@@ -1,4 +1,4 @@
-/* s05 / s05b: found-vs-false-alarm rows */
+/* s05: found-vs-false-alarm rows */
 .head{margin-top:90px;display:flex;flex-direction:column;gap:16px}
 .head h1{font-size:66px;max-width:1600px}
 .chart{margin-top:58px;display:grid;grid-template-columns:500px auto 1fr;column-gap:56px;row-gap:0}
