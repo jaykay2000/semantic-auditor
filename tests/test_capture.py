@@ -27,7 +27,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from semaudit.adapters.base import StepFailed, StepResult, load_adapter  # noqa: E402
+from semaudit.adapters.base import StepResult, load_adapter  # noqa: E402
 from semaudit.capture import Runner  # noqa: E402
 from semaudit.capture.runner import Runner as RunnerClass  # noqa: E402
 from semaudit.contract.schema import Scenario, Step, load_contract  # noqa: E402
@@ -396,6 +396,7 @@ def test_cli_capture_writes_episodes_and_exits_0(tmp_path):
 
 def _contract_copy(tmp_path, edit):
     import shutil
+
     import yaml
     d = tmp_path / "contract"
     shutil.copytree(CONTRACT, d)
@@ -613,9 +614,9 @@ def test_delta_2_4_to_2_4_1_resolves_the_fixes_and_flags_rina(run):
 
 
 # ---------------------------------------------- W10b: the Release Story page, driven in a real browser
+from semaudit.contract.approve import approval_state as _approval  # noqa: E402
 from semaudit.decide.pipeline import ReleaseEval  # noqa: E402
 from semaudit.report.page import build as _build_page  # noqa: E402
-from semaudit.contract.approve import approval_state as _approval  # noqa: E402
 from semaudit.report.review import assemble as _assemble  # noqa: E402
 from semaudit.report.review import write as _write  # noqa: E402
 from semaudit.verify.steps import verify as _verify  # noqa: E402

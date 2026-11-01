@@ -7,10 +7,10 @@ from types import SimpleNamespace
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-import pytest  # noqa: E402
+import pytest
 
-from semaudit.bench.judge import SCHEMA  # noqa: E402
-from semaudit.models import router as R  # noqa: E402
+from semaudit.bench.judge import SCHEMA
+from semaudit.models import router as R
 
 
 def _walk(o):

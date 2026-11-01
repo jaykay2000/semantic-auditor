@@ -5,7 +5,7 @@ must never be passed over in silence: the engine skips it explicitly, the review
 outcome cannot be ship), the contract review page says so, and reader mode, where the model judges every rule's
 text, still gives the rule to the model. Built generically: no app vocabulary in the core."""
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -22,7 +22,7 @@ from semaudit.report.review import measurement, outcome_of  # noqa: E402
 from semaudit.story.model import Event, Extraction, Story  # noqa: E402
 
 NB = load_contract(ROOT / "examples/northbound/contract")
-T0 = datetime(2026, 10, 1, 9, 0, tzinfo=timezone.utc)
+T0 = datetime(2026, 10, 1, 9, 0, tzinfo=UTC)
 
 
 def rule(id="X1", kind="universal", **kw) -> Rule:

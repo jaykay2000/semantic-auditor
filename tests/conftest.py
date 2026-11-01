@@ -22,7 +22,7 @@ def chromium_missing() -> str | None:
     try:
         with sync_playwright() as p:
             p.chromium.launch().close()
-    except Exception as e:  # noqa: BLE001  - any launch failure means no usable browser; the reason is shown
+    except Exception as e:  # any launch failure means no usable browser; the reason is shown
         first = (str(e).strip().splitlines() or ["launch failed"])[0]
         return f"needs Playwright's Chromium, which did not launch ({first[:120]}); run: {INSTALL}"
     return None

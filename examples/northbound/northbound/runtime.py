@@ -6,14 +6,11 @@ from __future__ import annotations
 
 import html
 import json
-import shutil
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from pathlib import Path
 from typing import Any
 
-from . import catalogue
-from .catalogue import city, fare_by_id, fares_for, money, party_label, when
+from .catalogue import city, money, party_label, when
 from .clock import D0, Job, JobQueue, SimClock, iso, parse_duration, run_until
 from .config import Config
 from .copy import COPY, render
@@ -103,7 +100,7 @@ class Runtime:
     def fstate(self, fid: str, traveller_id: str) -> dict[str, Any]:
         return self._fstate.setdefault((fid, traveller_id), {})
 
-    def ctx(self, traveller: Traveller | None = None, **extra: Any) -> "Ctx":
+    def ctx(self, traveller: Traveller | None = None, **extra: Any) -> Ctx:
         return Ctx(self, traveller, **extra)
 
     # ---- travellers ------------------------------------------------------------------------------------
@@ -132,7 +129,7 @@ class Runtime:
         feature.on_job(job, self.ctx(traveller))
 
     # ---- actions ---------------------------------------------------------------------------------------
-    def dispatch_action(self, action: str, ctx: "Ctx", data: dict[str, Any] | None = None) -> dict[str, Any] | None:
+    def dispatch_action(self, action: str, ctx: Ctx, data: dict[str, Any] | None = None) -> dict[str, Any] | None:
         """Offer an action to every feature, in release order. None = nobody handled it."""
         outcome: dict[str, Any] | None = None
         for f in self.features:
@@ -144,7 +141,7 @@ class Runtime:
                 break
         return outcome
 
-    def collect(self, surface: str, ctx: "Ctx", *, log: bool = True) -> list[Message]:
+    def collect(self, surface: str, ctx: Ctx, *, log: bool = True) -> list[Message]:
         msgs = [m for f in self.features for m in f.messages_for(surface, ctx)]
         if log:
             self.record(msgs)
@@ -160,7 +157,7 @@ class Runtime:
         return {"quote_id": f"q-{fare.id}-{party}", "fare": fare.unit_cents * party,
                 "taxes": fare.taxes_cents * party, "total": (fare.unit_cents + fare.taxes_cents) * party}
 
-    def blocked_reason(self, ctx: "Ctx", fare: Fare) -> str | None:
+    def blocked_reason(self, ctx: Ctx, fare: Fare) -> str | None:
         if ctx.booking is not None:
             return "already_booked"
         if self.world.seats_left(fare.id) < ctx.traveller.party:
@@ -172,7 +169,7 @@ class Runtime:
         ends = booking.booked_at + timedelta(hours=hours)
         return ends, self.now <= ends
 
-    def create_booking(self, ctx: "Ctx", fare: Fare) -> Booking:
+    def create_booking(self, ctx: Ctx, fare: Fare) -> Booking:
         reason = self.blocked_reason(ctx, fare)
         if reason:
             raise ValueError(reason)
@@ -192,7 +189,7 @@ class Runtime:
         self.dispatch_action("book", ctx, {"booking_id": bid})
         return booking
 
-    def upgrade_booking(self, ctx: "Ctx") -> str | None:
+    def upgrade_booking(self, ctx: Ctx) -> str | None:
         """Switch to a refundable fare inside the change window. Returns an error code or None."""
         b = ctx.booking
         if b is None or b.fare_kind != "non_refundable":
@@ -229,7 +226,7 @@ class Runtime:
             "change_window_ends": iso(ends), "within_change_window": within, "party": b.party,
             "charges": [c.as_dict() for c in b.charges], "total_cents": b.total_cents, "currency": "EUR"})
 
-    def _with_extras(self, ctx: "Ctx", doc: dict[str, Any]) -> dict[str, Any]:
+    def _with_extras(self, ctx: Ctx, doc: dict[str, Any]) -> dict[str, Any]:
         """Let features add charges (their own lines) and extra fields to the booking oracle."""
         for f in self.features:
             extra = f.oracle_extras(ctx)

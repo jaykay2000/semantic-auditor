@@ -147,7 +147,7 @@ def group(checked: list[tuple[Finding, dict]], facts: list[str]) -> list[tuple[t
     for items in comps.values():
         fact = _fact(items[0][0], facts)
         cites: dict[tuple, set] = {}
-        for f, found in items:
+        for _f, found in items:
             for p, cs in found.items():
                 for c in cs:
                     cites.setdefault((c[1], c[2]), set()).add(p)

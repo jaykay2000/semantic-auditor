@@ -1,9 +1,7 @@
 """Releases are plugins: behaviour changes by settings, copy and feature modules, with no core edits."""
 import pytest
-
-from northbound.releases import Release, load_release, module_name, register_release
-
 from nbhelpers import advance, log, outbox, persona
+from northbound.releases import Release, load_release, module_name, register_release
 
 
 def test_2_3_is_the_default_release_and_module_names_map(client):

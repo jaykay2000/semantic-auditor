@@ -7,15 +7,26 @@ Extraction and through the P2 interpreter (see interpret.py).
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from itertools import combinations
-from typing import Any, Callable
+from typing import Any
 
 from semaudit.contract.schema import Contract, Rule
 from semaudit.contract.validate import DATA_TESTS
 from semaudit.extract.messages import contract_roles
-from semaudit.relate.claims import MISMATCH, UNREADABLE, checkable, comparable, compare, in_period, precision, shown, stated
+from semaudit.relate.claims import (
+    MISMATCH,
+    UNREADABLE,
+    checkable,
+    comparable,
+    compare,
+    in_period,
+    precision,
+    shown,
+    stated,
+)
 from semaudit.story.model import Event, Extraction, Story
 
 
@@ -331,7 +342,7 @@ def p2_candidates(story: Story, contract: Contract) -> list[PairCandidate]:
             if not kind:
                 continue
             first, second = sorted((validity(ea, story, contract, d), validity(eb, story, contract, d)),
-                                   key=lambda l: l.start)
+                                   key=lambda v: v.start)
             if not live_at(first, second.start):
                 continue
             feats = "|".join(sorted((ea.feature, eb.feature)))

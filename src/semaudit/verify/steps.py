@@ -7,18 +7,17 @@ can change while the other two stay fixed.
 
 from __future__ import annotations
 
-import re
-
 import json
 import random
+import re
 from pathlib import Path
 from typing import Any
 
 from semaudit.contract.schema import Contract
 from semaudit.decide.issues import Issue, cited_events
 from semaudit.extract.messages import extract_unique, message_key
-from semaudit.relate.claims import checkable
 from semaudit.models.router import Router
+from semaudit.relate.claims import checkable
 from semaudit.relate.interpret import model_interpreter, story_view
 from semaudit.relate.rules import p2_candidates
 from semaudit.story.align import event_keys

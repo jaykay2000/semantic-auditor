@@ -9,8 +9,8 @@ attached later by the verifier and are never derived from severity, or from each
 from __future__ import annotations
 
 import re
-from datetime import datetime
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import Any
 
 from semaudit.contract.schema import SEVERITY, Contract, Rule
@@ -255,7 +255,7 @@ def build_issues(release: str, results: dict[str, tuple[Story, list[Entry]]], co
         by_subject: dict[str, list[Entry]] = {}
         for e in violated:
             by_subject.setdefault(e.subject, []).append(e)
-        for subject, es in by_subject.items():
+        for _subject, es in by_subject.items():
             es.sort(key=lambda e: order[e.rule])           # one event, one issue: the contract's first rule
             for primary, also in _split_by_fact(es):
                 evs = cited_events(primary, story)

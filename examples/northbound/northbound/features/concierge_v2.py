@@ -17,7 +17,7 @@ with seats in the bucket is enabled. All messages carry data-feature="concierge"
 """
 from __future__ import annotations
 
-from ..catalogue import money, plural
+from ..catalogue import plural
 from . import BaseFeature, concierge
 
 

@@ -5,7 +5,6 @@ from pathlib import Path
 
 import pdfplumber
 import yaml
-
 from nbhelpers import advance, parse, persona, set_clock
 
 FEATURES = {f["id"] for f in yaml.safe_load(
@@ -126,7 +125,6 @@ def test_concierge_answers_are_deterministic_and_never_proactive(client):
 
 # ------------------------------------------------------------------------------------- 2.4 and 2.4.1 sweep
 import pytest  # noqa: E402
-
 from nbhelpers import outbox  # noqa: E402
 
 NR = "LIS-BER-NR"
@@ -147,7 +145,7 @@ def test_every_page_of_2_4_and_2_4_1_carries_the_data_attributes(make_client, re
     }
     headers = {pid: persona(c, pid, **kw) for pid, kw in people.items()}
     markers = shown = 0
-    for pid, h in headers.items():
+    for _pid, h in headers.items():
         for url in ["/search", f"/fare/{NR}", "/fare/LIS-BER-RF", f"/checkout/{NR}"]:
             r, n = check_page(c, url, h)
             markers += n
@@ -155,7 +153,7 @@ def test_every_page_of_2_4_and_2_4_1_carries_the_data_attributes(make_client, re
     check_page(c, f"/checkout/{NR}", headers["couple"])                                         # checkout line
     check_page(c, f"/fare/{NR}", headers["couple"])                                              # banner is gone
     if hotels:
-        for pid, h in headers.items():
+        for _pid, h in headers.items():
             r, n = check_page(c, "/hotel/LIS-H1", h)
             markers += n
     advance(c, "1m")

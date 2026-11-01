@@ -1,6 +1,6 @@
 """External audit #2 (2026-10-28): each finding reproduced as a test before it was fixed."""
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -14,7 +14,7 @@ from semaudit.relate.claims import MATCH, MISMATCH, checkable, comparable, compa
 from semaudit.relate.rules import Entry, eval_agree_across_states, eval_agree_across_surfaces  # noqa: E402
 from semaudit.story.model import Event, Extraction, Story  # noqa: E402
 
-T0 = datetime(2026, 10, 1, 9, 0, tzinfo=timezone.utc)
+T0 = datetime(2026, 10, 1, 9, 0, tzinfo=UTC)
 
 
 def ex(*claims):
@@ -113,6 +113,7 @@ def test_loopback_means_every_loopback_address():
 def test_a_websocket_to_another_host_never_connects_and_is_counted(tmp_path):
     import http.server
     import threading
+
     import pytest
     pw = pytest.importorskip("playwright.sync_api")
     from semaudit.capture.runner import _local_only_ws, _ws_local
@@ -182,6 +183,7 @@ def test_short_secrets_are_redacted_without_eating_words():
 # AUD2-14: a manifest whose header id does not match its rows is refused
 def test_a_forged_manifest_header_is_refused(tmp_path):
     import importlib.util
+
     import pytest
     spec = importlib.util.spec_from_file_location("fz2", ROOT / "scripts/freeze_conditions.py")
     fz = importlib.util.module_from_spec(spec)

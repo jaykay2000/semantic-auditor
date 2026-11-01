@@ -152,7 +152,7 @@ def accepted_exceptions(issue: dict, review: dict, contract: Contract, *, by: st
                 triples[(ex.id, e["feature"], e.get("component"), e["surface"])] = ex
     taken = {x.id for x in rule.exceptions}
     out, n = [], 1
-    for (ex_id, feature, component, surface), ex in sorted(triples.items(), key=lambda kv: kv[0][1:]):
+    for (_ex_id, feature, component, surface), ex in sorted(triples.items(), key=lambda kv: kv[0][1:]):
         while f"{rule.id}-E{n}" in taken:
             n += 1
         new_id = f"{rule.id}-E{n}"

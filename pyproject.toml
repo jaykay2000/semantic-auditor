@@ -33,3 +33,22 @@ packages = ["src/semaudit"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests", "examples/northbound/tests"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+extend-exclude = ["runs"]
+
+[tool.ruff.lint]
+# pyflakes + the import/statement errors (ruff's own default), import order, pyupgrade for 3.12, bugbear, and
+# stale `noqa` comments.
+select = ["E4", "E7", "E9", "F", "I", "UP", "B", "RUF100"]
+ignore = [
+  "B008",  # typer's documented style puts typer.Option(...) in argument defaults
+  "B904",  # `raise ... from`: changes the traceback a user sees; left for a separate decision
+  "B905",  # zip(strict=...): would change behaviour where lengths differ; left for a separate decision
+]
+
+[tool.ruff.lint.per-file-ignores]
+# The frozen converter and re-check (and their prompt text) are not edited for lint: ignore, don't rewrite.
+"src/semaudit/imported/*" = ["F401", "I001", "UP017", "UP035", "UP037"]

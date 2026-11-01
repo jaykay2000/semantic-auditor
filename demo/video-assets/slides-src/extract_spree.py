@@ -2,7 +2,10 @@
 
     python3 slides-src/extract_spree.py   # writes scenes-data/spree-shoppers.json
 """
-import collections, json, os
+import collections
+import json
+import os
+
 SRC = os.path.expanduser('~/Documents/src/spree-semaudit/runs/spree-scale-2t/'
                          'review-v6.0.0.beta2-v6.0.0.beta3.reader.json')
 OUT = os.path.join(os.path.dirname(__file__), '..', 'scenes-data', 'spree-shoppers.json')

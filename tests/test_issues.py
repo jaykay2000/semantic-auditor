@@ -7,6 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 import pytest  # noqa: E402
+
 from semaudit.contract.schema import load_contract  # noqa: E402
 from semaudit.decide.issues import Issue, Occurrence, severity_of  # noqa: E402
 from semaudit.relate.rules import Entry  # noqa: E402
@@ -50,8 +51,9 @@ def test_severity_is_the_rules_own_level_and_moves_only_with_it():
 
 def test_a_coherence_rule_sets_its_level_per_label():
     r = C.rule("P2")
-    lab = lambda label: severity_of(r, [Occurrence("maya", "x", ["a"], Entry("P2", "s", "violated", label=label),
-                                                    "before_decision")])
+    def lab(label):
+        return severity_of(r, [Occurrence("maya", "x", ["a"], Entry("P2", "s", "violated", label=label),
+                                          "before_decision")])
     assert lab("conflict")["level"] == "critical"                       # owner ruling Oct 27
     assert lab("unexplained_tradeoff")["level"] == "major"
     assert lab("unexplained_tradeoff")["factors"]["set_by"] == "severity_by_label"
@@ -138,9 +140,10 @@ class _FailingRouter:
 def test_a_model_failure_during_verification_is_not_a_verified_issue(tmp_path):
     """Budget exhaustion or an API error mid-verification must surface (review exits 2), never pass."""
     import pytest
+
     from semaudit.models.router import ModelError
-    from semaudit.verify.steps import verify
     from semaudit.story.model import Story
+    from semaudit.verify.steps import verify
     i = issue()
     i.occurrences[0].entry.meta["pairs"] = []
     with pytest.raises(ModelError):
@@ -150,11 +153,12 @@ def test_a_model_failure_during_verification_is_not_a_verified_issue(tmp_path):
 
 
 # ---------- the defense is adjudicated against what was measured ----------
+from datetime import UTC, datetime  # noqa: E402
+
 from semaudit.story.model import Event, Extraction, Story  # noqa: E402
 from semaudit.verify.steps import adjudicate  # noqa: E402
-from datetime import datetime, timezone  # noqa: E402
 
-_AT = datetime(2026, 11, 2, 10, 3, tzinfo=timezone.utc)
+_AT = datetime(2026, 11, 2, 10, 3, tzinfo=UTC)
 _URGE = Extraction(message_kind="directive", decision="when_to_book", action="book_now", strength="urge",
                    urgency_cue="seats", explains_own_tradeoff=True, claims=[])
 

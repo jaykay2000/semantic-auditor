@@ -10,8 +10,8 @@ from misses on THIS fixture only, exactly as the auditor's rubric was; they are 
 import argparse
 import hashlib
 import json
-import tomllib
 import sys
+import tomllib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -64,7 +64,7 @@ def main() -> None:
     auditor = score(from_review(review), truth, evidence=ev)
     summary["auditor_reference"] = {k: auditor[k] for k in ("tp", "fp", "fn", "precision", "recall")}
     (out / "summary.json").write_text(json.dumps(summary, indent=1, default=str))
-    print("spent this round: $%.4f" % router.spent_usd, "->", out / "summary.json")
+    print(f"spent this round: ${router.spent_usd:.4f}", "->", out / "summary.json")
 
 
 if __name__ == "__main__":

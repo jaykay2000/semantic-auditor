@@ -69,7 +69,6 @@ def test_late_reconciler_is_not_accepted():
 # ---------- adversarial timing cases (external audit, 2026-10-26) ----------
 from datetime import timedelta  # noqa: E402
 
-from semaudit.contract.schema import load_contract as _load  # noqa: E402
 from semaudit.relate.rules import p2_candidates, validity  # noqa: E402
 
 

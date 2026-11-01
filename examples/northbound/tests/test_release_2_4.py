@@ -5,13 +5,12 @@ oracle values the expected results rest on. Nothing here judges a rule: that is 
 Message times are the instant of the request or job: build.py adds a 5 s / 10 s "render" gap after some actions
 (a card at 10:00:05 after a 10:00:00 search); the app has no render latency, so its rows are 5 s / 10 s earlier.
 """
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
-
 from nbhelpers import advance, log, outbox, parse, persona, set_clock
 
-D0 = datetime(2026, 11, 2, 10, 0, 0, tzinfo=timezone.utc)
+D0 = datetime(2026, 11, 2, 10, 0, 0, tzinfo=UTC)
 NR = "LIS-BER-NR"
 
 

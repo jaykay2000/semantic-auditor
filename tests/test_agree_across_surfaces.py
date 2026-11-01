@@ -1,7 +1,7 @@
 """must: agree_across_surfaces (docs/03 `fact_divergence`): the same fact must read the same on every surface one
 persona sees, in the same state. No oracle. Built generically (no app vocabulary in the core)."""
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -10,7 +10,7 @@ sys.path.insert(0, str(ROOT / "src"))
 from semaudit.relate.rules import eval_agree_across_surfaces  # noqa: E402
 from semaudit.story.model import Event, Extraction, Story  # noqa: E402
 
-T0 = datetime(2026, 10, 1, 9, 0, tzinfo=timezone.utc)
+T0 = datetime(2026, 10, 1, 9, 0, tzinfo=UTC)
 RULE = SimpleNamespace(id="C1", check={"claims": ["annual_limit"], "must": "agree_across_surfaces"})
 
 

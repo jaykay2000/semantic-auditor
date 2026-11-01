@@ -154,7 +154,7 @@ def judge_multi(stories: dict[str, Story], contract: Contract, router: Router, *
     con, all_stories = render_contract(contract), [render_story(s) for _, s in sorted(stories.items())]
     tally, candidates = Tally(), []
     router.tag = f"B-judge-N:{release}:{run}"
-    for persona, s in sorted(stories.items()):
+    for _persona, s in sorted(stories.items()):
         for k in range(samples):
             candidates += _call(router, prompt("judge_persona"),
                                 {"release": release, "contract": con, "story": render_story(s)}, fresh=fresh,

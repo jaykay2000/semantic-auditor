@@ -1,7 +1,7 @@
 """Audit P0: a replay must check something, against the right release, and re-derive the finding."""
 
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -12,7 +12,7 @@ from semaudit.decide.repro import evidence_check, finding_check  # noqa: E402
 from semaudit.relate.rules import Entry  # noqa: E402
 from semaudit.story.model import Event, Story  # noqa: E402
 
-AT = datetime(2026, 11, 2, 12, tzinfo=timezone.utc)
+AT = datetime(2026, 11, 2, 12, tzinfo=UTC)
 ROW = {"id": "pw_after", "kind": "message", "at": AT.isoformat(), "feature": "price_watch",
        "message_key": "pw.email.after", "text": "Keep waiting to book."}
 

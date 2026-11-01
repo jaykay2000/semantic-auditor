@@ -42,7 +42,6 @@ def main():
     router = Router(root=ROOT, max_usd=a.max_usd)
     h = evaluate_release(a.run, "2.4", c, router)
     stories = {p: s for p, (s, _) in h.results.items()}
-    issues = {i.rule: i for i in build_issues("2.4", h.results, c)}
     ok = True
 
     # 1. altered quote
@@ -53,7 +52,8 @@ def main():
             e.text = e.text.replace("48 h", "72 h")
     verify(hero, tampered, h.episodes, a.run, c, router, repro=tampered, models=False)
     r1 = hero.verification
-    print("1 altered quote ->", r1["status"], r1["reason"]); ok &= r1["status"] == "failed"
+    print("1 altered quote ->", r1["status"], r1["reason"])
+    ok &= r1["status"] == "failed"
 
     # 2. not reproduced
     hero2 = copy.deepcopy(hero)
@@ -61,7 +61,8 @@ def main():
     gone["maya"].events = [e for e in gone["maya"].events if e.copy_key != "fl.banner"]
     verify(hero2, stories, h.episodes, a.run, c, router, repro=gone, models=False)
     r2 = hero2.verification
-    print("2 not reproduced ->", r2["status"], r2["reason"]); ok &= r2["reason"] == "not_reproducible"
+    print("2 not reproduced ->", r2["status"], r2["reason"])
+    ok &= r2["reason"] == "not_reproducible"
 
     # 3. fabricated P2 on Lena (reconciled in time)
     lena = stories["lena"]

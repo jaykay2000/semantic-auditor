@@ -2,7 +2,7 @@
 its claims are compared only when every key field names the same known value, so a $7,000 IRA move never reads
 as disagreeing with a $24,500 401(k) move, while two surfaces quoting different amounts for the SAME move do."""
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -15,7 +15,7 @@ from semaudit.relate.rules import Entry, eval_agree_across_surfaces  # noqa: E40
 from semaudit.story.model import Event, Extraction, Story  # noqa: E402
 from semaudit.verify.steps import _step_agreement  # noqa: E402
 
-T0 = datetime(2026, 10, 1, 9, 0, tzinfo=timezone.utc)
+T0 = datetime(2026, 10, 1, 9, 0, tzinfo=UTC)
 MOVE = Fact(id="move_amount", unit="USD", key=[
     {"field": "action", "values": ["raise_retirement_saving", "pay_down_debt"], "describe": "the action it is for"},
     {"field": "per", "values": ["once", "month", "year"]}])

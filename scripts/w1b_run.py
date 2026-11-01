@@ -72,7 +72,7 @@ def main() -> int:
     run0_extractions = {}
 
     for run in range(args.runs):
-        def one(name):
+        def one(name, run=run):
             raw = raws[name]
             ext = extract_story(Story(**raw["story"]), contract, router, fresh=True)
             story = attach(raw, ext)

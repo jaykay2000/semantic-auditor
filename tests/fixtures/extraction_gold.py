@@ -9,7 +9,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent / "stories"))
-from build import GOLD as STORY_GOLD  # noqa: E402
+from build import GOLD as STORY_GOLD
 
 INFO = {"message_kind": "information", "decision": "none", "action": "none", "strength": "inform",
         "urgency_cue": "none", "explains_own_tradeoff": False, "claims": []}

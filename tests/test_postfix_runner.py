@@ -139,7 +139,9 @@ def test_the_freeze_check_sees_an_edit_and_an_uncommitted_file(tmp_path, monkeyp
     f = tmp_path / "src/semaudit/a.py"
     f.write_text("x = 1\n")
     git = lambda *a: subprocess.run(["git", *a], cwd=tmp_path, check=True, capture_output=True)  # noqa: E731
-    git("init", "-q"); git("add", "."); git("-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "x")
+    git("init", "-q")
+    git("add", ".")
+    git("-c", "user.email=t@t", "-c", "user.name=t", "commit", "-qm", "x")
     monkeypatch.setattr(fz, "ROOT", tmp_path)
     man = tmp_path / "FROZEN-T.md"
     monkeypatch.setattr(sys, "argv", ["x", "--out", str(man)])

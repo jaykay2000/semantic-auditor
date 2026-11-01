@@ -174,7 +174,7 @@ class Episode(Strict):
         path.write_text(self.model_dump_json(indent=2) + "\n", encoding="utf-8")
 
     @classmethod
-    def read(cls, path: Path) -> "Episode":
+    def read(cls, path: Path) -> Episode:
         return cls.model_validate(json.loads(Path(path).read_text(encoding="utf-8")))
 
 

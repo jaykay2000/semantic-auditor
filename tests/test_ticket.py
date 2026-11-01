@@ -7,6 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 import pytest  # noqa: E402
+
 from semaudit.report.ticket import ticket  # noqa: E402
 
 REVIEW = ROOT / "runs" / "e2e-2" / "review-2.3-2.4.json"

@@ -41,7 +41,7 @@ def changed(manifest: Path) -> list[str]:
     out = [f"CHANGED: {p}" for p in sorted(set(a_) | set(b_)) if a_.get(p) != b_.get(p)]
     dirty = subprocess.run(["git", "status", "--porcelain", "--", *b_], cwd=ROOT, capture_output=True,
                            text=True).stdout.splitlines()
-    out += [f"UNCOMMITTED: {l[3:]}" for l in dirty]
+    out += [f"UNCOMMITTED: {ln[3:]}" for ln in dirty]
     return out
 
 
@@ -50,8 +50,8 @@ def code() -> str:
 
 
 def rows_of(manifest: Path) -> list[tuple[str, str]]:
-    return [tuple(l.strip("| ").replace("`", "").split(" | ")) for l in manifest.read_text().splitlines()
-            if l.startswith("| `")]
+    return [tuple(ln.strip("| ").replace("`", "").split(" | ")) for ln in manifest.read_text().splitlines()
+            if ln.startswith("| `")]
 
 
 def manifest_of(manifest: Path) -> str:

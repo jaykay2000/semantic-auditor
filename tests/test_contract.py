@@ -2,7 +2,7 @@
 
 import shutil
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from itertools import product
 from pathlib import Path
 
@@ -14,14 +14,13 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from semaudit.contract.approve import approve, items, load_approvals, status_of  # noqa: E402
 from semaudit.contract.review import render  # noqa: E402
-from semaudit.contract.schema import (CONFIDENCE, SEVERITY, VERIFICATION, ReleasePolicy,  # noqa: E402
-                                      load_contract, resolve_time)
+from semaudit.contract.schema import CONFIDENCE, SEVERITY, VERIFICATION, ReleasePolicy, load_contract, resolve_time  # noqa: E402
 from semaudit.contract.validate import policy_coverage, validate  # noqa: E402
 from semaudit.story.model import Event, Story  # noqa: E402
 
 NB = ROOT / "examples" / "northbound" / "contract"
 C = load_contract(NB)
-D0 = datetime(2026, 11, 2, tzinfo=timezone.utc)
+D0 = datetime(2026, 11, 2, tzinfo=UTC)
 
 
 @pytest.fixture
@@ -196,6 +195,7 @@ def test_every_approval_item_shows_exactly_the_content_its_hash_pins():
 
 def test_a_list_context_field_takes_a_list_of_plain_values_only():
     from types import SimpleNamespace
+
     from semaudit.contract.validate import _type_problem
     f = SimpleNamespace(type="list", values=[])
     assert _type_problem(f, ["a", "b"], None) is None and _type_problem(f, [], None) is None

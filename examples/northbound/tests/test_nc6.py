@@ -1,7 +1,6 @@
 """NC6: Maya on 2.3 opts in to Price Watch at search, gets the forecast alert, books. Nothing competes."""
-from northbound.copy import COPY
-
 from nbhelpers import advance, log, log_tuple, outbox, persona, set_clock
+from northbound.copy import COPY
 
 T = "2026-11-02T10:0{}:{}+00:00"
 

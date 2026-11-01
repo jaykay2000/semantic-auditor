@@ -111,6 +111,7 @@ def review_cmd(contract_dir: Path = typer.Option(..., "--contract", exists=True,
     """
     import json
     import time
+
     from .decide.run import run_review
     from .models.router import ModelError
     run_id = run_id or f"review-{time.strftime('%Y%m%dT%H%M%S')}"

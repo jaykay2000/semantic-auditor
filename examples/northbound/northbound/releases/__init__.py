@@ -23,7 +23,7 @@ class Release:
     copy: dict[str, str] = field(default_factory=dict)
 
     def derive(self, name: str, *, add: list[str] | None = None, remove: list[str] | None = None,
-               settings: dict[str, dict[str, Any]] | None = None, copy: dict[str, str] | None = None) -> "Release":
+               settings: dict[str, dict[str, Any]] | None = None, copy: dict[str, str] | None = None) -> Release:
         merged = {k: dict(v) for k, v in self.settings.items()}
         for fid, vals in (settings or {}).items():
             merged.setdefault(fid, {}).update(vals)

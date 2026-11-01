@@ -6,7 +6,7 @@ Guard 1 scans src/semaudit for the demo app's vocabulary. Guard 2 loads a small 
 
 import re
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -15,8 +15,8 @@ sys.path.insert(0, str(ROOT / "src"))
 from semaudit.contract.schema import load_contract, resolve_context  # noqa: E402
 from semaudit.contract.validate import validate  # noqa: E402
 from semaudit.decide.issues import build_issues, condition_details  # noqa: E402
-from semaudit.relate.rules import evaluate  # noqa: E402
 from semaudit.relate.interpret import stub_always  # noqa: E402
+from semaudit.relate.rules import evaluate  # noqa: E402
 from semaudit.story.model import Event, Extraction, Story  # noqa: E402
 
 # Words of the demo app (domain, features, personas). Any of them in the core means a concept is missing from
@@ -46,7 +46,7 @@ def test_guard_bites():
 
 
 C = load_contract(GENERIC)
-D0 = datetime(2026, 11, 2, tzinfo=timezone.utc)
+D0 = datetime(2026, 11, 2, tzinfo=UTC)
 
 
 def msg(id, minutes, strength, explains=False):

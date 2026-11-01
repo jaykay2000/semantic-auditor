@@ -1,7 +1,7 @@
 """Audit P0: 'could not measure' must never become Ship or Resolved. No model, no browser."""
 
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -16,7 +16,7 @@ from semaudit.story.episode import Episode, OracleReading, StepRecord  # noqa: E
 
 CONTRACT = ROOT / "examples" / "northbound" / "contract"
 C = load_contract(CONTRACT)
-D0 = datetime(2026, 11, 2, tzinfo=timezone.utc)
+D0 = datetime(2026, 11, 2, tzinfo=UTC)
 OK = OracleReading(status="ok", values={"x": 1})
 LOST = OracleReading(status="not_measured", error="HTTP 500")
 

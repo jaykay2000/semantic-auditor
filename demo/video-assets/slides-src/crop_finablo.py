@@ -15,7 +15,11 @@ target_61__wide in contract-wide/personas.yaml have identical context):
   wide-run-3k / target_61 / S-R1: sign up while the plan is still being written, open the Report tab, copy for AI
   f73-limit-check / target_61__wide / S-wide-target: the wide journey, plan finished
 """
-import hashlib, json, pathlib, sys
+import hashlib
+import json
+import pathlib
+import sys
+
 from PIL import Image
 
 HERE = pathlib.Path(__file__).resolve().parent

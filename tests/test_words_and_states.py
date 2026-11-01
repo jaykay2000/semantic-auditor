@@ -1,7 +1,7 @@
 """Word-valued claims (a first move named by its action id) and agree_across_states (the same figure before and
 after a state change such as signing up). Both generic: no app vocabulary in the core."""
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -14,7 +14,7 @@ from semaudit.relate.rules import Entry, eval_agree_across_states, eval_agree_ac
 from semaudit.story.model import Event, Extraction, Story  # noqa: E402
 from semaudit.verify.steps import _step_states  # noqa: E402
 
-T0 = datetime(2026, 10, 1, 9, 0, tzinfo=timezone.utc)
+T0 = datetime(2026, 10, 1, 9, 0, tzinfo=UTC)
 FIRST = Fact(id="first_move", unit="action_id", words=["pay_down_debt", "raise_retirement_saving", "deploy_idle_cash"])
 SCORE = Fact(id="score", unit="points")
 ACCOUNT = StateVar(id="account", initial="guest", set_by={"sign_up": "signed_in"})
@@ -117,12 +117,14 @@ def test_a_persona_reference_value_is_the_truth_when_no_oracle_reads_the_fact():
 
 def test_story_building_carries_the_persona_reference():
     import inspect
+
     from semaudit.story import build
     assert "truth=dict(persona.reference)" in inspect.getsource(build.story_from_episode)
 
 
 def test_an_event_sent_email_surface_is_measured_without_a_clock():
     import inspect
+
     from semaudit.capture import runner
     from semaudit.contract.schema import Surface
     assert Surface(id="e", kind="email", locator="message_id", sink="outbox").timed is True

@@ -54,6 +54,7 @@ def test_a_single_unreadable_message_still_fails(monkeypatch):
 
 def test_not_raised_works_for_a_contract_without_a_coherence_rule():
     from types import SimpleNamespace
+
     from semaudit.report.review import not_raised
 
     class C:

@@ -2,7 +2,7 @@
 copies apart. Inserting a copy shifts every index after it, so pairing by key would report copies as `changed`
 that did not change. Repeats pair by identical text first; the rest pair in order and are fuzzy."""
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -10,7 +10,7 @@ sys.path.insert(0, str(ROOT / "src"))
 from semaudit.story.align import align  # noqa: E402
 from semaudit.story.model import Event, Evidence, Story  # noqa: E402
 
-T0 = datetime(2026, 10, 1, 9, 0, tzinfo=timezone.utc)
+T0 = datetime(2026, 10, 1, 9, 0, tzinfo=UTC)
 
 
 def m(i, key, text, method="contract_map"):

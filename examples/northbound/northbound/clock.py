@@ -6,11 +6,12 @@ Times are timezone-aware UTC and keep full precision: nothing is rounded or trun
 from __future__ import annotations
 
 import re
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from typing import Any, Callable
+from datetime import UTC, datetime, timedelta
+from typing import Any
 
-UTC = timezone.utc
+UTC = UTC
 D0 = datetime(2026, 11, 2, 10, 0, 0, tzinfo=UTC)
 
 _TOKEN = re.compile(r"(\d+)([dhms])")

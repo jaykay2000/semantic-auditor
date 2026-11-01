@@ -317,7 +317,7 @@ class Persona(Strict):
                                                                 # truth for a fact no oracle reads
     role: str | None = None              # hero | negative | boundary | factual (documentation only)
 
-    def value(self, fid: str, subject: "Subject") -> Any:
+    def value(self, fid: str, subject: Subject) -> Any:
         """The persona's value for a context field, falling back to the field's declared default."""
         if fid in self.context:
             return self.context[fid]

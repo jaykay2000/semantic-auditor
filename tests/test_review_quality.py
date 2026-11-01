@@ -2,7 +2,7 @@
 roles (a target or a change is not the current figure), reading context for a bare figure, and an agreement
 issue identified by what disagrees with what."""
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -15,7 +15,7 @@ from semaudit.relate.rules import Entry, eval_agree_across_surfaces, eval_match_
 from semaudit.story.build import around  # noqa: E402
 from semaudit.story.model import Event, Extraction, Story  # noqa: E402
 
-T0 = datetime(2026, 10, 1, 9, 0, tzinfo=timezone.utc)
+T0 = datetime(2026, 10, 1, 9, 0, tzinfo=UTC)
 SAVED = Fact(id="monthly_saved", unit="USD")
 ON = SimpleNamespace(facts=[SAVED], state=[], app=SimpleNamespace(claim_roles=True))
 RULE = SimpleNamespace(id="U2", check={"claims": ["monthly_saved"], "must": "agree_across_surfaces"})
@@ -158,6 +158,7 @@ def test_one_message_with_two_wrong_facts_under_one_rule_is_two_issues_other_rul
 
 def test_a_quote_with_line_breaks_is_found_in_a_stored_json_email(tmp_path):
     import json as _j
+
     from semaudit.verify.evidence import _quoted_in
     f = tmp_path / "m.raw.json"
     f.write_text(_j.dumps({"message_id": "x", "text": "Hey Ann,\nyour total is $5.00"}))

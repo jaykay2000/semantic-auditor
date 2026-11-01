@@ -7,17 +7,17 @@ report's description only (no sealed file was read): value 0 with the time in `u
 missing, and the correct epoch seconds. None of them may become a violation.
 """
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from types import SimpleNamespace
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from semaudit.relate.claims import MATCH, MISMATCH, UNREADABLE, compare, shown  # noqa: E402
-from semaudit.relate.rules import eval_match_oracle  # noqa: E402
-from semaudit.story.model import Event, Extraction, Story  # noqa: E402
-from semaudit.contract.schema import load_contract  # noqa: E402
-from semaudit.extract.messages import _prompt, extraction_schema  # noqa: E402
+from semaudit.contract.schema import load_contract
+from semaudit.extract.messages import _prompt, extraction_schema
+from semaudit.relate.claims import MATCH, MISMATCH, UNREADABLE, compare, shown
+from semaudit.relate.rules import eval_match_oracle
+from semaudit.story.model import Event, Extraction, Story
 
 NORTHBOUND = Path(__file__).resolve().parents[1] / "examples/northbound/contract"
 
@@ -58,7 +58,7 @@ def test_the_three_sealed_failure_shapes_are_never_violations():
 def _story(claims):
     x = Extraction(message_kind="information", decision="none", action="none", strength="inform",
                    urgency_cue="none", explains_own_tradeoff=False, claims=claims)
-    at = datetime(2026, 11, 1, 9, 0, tzinfo=timezone.utc)
+    at = datetime(2026, 11, 1, 9, 0, tzinfo=UTC)
     return Story(id="s", release="r", persona="p", truth={"departs_at": TRUTH},
                  events=[Event(id="e1", at=at, kind="message", feature="f", text="Departs 3 Nov, 14:05",
                                extraction=x)])
@@ -116,6 +116,7 @@ def test_a_measured_datetime_makes_a_fact_temporal_without_the_contract_saying_s
 
 def test_northbound_captures_measure_no_datetime_fact():
     import pytest
+
     from semaudit.bench import judge
     from semaudit.extract.messages import observed_temporal
     run = Path(__file__).resolve().parents[1] / "runs/e2e-2"

@@ -7,7 +7,7 @@ from types import SimpleNamespace
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from semaudit.relate.claims import checkable, comparable  # noqa: E402
+from semaudit.relate.claims import checkable, comparable
 
 SHIP_TO = SimpleNamespace(id="ship_to", unit="text", key=[], truth_roles=("as_is",))
 TOTAL = SimpleNamespace(id="order_total", unit="USD", key=[], truth_roles=("as_is",))

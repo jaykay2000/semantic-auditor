@@ -8,11 +8,11 @@ test. Run it to (re)write the JSON files beside it:  python3 tests/fixtures/stor
 from __future__ import annotations
 
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 HERE = Path(__file__).parent
-D0 = datetime(2026, 11, 2, 10, 0, 0, tzinfo=timezone.utc)
+D0 = datetime(2026, 11, 2, 10, 0, 0, tzinfo=UTC)
 
 COPY = {
     "pw.card": "Prices on your dates are likely to drop over the next two weeks. We suggest waiting; we'll tell you when to book.",

@@ -7,7 +7,7 @@ the test that pins it going red (docs/evidence/imported-checks/).
 import copy
 import json
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -236,7 +236,7 @@ def test_a_redraft_that_fixes_the_gate_converts():
 
 # ---------- the re-check ----------
 
-D0 = datetime(2026, 11, 2, 10, tzinfo=timezone.utc)
+D0 = datetime(2026, 11, 2, 10, tzinfo=UTC)
 
 
 def _check():

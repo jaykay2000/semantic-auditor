@@ -1,5 +1,5 @@
 """Price Watch 1.0: opt-in, one alert, before booking only; booking stops every job."""
-from nbhelpers import advance, log, outbox, persona, set_clock
+from nbhelpers import advance, log, outbox, persona
 
 
 def pw_rows(client):

@@ -1,9 +1,8 @@
 """Personas and auth, the simulated clock, the job queue, config."""
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
-
 from nbhelpers import advance, persona, set_clock
 
 D0 = "2026-11-02T10:00:00+00:00"
@@ -47,7 +46,7 @@ def test_clock_starts_at_d0_and_a_30s_advance_moves_exactly_30s(client):
     assert advance(client, "30s")["now"] == "2026-11-02T10:00:30+00:00"
     assert advance(client, "30s")["now"] == "2026-11-02T10:01:00+00:00"  # seconds accumulate, never rounded
     assert advance(client, "1d2h")["now"] == "2026-11-03T12:01:00+00:00"
-    assert client.rt.now == datetime(2026, 11, 3, 12, 1, 0, tzinfo=timezone.utc)
+    assert client.rt.now == datetime(2026, 11, 3, 12, 1, 0, tzinfo=UTC)
 
 
 def test_clock_set_keeps_seconds_and_converts_offsets_to_utc(client):
@@ -82,7 +81,7 @@ class Feature(BaseFeature):
     monkeypatch.syspath_prepend(str(tmp_path))
     from northbound.releases import load_release
     base = load_release("2.3")
-    from conftest import Config, create_app, TestClient
+    from conftest import Config, TestClient, create_app
     app = create_app(Config(outbox_dir=tmp_path / "o"), base.derive("order", add=["fakepkg.order_feature"]))
     cl = TestClient(app)
     h = persona(cl)

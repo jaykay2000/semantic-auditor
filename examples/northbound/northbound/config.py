@@ -21,7 +21,7 @@ class Config:
     test_hooks: bool = True
 
     @classmethod
-    def from_env(cls) -> "Config":
+    def from_env(cls) -> Config:
         env = os.environ
         return cls(
             release=env.get("NORTHBOUND_RELEASE", DEFAULT_RELEASE),

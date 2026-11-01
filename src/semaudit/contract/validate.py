@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import UTC
 from itertools import product
 
 from .schema import CONFIDENCE, SEVERITY, VERIFICATION, Contract, ReleasePolicy, resolve_time
@@ -172,5 +173,5 @@ def _type_problem(f, v, day0) -> str | None:
 
 
 def _epoch():
-    from datetime import datetime, timezone
-    return datetime(2000, 1, 1, tzinfo=timezone.utc)
+    from datetime import datetime
+    return datetime(2000, 1, 1, tzinfo=UTC)

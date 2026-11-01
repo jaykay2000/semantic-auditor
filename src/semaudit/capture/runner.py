@@ -10,20 +10,18 @@ from __future__ import annotations
 
 import hashlib
 import shutil
-import time
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
 import httpx
-from urllib.parse import urlsplit
 
 from ..adapters.base import Session, StepResult, load_adapter
 from ..adapters.hooks import HookClient, HookError, OracleClient
 from ..contract.schema import Contract, Persona, Scenario, Step, Surface, load_contract, resolve_context, resolve_time
-from ..story.episode import (Capture, Element, Episode, NotMeasured, OracleReading, StepRecord, BBox,
-                             episode_path)
+from ..story.episode import BBox, Capture, Element, Episode, NotMeasured, StepRecord, episode_path
 from . import sinks
 from .attribution import Keys, mapped, text_sections
 from .dom import find_blocks, find_elements
@@ -63,7 +61,7 @@ class Runner:
         if self.contract.app is None:
             raise LaunchError("the contract has no app.yaml")
         self.runs_dir = Path(runs_dir)
-        self.run_id = run_id or "capture-" + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        self.run_id = run_id or "capture-" + datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
         self.seed = seed
         self._adapter = adapter
         self.sink_root = sink_root
@@ -89,7 +87,7 @@ class Runner:
             self._adapter = load_adapter(spec, self.contract_dir)
         return self._adapter
 
-    def __enter__(self) -> "Runner":
+    def __enter__(self) -> Runner:
         return self
 
     def __exit__(self, *exc) -> None:
@@ -151,7 +149,7 @@ class Runner:
             hooks.world(adapter.world_body(persona) if hasattr(adapter, "world_body") else persona.world)
 
         ep = Episode(release=release, persona=persona.id, scenario=scenario.id, seed=self.seed, app_build=build,
-                     started_wall=datetime.now(timezone.utc).isoformat(), day0=scenario.day0,
+                     started_wall=datetime.now(UTC).isoformat(), day0=scenario.day0,
                      clock_measured=hooks.has("clock"))
         out_dir = self.run_dir / "captures" / release / f"{persona.id}__{scenario.id}"
         if out_dir.exists():
@@ -218,7 +216,7 @@ class Runner:
         if error is None:
             try:
                 result = adapter.run_step(step, sess)
-            except Exception as exc:  # noqa: BLE001 - any adapter failure is recorded, never swallowed
+            except Exception as exc:
                 error = f"{type(exc).__name__}: {exc}"
         if result is not None:
             if not result.offered:
@@ -281,7 +279,7 @@ class Runner:
             self._write(ectx, cid, "dom", "html", page.content().encode("utf-8"), cap)
             self._write(ectx, cid, "screenshot", "png", page.screenshot(full_page=True, animations="disabled",
                                                                        caret="hide"), cap)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             errors.append(f"page artifacts: {type(exc).__name__}: {exc}")
         if surface is not None and kind == "chat":
             if chat is None:
@@ -294,7 +292,7 @@ class Runner:
         elif surface is not None and surface.sections and not surface.message_selector:
             try:
                 self._section_blocks(cap, page, surface)
-            except Exception as exc:  # noqa: BLE001 - e.g. an invalid section selector
+            except Exception as exc:
                 errors.append(f"sections: {type(exc).__name__}: {str(exc).splitlines()[0]}")
         elif surface is not None:
             if not surface.message_selector:
@@ -304,7 +302,7 @@ class Runner:
                     cap.elements = [Element(locator={"kind": "css", "css": e["css"], "span": [0, len(e["text"])]},
                                             text=e["text"], attrs=e["attrs"], bbox=BBox(**e["bbox"]))
                                     for e in find_elements(page, surface.message_selector)]
-                except Exception as exc:  # noqa: BLE001 - e.g. an invalid selector
+                except Exception as exc:
                     errors.append(f"message_selector {surface.message_selector!r}: {type(exc).__name__}: "
                                   f"{str(exc).splitlines()[0]}")
         if errors:
@@ -362,7 +360,7 @@ class Runner:
         try:
             cap.elements, extra = sinks.pdf_elements(pdf.data)
             cap.meta.update(extra)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             cap.status, cap.error = "not_measured", f"text layer: {type(exc).__name__}: {exc}"
         sctx.rec.captures.append(cap)
 

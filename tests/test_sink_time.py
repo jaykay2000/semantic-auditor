@@ -2,15 +2,15 @@
 at the step that received it (Spree: Mailpit's wall-clock Date was 4 days before every simulated step)."""
 import json
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from types import SimpleNamespace
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from semaudit.capture import runner as R  # noqa: E402
+from semaudit.capture import runner as R
 
-STEP = datetime(2026, 11, 2, 10, 10, tzinfo=timezone.utc)
+STEP = datetime(2026, 11, 2, 10, 10, tzinfo=UTC)
 WALL = "2026-10-29T03:22:16+00:00"
 
 
