@@ -105,3 +105,9 @@ Notes:
    stylesheet at 1280 px (page heights match the screenshots exactly, 4767 and 3151) and confirmed by eye.
 4. **The red ring on beat 1** marks "($24,500/yr)" at page x 722–812, y 3095–3112, measured with a DOM Range on the
    same re-render ("Ramp" lands at x 394 there and in the screenshot).
+
+## Motion clips and replacement stills (2026-11-01)
+
+Clips for beats 1, 2, 3, 4 (three transitions), 7 and the end card, plus a transparent beat-6 rule overlay, are
+mapped in [`../motion/README.md`](../motion/README.md). Their stills (`m7-*.png`, `o7-*.png`) sit in this folder. The
+`s7-*` stills above are unchanged.
