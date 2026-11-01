@@ -82,6 +82,47 @@ release_env: NORTHBOUND_RELEASE   # the release to start is passed in this env v
 
 `{python}`, `{port}`, `{release}` and `{scratch}` (a fresh temp folder per launch) are filled in by SRA.
 
+### Marking messages
+
+On a web page, a message is an element that matches the surface's `message_selector` and carries a
+`data-message-key` attribute (optionally `data-feature`, `data-component` and `data-shown-at`). SRA stores the
+element's rendered text as the message, and later accepts a quote as evidence only if that exact text is in the
+stored page (after HTML entities are decoded). So:
+
+- **The marked element holds its text directly, with no tags inside it**, not even `<b>` or `<span>`.
+  `<p data-message-key="pricing.pro">Pro costs $12 per month.</p>` works.
+  `<div data-message-key="pricing.pro"><h2>Pro</h2><p>Pro costs $12 per month.</p></div>` does not: the rendered
+  text ("Pro", a line break, "Pro costs…") is not in the page source, so no issue on it can be verified.
+- Keep the text on one line with single spaces; the browser collapses runs of spaces and line breaks.
+- Mark the innermost element that holds the words. A heading is a separate message, or no message.
+
+Northbound does this with one template macro (`examples/northbound/northbound/templates/macros.html`).
+`semaudit capture` and `semaudit review` print a `warning:` line, with the key and the page, for every marked
+message whose text is not in the stored page.
+
+### Email and push sinks
+
+SRA does not read a mailbox. The app writes each email or push notification it sends as **one JSON file** in a
+folder, and SRA reads every new file after each step, in file-name order. The folder is the surface's `sink` in
+`surfaces.yaml`, under `app.launch.sink_root`. Each file:
+
+```json
+{
+  "message_id": "m000001",
+  "sent_at": "2026-11-02T10:01:00+00:00",
+  "headers": {"X-Message-Key": "pw.email.forecast", "X-Feature": "price_watch"},
+  "text": "Prices on your dates are likely to drop over the next two weeks. We suggest waiting.",
+  "subject": "Your fare forecast"
+}
+```
+
+- `headers["X-Message-Key"]` is **required**: a message without it is captured but not read as a message.
+  `capture` and `review` print a `warning:` line with the count. `X-Feature` attributes it to a feature.
+- `text` is the message as the user reads it; quotes must come from it.
+- `sent_at` (ISO time with a zone) places the message in time when the app runs on the simulated clock; otherwise it
+  is placed at the step that received it.
+- Every other top-level field (`subject`, `to`, `title`…) and header is kept with the message.
+
 ## 2. The adapter: your scenario verbs, in Python
 
 The adapter turns each scenario verb into clicks and requests on **your** app. It is a file named in `app.yaml`
