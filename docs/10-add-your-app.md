@@ -65,6 +65,34 @@ Start from a copy of [`examples/northbound/contract/`](../examples/northbound/co
 serves the page with working Approve buttons. `semaudit contract approve` records approval, pinned to each item's
 content hash; a review of an unapproved contract is always marked provisional.
 
+```bash
+semaudit contract check examples/northbound/contract      # lists each pending item, e.g. "  pending: rule:P2"
+semaudit contract approve examples/northbound/contract --item rule:P2 --item persona:maya --by you
+```
+
+Item keys are the ones `check` prints: `rule:<id>`, `exception:<id>`, `decision:<id>`, `feature:<id>`,
+`persona:<id>`, `scenario:<id>`, `app:<name>`, `policy:release`, and `state:all`, `surfaces:all`, `oracles:all`,
+`facts:all`, `subject:all` for the files approved as a whole. Repeat `--item` for each. Change an item and its
+approval no longer applies.
+
+### Check verbs: what a rule's `check: {must: …}` can say
+
+A `universal` rule names one verb in `check.must`. These are the verbs the rule engine evaluates
+(`src/semaudit/relate/rules.py`, `_UNIVERSAL`):
+
+| `must:` | Also needs | What the code checks |
+|---|---|---|
+| `match_oracle` | `claims` (fact ids) | each claim of those facts equals the app's own record at the moment it was shown (`facts.yaml` says which oracle field holds the truth); a fact with no recorded value is skipped, never a violation |
+| `match_charge` | `claims`, `charge` | each displayed amount equals what the user is finally charged (the state value `charge` names, same feature); no charge in the story means not applicable |
+| `agree_across_surfaces` | `claims` | every claim of the same fact that one persona sees reads the same on every surface, when shown in the same state; no oracle needed |
+| `agree_across_states` | `claims`, `states: {var: [before, after]}` | a fact shown before a state change (for example signed out → signed in) reads the same after it, when nothing else changed |
+| `precondition_holds_at_shown_time` | — | each recommendation's action is possible at the moment it is shown (the action's precondition in `decisions.yaml`) |
+
+A `universal` rule with no `must:` but `applies_to: {message_kind: …, state: …}` forbids that kind of message in
+that state. Any other verb is not evaluated: the review lists the rule as not measured, never as passed
+(`review --reader` judges the rule's text instead). `conditional`, `coherence` and `load` rules have their own
+shapes; Northbound's [`principles.yaml`](../examples/northbound/contract/principles.yaml) has one of each.
+
 Field-by-field formats: `src/semaudit/contract/schema.py`. The Northbound rules and why they read as they do:
 [`examples/northbound/README.md`](../examples/northbound/README.md).
 
@@ -195,7 +223,9 @@ review (`repro`, `decide`, `decide-release`, `verify-report`) are listed in the
 
 Every model call goes through one router (`src/semaudit/models/router.py`). Each **role** (a job: `extractor`,
 `interpreter`, `cross_checker_extract`, `cross_checker_interpret`, `defender`; for saved checks `importer` and
-`check_judge`) is mapped to a provider and a model in `semaudit.toml`, in the folder you run `semaudit` from. Keys go
+`check_judge`) is mapped to a provider and a model in `semaudit.toml`, in the folder you run `semaudit` from.
+One more role, `smoke`, is used only by `scripts/w1_smoke.py` to check that a key works; no review or check calls
+it (default: Muse Spark 1.3 on the Meta API). Keys go
 in a `.env` beside it. Start from [`semaudit.toml.example`](../semaudit.toml.example).
 
 **The measured setup is Muse Spark.** Every result in this repo was produced with Muse Spark 1.3 / 1.2 on the Meta
