@@ -7,8 +7,10 @@ and the built-in providers send byte-for-byte what they sent before (tests/fixtu
 before the change by scripts/router_golden.py).
 """
 
+import base64
 import json
 import sys
+import urllib.parse
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -271,6 +273,70 @@ def test_a_key_reflected_in_an_error_is_redacted_from_the_error(tmp_path, monkey
         R.Router(root=_cfg(tmp_path)).complete("check_judge", [{"role": "user", "content": "hi"}])
     assert SECRET not in str(e.value) and R.REDACTED in str(e.value)
     assert SECRET not in _everything_written(tmp_path)
+
+
+# ---------- round 3, R2-01: the key echoed back in an encoded form is redacted too ----------
+
+ODD = "audit-dummy+/=VALUE-never-real-0123456789"     # has characters that URL-encoding and base64 change
+
+
+def _encodings():
+    out = {"quote": urllib.parse.quote(ODD, safe=""), "quote-default": urllib.parse.quote(ODD),
+           "quote_plus": urllib.parse.quote_plus(ODD), "quote-lowercase": urllib.parse.quote(ODD, safe="").lower(),
+           "hex": ODD.encode().hex(), "hex-upper": ODD.encode().hex().upper()}
+    for alphabet, enc in (("standard", base64.b64encode), ("urlsafe", base64.urlsafe_b64encode)):
+        for k in range(3):                                  # the key starts at each byte alignment of a larger value
+            e = enc(b"u:"[:k] + ODD.encode() + b"@x"[:2 - k]).decode()
+            out[f"base64-{alphabet}-align{k}-padded"] = e
+            out[f"base64-{alphabet}-align{k}-unpadded"] = e.rstrip("=")
+    return out
+
+
+ENCODINGS = _encodings()
+
+
+class _ReflectEncoded:
+    """An endpoint that echoes the key back in one encoded form, in the reply body and the content, or in an error."""
+
+    def __init__(self, form, status=200):
+        self.form, self.status = form, status
+
+    def __call__(self, url, json=None, headers=None, timeout=None):
+        body = {"choices": [{"message": {"content": '{"echo": "' + self.form + '"}'}, "finish_reason": "stop"}],
+                "usage": {"prompt_tokens": 1, "completion_tokens": 1}, "debug": {"auth": "Basic " + self.form}}
+        return SimpleNamespace(status_code=self.status, json=lambda: body, text=f"invalid credentials: {self.form}")
+
+
+def test_every_encoding_differs_from_the_key_as_sent():
+    assert all(f != ODD and ODD not in f for f in ENCODINGS.values())      # so plain redaction alone cannot pass
+
+
+@pytest.mark.parametrize("name", sorted(ENCODINGS))
+def test_a_key_echoed_back_encoded_in_a_reply_is_redacted(tmp_path, monkeypatch, name):
+    form = ENCODINGS[name]
+    monkeypatch.setenv("MYHOST_API_KEY", ODD)
+    monkeypatch.setattr(httpx, "post", _ReflectEncoded(form))
+    res = R.Router(root=_cfg(tmp_path)).complete("check_judge", [{"role": "user", "content": "hi"}])
+    written = _everything_written(tmp_path)
+    assert written and R.REDACTED in written
+    for text in (written, res.content, json.dumps(res.raw)):
+        assert form not in text and ODD not in text
+
+
+@pytest.mark.parametrize("name", sorted(ENCODINGS))
+def test_a_key_echoed_back_encoded_in_an_error_is_redacted(tmp_path, monkeypatch, name):
+    form = ENCODINGS[name]
+    monkeypatch.setenv("MYHOST_API_KEY", ODD)
+    monkeypatch.setattr(httpx, "post", _ReflectEncoded(form, status=401))
+    with pytest.raises(R.ModelError) as e:
+        R.Router(root=_cfg(tmp_path)).complete("check_judge", [{"role": "user", "content": "hi"}])
+    assert form not in str(e.value) and R.REDACTED in str(e.value)
+    assert form not in _everything_written(tmp_path)
+
+
+def test_redaction_leaves_text_without_the_key_alone():
+    text = "Basic dXNlcjpvdGhlcg== %2Fpath 6869 ordinary reply text"
+    assert R.redact(text, ODD) == text
 
 
 @pytest.mark.parametrize("url", ["http://llm.example.test/v1", "http://10.0.0.5:8000/v1", "http://127.0.0.1.evil.test/v1"])

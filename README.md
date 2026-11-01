@@ -326,7 +326,8 @@ model is logged as unpriced (never $0) and refused under `--max-usd`, and a non-
 config is tested offline only, with a mocked HTTP layer. **Trust boundary:** `semaudit.toml` and the contract are
 trusted, owner-controlled code: SRA runs the contract's adapter as Python, and a provider entry sends the environment
 variable it names to the URL it names (https only; plain http only to a loopback host). Run `semaudit` only where you
-trust both. See
+trust both. A key the endpoint echoes back is redacted as sent, URL-encoded, base64 or hex, but a key split across
+fields cannot be caught by redaction: the endpoint receives the key anyway, so only use one you trust. See
 [docs/10-add-your-app.md, "Use another model"](docs/10-add-your-app.md#use-another-model) and
 [`semaudit.toml.example`](semaudit.toml.example).
 

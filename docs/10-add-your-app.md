@@ -241,7 +241,9 @@ Built-in providers: `meta` (`META_MODEL_API_KEY`), `baseten` (`BASETEN_API_KEY`)
 > **Trust boundary: `semaudit.toml` and the contract are trusted, owner-controlled code.** SRA executes the
 > contract's adapter as Python, and a `[providers.<name>]` entry sends the value of the environment variable it names,
 > as a bearer token, to the `base_url` it names. So run `semaudit` only in a folder whose `semaudit.toml` and contract
-> you wrote or have read, exactly as you would only run code you trust. SRA does not try to sandbox either.
+> you wrote or have read, exactly as you would only run code you trust. SRA does not try to sandbox either. A key
+> split across fields cannot be caught by redaction (below): the endpoint receives the key anyway, so only use one you
+> trust.
 
 > **Untested against a live endpoint.** This config is tested offline only: `tests/test_router_config_providers.py`
 > sends the calls to a mocked HTTP layer and checks the URL, the key, the pricing and the failure paths. No real
@@ -278,9 +280,11 @@ Rules the router enforces:
   'myhost' needs it`. The value is never printed.
 - **https only.** `base_url` must be `https://`. Plain `http://` is accepted only for a loopback host
   (`127.0.0.1`, `::1`, `localhost`), so a model server on your own machine still works.
-- **The key never reaches SRA's files or errors.** If the endpoint echoes the key value back (in a reply or in an
-  error), SRA replaces it with `[redacted: provider key]` before the reply is cached, logged or shown, and in every
-  error message. Values shorter than 8 characters are not redacted.
+- **An echoed key does not reach SRA's files or errors.** If the endpoint echoes the key value back (in a reply or in
+  an error), as sent, URL-encoded, base64 (standard or urlsafe, padded or not) or hex, SRA replaces it with
+  `[redacted: provider key]` before the reply is cached, logged, written to a run or shown, and in every error message.
+  A key split across fields, or transformed some other way, is not caught. Values shorter than 8 characters are not
+  redacted.
 - **Unpriced means unpriced.** Without a `prices` entry the ledger (`runs/ledger.jsonl`) records each call with
   `"cost_usd": null, "priced": false`, never $0, and `--max-usd` refuses the model rather than guess.
 - **Prices belong to the provider.** Your provider's calls are priced only by its own `prices` table, even when

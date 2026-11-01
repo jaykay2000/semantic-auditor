@@ -6,6 +6,8 @@ and every call (cached or not) is appended to a cost ledger.
 
 from __future__ import annotations
 
+import base64
+import functools
 import hashlib
 import json
 import os
@@ -55,13 +57,35 @@ REDACTED = "[redacted: provider key]"
 MIN_REDACT = 8      # a key value this short is not redacted (it would rewrite ordinary text); real keys are far longer
 
 
+@functools.lru_cache(maxsize=8)
+def _key_forms(secret: str) -> re.Pattern:
+    """One pattern matching the key as sent and in the encodings an endpoint is likely to echo it back in:
+    URL-encoded (quote and quote_plus), hex, and base64 (standard and urlsafe). Base64 is matched by the part of the
+    encoding that depends only on the key, at each of the three byte alignments the key can start at inside a larger
+    encoded value, so it is caught with or without padding and with anything before or after it. The URL-encoded and
+    hex forms are matched ignoring case (an endpoint may write %2b or 2B)."""
+    raw = secret.encode()
+    exact = {secret}
+    for k in range(3):
+        enc = base64.b64encode(b"\0" * k + raw).decode()
+        core = enc[-(-8 * k // 6): 8 * (k + len(raw)) // 6]      # the characters made of key bits only
+        exact |= {core, core.translate(str.maketrans("+/", "-_"))}
+    folded = {urllib.parse.quote(secret, safe=""), urllib.parse.quote(secret), urllib.parse.quote_plus(secret),
+              raw.hex()} - exact
+    alts = [re.escape(f) for f in sorted(exact, key=len, reverse=True)]
+    alts += [f"(?i:{re.escape(f)})" for f in sorted(folded, key=len, reverse=True)]
+    return re.compile("|".join(alts))
+
+
 def redact(obj: Any, secret: str | None) -> Any:
-    """`obj` (a reply, or error text) with every occurrence of the provider key replaced by REDACTED, so an endpoint
-    that echoes the key back cannot put it into the cache, the ledger or an error message."""
+    """`obj` (a reply, or error text) with every occurrence of the provider key, as sent or URL-encoded, base64- or
+    hex-encoded (see _key_forms), replaced by REDACTED, so an endpoint that echoes the key back cannot put it into the
+    cache, the ledger, a run file or an error message. A key the endpoint splits across fields, or transforms in some
+    other way, is not caught: the endpoint receives the key anyway, which is why a config provider must be trusted."""
     if not secret or len(secret) < MIN_REDACT:
         return obj
     if isinstance(obj, str):
-        return obj.replace(secret, REDACTED)
+        return _key_forms(secret).sub(REDACTED, obj)
     if isinstance(obj, list):
         return [redact(x, secret) for x in obj]
     if isinstance(obj, dict):
