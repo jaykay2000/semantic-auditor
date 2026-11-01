@@ -15,6 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 CV = "src/semaudit/imported/convert.py"
 RC = "src/semaudit/imported/recheck.py"
 MEM = "src/semaudit/decide/memory.py"
+SV = "src/semaudit/imported/saved.py"
 
 # (safeguard, file, original text, mutated text, test that must go red)
 MUTATIONS = [
@@ -71,6 +72,8 @@ MUTATIONS = [
      "test_fix_needs_verified_evidence_not_an_absence"),
     ("memory keeps checks", MEM, '    if data.get("checks"):                    # imported checks (semaudit',
      '    if False:                    # imported checks (semaudit', "test_memory_keeps_checks_beside_issues"),
+ ("saved check runs only at its approved digest", SV, '        if c.digest() != a.get("hash"):',
+     "        if False:", "test_saved_checks_load_from_storage_and_refuse_a_changed_check"),
 ]
 
 

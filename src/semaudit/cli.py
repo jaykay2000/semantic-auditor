@@ -284,3 +284,58 @@ def verify_report_cmd(review: Path = typer.Argument(..., exists=True, dir_okay=F
 
 if __name__ == "__main__":
     app()
+
+
+checks_app = typer.Typer(no_args_is_help=True, help="Imported checks: saved, owner-approved checks from agent findings.")
+app.add_typer(checks_app, name="checks")
+
+
+@checks_app.command("approve")
+def checks_approve_cmd(contract_dir: Path = typer.Option(..., "--contract", exists=True, file_okay=False),
+                       check_id: str = typer.Option(..., "--check"), by: str = typer.Option(..., "--by")):
+    """Approve one imported check (checks/<id>.yaml) at its current actions and invariant."""
+    from .contract.approve import approve_check
+    from .imported.record import ImportedCheck
+    c = ImportedCheck.read(contract_dir / "checks" / f"{check_id}.yaml")
+    if c.conversion.status != "converted":
+        typer.echo(f"{check_id} is {c.conversion.status}; only a converted check can be approved")
+        raise typer.Exit(1)
+    typer.echo(f"approved {approve_check(contract_dir, c.id, c.digest(), by=by)} at {c.digest()}")
+
+
+@checks_app.command("run")
+def checks_run_cmd(contract_dir: Path = typer.Option(..., "--contract", exists=True, file_okay=False),
+                   base: str = typer.Option(..., "--base"), head: str = typer.Option(..., "--head"),
+                   run_id: str = typer.Option(..., "--run-id"), max_usd: float = typer.Option(..., "--max-usd"),
+                   runs_dir: Path = typer.Option(Path("runs"), "--runs-dir"),
+                   root: Path = typer.Option(Path("."), "--root", help="folder with semaudit.toml and .env")):
+    """Replay every saved, approved check on base and head, judge it, record the outcome. Imports nothing."""
+    from .imported.saved import run_saved
+    from .models.router import Router
+    out = run_saved(contract_dir, base, head, Router(root=root, max_usd=max_usd), runs_dir=runs_dir, run_id=run_id)
+    for r in out["refused"]:
+        typer.echo(f"refused: {r}")
+    for c in out["checks"]:
+        for rel in (base, head):
+            x = c["results"][rel]
+            typer.echo(f"{c['id']} {rel}: replay={x['replay']['status']} assertion={x['assertion']['outcome']} "
+                       f"confidence={x['semantic_confidence']['agreement']} evidence={x['evidence']['status']}")
+        typer.echo(f"{c['id']} {base}->{head}: {c['memory']['status']}")
+    typer.echo(f"wrote {runs_dir / run_id / 'saved-checks.json'}")
+    raise typer.Exit(0 if out["checks"] else 2)
+
+
+@checks_app.command("card")
+def checks_card_cmd(contract_dir: Path = typer.Option(..., "--contract", exists=True, file_okay=False),
+                    out: Path = typer.Option(..., "--out"),
+                    saved: Path = typer.Option(None, "--saved", help="a saved-checks.json run"),
+                    check: list[str] = typer.Option([], "--check", help="also show these checks (e.g. a gap)"),
+                    title: str = typer.Option("Imported checks", "--title"),
+                    label: str = typer.Option(None, "--label")):
+    """Render the imported-check cards: finding, journey + invariant, four statuses, base vs head, gap cards."""
+    from .imported import card
+    from .imported.record import ImportedCheck
+    cards = card.from_saved_run(saved, contract_dir) if saved else []
+    for cid in check:
+        cards.append(card.card_data(ImportedCheck.read(contract_dir / "checks" / f"{cid}.yaml"), contract_dir))
+    typer.echo(f"wrote {card.render(cards, out, title=title, label=label)}")

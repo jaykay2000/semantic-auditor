@@ -147,7 +147,8 @@ def judge(router: Router, body: dict, *, seed: int, fresh: bool = False) -> dict
                             schema=SCHEMA, schema_name="judgment", seed=seed, fresh=fresh)
     except UnreadableReply as e:
         return {"outcome": "not_measurable", "why": f"unreadable reply: {e}"[:300], "cited": [], "record": [],
-                "seed": seed, "model": None, "cached": False, "cost_usd": None, "unreadable": True}
+                "seed": seed, "model": (getattr(router, "roles", {}).get(ROLE) or {}).get("model"), "cached": False,
+                "cost_usd": None, "unreadable": True}
     out = dict(r.parsed or {"outcome": "not_measurable", "why": "unreadable reply", "cited": [], "record": []})
     out.update(seed=seed, model=r.model, cached=r.cached, cost_usd=r.cost_usd)
     return out
@@ -238,6 +239,8 @@ def recheck(check: ImportedCheck, ep: Episode | None, contract: Contract, spec: 
             judgments: int = 3, fresh: bool = True, approved: bool) -> dict[str, Any]:
     rs = replay_status(ep, check, contract, spec)
     base = {"check": check.id, "check_digest": check.digest(), "approved": approved,
+            "models": {"conversion": check.conversion.model,
+                       "judging": (getattr(router, "roles", {}).get(ROLE) or {}).get("model")},
             "release": ep.release if ep else None, "episode": ep.id if ep else None, "replay": rs}
     if rs["status"] != "succeeded":
         return {**base, "assertion": {"outcome": "not_measurable", "why": "the replay did not succeed",

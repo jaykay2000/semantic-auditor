@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ title }}</title>
+<style>
+:root{--ink:#16181d;--muted:#5d6470;--line:#dde1e7;--bg:#f6f7f9;--card:#fff;--fail:#a2361f;--failbg:#fbece8;
+--pass:#1f6b46;--passbg:#e7f4ec;--warn:#8a5a00;--warnbg:#fbf2df;--info:#24508f;--infobg:#e9f0fb}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,"Segoe UI",
+Roboto,sans-serif}main{max-width:1080px;margin:0 auto;padding:24px 16px 64px}h1{font-size:22px;margin:0 0 4px}
+.sub{color:var(--muted);margin:0 0 20px}.label{display:inline-block;background:var(--warnbg);color:var(--warn);
+border-radius:999px;padding:2px 10px;font-size:13px;font-weight:600;margin-bottom:12px}
+section.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px;margin:0 0 20px}
+h2{font-size:18px;margin:0 0 2px}h3{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);
+margin:22px 0 8px}.k{color:var(--muted);font-size:13px}blockquote{margin:0;padding:10px 14px;border-left:3px solid
+var(--line);background:#fafbfc;border-radius:0 8px 8px 0;white-space:pre-wrap}table{border-collapse:collapse;
+width:100%;font-size:14px}td,th{border-bottom:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:top}
+th{font-size:12px;color:var(--muted);font-weight:600}code{font:13px ui-monospace,SFMono-Regular,Menlo,monospace}
+.pill{display:inline-block;border-radius:999px;padding:1px 9px;font-size:13px;font-weight:600}
+.fail{background:var(--failbg);color:var(--fail)}.pass{background:var(--passbg);color:var(--pass)}
+.nm{background:var(--warnbg);color:var(--warn)}.info{background:var(--infobg);color:var(--info)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}@media(max-width:760px){.grid{grid-template-columns:1fr}}
+.rel{border:1px solid var(--line);border-radius:10px;padding:14px}.fig{font:13px ui-monospace,Menlo,monospace;
+margin:2px 0}.implied{color:var(--muted);font-style:italic}.outcome{font-size:17px;font-weight:600}
+</style></head><body><main>
+<h1>{{ title }}</h1>
+{% if label %}<div class="label">{{ label }}</div>{% endif %}
+{% for c in cards %}{% set ch = c.check %}
+<section class="card">
+  <h2>{{ ch.id }} · {{ ch.source.claim }}</h2>
+  <div class="k">Agent trial {{ ch.source.trial }} · conversion: <span class="pill {{ 'pass' if ch.conversion.status == 'converted' else 'nm' }}">{{ ch.conversion.status }}</span>
+    · drafted by <code>{{ ch.conversion.model }}</code>, gate rounds {{ ch.conversion.gate_rounds }}
+    {% if c.run %}· approved digest <code>{{ c.run.approved_digest }}</code> (by {{ c.run.approved_by }}){% endif %}</div>
+
+  <h3>(a) The agent's finding, as written (kept as evidence only; never shown to the judge)</h3>
+  <blockquote><b>Shown:</b> {{ ch.source.shown }}
+<b>Should be:</b> {{ ch.source.should_be }}
+<b>Reproduce:</b> {{ ch.source.reproduce }}</blockquote>
+
+  {% if ch.conversion.status == 'converted' %}
+  <h3>(b) The converted journey (adapter verbs only) and the rule it keeps</h3>
+  <table><tr><th>#</th><th>Adapter verb</th><th>From the agent's words</th></tr>
+  {% for s in c.steps %}<tr><td>{{ s.n }}</td><td><code>{{ s.do }}</code></td>
+    <td>{% if s.from %}“{{ s.from.strip(' →;,.') }}”{% else %}<span class="implied">prerequisite the text leaves unsaid</span>{% endif %}</td></tr>{% endfor %}
+  </table>
+  <p class="k">Shopper data: {% for k, v in c.persona.items() %}<code>{{ k }}={{ v }}</code> {% endfor %}</p>
+  {% if c.rule %}<p><b>Rule {{ c.rule.id }}: {{ c.rule.title }}.</b> {{ c.rule.text }}</p>{% endif %}
+  <p><b>Invariant on <code>{{ ch.invariant.surface }}</code>:</b> {{ ch.invariant.statement }}</p>
+  {% else %}
+  <h3>(e) Not converted: what the harness cannot do yet</h3>
+  <table><tr><th>Agent's words</th><th>Kind</th><th>Needs</th></tr>
+  {% for cl in c.clauses if cl.unmapped %}<tr><td>“{{ cl.text.strip(' →;,.') }}”</td><td>{{ cl.unmapped.reason }}</td>
+    <td>{% if cl.unmapped.missing_verb %}verb <code>{{ cl.unmapped.missing_verb }}</code>{% else %}{{ cl.unmapped.why }}{% endif %}</td></tr>{% endfor %}
+  {% for g in ch.conversion.gaps if g.startswith('surface:') %}<tr><td colspan="2">the surface the agent cited</td><td>{{ g[8:] }}</td></tr>{% endfor %}
+  </table>
+  <p class="k">Classified <b>{{ ch.conversion.status }}</b>: nothing is replayed, and no action was invented.
+  {% for r in ch.conversion.reasons %}<br>· {{ r }}{% endfor %}</p>
+  {% endif %}
+
+  {% if c.rows %}
+  <h3>(c) Four separate statuses per release</h3>
+  <div class="grid">{% for row in c.rows %}{% set r = row.r %}<div class="rel">
+    <div class="k">{{ row.release }}{% if row.release == c.base %} (base){% elif row.release == c.head %} (head){% endif %} · episode <code>{{ r.episode }}</code></div>
+    <table>
+    <tr><td>Replay</td><td><span class="pill {{ 'pass' if r.replay.status == 'succeeded' else 'fail' }}">{{ r.replay.status }}</span></td></tr>
+    <tr><td>Assertion</td><td><span class="pill {{ {'pass':'pass','fail':'fail'}.get(r.assertion.outcome, 'nm') }}">{{ r.assertion.outcome }}</span> <span class="k">votes {{ r.assertion.votes }}</span></td></tr>
+    <tr><td>Semantic confidence</td><td><span class="pill info">{{ r.semantic_confidence.level }}</span> <span class="k">{{ r.semantic_confidence.agreement }} judgments agree</span></td></tr>
+    <tr><td>Evidence</td><td><span class="pill {{ 'pass' if r.evidence.status == 'verified' else 'nm' }}">{{ r.evidence.status }}</span> <span class="k">per judgment {{ r.evidence.per_judgment }}</span></td></tr>
+    </table>
+    <div class="k" style="margin-top:8px">What the surface showed (quotes the judges cited, each found in the capture):</div>
+    {% for f in row.figures %}<div class="fig">{{ f.quote }}</div>{% endfor %}
+    <div class="k" style="margin-top:6px">judged by <code>{{ r.models.judging if r.models else '' }}</code></div>
+  </div>{% endfor %}</div>
+  {% endif %}
+
+  {% if c.memory %}
+  <h3>(d) Base vs head, recorded in the decisions memory</h3>
+  <p class="outcome"><span class="pill {{ 'pass' if c.memory.status == 'fix_confirmed' else ('fail' if c.memory.status in ('still_open','regressed') else 'nm') }}">{{ c.memory.status }}</span>
+   {{ c.memory.base }} → {{ c.memory.head }}: {{ c.memory.why }}</p>
+  {% endif %}
+  {% if c.run %}<p class="k">Run <code>{{ c.run.id }}</code> at {{ c.run.at }}, loaded from storage:
+    {% for f, h in c.run.loaded.items() %}<code>{{ f }}</code> ({{ h }}) {% endfor %}</p>{% endif %}
+</section>
+{% endfor %}
+</main></body></html>

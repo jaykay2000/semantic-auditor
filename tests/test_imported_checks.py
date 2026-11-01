@@ -406,3 +406,60 @@ def test_unreadable_judgment_is_a_not_measurable_vote():
             raise UnreadableReply("finish_reason=length")
     j = rc.judge(Runaway(), {}, seed=1)
     assert j["outcome"] == "not_measurable" and j["unreadable"] and j["cited"] == []
+
+
+# ---------- saved checks: the next run uses stored, approved checks only ----------
+
+def _saved_dir(tmp_path):
+    import shutil
+    d = tmp_path / "contract"
+    shutil.copytree(FIX, d)
+    chk = _check()
+    chk.write(d / "checks")
+    approve_check(d, chk.id, chk.digest(), by="owner")
+    return d, chk
+
+
+def test_saved_checks_load_from_storage_and_refuse_a_changed_check(tmp_path):
+    """safeguard: a saved check runs only at the digest the owner approved."""
+    from semaudit.imported.saved import saved_checks
+    d, chk = _saved_dir(tmp_path)
+    ok, refused = saved_checks(d)
+    assert [c.id for c in ok] == [chk.id] and refused == []
+    changed = chk.model_copy(update={"invariant": chk.invariant.model_copy(update={"statement": "other"})})
+    changed.write(d / "checks")
+    ok, refused = saved_checks(d)
+    assert ok == [] and "content changed since approval" in refused[0]
+
+
+def test_run_saved_imports_nothing_and_records_memory(tmp_path, monkeypatch):
+    from semaudit.imported import saved
+    d, chk = _saved_dir(tmp_path)
+    monkeypatch.setattr(saved.rc, "replay", lambda checks, *a, **k: {c.id: None for c in checks})
+    calls = iter([_r(outcome="fail"), _r(release="r2")])
+    monkeypatch.setattr(saved.rc, "recheck", lambda *a, **k: next(calls))
+    monkeypatch.setattr(cv, "convert", lambda *a, **k: (_ for _ in ()).throw(AssertionError("imported again")))
+    out = saved.run_saved(d, "r1", "r2", None, runs_dir=tmp_path / "runs", run_id="next-review")
+    assert [c["id"] for c in out["checks"]] == [chk.id] and out["checks"][0]["memory"]["status"] == "fix_confirmed"
+    assert out["checks"][0]["approved_digest"] == chk.digest()
+    assert "checks/T-00.yaml" in out["loaded_from_storage"]
+    assert (tmp_path / "runs" / "next-review" / "saved-checks.json").exists()
+    assert memory.load(d)["checks"][-1]["run"] == "next-review"
+
+
+def test_card_renders_every_part(tmp_path):
+    from semaudit.imported import card
+    chk = _check()
+    res = {"r1": {**_r(outcome="fail"), "episode": "e1", "assertion": {"outcome": "fail", "votes": {"fail": 3}},
+                  "semantic_confidence": {"level": "high", "agreement": "3/3"},
+                  "evidence": {"status": "verified", "per_judgment": ["verified"] * 3},
+                  "models": {"judging": "meta-model"},
+                  "judgments": [{"outcome": "fail", "cited": [{"event_id": "m1", "quote": "Total $12.50"}]}]}}
+    gap = cv.convert("T-01", SRC, C, FIX, SPEC, FakeRouter([{**g(), "invariant": {
+        **GOOD["invariant"], "surface": "", "missing_surface": "history page"}}]))
+    cards = [card.card_data(chk, FIX, res, {"status": "still_open", "base": "r1", "head": "r2", "why": "x"}, "r1"),
+             card.card_data(gap, FIX)]
+    html = card.render(cards, tmp_path / "c.html", title="t", label="initial prototype, one finding").read_text()
+    for part in ("(a) The agent", "(b) The converted journey", "(c) Four separate statuses", "(d) Base vs head",
+                 "(e) Not converted", "Total $12.50", "history page", "initial prototype, one finding", "pick_item"):
+        assert part in html, part
