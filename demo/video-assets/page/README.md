@@ -2,7 +2,7 @@
 
 Rendered with Playwright (Chromium) from the built `file://` pages at 1920×1080, device scale 2 (3840×2160 PNGs),
 network blocked. Each page was built with `semaudit.report.page.build` into `/private/tmp/claude-501/page-design/<app>/`;
-nothing was written into a run folder. Scene numbers refer to `docs/07-demo-reframe-draft.md`.
+nothing was written into a run folder. Scene numbers refer to `docs/archive/07-demo-reframe-draft.md` (superseded).
 
 | File | Scene | What it shows |
 |---|---|---|
