@@ -41,7 +41,7 @@ margin:2px 0}.implied{color:var(--muted);font-style:italic}.outcome{font-size:17
   {% for s in c.steps %}<tr><td>{{ s.n }}</td><td><code>{{ s.do }}</code></td>
     <td>{% if s.from %}“{{ s.from.strip(' →;,.') }}”{% else %}<span class="implied">prerequisite the text leaves unsaid</span>{% endif %}</td></tr>{% endfor %}
   </table>
-  <p class="k">Shopper data: {% for k, v in c.persona.items() %}<code>{{ k }}={{ v }}</code> {% endfor %}</p>
+  <p class="k">Persona data: {% for k, v in c.persona.items() %}<code>{{ k }}={{ v }}</code> {% endfor %}</p>
   {% if c.rule %}<p><b>Rule {{ c.rule.id }}: {{ c.rule.title }}.</b> {{ c.rule.text }}</p>{% endif %}
   <p><b>Invariant on <code>{{ ch.invariant.surface }}</code>:</b> {{ ch.invariant.statement }}</p>
   {% else %}

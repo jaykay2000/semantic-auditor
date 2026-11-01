@@ -288,7 +288,7 @@ def _layer(rule) -> str:
     """factual (a figure or a detail is wrong) or release (how the release behaves over time), as rules mode sets it.
     A universal rule whose verb the engine has no code for is read as factual: the engine's release-layer universal
     rules are named by verbs it knows (actionability, message kind), and an owner's other universal rules say what a
-    figure, a total or a record must show (Spree's U3-U8). Any other kind of rule is release."""
+    figure, a total or a record must show (a store's sum-to-total rules, say). Any other kind of rule is release."""
     if rule.check.get("must") in FACTUAL_CHECKS:
         return "factual"
     if rule.kind == "universal" and not engine_support(rule)[0]:

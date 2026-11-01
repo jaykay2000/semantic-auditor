@@ -45,7 +45,7 @@ def measurement(base: ReleaseEval, head: ReleaseEval, contract: Contract, reader
 
 def not_raised(head: ReleaseEval, failed: list[Issue], contract: Contract, set_aside: list[Issue] = ()) -> list[dict]:
     out = []
-    coherence = {r.id for r in contract.rules_of("coherence")}   # a contract may have none (Spree)
+    coherence = {r.id for r in contract.rules_of("coherence")}   # a contract may have none
     for persona, (story, entries) in sorted(head.results.items()):
         by = {e.id: e for e in story.events}
         for e in entries:

@@ -233,7 +233,7 @@ def conditional_why(r: Rule, entry: Entry, e: Event, story: Story) -> str:
 
 def _split_by_fact(es: list[Entry]) -> list[tuple[Entry, list[Entry]]]:
     """One event, one issue, except that two different facts wrong on the same event are two defects (a limit and
-    the room under it, or a freedom age and a limit), whichever rules raised them: otherwise one that is dismissed
+    the room under it, or a target age and a limit), whichever rules raised them: otherwise one that is dismissed
     hides the other. Entries that name no fact ride along on the first."""
     facts = list(dict.fromkeys(e.meta.get("fact") for e in es if e.meta.get("fact")))
     if len(facts) <= 1:

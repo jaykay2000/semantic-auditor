@@ -19,10 +19,13 @@ from semaudit.relate.interpret import stub_always  # noqa: E402
 from semaudit.relate.rules import evaluate  # noqa: E402
 from semaudit.story.model import Event, Extraction, Story  # noqa: E402
 
-# Words of the demo app (domain, features, personas). Any of them in the core means a concept is missing from
-# the contract schema. Extend this list when a new example app is added.
-APP_WORDS = r"travell?ers?|trips?|depart\w*|flights?|hotels?|seats?|fares?|book(?:ing|ed|s)?|northbound|" \
-            r"price[ _]watch|fare[ _]lock|concierge|maya|raj|kai|lena|omar|hana|rina|okafors?|EUR|€"
+# Words of the apps SRA is shown on (domain, features, personas). Any of them in the core means a concept is missing
+# from the contract schema. Extend this list when a new example app is added.
+NORTHBOUND = r"travell?ers?|trips?|depart\w*|flights?|hotels?|seats?|fares?|book(?:ing|ed|s)?|northbound|" \
+             r"price[ _]watch|fare[ _]lock|concierge|maya|raj|kai|lena|omar|hana|rina|okafors?|EUR|€"
+SPREE = r"spree|storefront|shoppers?|freeship|blenders?|beta[23]"
+FINABLO = r"finablo|401\(?k\)?|403\(?b\)?|roth|iras?|irs|catch[- ]up|freedom[ _]age|henrys?"
+APP_WORDS = "|".join((NORTHBOUND, SPREE, FINABLO))
 GENERIC = ROOT / "tests" / "fixtures" / "generic_contract"
 
 
@@ -41,7 +44,9 @@ def test_guard_bites():
     """The pattern would catch the words that used to be in the core."""
     pat = re.compile(rf"\b(?:{APP_WORDS})\b", re.I)
     for line in ('dep = story.trip.get(cond.trip_field)', 'before the traveller decided',
-                 'background:var(--${{price_watch: "pw"}})', 'Path("examples/northbound/contract")'):
+                 'background:var(--${{price_watch: "pw"}})', 'Path("examples/northbound/contract")',
+                 "# a contract may have none (Spree)", '<p class="k">Shopper data: ',
+                 "a freedom age and a limit", "the Finablo 401(k) catch-up", "Roth IRA"):
         assert pat.search(line), line
 
 
