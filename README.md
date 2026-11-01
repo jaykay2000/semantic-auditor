@@ -415,6 +415,13 @@ demo/          video assets and upstream evidence
 docs/          design documents and measured evidence
 ```
 
+## Publication notes
+
+- **Dependencies are not locked.** `pyproject.toml` gives lower bounds only (ruff is pinned exactly); there is no
+  lock or constraints file, so a fresh install resolves the newest compatible versions.
+- **The git history is kept as written**, by the owner's choice: commits carry the author's name and email and
+  co-author trailers, and nothing has been rewritten.
+
 ## Status
 
 Built during the Meta Global AI Developer Hackathon (Oct 26 – Nov 4, 2026). Licensed under Apache-2.0 ([LICENSE](LICENSE)).
