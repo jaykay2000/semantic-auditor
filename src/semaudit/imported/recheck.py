@@ -29,7 +29,7 @@ from semaudit.capture.runner import Runner
 from semaudit.contract.schema import Contract, Persona, Scenario, load_contract
 from semaudit.decide.pipeline import measurement_problems
 from semaudit.decide.reader import check_citations
-from semaudit.models.router import Router
+from semaudit.models.router import Router, UnreadableReply
 from semaudit.story.build import story_from_episode
 from semaudit.story.episode import Episode
 
@@ -139,9 +139,15 @@ def judge_payload(check: ImportedCheck, contract: Contract, msgs: list, record: 
 
 
 def judge(router: Router, body: dict, *, seed: int, fresh: bool = False) -> dict[str, Any]:
-    r = router.complete(ROLE, [{"role": "system", "content": PROMPT.read_text()},
-                               {"role": "user", "content": json.dumps(body, ensure_ascii=False, default=str)}],
-                        schema=SCHEMA, schema_name="judgment", seed=seed, fresh=fresh)
+    """One judgment. A reply that is still not JSON after the router's retries (the model ran away to its token cap)
+    is a not_measurable vote with no evidence, never a crash and never a pass or a fail."""
+    try:
+        r = router.complete(ROLE, [{"role": "system", "content": PROMPT.read_text()},
+                                   {"role": "user", "content": json.dumps(body, ensure_ascii=False, default=str)}],
+                            schema=SCHEMA, schema_name="judgment", seed=seed, fresh=fresh)
+    except UnreadableReply as e:
+        return {"outcome": "not_measurable", "why": f"unreadable reply: {e}"[:300], "cited": [], "record": [],
+                "seed": seed, "model": None, "cached": False, "cost_usd": None, "unreadable": True}
     out = dict(r.parsed or {"outcome": "not_measurable", "why": "unreadable reply", "cited": [], "record": []})
     out.update(seed=seed, model=r.model, cached=r.cached, cost_usd=r.cost_usd)
     return out

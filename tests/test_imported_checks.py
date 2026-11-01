@@ -395,3 +395,14 @@ def test_record_value_comparison():
     assert rc._same(89.99, ": 89.99") and rc._same(89.99, "$89.99") and rc._same(5.0, "5.00")
     assert not rc._same(89.99, "^1^") and not rc._same(89.99, "[  ]") and not rc._same(89.99, "89.99 or 90")
     assert rc._same("unfulfilled", "'Unfulfilled'") and not rc._same("paid", "unpaid")
+
+
+def test_unreadable_judgment_is_a_not_measurable_vote():
+    """A runaway reply (not JSON after retries) is recorded, never a crash, never a pass or a fail."""
+    from semaudit.models.router import UnreadableReply
+
+    class Runaway:
+        def complete(self, *a, **k):
+            raise UnreadableReply("finish_reason=length")
+    j = rc.judge(Runaway(), {}, seed=1)
+    assert j["outcome"] == "not_measurable" and j["unreadable"] and j["cited"] == []
