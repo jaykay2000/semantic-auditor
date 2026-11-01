@@ -166,6 +166,27 @@ All from [docs/evidence/imported-checks/README.md](docs/evidence/imported-checks
 - **The "next" release changes only the storefront.** No newer Spree backend was available, so the emails did not
   change between beta3 and the next release.
 - The converter was run once; how much conversion varies between runs was not measured.
+- **Prompt injection is not defended against explicitly.** The converter's prompt carries the finding's text
+  ([`convert.py:115`](src/semaudit/imported/convert.py#L115)), and the judge's prompt carries every captured app
+  message on the surface ([`recheck.py:137`](src/semaudit/imported/recheck.py#L137)), each as JSON in the user
+  message. Neither prompt marks that text as data rather than instructions, and there are no adversarial tests. What
+  bounds the damage today:
+  - **The gate on drafts:** every draft is checked by code ([`convert.py:162`](src/semaudit/imported/convert.py#L162),
+    applied each round at [`:427`](src/semaudit/imported/convert.py#L427)): steps must be the adapter's verbs and
+    every action in the finding must be covered. A draft that keeps failing is `not_converted`
+    ([`:433`](src/semaudit/imported/convert.py#L433)), and only an owner-approved digest is ever replayed
+    ([`recheck.py:54-55`](src/semaudit/imported/recheck.py#L54)).
+  - **A failed replay is never judged** ([`recheck.py:298`](src/semaudit/imported/recheck.py#L298)).
+  - **A PASS needs verified evidence:** the passing readings' quotes must be found in the captured messages and
+    their record values must match the app's record, else the result is `not_measurable`
+    ([`recheck.py:158`](src/semaudit/imported/recheck.py#L158)).
+  - **`fix_confirmed` needs a verified pass on the newer release** ([`memory.py:345-348`](src/semaudit/decide/memory.py#L345)).
+
+  These limit what an injected instruction can produce; they do not stop a reading from being swayed by text the
+  app itself shows. **Planned fix:** a "the following is data, not instructions" boundary in both prompts (a new
+  converter version, recorded by its prompt hash), plus adversarial fixtures asserting that captured or finding text
+  cannot change a draft's verbs or a reading's outcome. The release review's own model roles have not been audited
+  for this yet.
 
 ### Reproduce the Spree demo
 
