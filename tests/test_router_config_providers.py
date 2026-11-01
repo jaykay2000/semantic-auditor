@@ -245,7 +245,7 @@ class _Reflect:
 
     def __call__(self, url, json=None, headers=None, timeout=None):
         got = headers["Authorization"].removeprefix("Bearer ")
-        body = {"choices": [{"message": {"content": '{"echo": "%s"}' % got}, "finish_reason": "stop"}],
+        body = {"choices": [{"message": {"content": '{"echo": "' + got + '"}'}, "finish_reason": "stop"}],
                 "usage": {"prompt_tokens": 1, "completion_tokens": 1}, "debug": {"auth": got}}
         return SimpleNamespace(status_code=self.status, json=lambda: body, text=f"invalid credentials: {got}")
 
