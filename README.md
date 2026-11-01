@@ -97,7 +97,8 @@ review page.
 | Evidence | verified · partially_verified · unverified | Every quote in the majority readings is checked against the captured text, and every record value they cite against the record itself. |
 
 **A PASS needs both a satisfied rule and verified evidence.** A majority pass whose evidence is less than
-`verified` becomes `not_measurable`, and the card says why. A replay that failed is never judged.
+`verified` becomes `not_measurable`, and the card says why. A replay that failed is never judged. A reading whose reply is not JSON,
+or is JSON that does not match the judgment schema, counts as `not_measurable` (the schema check was added in `9cfdde2`).
 
 ### Memory: what happened between two releases
 
