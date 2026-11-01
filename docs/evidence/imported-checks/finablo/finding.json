@@ -1,0 +1,23 @@
+{
+ "record": {
+  "repo": "finlearn",
+  "path": "docs/handoffs/feat-73-assessment-p0.md",
+  "tree": "a183626",
+  "line": 216,
+  "first_written_in": "1a04af01 (2026-10-02), before the fix 377d5af",
+  "text": "  - \"GUEST-PENDING-FIRST-MOVE-SKIPS-THE-STATUTORY-CORRECTOR: pending/failed guest first move is the raw ranked plan, never corrected; 61-year-old sees $24,500 not $35,750 [P1] (D3) — fix in flight on feat/73-p0-pending-first-move-corrector\"",
+  "sha256": "5bb9840c0b4336541ad5190e293013016646e0c3fa62c2f869b7f7c6af6ee4e7"
+ },
+ "item": {
+  "claim": "GUEST-PENDING-FIRST-MOVE-SKIPS-THE-STATUTORY-CORRECTOR",
+  "where": "",
+  "shown": "pending/failed guest first move is the raw ranked plan, never corrected; 61-year-old sees $24,500 not $35,750",
+  "should_be": "",
+  "reproduce": "pending/failed guest first move is the raw ranked plan, never corrected; 61-year-old sees $24,500 not $35,750",
+  "rule": "",
+  "_source": {
+   "trial": "finlearn §73 card, found by D3",
+   "heading": "GUEST-PENDING-FIRST-MOVE-SKIPS-THE-STATUTORY-CORRECTOR: pending/failed guest first move is the raw ranked plan, never corrected; 61-year-old sees $24,500 not $35,750 [P1] (D3) — fix in flight on feat/73-p0-pending-first-move-corrector"
+  }
+ }
+}
