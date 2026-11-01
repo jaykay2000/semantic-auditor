@@ -56,3 +56,50 @@ error and any element that spills outside the 1920×1080 frame or clips its text
 4. All frames use the release-review page's tokens (colours, radii, type stacks), copied into `slides-src/slides.css`.
    As on the page, colour means release delta: red new, green resolved, violet dashed unconfirmed. The one extra use
    is accent blue for SRA's own figures (the running sum, the "found" dots).
+
+## Script v7 frames (2026-11-01): beats 1, 2, 7 and the end card
+
+Spec: `docs/09-demo-script-v7.md`, storyboard rows 1, 2, 7 and 8. Same tokens, renderer and size as the frames above.
+No coding agent and no non-Meta model is named on any frame.
+
+```bash
+cd demo/video-assets
+python3 slides-src/crop_finablo.py      # re-cut the Finablo crops + scenes-data/finablo.json from the stored captures
+python3 slides-src/render.py s7         # render the four v7 frames
+```
+
+`crop_finablo.py` reads the finablo-semaudit captures (read-only), never retypes app text, and records each source's
+sha256 in `scenes-data/finablo.json`. It refuses to write anything when a crop box overlaps the place a screenshot
+shows the "unused 401(k) headroom" sentence, or when a copied text line mentions headroom or lacks the expected
+limit (checked by mutation: a box over y 1690–1750 was refused and no image changed).
+
+| File | Beat | What it shows | Source capture (finablo-semaudit `runs/…`) and SHA |
+|---|---|---|---|
+| `s7-b1-finablo-limits.png` | 1, 0:00–0:17 | One test user on v706: the Report tab says "IRS max ($24,500/yr)"; the same user's "Copy for your AI" text says $32,500. Label "real product, my own; test persona", chip "354 automated checks: passed", footnote "2026 limit at ages 60–63: $35,750, where the plan allows catch-up contributions" | Finablo v706, tree `10ff1e3`, run locally. Screenshot: `wide-run-3k/captures/10ff1e3/target_61__S-R1/…s03.c01.screenshot.png` (sha256 `5d30b4a4daf0f66c…`), crop (315, 3058, 1185, 3242). Text: `…/target_61__S-R1/…s04.c01.raw.txt` line 50 (`bd2d59ac944daa76…`). 354: v706 deploy gate, 354 OK / 0 FAIL (finlearn `PLAN.md`). Limit: IRS 2026 |
+| `s7-b2-loop.png` | 2, 0:17–0:39 | The loop, seven nodes as in the row: discovery → Muse Spark drafts a journey + the rule it broke → gate checks every step → owner approves → replay on a release → status (new · fixed · still open · came back) → saved for later reviews, with one "next release" arrow back to replay. The four statuses are labels only; no result or count is shown | No numbers |
+| `s7-b7-finablo-v706-v707.png` | 7, 2:09–2:24 | v706 (`10ff1e3`) beside v707 (`a183626`), label "journey built from the known bug", no "fixed" chip. v706: $24,500 on the report while the plan is being written, $32,500 on the finished report, dashboard, copied text and PDF. v707: $35,750 on all of them | Report, plan being written: `wide-run-3k/…/target_61__S-R1/…s03` (v706 `5d30b4a4…`, v707 `e936f860…`), crop (315, 3058, 1185, 3126). Report, plan finished: `f73-limit-check/…/target_61__wide__S-wide-target/…s06` (v706 `ad12ea25…`, v707 `52844180…`), same crop. Dashboard: `…s10` (v706 `bf2a2b46…`, v707 `ac3581c3…`), crop (310, 2662, 1190, 2728). Copied text: `…s08.c01.raw.txt` line 48; PDF: `…s09.c02.raw.txt` line 50 |
+| `s7-b8-end-card.png` | 8, end card 2:40–2:46 | Repo URL placeholder · open source · "Muse Spark Open (on Baseten)" · "about 5¢ to turn a finding into a check" · "about 14¢ to re-check it on a release" | semantic-auditor `README.md` at `896f4af`: about $0.05 per conversion; Run 3c $0.54 all-in for 2 checks on 2 releases, about $0.14 per check per release. Repo URL from `scenes-data/close.json` (still `TBD`) |
+
+Notes:
+
+1. **Why beat 1 uses the S-R1 run, not f73-limit-check.** In the f73 run the 401(k) line is action 2 on the *guest*
+   report, which is blurred until sign-up, so "$24,500" is in the page's HTML but not legible. In S-R1 the same
+   answers (personas `target_61` and `target_61__wide` have identical context) sign up while the plan is still being
+   written, and the Report tab shows "IRS max ($24,500/yr)" in clear text while "Copy for your AI", a minute later,
+   says $32,500. Both figures on beat 1 are that one account's.
+2. **Beat 7 mixes two runs with the same answers**: S-R1 for the "plan still being written" row, f73 for the
+   rest. The source line says so. The claim "$35,750 on every page" rests on f73: v707 shows $35,750 in all 8 of its
+   captures that state the limit, v706 shows $24,500 in 1 (the blurred guest line) and $32,500 in 7
+   (`docs/evidence/imported-checks/finablo/README.md`).
+3. **The headroom sentence is out of frame on both builds.** "There's roughly $12,500 of unused 401(k) headroom"
+   is wrong on v706 and v707 (fixed in v708). In every screenshot used, it is *shown* in one place only: the "What this
+   means" line of the "Tax-advantaged space left on the table" card, page y 1700–1739 on the report pages (s03, s06,
+   both builds). Every report crop starts at y 3058, **1,319 px below it**. The same sentence also sits inside each
+   collapsed "Why this move?" panel; collapsed panels are not painted in these screenshots, and the crops show no
+   expanded panel (the line crops on beat 7 end at y 3126, above action 2's own "Why this move?" toggle). The
+   dashboard screenshot shows the sentence nowhere (its only copy is inside a collapsed panel). The copied-text and
+   PDF lines are single lines (48 / 50); the headroom sentence is a different line in each file (e.g. line 44 of the
+   S-R1 copied text). Positions were measured by re-rendering each stored DOM snapshot with that release's own
+   stylesheet at 1280 px (page heights match the screenshots exactly, 4767 and 3151) and confirmed by eye.
+4. **The red ring on beat 1** marks "($24,500/yr)" at page x 722–812, y 3095–3112, measured with a DOM Range on the
+   same re-render ("Ramp" lands at x 394 there and in the screenshot).

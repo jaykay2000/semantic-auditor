@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>s7 beat 2 the loop</title>
+<link rel="stylesheet" href="slides.css">
+<style>
+.hero{margin-top:120px;display:flex;flex-direction:column;gap:24px}
+.hero h1{font-size:104px;letter-spacing:-.035em}
+.hero .lede{font-size:34px;max-width:1500px}
+.pipe{position:absolute;left:112px;right:112px;top:560px;display:flex;align-items:stretch}
+.node{flex:1;display:flex;flex-direction:column;gap:10px;padding:22px 18px 20px;border-radius:20px;background:var(--panel);border:1.5px solid var(--line);box-shadow:var(--shadow);min-width:0}
+.node .n{font:600 17px var(--mono);color:var(--ink3)}
+.node .t{font:700 28px/1.1 var(--disp);letter-spacing:-.02em}
+.node .g{font-size:19px;line-height:1.35;color:var(--ink2)}
+.node.model{background:var(--accentbg);border-color:var(--accentln)}
+.node.model .t{color:var(--accent)}
+.node.out{background:var(--ink);border-color:var(--ink)}
+.node.out .t{color:#fff}.node.out .g,.node.out .n{color:#B9BCC4}
+.arr{flex:none;width:30px;display:grid;place-items:center;color:var(--ink3);font:500 26px var(--disp)}
+.st{display:flex;flex-wrap:wrap;gap:6px}
+.st span{font:600 17px var(--sans);padding:3px 11px;border-radius:999px;border:1.5px solid var(--line);background:var(--sunk);color:var(--ink);white-space:nowrap}
+svg.back{position:absolute;left:0;top:0;width:1920px;height:1080px;pointer-events:none;overflow:visible}
+.backlbl{position:absolute;font:650 18px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}
+</style></head><body>
+<div class="slide">
+  <div class="hero">
+    <h1>Semantic Release Auditor</h1>
+    <p class="lede">turns discoveries from developers and AI agents into reusable release checks</p>
+  </div>
+
+  <div class="pipe" id="pipe">
+    <div class="node"><span class="n">01</span><span class="t">Discovery</span><span class="g">developers, users, AI agents</span></div>
+    <div class="arr">→</div>
+    <div class="node model"><span class="n">02</span><span class="t">Muse Spark drafts</span><span class="g">a journey + the rule it broke</span></div>
+    <div class="arr">→</div>
+    <div class="node"><span class="n">03</span><span class="t">Gate</span><span class="g">checks every step</span></div>
+    <div class="arr">→</div>
+    <div class="node"><span class="n">04</span><span class="t">Owner approves</span></div>
+    <div class="arr">→</div>
+    <div class="node" id="replay" style="flex:1.35"><span class="n">05</span><span class="t">Replay on a release</span><span class="g">every page and email beside the app's own records</span></div>
+    <div class="arr">→</div>
+    <div class="node" style="flex:1.2"><span class="n">06</span><span class="t">Status</span><div class="st"><span>new</span><span>fixed</span><span>still open</span><span>came back</span></div></div>
+    <div class="arr">→</div>
+    <div class="node out" id="saved"><span class="n">07</span><span class="t">Saved</span><span class="g">for later reviews</span></div>
+  </div>
+  <svg class="back" id="back"></svg>
+  <div class="backlbl" id="backlbl">next release</div>
+</div>
+<script>
+// one return arrow, from "Saved" back to "Replay on a release", drawn under the row
+const a = document.getElementById('saved').getBoundingClientRect(), b = document.getElementById('replay').getBoundingClientRect();
+const y0 = a.bottom + 8, y1 = a.bottom + 92, xs = a.left + a.width / 2, xe = b.left + b.width / 2;
+document.getElementById('back').innerHTML =
+  `<defs><marker id="h" markerWidth="12" markerHeight="12" refX="6" refY="6" orient="auto"><path d="M1,1 L11,6 L1,11" fill="none" stroke="#7A808C" stroke-width="2"/></marker></defs>
+   <path d="M${xs},${y0} V${y1 - 22} Q${xs},${y1} ${xs - 22},${y1} H${xe + 22} Q${xe},${y1} ${xe},${y1 - 22} V${y0 + 4}" fill="none" stroke="#7A808C" stroke-width="2.5" stroke-dasharray="8 7" marker-end="url(#h)"/>`;
+const l = document.getElementById('backlbl');
+l.style.left = ((xs + xe) / 2 - l.offsetWidth / 2) + 'px'; l.style.top = (y1 + 12) + 'px';
+</script>
+</body></html>

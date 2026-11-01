@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>s7 beat 7 Finablo v706 vs v707</title>
+<link rel="stylesheet" href="slides.css">
+<style>
+.head{margin-top:40px;display:flex;flex-direction:column;gap:10px}
+.head h1{font-size:56px}
+.cols{margin-top:34px;display:grid;grid-template-columns:1fr 1fr;gap:40px}
+.col{display:flex;flex-direction:column;gap:18px}
+.ch{display:flex;align-items:baseline;gap:14px;padding-bottom:6px;border-bottom:1.5px solid var(--line)}
+.ch b{font:750 34px var(--disp);letter-spacing:-.02em}
+.ch .mono{font-size:18px;color:var(--ink3)}
+.ch .sum{margin-left:auto;font:650 22px var(--sans)}
+.row .lbl{font:650 16px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);margin:0 0 6px 2px}
+.shot{border-radius:14px 14px 0 0;border-bottom:0 !important;overflow:hidden;border:1.5px solid var(--line);box-shadow:var(--shadow);background:#fff}
+.shot img{display:block;width:100%}
+.shot.full{border-radius:14px;border-bottom:1.5px solid var(--line) !important}
+.shot.short{height:118px}.shot.short img{margin-top:-6px}
+.txt{display:grid;grid-template-columns:150px 1fr;gap:6px 16px;padding:14px 18px;background:#fff;border-radius:14px;border:1.5px solid var(--line);box-shadow:var(--shadow)}
+.txt .k{font:650 17px var(--sans);color:var(--ink3);padding-top:3px}
+.txt .v{font:500 18px/1.4 var(--mono);color:var(--ink)}
+mark{border-radius:5px;padding:0 4px;font-weight:700}
+mark.bad{background:var(--badbg);color:var(--bad)}
+mark.good{background:var(--goodbg);color:var(--good)}
+</style></head><body>
+<div class="slide">
+  <div class="bar"><div class="brand"><span class="logo">SRA</span>Semantic Release Auditor</div><span class="sep"></span><span class="app">Finablo v706 → v707</span><span class="tag strong">journey built from the known bug</span></div>
+
+  <div class="head">
+    <div class="eyebrow">Test persona, age 61 · same answers on both releases · run locally</div>
+    <h1>Every page that states the 401(k) limit</h1>
+  </div>
+
+  <div class="cols" id="cols"></div>
+
+  <div class="src"><b>Source:</b> Finablo v706 (tree 10ff1e3) and v707 (a183626), run locally · finablo-semaudit runs/wide-run-3k (target_61, journey S-R1: plan still being written) and runs/f73-limit-check (target_61__wide, same answers, plan finished): screenshots cropped, copied and PDF text redrawn · v707: $35,750 in all 8 f73 captures that state the limit</div>
+</div>
+<script>
+const F = window.DATA['finablo'];
+const esc = s => s.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const mark = (s, rel) => esc(s).replace(/\$(24,500|32,500|35,750)/g, (m) => `<mark class="${m === '$35,750' ? 'good' : 'bad'}">${m}</mark>`);
+const col = (rel, tree, sum, cls) => `
+  <div class="col">
+    <div class="ch"><b>${rel}</b><span class="mono">${tree}</span><span class="sum ${cls}">${sum}</span></div>
+    <div class="row"><div class="lbl">Report · plan still being written</div><div class="shot"><img src="img/${F.crops['report-pending-line'][rel]}" alt=""></div></div>
+    <div class="row"><div class="lbl">Report · plan finished</div><div class="shot"><img src="img/${F.crops['report-ready-line'][rel]}" alt=""></div></div>
+    <div class="row"><div class="lbl">Dashboard</div><div class="shot full"><img src="img/${F.crops['dashboard'][rel]}" alt=""></div></div>
+    <div class="row"><div class="lbl">Copied text and PDF (redrawn from the captures)</div><div class="txt">
+      <div class="k">Copy for your AI</div><div class="v">${mark(F.lines['export-ready'][rel])}</div>
+      <div class="k">Welcome PDF</div><div class="v">${mark(F.lines['pdf'][rel])}</div></div></div>
+  </div>`;
+document.getElementById('cols').innerHTML =
+  col('v706', F.trees.v706, '$24,500 and $32,500', 'bad') + col('v707', F.trees.v707, '$35,750 everywhere', 'good');
+</script>
+</body></html>
