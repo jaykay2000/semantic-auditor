@@ -1,0 +1,7 @@
+{
+ "source": "spree-plain-agent-protocol:results-v4/grading/scores/scores.json (per_trial C1, C2; repeatability_jaccard C1/C2 = 8/17)",
+ "run_1_only": 5,
+ "both": 8,
+ "run_2_only": 4,
+ "groups": 17
+}
