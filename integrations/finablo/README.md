@@ -15,8 +15,11 @@ Finablo is a personal-finance web app. Its report, dashboard, PDF, export and AI
 
 1. Boot two releases locally (base and head) on two ports.
 2. Provide a persona hook (Finablo: the guest assessment API plus the dev-only login-code endpoint, local only) and, where available, a clock hook.
-3. Onboard: `semaudit onboard --url … --docs … --voice …`. The owner reviews, and the contract is committed in the app's repo.
-4. Review a release: `semaudit review --base … --head … --notes …`.
+3. Write the contract by hand. Onboarding, which would draft it from the app and the owner's docs, is **not built**
+   (there is no `semaudit onboard` command). The owner reviews it with `semaudit contract review <dir>` and approves
+   items with `semaudit contract approve <dir> --item … --by …`; the contract is committed in the app's repo.
+4. Review a release: `semaudit review --contract <dir> --base … --head … --max-usd …` (the Finablo review in the
+   demo used `--reader`).
 
 ## Hackathon evaluation (see [docs/08-evaluation.md](../../docs/08-evaluation.md))
 

@@ -138,6 +138,10 @@ All from [docs/evidence/imported-checks/README.md](docs/evidence/imported-checks
   [`cards-run3c.html`](docs/evidence/imported-checks/acceptance/cards-run3c.html)). C1-04: beta2 FAIL 3/3 with
   verified evidence, beta3 PASS 3/3 with verified evidence, memory `fix_confirmed`. A variant with a different basket
   (three blenders) gives the same FAIL then PASS, also `fix_confirmed`.
+- **A second app, refused.** Finablo's 401(k) limit bug was tried as a check. The developers' written record names
+  what the user saw but no step they took, so the frozen converter graded it `partially_converted` and SRA refused
+  to approve it. That is the gate working. The bug stays one of SRA's own release-review journeys
+  ([docs/evidence/imported-checks/finablo/README.md](docs/evidence/imported-checks/finablo/README.md)).
 - **Earlier runs, kept as they came out.** Run 2 did not pass: the newer release was `not_measurable` because 2 of 3
   readings ran to the reply-length cap. In Run 3, one reading wrongly passed the broken email and was outvoted 2 to 1;
   that is why agreement is its own status.
@@ -146,7 +150,7 @@ All from [docs/evidence/imported-checks/README.md](docs/evidence/imported-checks
 
 ### Limits
 
-- **Prototype.** One store (Spree), one driver, one converter version.
+- **Prototype.** Saved checks have run on one store (Spree) only, with one driver and one converter version.
 - **Narrow import.** 6 of 57 held-out findings converted (11%). In the six finding groups reported only by the
   agents, 0 of 24 findings converted.
 - **Two judging fixes were made after results were seen**, and both are disclosed in the evidence README:
@@ -286,7 +290,7 @@ the runs actually used.
 | `interpreter` | judges candidate conflicts against the rules; in reader mode, reads every rule and story | Muse Spark 1.3 | Muse Spark 1.3 (Meta API) | Muse Spark Open |
 | `cross_checker_extract`, `cross_checker_interpret` | second pass over extraction and interpretation | Muse Spark 1.2 | not called | Muse Spark Open (extract only; interpret had 0 calls) |
 | `defender` | argues against every issue occurrence | Muse Spark 1.2 | not called | Muse Spark Open |
-| `importer` | drafts a check's journey and rule from a finding | — | — | Muse Spark Open |
+| `importer` | drafts a check's journey and rule from a finding | — | Muse Spark Open (1 call; the draft was refused) | Muse Spark Open |
 | `check_judge` | the 3 readings of a saved check's rule | — | — | Muse Spark Open |
 
 Model IDs: `muse-spark-1.3` and `muse-spark-1.2` on the Meta Model API; `meta-models/muse-spark-open-1026` on Baseten.
@@ -294,7 +298,8 @@ Model IDs: `muse-spark-1.3` and `muse-spark-1.2` on the Meta Model API; `meta-mo
 **How this was measured** (2026-10-31): the `models` and `model_settings` fields in each review's manifest
 (Northbound `runs/e2e-2/review-2.3-2.4.json`; Finablo `review-10ff1e3-a183626.reader.json`; Spree
 `spree-scale-2t/review-v6.0.0.beta2-v6.0.0.beta3.reader.json`), the role and model on every row of each run ledger
-(this repo's `runs/ledger.jsonl`, and the Spree harness's `review-root` and `import-root` ledgers), and the
+(this repo's `runs/ledger.jsonl`, the Spree harness's `review-root` and `import-root` ledgers, and the Finablo
+harness's `import-root` ledger), and the
 `models` recorded on every saved-check result (for example
 [`run3c-saved-checks.json`](docs/evidence/imported-checks/acceptance/run3c-saved-checks.json)). Run folders and
 ledgers are not committed.
