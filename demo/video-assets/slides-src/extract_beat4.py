@@ -1,8 +1,8 @@
 """Write scenes-data/beat4.json for the beat-4 motion clips (m7-b4-*), from the saved results of one run-saved run.
 
-    python3 slides-src/extract_beat4.py                     # Run 3c, the committed video run
-    python3 slides-src/extract_beat4.py --saved ~/Documents/src/spree-semaudit/runs/ic-owner-rec-1/saved-checks.json \
-        --transcript ~/Documents/src/spree-semaudit/runs/ic-owner-rec-1.txt   # the recording-day run
+    python3 slides-src/extract_beat4.py                     # the video run: ic-owner-rec-1, as committed in
+                                                            # docs/evidence/imported-checks/acceptance/run-owner-2026-11-01-*
+    python3 slides-src/extract_beat4.py --saved <run>/saved-checks.json --transcript <run>.txt   # any other run
 
 Read-only. Every value on the beat-4 clips comes from here, and every value here is copied from a file, never typed:
   saved-checks JSON   run id, time, files loaded from storage, refusals, approval record, per-release statuses,
@@ -70,8 +70,8 @@ def home(x):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('--saved', default=str(SRA / 'docs/evidence/imported-checks/acceptance/run3c-saved-checks.json'))
-    ap.add_argument('--transcript', default=str(SRA / 'docs/evidence/imported-checks/acceptance/run3c-transcript.txt'))
+    ap.add_argument('--saved', default=str(SRA / 'docs/evidence/imported-checks/acceptance/run-owner-2026-11-01-saved-checks.json'))
+    ap.add_argument('--transcript', default=str(SRA / 'docs/evidence/imported-checks/acceptance/run-owner-2026-11-01-transcript.txt'))
     ap.add_argument('--contract', default=str(HARNESS / 'contract-imported'))
     a = ap.parse_args()
     saved = json.loads(pathlib.Path(a.saved).read_text())

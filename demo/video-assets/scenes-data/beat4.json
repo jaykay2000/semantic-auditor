@@ -1,6 +1,6 @@
 {
  "_source": {
-  "saved": "~/Documents/src/spree-semaudit/runs/ic-owner-rec-1/saved-checks.json",
+  "saved": "~/Documents/src/semantic-auditor/docs/evidence/imported-checks/acceptance/run-owner-2026-11-01-saved-checks.json",
   "check": "~/Documents/src/spree-semaudit/contract-imported/checks/C1-04.yaml",
   "check_sha256_16": "d3408fbc3d2146e2",
   "transcript": null
