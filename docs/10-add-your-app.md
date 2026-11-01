@@ -237,6 +237,11 @@ Built-in providers: `meta` (`META_MODEL_API_KEY`), `baseten` (`BASETEN_API_KEY`)
 
 ### Any OpenAI-compatible endpoint
 
+> **Trust boundary: `semaudit.toml` and the contract are trusted, owner-controlled code.** SRA executes the
+> contract's adapter as Python, and a `[providers.<name>]` entry sends the value of the environment variable it names,
+> as a bearer token, to the `base_url` it names. So run `semaudit` only in a folder whose `semaudit.toml` and contract
+> you wrote or have read, exactly as you would only run code you trust. SRA does not try to sandbox either.
+
 > **Untested against a live endpoint.** This config is tested offline only: `tests/test_router_config_providers.py`
 > sends the calls to a mocked HTTP layer and checks the URL, the key, the pricing and the failure paths. No real
 > provider has been called through it.
@@ -270,6 +275,11 @@ Rules the router enforces:
   other characters, as most keys have, is refused, so a key pasted there is caught. A missing key
   fails when the first call is made, naming the variable: `MYHOST_API_KEY is not set (expected in .env); provider
   'myhost' needs it`. The value is never printed.
+- **https only.** `base_url` must be `https://`. Plain `http://` is accepted only for a loopback host
+  (`127.0.0.1`, `::1`, `localhost`), so a model server on your own machine still works.
+- **The key never reaches SRA's files or errors.** If the endpoint echoes the key value back (in a reply or in an
+  error), SRA replaces it with `[redacted: provider key]` before the reply is cached, logged or shown, and in every
+  error message. Values shorter than 8 characters are not redacted.
 - **Unpriced means unpriced.** Without a `prices` entry the ledger (`runs/ledger.jsonl`) records each call with
   `"cost_usd": null, "priced": false`, never $0, and `--max-usd` refuses the model rather than guess.
 - **Prices belong to the provider.** Your provider's calls are priced only by its own `prices` table, even when

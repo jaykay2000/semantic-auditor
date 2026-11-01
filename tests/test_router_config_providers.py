@@ -230,3 +230,57 @@ def test_a_discarded_reply_is_marked_and_totals_are_the_same_in_old_and_new_form
     assert _spent_as_the_bench_scripts_sum_it(old) == _spent_as_the_bench_scripts_sum_it(new)
     assert _spent_as_the_bench_scripts_sum_it(new) == pytest.approx(r.spent_usd)
     assert r.spent_usd == pytest.approx(3 * (1000 * 1.25 + 100 * 4.25) / 1e6)       # the discarded call is charged
+
+
+# ---------- R2-01: a hostile or careless endpoint cannot exfiltrate the key through SRA's own files or errors ----------
+
+SECRET = "sk-test-SENTINEL-0123456789"
+
+
+class _Reflect:
+    """An endpoint that echoes the bearer value it received: in the reply body, or in a non-200 error."""
+
+    def __init__(self, status=200):
+        self.status = status
+
+    def __call__(self, url, json=None, headers=None, timeout=None):
+        got = headers["Authorization"].removeprefix("Bearer ")
+        body = {"choices": [{"message": {"content": '{"echo": "%s"}' % got}, "finish_reason": "stop"}],
+                "usage": {"prompt_tokens": 1, "completion_tokens": 1}, "debug": {"auth": got}}
+        return SimpleNamespace(status_code=self.status, json=lambda: body, text=f"invalid credentials: {got}")
+
+
+def _everything_written(tmp_path):
+    files = list((tmp_path / ".semaudit-cache").glob("*.json")) + list((tmp_path / "runs").glob("*.jsonl"))
+    return "".join(p.read_text() for p in files)
+
+
+def test_a_key_reflected_in_the_reply_is_never_cached_logged_or_returned(tmp_path, monkeypatch):
+    monkeypatch.setenv("MYHOST_API_KEY", SECRET)
+    monkeypatch.setattr(httpx, "post", _Reflect())
+    res = R.Router(root=_cfg(tmp_path)).complete("check_judge", [{"role": "user", "content": "hi"}])
+    written = _everything_written(tmp_path)
+    assert written and SECRET not in written and R.REDACTED in written         # the cache file holds the reply
+    assert SECRET not in res.content and SECRET not in json.dumps(res.raw)
+
+
+def test_a_key_reflected_in_an_error_is_redacted_from_the_error(tmp_path, monkeypatch):
+    monkeypatch.setenv("MYHOST_API_KEY", SECRET)
+    monkeypatch.setattr(httpx, "post", _Reflect(status=401))
+    with pytest.raises(R.ModelError) as e:
+        R.Router(root=_cfg(tmp_path)).complete("check_judge", [{"role": "user", "content": "hi"}])
+    assert SECRET not in str(e.value) and R.REDACTED in str(e.value)
+    assert SECRET not in _everything_written(tmp_path)
+
+
+@pytest.mark.parametrize("url", ["http://llm.example.test/v1", "http://10.0.0.5:8000/v1", "http://127.0.0.1.evil.test/v1"])
+def test_plain_http_to_a_non_loopback_host_is_refused(tmp_path, url):
+    with pytest.raises(R.ConfigError, match="https"):
+        R.Router(root=_cfg(tmp_path, f'[providers.p]\nbase_url = "{url}"\nkey_env = "K"\n'))
+
+
+@pytest.mark.parametrize("url", ["http://127.0.0.1:8000/v1", "http://localhost:11434/v1", "http://[::1]:8000/v1",
+                                 "https://llm.example.test/v1"])
+def test_https_or_a_loopback_host_is_accepted(tmp_path, url):
+    r = R.Router(root=_cfg(tmp_path, f'[providers.p]\nbase_url = "{url}"\nkey_env = "K"\n'))
+    assert r.providers["p"]["base_url"] == url.rstrip("/")

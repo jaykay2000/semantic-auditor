@@ -323,7 +323,10 @@ Muse Spark is the measured default (next section). `semaudit.toml` maps each rol
 the built-in `meta`, `baseten` and `anthropic`, any OpenAI-compatible endpoint can be added as
 `[providers.<name>]` with `base_url`, `key_env` and optional prices. Built-in names cannot be redefined, an unpriced
 model is logged as unpriced (never $0) and refused under `--max-usd`, and a non-schema reply can never pass. The
-config is tested offline only, with a mocked HTTP layer. See
+config is tested offline only, with a mocked HTTP layer. **Trust boundary:** `semaudit.toml` and the contract are
+trusted, owner-controlled code: SRA runs the contract's adapter as Python, and a provider entry sends the environment
+variable it names to the URL it names (https only; plain http only to a loopback host). Run `semaudit` only where you
+trust both. See
 [docs/10-add-your-app.md, "Use another model"](docs/10-add-your-app.md#use-another-model) and
 [`semaudit.toml.example`](semaudit.toml.example).
 

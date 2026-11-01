@@ -12,6 +12,7 @@ import os
 import re
 import time
 import tomllib
+import urllib.parse
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -49,6 +50,23 @@ PRICES_PER_MTOK: dict[str, tuple[float, float] | None] = {
 }
 
 ENV_NAME = re.compile(r"[A-Z_][A-Z0-9_]*")
+LOOPBACK = {"127.0.0.1", "::1", "localhost"}       # the only hosts a config provider may reach over plain http
+REDACTED = "[redacted: provider key]"
+MIN_REDACT = 8      # a key value this short is not redacted (it would rewrite ordinary text); real keys are far longer
+
+
+def redact(obj: Any, secret: str | None) -> Any:
+    """`obj` (a reply, or error text) with every occurrence of the provider key replaced by REDACTED, so an endpoint
+    that echoes the key back cannot put it into the cache, the ledger or an error message."""
+    if not secret or len(secret) < MIN_REDACT:
+        return obj
+    if isinstance(obj, str):
+        return obj.replace(secret, REDACTED)
+    if isinstance(obj, list):
+        return [redact(x, secret) for x in obj]
+    if isinstance(obj, dict):
+        return {redact(k, secret): redact(v, secret) for k, v in obj.items()}
+    return obj
 
 
 class ConfigError(ValueError):
@@ -82,8 +100,12 @@ def config_providers(cfg: dict) -> tuple[dict[str, dict], dict[tuple[str, str], 
         if extra:
             raise ConfigError(f"{where}: unknown keys {sorted(extra)}")
         url, env = t.get("base_url"), t.get("key_env")
-        if not isinstance(url, str) or not url.startswith(("https://", "http://")):
-            raise ConfigError(f"{where}: base_url must be an http(s) URL")
+        parts = urllib.parse.urlsplit(url) if isinstance(url, str) else None
+        if parts is None or not parts.hostname or parts.scheme not in ("https", "http"):
+            raise ConfigError(f"{where}: base_url must be an https URL")
+        if parts.scheme == "http" and parts.hostname not in LOOPBACK:
+            raise ConfigError(f"{where}: base_url must be https; plain http is allowed only for a loopback host "
+                              f"({', '.join(sorted(LOOPBACK))}), and {parts.hostname!r} is not one")
         if not isinstance(env, str) or not ENV_NAME.fullmatch(env):
             raise ConfigError(f"{where}: key_env must name an environment variable (e.g. MYHOST_API_KEY), "
                               "not hold the key itself")
@@ -279,14 +301,15 @@ class Router:
             return self._fetch_anthropic(model, body, timeout_s)
         t0 = time.monotonic()
         resp = None
+        key = self._key(provider)
         for attempt in range(4):           # transient failures: timeouts, 429, 5xx
             try:
                 resp = httpx.post(f"{self._provider(provider)['base_url']}/chat/completions", json=body,
-                                  headers={"Authorization": f"Bearer {self._key(provider)}"},
+                                  headers={"Authorization": f"Bearer {key}"},
                                   timeout=timeout_s)
             except (httpx.TimeoutException, httpx.TransportError) as e:
                 if attempt == 3:
-                    raise ModelError(f"{provider}/{model} transport error after retries: {e}") from e
+                    raise ModelError(redact(f"{provider}/{model} transport error after retries: {e}", key)) from e
                 time.sleep(2 ** attempt * 2)
                 continue
             if resp.status_code in (429, 500, 502, 503, 504) and attempt < 3:
@@ -295,8 +318,8 @@ class Router:
             break
         latency = time.monotonic() - t0
         if resp.status_code != 200:
-            raise ModelError(f"{provider}/{model} HTTP {resp.status_code}: {resp.text[:500]}")
-        raw = resp.json()
+            raise ModelError(f"{provider}/{model} HTTP {resp.status_code}: {redact(resp.text, key)[:500]}")
+        raw = redact(resp.json(), key)    # before anything caches, logs or shows it
         return raw, latency
 
     def _fetch_anthropic(self, model: str, body: dict, timeout_s: float):
@@ -305,14 +328,15 @@ class Router:
         'content_filter' on a refusal) and usage.prompt_tokens / completion_tokens (thinking counts as output)."""
         import anthropic
         params = anthropic_params(model, body)
-        client = anthropic.Anthropic(api_key=self._key("anthropic"), timeout=max(timeout_s, 600.0), max_retries=3)
+        key = self._key("anthropic")
+        client = anthropic.Anthropic(api_key=key, timeout=max(timeout_s, 600.0), max_retries=3)
         t0 = time.monotonic()
         try:
             with client.messages.stream(**params) as stream:
                 msg = stream.get_final_message()
         except anthropic.APIError as e:
-            raise ModelError(f"anthropic/{model}: {type(e).__name__}: {str(e)[:400]}") from e
-        return anthropic_to_chat(msg.model_dump()), time.monotonic() - t0
+            raise ModelError(f"anthropic/{model}: {type(e).__name__}: {redact(str(e), key)[:400]}") from e
+        return redact(anthropic_to_chat(msg.model_dump()), key), time.monotonic() - t0
 
     def accounting(self) -> dict:
         """Spend for this router's lifetime: actually spent (cache hits cost 0) vs. the same calls made fresh."""
