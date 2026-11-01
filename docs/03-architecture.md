@@ -350,6 +350,11 @@ applied in its manifest, so repro and verify-report replay exactly those. The la
 
 ## Model roles and data policy
 
+> **Superseded (2026-11-01).** The paragraph and table below describe the design as of Oct 26, when open-weights
+> hosting was not set up. It has since been set up: Muse Spark Open runs on Baseten for the Spree reviews and for
+> every reusable-check conversion and judgment. For what each role actually ran on, see the README's
+> [Models (measured)](../README.md#models-measured). Kept as the design record; not current status.
+
 **As built (Oct 26):** every role runs on Muse Spark through the Meta Model API: `extractor` and `interpreter`
 on `muse-spark-1.3`, `cross_checker_extract`, `cross_checker_interpret` and `defender` on `muse-spark-1.2`.
 Open-weights hosting (Modal / Baseten) is not set up and voice onboarding is not built. Because every role is one

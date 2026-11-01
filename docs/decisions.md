@@ -43,4 +43,4 @@
 |---|---|---|
 | D12 | An independent human adjudicator for the subjective labels | **ask one person** for about 1 hour on Nov 1–2; otherwise report owner-only adjudication and say so |
 | D13 | Which Finablo commits for R1 and R2 | the planning agent finds the introducing commits; the owner confirms |
-| D14 | Open-weights hosting credits (Modal / Baseten) | **apply today**; if they are not granted, the fallback is in the plan |
+| D14 | Open-weights hosting credits (Modal / Baseten) | ~~**apply today**; if they are not granted, the fallback is in the plan~~ **Superseded:** Baseten is set up and Muse Spark Open runs there; Modal is not used. See the README's [Models (measured)](../README.md#models-measured) |
