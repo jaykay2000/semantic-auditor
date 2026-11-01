@@ -1,0 +1,7 @@
+name: Lending desk (fixture)
+fictional: true
+data: synthetic
+base_url: http://127.0.0.1:9
+releases: [r1, r2]
+hooks: {reset: POST /reset}
+adapter: adapter.py

@@ -1,0 +1,7 @@
+noun: member
+context:
+  - {id: email, type: str, required: true}
+  - {id: branch, type: enum, values: [North, South], required: true}
+  - {id: picks, type: list, required: true}
+  - {id: voucher, type: str, default: null}
+  - {id: speed, type: enum, values: [Normal, Fast], required: true}

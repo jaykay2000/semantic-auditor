@@ -1,0 +1,38 @@
+verbs:
+  open_desk: open the desk page
+  pick_item: pick each of the persona's items at its count
+  choose_speed: choose the persona's speed
+  enter_voucher: enter the persona's voucher
+  submit: submit the request; lands on the receipt page
+  read_receipt_mail: read the receipt email
+verb_args:
+  pick_item: {for_each: picks}
+  choose_speed: {from_persona: speed}
+  enter_voucher: {from_persona: voucher}
+implied_ok: [open_desk, choose_speed]
+read_verbs: {read_receipt_mail: [receipt_mail]}
+prerequisites:
+  pick_item: [open_desk]
+  submit: [pick_item, choose_speed]
+verb_cues:
+  open_desk: 'desk'
+  pick_item: '\bpick|{catalog}'
+  choose_speed: 'speed|fast|normal'
+  enter_voucher: 'voucher'
+  submit: 'submit'
+  read_receipt_mail: 'mail'
+list_fields:
+  picks:
+    pattern: '^(?P<key>[a-z]+)\|(?P<variant>[^|]*)\|(?P<n>[1-9][0-9]*)$'
+    catalog: catalog.json
+    key_group: key
+    key_attr: key
+    member_group: variant
+    members_attr: variants
+    show_attrs: [name]
+material_fields: [picks, branch, voucher, speed]
+persona_defaults: {speed: Normal, voucher: null}
+unique_fields: {email: 'ic-{id}@example.test'}
+rule_aliases: {R1: A1, R2: A2}
+action_words: ['\bsign(ed)? ?in\b', '\bcancel']
+step_note_fails: ['did not accept']

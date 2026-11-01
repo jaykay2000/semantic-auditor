@@ -49,12 +49,17 @@ class DecisionError(ValueError):
 def load(directory: Path) -> dict[str, list[dict]]:
     p = directory / MEMORY_FILE
     data = (yaml.safe_load(p.read_text()) or {}) if p.exists() else {}
-    return {"issues": list(data.get("issues") or []), "releases": list(data.get("releases") or [])}
+    out = {"issues": list(data.get("issues") or []), "releases": list(data.get("releases") or [])}
+    if data.get("checks"):                    # imported checks, only when there are any (see the end of this file)
+        out["checks"] = list(data["checks"])
+    return out
 
 
 def save(directory: Path, data: dict[str, list[dict]]) -> None:
-    (directory / MEMORY_FILE).write_text(HEADER + yaml.safe_dump(
-        {"issues": data["issues"], "releases": data["releases"]}, sort_keys=False, allow_unicode=True))
+    out = {"issues": data["issues"], "releases": data["releases"]}
+    if data.get("checks"):                    # imported checks (semaudit.imported): decisions and their outcomes
+        out["checks"] = data["checks"]
+    (directory / MEMORY_FILE).write_text(HEADER + yaml.safe_dump(out, sort_keys=False, allow_unicode=True))
 
 
 def snapshot(directory: Path) -> dict[str, Any]:
@@ -303,3 +308,63 @@ def apply(head: list, resolved: list, unconfirmed: list, memory: list[dict], con
             b.memory = _stamp(d, "not_confirmed", "marked fix; not every affected persona was measured")
     return out
 
+
+
+# ---------- imported checks (semaudit.imported) ----------
+#
+# An imported check is not a review issue, so it has no signature; the owner's decision is pinned to the check's
+# content digest instead (its actions and invariant). The same vocabulary applies to its re-checks:
+#   fix_confirmed  failed on the base release, passes on the head (replays succeeded, head pass evidence verified)
+#   still_open     fails on both            regressed  passed on the base, fails on the head
+#   not_reproduced passes on both (the finding's condition did not reproduce on the base)
+#   not_confirmed  anything not measured: a replay failed, no assertion majority, or a head pass whose evidence is
+#                  not verified (a fix is confirmed by the invariant passing with evidence, not by an absence)
+
+def decide_check(directory: Path, check_id: str, digest: str, kind: str, *, by: str, reason: str | None = None,
+                 on: str | None = None) -> dict:
+    if kind not in ("fix", "not_an_issue"):
+        raise DecisionError(f"unknown check decision {kind!r}; fix or not_an_issue")
+    if not by:
+        raise DecisionError("a decision needs the name of who made it (--by)")
+    data = load(directory)
+    d = {"kind": "check_decision", "check": check_id, "check_digest": digest, "decision": kind, "by": by,
+         "date": on or date.today().isoformat(), **({"reason": reason.strip()} if reason else {})}
+    data.setdefault("checks", []).append(d)
+    save(directory, data)
+    return d
+
+
+def check_status(base: dict, head: dict) -> tuple[str, str]:
+    """(status, why) from two recheck results (base and head release) of one check."""
+    for side, r in (("base", base), ("head", head)):
+        if r["replay"]["status"] != "succeeded":
+            return "not_confirmed", f"{side} replay failed: " + "; ".join(r["replay"]["reasons"])[:300]
+        if r["assertion"]["outcome"] not in ("pass", "fail"):
+            return "not_confirmed", f"{side} assertion not measurable ({r['assertion'].get('why', '')})"
+    b, h = base["assertion"]["outcome"], head["assertion"]["outcome"]
+    if b == "fail" and h == "pass":
+        if head["evidence"]["status"] != "verified":
+            return "not_confirmed", f"head passes but its evidence is {head['evidence']['status']}"
+        return "fix_confirmed", "fails on the base, passes on the head with verified evidence"
+    if b == "fail" and h == "fail":
+        return "still_open", "fails on both releases"
+    if b == "pass" and h == "fail":
+        return "regressed", "passes on the base, fails on the head"
+    return "not_reproduced", "passes on both releases: the finding's condition did not reproduce on the base"
+
+
+def record_check_outcome(directory: Path, check_id: str, digest: str, base: dict, head: dict, *,
+                         run: str) -> dict:
+    """Append one base/head re-check outcome for a check, beside the owner's decision on it (if any)."""
+    data = load(directory)
+    status, why = check_status(base, head)
+    dec = [d for d in data.get("checks", []) if d.get("kind") == "check_decision" and d["check"] == check_id]
+    latest = dec[-1] if dec else None
+    o = {"kind": "check_outcome", "check": check_id, "check_digest": digest, "run": run,
+         "base": base.get("release"), "head": head.get("release"), "status": status, "why": why,
+         "base_assertion": base["assertion"]["outcome"], "head_assertion": head["assertion"]["outcome"],
+         "decision": (latest or {}).get("decision"),
+         "decision_applies": bool(latest and latest["check_digest"] == digest)}
+    data.setdefault("checks", []).append(o)
+    save(directory, data)
+    return o

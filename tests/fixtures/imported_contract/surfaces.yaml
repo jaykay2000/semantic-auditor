@@ -1,0 +1,3 @@
+- {id: desk_page, kind: web, locator: css, reached_by: open_desk}
+- {id: receipt_page, kind: web, locator: css, reached_by: submit}
+- {id: receipt_mail, kind: email, locator: message_id, reached_by: read_receipt_mail, sink: mail, timed: false}
