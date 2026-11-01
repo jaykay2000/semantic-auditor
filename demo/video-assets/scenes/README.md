@@ -21,7 +21,8 @@ error and any element that spills outside the 1920×1080 frame or clips its text
 - `scenes-data/plain-agent.json` drives `s05b`. All values are `TBD`. While `status` is `"TBD"` the frame shows a
   dashed *DRAFT · VALUES TBD* badge. A `null` number renders as TBD. When `known_issues` is set, the dot size shrinks
   to fit (checked with 33).
-- `scenes-data/close.json` → `repo_url` drives `s08`. While it holds `TBD` the frame shows a dashed placeholder.
+- `scenes-data/close.json` → `repo_url` drives `s08`, `s7-b8` and `m7-b8`. Set to `https://github.com/jaykay2000/semantic-auditor`
+  (owner, 2026-11-01); while it holds `TBD` the frames show a dashed placeholder.
 
 ## Frames
 
@@ -80,7 +81,7 @@ limit (checked by mutation: a box over y 1690–1750 was refused and no image ch
 | `s7-b3a-overlap.png` | 3, 0:39–0:50 | Two runs of one agent overlap only in part. **No numbers** (use this unless the auditor clears the counts). Caption: "two runs of one agent, same store and rules; a description, not a score or a ranking" | No numbers; the two circles are equal on purpose, so size encodes nothing |
 | `s7-b3b-overlap.png` | 3, 0:39–0:50 | The same with the counts: 5 only in run 1 · 8 in both · 4 only in run 2; "17 groups of findings · 8 in both runs". **Only with the auditor's OK** | `scenes-data/overlap.json`, written by `slides-src/extract_overlap.py` from the private spree-plain-agent-protocol `results-v4/grading/scores/scores.json` (`per_trial` C1 13 groups, C2 12; `repeatability_jaccard` C1/C2 "8/17"; the script refuses to write if they disagree) |
 | `s7-b7-finablo-v706-v707.png` | 7, 2:09–2:24 | v706 (`10ff1e3`) beside v707 (`a183626`), label "journey built from the known bug", no "fixed" chip. v706: $24,500 on the report while the plan is being written, $32,500 on the finished report, dashboard, copied text and PDF. v707: $35,750 on all of them | Report, plan being written: `wide-run-3k/…/target_61__S-R1/…s03` (v706 `5d30b4a4…`, v707 `e936f860…`), crop (315, 3058, 1185, 3126). Report, plan finished: `f73-limit-check/…/target_61__wide__S-wide-target/…s06` (v706 `ad12ea25…`, v707 `52844180…`), same crop. Dashboard: `…s10` (v706 `bf2a2b46…`, v707 `ac3581c3…`), crop (310, 2662, 1190, 2728). Copied text: `…s08.c01.raw.txt` line 48; PDF: `…s09.c02.raw.txt` line 50 |
-| `s7-b8-end-card.png` | 8, end card 2:40–2:46 | Repo URL placeholder · open source · "Muse Spark Open (on Baseten)" · "about 5¢ to turn a finding into a check" · "about 14¢ to re-check it on a release" | semantic-auditor `README.md` at `896f4af`: about $0.05 per conversion; Run 3c $0.54 all-in for 2 checks on 2 releases, about $0.14 per check per release. Repo URL from `scenes-data/close.json` (still `TBD`) |
+| `s7-b8-end-card.png` | 8, end card 2:40–2:46 | `https://github.com/jaykay2000/semantic-auditor` · open source · "Muse Spark Open (on Baseten)" · "about 5¢ to turn a finding into a check" · "about 14¢ to re-check it on a release" | semantic-auditor `README.md` at `896f4af`: about $0.05 per conversion; Run 3c $0.54 all-in for 2 checks on 2 releases, about $0.14 per check per release. Repo URL from `scenes-data/close.json` (still `TBD`) |
 
 Notes:
 

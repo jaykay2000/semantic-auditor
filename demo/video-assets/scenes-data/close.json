@@ -1,4 +1,4 @@
 {
-  "_README": "Set repo_url once the repository is public, then run: python3 slides-src/render.py s08. While it contains TBD the slide shows a dashed placeholder.",
-  "repo_url": "TBD"
+ "_README": "The public repository URL (owner, 2026-11-01). Re-render the end cards with: python3 slides-src/render.py s7-b8 s08 && python3 slides-src/render_motion.py m7-b8",
+ "repo_url": "https://github.com/jaykay2000/semantic-auditor"
 }
