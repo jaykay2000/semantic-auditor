@@ -1,0 +1,27 @@
+{
+ "review": "spree-semaudit/runs/spree-scale-2t/review-v6.0.0.beta2-v6.0.0.beta3.reader.json",
+ "issue": "R-v6.0.0.beta3-U1-line-amount-core-4f237b451a-ab6a0c63",
+ "verification_status_before_and_after": "unverified",
+ "severity": "major",
+ "confidence": "medium",
+ "visual": {
+  "result": "confirmed",
+  "basis": "evidence_linked",
+  "event": "core.4f237b451a#8",
+  "screenshot": "captures/v6.0.0.beta3/ana__S-buy/v6.0.0.beta3.ana.S-buy.s09.c01.screenshot.png",
+  "quote": "$43.19",
+  "crop_box": [
+   144,
+   308,
+   828,
+   669
+  ],
+  "sent_sha256": "57d2a56ac62160b1f55eae90fef0e5361b3ee3ea10e053faf6a9912028fcda6a",
+  "crop": "R-v6.0.0.beta3-U1-line-amount-core-4f237b451a-ab6a0c63.png",
+  "reason": "the element shows the quoted value",
+  "reads": "$43.19",
+  "model": "meta-models/muse-spark-open-1026",
+  "cost_usd": 0.0016095,
+  "cached": false
+ }
+}

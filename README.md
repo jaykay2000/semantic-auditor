@@ -304,6 +304,14 @@ release review page says why. In `review --reader` mode (used for the Spree and 
 model reads every rule and every captured story and names the issues, and SRA checks each citation against the
 captures ([docs/03-architecture.md](docs/03-architecture.md)).
 
+**Visual confirmation (opt-in, off by default).** `semaudit visual <review.json> --out <copy.json> --max-usd 0.10` asks
+a model that reads images (`[roles.vision]` in `semaudit.toml`) whether each issue's flagged value is visible on its
+screenshot and says what the text says, and writes a copy of the review with `visual` (`confirmed`, `contradicted` or
+`unreadable`) and its `basis` on each issue it checked: `verifier` if the verifier confirmed the issue, `evidence_linked` if
+only its quote was matched to the capture. It never changes a
+verdict, a verification status, PASS, `fix_confirmed` or the outcome, and it does not find new issues or read emails or
+PDFs ([measured on the Spree tax line](docs/evidence/visual-confirm-spree-2026-11-01/README.md)).
+
 ## Add your app
 
 Adding an app needs no core change: a contract (rules, decisions, features, surfaces, facts and oracles,

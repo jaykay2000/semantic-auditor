@@ -293,6 +293,31 @@ def verify_report_cmd(review: Path = typer.Argument(..., exists=True, dir_okay=F
     raise typer.Exit(0 if not problems else 1)
 
 
+@app.command("visual")
+def visual_cmd(review: Path = typer.Argument(..., exists=True, dir_okay=False),
+               out: Path = typer.Option(..., "--out", help="the copy of the review with `visual` added (a new file)"),
+               max_usd: float = typer.Option(..., "--max-usd", help="spend cap for the image calls"),
+               issue: list[str] = typer.Option(None, "--issue", help="only these issue ids (repeatable)"),
+               role: str = typer.Option("vision", "--role", help="a semaudit.toml role whose model accepts images"),
+               seed: int = typer.Option(1, "--seed")):
+    """Opt-in visual confirmation: is each qualifying issue's flagged value visible on its screenshot?
+
+    Writes a copy of the review with `visual` (confirmed | contradicted | unreadable, and the basis that qualified
+    the issue) on each issue it checked, and the crops beside it. Never changes a verdict, a verification status or
+    the outcome. Exit 0: done; 2: could not run (no vision role, or the review could not be read).
+    """
+    from .models.router import ModelError, Router
+    from .verify.visual import visual_confirm
+    try:
+        counts = visual_confirm(review, out, Router(root=Path.cwd(), max_usd=max_usd), role=role, seed=seed,
+                                only=set(issue) if issue else None, crops_dir=out.parent / f"{out.stem}-crops")
+    except (ModelError, ValueError, OSError) as e:
+        typer.echo(f"cannot run: {e}", err=True)
+        raise typer.Exit(2)
+    typer.echo(", ".join(f"{k.replace('_', ' ')} {v}" for k, v in counts.items()) + f"; wrote {out}")
+    raise typer.Exit(0)
+
+
 if __name__ == "__main__":
     app()
 
