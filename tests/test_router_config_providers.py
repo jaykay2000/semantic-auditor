@@ -161,9 +161,8 @@ def test_unreadable_replies_are_retried_counted_and_never_pass(tmp_path, monkeyp
     assert res["assertion"]["outcome"] == "not_measurable"
     assert all(j.get("unreadable") for j in res["judgments"])
     rows = [json.loads(x) for x in (tmp_path / "runs" / "ledger.jsonl").read_text().splitlines()]
-    # every discarded reply is a ledger row (the router truncates the digest to 16 characters, so the
-    # ":unreadable" suffix it appends does not survive into the row; known, and the same for every provider)
     assert len(rows) == 6 and not any(r["cached"] for r in rows)
+    assert all(r["discarded"] is True and r["discard_reason"] == "unreadable" for r in rows)
     base = {**res, "assertion": {"outcome": "fail"}, "evidence": {"status": "verified"}}
     assert memory.check_status(base, res)[0] == "not_confirmed"
 
@@ -176,3 +175,30 @@ def test_non_schema_replies_never_pass(tmp_path, monkeypatch, reply):
     assert all(j.get("nonschema") for j in res["judgments"])
     base = {**res, "assertion": {"outcome": "fail"}, "evidence": {"status": "verified"}}
     assert memory.check_status(base, res)[0] == "not_confirmed"
+
+
+# ---------- the ledger marks discarded replies; totals are unchanged ----------
+
+def _spent_as_the_bench_scripts_sum_it(rows):
+    """scripts/w13b_bench.py and w13c_postfix.py `_spent()`: every uncached row's cost_usd."""
+    return sum(r["cost_usd"] or 0 for r in rows if not r["cached"])
+
+
+def test_a_discarded_reply_is_marked_and_totals_are_the_same_in_old_and_new_format(tmp_path, monkeypatch):
+    monkeypatch.setenv("BASETEN_API_KEY", "k")
+    monkeypatch.setattr(httpx, "post", _Replies(["not json", '{"ok": 1}', '{"ok": 1}']))
+    r = R.Router(root=tmp_path)
+    r.roles["t"] = {"provider": "baseten", "model": "meta-models/muse-spark-open-1026"}
+    schema = {"type": "object", "properties": {"ok": {"type": "integer"}}, "required": ["ok"],
+              "additionalProperties": False}
+    r.complete("t", [{"role": "user", "content": "a"}], schema=schema, fresh=True)   # 1 discarded + 1 kept
+    r.complete("t", [{"role": "user", "content": "a"}], schema=schema)                # cache hit
+    r.complete("t", [{"role": "user", "content": "b"}], schema=schema, fresh=True)   # kept
+    new = [json.loads(x) for x in (tmp_path / "runs" / "ledger.jsonl").read_text().splitlines()]
+    assert [x.get("discarded", False) for x in new] == [True, False, False, False]
+    assert new[0]["discard_reason"] == "unreadable" and new[0]["digest"] == new[1]["digest"]
+    assert all("discard_reason" not in x for x in new[1:])                            # normal rows unchanged
+    old = [{k: v for k, v in x.items() if k not in ("discarded", "discard_reason")} for x in new]
+    assert _spent_as_the_bench_scripts_sum_it(old) == _spent_as_the_bench_scripts_sum_it(new)
+    assert _spent_as_the_bench_scripts_sum_it(new) == pytest.approx(r.spent_usd)
+    assert r.spent_usd == pytest.approx(3 * (1000 * 1.25 + 100 * 4.25) / 1e6)       # the discarded call is charged

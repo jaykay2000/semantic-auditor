@@ -236,7 +236,7 @@ class Router:
                 cost = self._cost(model, raw.get("usage", {}))   # charged though unusable: count and log it
                 self.spent_usd += cost or 0.0
                 lost, lost_usd = lost + 1, lost_usd + (cost or 0.0)
-                self._log(role, model, raw.get("usage", {}), cost, False, latency, digest + ":unreadable")
+                self._log(role, model, raw.get("usage", {}), cost, False, latency, digest, discarded="unreadable")
                 if unreadable == retries:
                     fin = raw["choices"][0].get("finish_reason")
                     raise UnreadableReply(f"{provider}/{model}: reply is not JSON (finish_reason={fin}) after "
@@ -327,13 +327,17 @@ class Router:
             return None
         return (usage.get("prompt_tokens", 0) * price[0] + usage.get("completion_tokens", 0) * price[1]) / 1e6
 
-    def _log(self, role, model, usage, cost, cached, latency, digest) -> None:
+    def _log(self, role, model, usage, cost, cached, latency, digest, discarded: str | None = None) -> None:
+        """One ledger row per call. A reply the router discarded (charged, but not usable: `discarded` says why) is
+        marked `"discarded": true` with `"discard_reason"`; every other row has neither field, so rows written before
+        the marker existed read the same. Discarded rows count toward spend like any other uncached row."""
         self.ledger_path.parent.mkdir(exist_ok=True)
         with self.ledger_path.open("a") as f:
             f.write(json.dumps({"ts": time.time(), "role": role, "model": model, "usage": usage,
                                 "cost_usd": cost, "priced": cost is not None, "cached": cached,
                                 "latency_s": round(latency, 2), "digest": digest[:16],
-                                **({"tag": self.tag} if self.tag else {})}) + "\n")
+                                **({"tag": self.tag} if self.tag else {}),
+                                **({"discarded": True, "discard_reason": discarded} if discarded else {})}) + "\n")
 
 
 # ---------------------------------------------------------------- Anthropic translation (pure, tested offline)
