@@ -296,7 +296,7 @@ def checks_approve_cmd(contract_dir: Path = typer.Option(..., "--contract", exis
     """Approve one imported check (checks/<id>.yaml) at its current actions and invariant."""
     from .contract.approve import approve_check
     from .imported.record import ImportedCheck
-    c = ImportedCheck.read(contract_dir / "checks" / f"{check_id}.yaml")
+    c = ImportedCheck.load(contract_dir, check_id)
     if c.conversion.status != "converted":
         typer.echo(f"{check_id} is {c.conversion.status}; only a converted check can be approved")
         raise typer.Exit(1)
@@ -337,5 +337,5 @@ def checks_card_cmd(contract_dir: Path = typer.Option(..., "--contract", exists=
     from .imported.record import ImportedCheck
     cards = card.from_saved_run(saved, contract_dir) if saved else []
     for cid in check:
-        cards.append(card.card_data(ImportedCheck.read(contract_dir / "checks" / f"{cid}.yaml"), contract_dir))
+        cards.append(card.card_data(ImportedCheck.load(contract_dir, cid), contract_dir))
     typer.echo(f"wrote {card.render(cards, out, title=title, label=label)}")

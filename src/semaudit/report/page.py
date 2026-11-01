@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import json
 import shutil
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 TEMPLATE = Path(__file__).parent / "templates" / "release_story.html"
 
@@ -114,6 +114,21 @@ def render(review_path: Path, *, interactive: bool = False, by: str | None = Non
             .replace("__TITLE__", title).replace("__REVIEW_JSON__", data))
 
 
+def contained_copy(rel: str, run_dir: Path, out_dir: Path) -> tuple[Path, Path]:
+    """(source, destination) for a capture path named in review.json, or ValueError. The path must be relative,
+    without "..", and both ends must resolve inside their folder: the source under the review's folder (a symlink
+    that leads out of it is refused) and the destination under the output folder."""
+    p = PurePosixPath(rel)
+    if not rel or p.is_absolute() or Path(rel).is_absolute() or ".." in p.parts or "\\" in rel:
+        raise ValueError(f"capture path {rel!r} is not a plain relative path")
+    src, dst = run_dir / p, out_dir / p
+    if not src.resolve().is_relative_to(run_dir.resolve()):
+        raise ValueError(f"capture path {rel!r} leads outside the review's folder")
+    if not dst.resolve().is_relative_to(out_dir.resolve()):
+        raise ValueError(f"capture path {rel!r} leads outside the output folder")
+    return src, dst
+
+
 def build(review_path: Path, out_dir: Path | None = None) -> Path:
     review = json.loads(review_path.read_text())
     run_dir = review_path.parent
@@ -121,10 +136,14 @@ def build(review_path: Path, out_dir: Path | None = None) -> Path:
     out_dir.mkdir(parents=True, exist_ok=True)
     missing = []
     for rel in sorted(referenced_files(review)):
-        src = run_dir / rel
+        try:
+            src, dst = contained_copy(rel, run_dir, out_dir)
+        except ValueError as e:
+            missing.append(f"{rel}  (refused: {e})")
+            continue
         if src.is_file():
-            (out_dir / rel).parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(src, out_dir / rel)
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(src, dst)
         else:
             missing.append(rel)
     (out_dir / "index.html").write_text(render(review_path), encoding="utf-8")

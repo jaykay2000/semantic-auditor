@@ -25,7 +25,7 @@ from semaudit.decide import memory
 from semaudit.models.router import Router
 
 from . import recheck as rc
-from .record import ImportedCheck, load_spec
+from .record import ImportedCheck, check_path, load_spec
 
 
 def _sha(p: Path) -> str | None:
@@ -40,12 +40,18 @@ def saved_checks(contract_dir: Path) -> tuple[list[ImportedCheck], list[str]]:
         if not key.startswith("check:"):
             continue
         cid = key.split(":", 1)[1]
-        p = Path(contract_dir) / "checks" / f"{cid}.yaml"
+        try:
+            p = check_path(Path(contract_dir) / "checks", cid)
+        except ValueError as e:
+            refused.append(f"{cid!r}: {e}")
+            continue
         if not p.exists():
             refused.append(f"{cid}: approved, but checks/{cid}.yaml is missing")
             continue
         c = ImportedCheck.read(p)
-        if c.digest() != a.get("hash"):
+        if c.id != cid:
+            refused.append(f"{cid}: checks/{cid}.yaml holds check {c.id!r}")
+        elif c.digest() != a.get("hash"):
             refused.append(f"{cid}: content changed since approval (approved {a.get('hash')}, now {c.digest()})")
         elif c.conversion.status != "converted":
             refused.append(f"{cid}: approved, but its conversion is {c.conversion.status}")
@@ -62,7 +68,7 @@ def run_saved(contract_dir: Path, base: str, head: str, router: Router, *, runs_
     approvals = load_approvals(contract_dir)
     loaded = {"approvals.yaml": _sha(contract_dir / "approvals.yaml"),
               MEMORY_FILE: _sha(contract_dir / MEMORY_FILE),
-              **{f"checks/{c.id}.yaml": _sha(contract_dir / "checks" / f"{c.id}.yaml") for c in checks}}
+              **{f"checks/{c.id}.yaml": _sha(check_path(contract_dir / "checks", c.id)) for c in checks}}
     contract, spec = load_contract(contract_dir), load_spec(contract_dir)
     eps: dict[str, dict] = {}
     for rel in (base, head):

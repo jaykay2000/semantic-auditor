@@ -107,7 +107,7 @@ def from_saved_run(saved: Path, contract_dir: Path) -> list[dict]:
     run = json.loads(Path(saved).read_text())
     out = []
     for row in run["checks"]:
-        chk = ImportedCheck.read(Path(contract_dir) / "checks" / f"{row['id']}.yaml")
+        chk = ImportedCheck.load(contract_dir, row["id"])
         d = card_data(chk, contract_dir, row["results"], row["memory"], run["base"], run["head"])
         d["run"] = {"id": run["run"], "at": run["at"], "loaded": run["loaded_from_storage"],
                     "approved_digest": row["approved_digest"], "approved_by": row["approved_by"]}

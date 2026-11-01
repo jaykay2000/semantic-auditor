@@ -13,11 +13,12 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from pathlib import Path
 from typing import Any, Literal
 
 import yaml
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 ConversionStatus = Literal["converted", "partially_converted", "adapter_gap", "not_converted"]
 ImportOutcome = Literal["replayed", "partially_converted", "adapter_gap", "not_converted", "replay_failed",
@@ -26,6 +27,29 @@ ImportOutcome = Literal["replayed", "partially_converted", "adapter_gap", "not_c
 
 class Strict(BaseModel):
     model_config = ConfigDict(extra="forbid")
+
+
+# The one shape a check id may take. Ids become file names (checks/<id>.yaml) and approval keys (check:<id>), so a
+# separator, a leading dot or "..", or an empty id would let a record or an approval point outside checks/.
+CHECK_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]*(\.[A-Za-z0-9_-]+)*")
+CHECK_ID_MAX = 64
+
+
+def valid_check_id(check_id: str) -> str:
+    if not isinstance(check_id, str) or len(check_id) > CHECK_ID_MAX or not CHECK_ID.fullmatch(check_id):
+        raise ValueError(f"not a valid check id: {check_id!r} (letters, digits, '-', '_' and single dots; "
+                         f"at most {CHECK_ID_MAX} characters)")
+    return check_id
+
+
+def check_path(directory: Path, check_id: str) -> Path:
+    """<directory>/<id>.yaml for a valid id, refused unless it resolves inside <directory> (a symlinked record that
+    points elsewhere is refused too). Every read and write of a check record goes through here."""
+    root = Path(directory).resolve()
+    p = Path(directory) / f"{valid_check_id(check_id)}.yaml"
+    if not p.resolve().is_relative_to(root):
+        raise ValueError(f"check {check_id!r} resolves outside {directory}")
+    return p
 
 
 # ---------- the consumer's import vocabulary (imports.yaml beside the contract) ----------
@@ -128,6 +152,11 @@ class ImportedCheck(Strict):
     conversion: Conversion
     converter: dict[str, str] = Field(default_factory=dict)   # code commit + prompt hash the draft was made with
 
+    @field_validator("id")
+    @classmethod
+    def _id_is_canonical(cls, v: str) -> str:
+        return valid_check_id(v)
+
     def digest(self) -> str:
         """What the owner approves: actions and invariant (not the source or the conversion log)."""
         body = {"persona": self.persona, "scenario": self.scenario,
@@ -136,13 +165,21 @@ class ImportedCheck(Strict):
 
     def write(self, directory: Path) -> Path:
         directory.mkdir(parents=True, exist_ok=True)
-        p = directory / f"{self.id}.yaml"
+        p = check_path(directory, self.id)
         p.write_text(yaml.safe_dump(self.model_dump(mode="json"), sort_keys=False, allow_unicode=True))
         return p
 
     @classmethod
     def read(cls, path: Path) -> "ImportedCheck":
         return cls(**yaml.safe_load(Path(path).read_text()))
+
+    @classmethod
+    def load(cls, contract_dir: Path, check_id: str) -> "ImportedCheck":
+        """checks/<id>.yaml of a contract, by id (see check_path)."""
+        c = cls.read(check_path(Path(contract_dir) / "checks", check_id))
+        if c.id != check_id:
+            raise ValueError(f"checks/{check_id}.yaml holds check {c.id!r}")
+        return c
 
 
 def source_from_item(ref: str, item: dict[str, Any]) -> Source:

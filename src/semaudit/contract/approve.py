@@ -127,10 +127,11 @@ def summary(c: Contract, approvals: dict[str, dict[str, str]]) -> dict[str, int]
 def approve_check(directory: Path, check_id: str, digest: str, by: str, on: str | None = None) -> str:
     """Owner approval of one imported check (semaudit.imported) at its current content: its actions and invariant,
     pinned by `ImportedCheck.digest()` in the same approvals.yaml as every contract item, under `check:<id>`."""
+    from semaudit.imported.record import valid_check_id
     if not by:
         raise ValueError("an approval needs the name of who made it")
     approvals = load_approvals(directory)
-    key = f"check:{check_id}"
+    key = f"check:{valid_check_id(check_id)}"
     approvals[key] = {"hash": digest, "by": by, "date": on or date.today().isoformat()}
     (directory / "approvals.yaml").write_text(
         "# Owner approvals, pinned to content hashes. Written by `semaudit contract approve` or the review page.\n"
