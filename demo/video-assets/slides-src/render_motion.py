@@ -21,7 +21,6 @@ import sys
 import tempfile
 
 from playwright.sync_api import sync_playwright
-
 from render import CHECK
 
 HERE = pathlib.Path(__file__).resolve().parent

@@ -64,6 +64,10 @@ def email_lines(result):
     return found
 
 
+def home(x):
+    return str(x).replace(str(pathlib.Path.home()), '~')
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--saved', default=str(SRA / 'docs/evidence/imported-checks/acceptance/run3c-saved-checks.json'))
@@ -124,12 +128,11 @@ def main():
     t = pathlib.Path(a.transcript)
     if t.exists():
         tl = t.read_text().splitlines()
-        cmd = next((l[2:].strip() for l in tl if l.startswith('$ ') and 'run-saved' in l), None)
-        out_lines = [l for l in tl if l.startswith(f'{CHECK} ')]   # this check's own result lines, verbatim
+        cmd = next((line[2:].strip() for line in tl if line.startswith('$ ') and 'run-saved' in line), None)
+        out_lines = [line for line in tl if line.startswith(f'{CHECK} ')]   # this check's own result lines, verbatim
         if cmd and f"--run {saved['run']}" not in cmd:
             die(f'the transcript {t} is not of run {saved["run"]}')
     by = entry['approved_by']
-    home = lambda x: str(x).replace(str(pathlib.Path.home()), '~')
     out = {
         '_source': {'saved': home(a.saved), 'check': home(chk_path), 'check_sha256_16': have, 'transcript': home(t) if cmd else None},
         'check': CHECK, 'digest': entry['digest'], 'approved_by': by,
