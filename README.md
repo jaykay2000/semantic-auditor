@@ -393,7 +393,7 @@ python3.12 -m venv .venv
 - [Decisions](docs/decisions.md)
 - [Archive](docs/archive/README.md): superseded demo drafts
 
-Also: [Hackathon compliance and provenance](HACKATHON.md) · [Northbound demo app](examples/northbound/README.md) · [Benchmark](bench/README.md) · [Finablo integration](integrations/finablo/README.md) · [Spree tax line, reported upstream](demo/evidence/taxline-upstream-2026-10-30/README.md)
+Also: [Hackathon compliance and provenance](HACKATHON.md) · [Northbound demo app](examples/northbound/README.md) · [Benchmark](bench/README.md) · [Finablo integration](integrations/finablo/README.md) · [Spree tax line, reported and fixed upstream](demo/evidence/taxline-upstream-2026-10-30/README.md)
 
 ## Layout
 

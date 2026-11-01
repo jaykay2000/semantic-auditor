@@ -1,11 +1,10 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><title>m7 beat 5 still open in both releases</title>
+<html lang="en"><head><meta charset="utf-8"><title>m7 beat 5 found, reported, fixed upstream</title>
 <link rel="stylesheet" href="slides.css"><link rel="stylesheet" href="motion.css">
 <!-- Beat 5 (1:24-1:37, 13 s). Owner decision 2026-11-01: SRA's release review page, not a storefront capture (the
      upstream screenshots are too small to read). The page shot is unchanged; the clip dims everything but the issue,
-     adds the chip and a caption whose wording comes from scenes-data/beat5.json (caption_mode picks it).
-     ⚠ As of 2026-11-01 the upstream issue is CLOSED by a merged fix (PR #289): the briefed caption "not yet confirmed
-     by maintainers" is no longer true and is kept in the JSON only under the key "as_briefed_now_false". -->
+     adds the chip ("still open, both releases": true of beta2 -> beta3) and a caption from scenes-data/beat5.json:
+     the upstream issue was fixed by PR #289, merged 2026-11-01 (checked with gh api; SRA has not run the fix). -->
 <style>
 .page{position:absolute;inset:0;background:url(img/beat5-spree-tax-line.png) 0 0/1920px 1080px}
 .dim{position:absolute;background:rgba(246,246,243,.78)}

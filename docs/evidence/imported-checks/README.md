@@ -93,7 +93,7 @@ run 3: 2 of its 3 judgments were runaway replies, so the outcome was `not_measur
 | M3-00 | same, other agent (F02, both) | fail | fail | fail | yes |
 | M3-02 | Store Pickup shown, Standard charged (P05, both) | pass | pass | pass | no: the check is not faithful (see 2) |
 
-The F02 result on `next` agrees with the upstream issue already filed (spree/storefront#283).
+The F02 result on `next` agrees with the upstream issue already filed (spree/storefront#283; fixed upstream on 2026-11-01 by PR #289, which SRA has not run).
 
 ### 5. Semantic confidence and evidence (the separate statuses)
 
