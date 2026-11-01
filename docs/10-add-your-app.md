@@ -16,7 +16,8 @@ Tested on a fresh clone with no key in the environment:
 | Install and run the tests ([README, "Run the tests"](../README.md#run-the-tests)) | yes; every model call in the suite is mocked |
 | `semaudit contract check <dir>` and `semaudit contract review <dir> --out page.html` | yes |
 | `semaudit capture` (drives the app in Chromium and records everything it shows) | yes; it makes no model call |
-| `semaudit review`, `repro`, `verify-report`, `checks run` | **no** |
+| `semaudit review`, `repro`, `checks run` | **no** |
+| `semaudit verify-report` | **yes**, when the review's pinned inputs and the model cache are present: it runs offline from the cache and spends nothing. A fresh clone has neither |
 
 There is **no cached replay on a fresh clone**. The model cache (`.semaudit-cache/`) and the run folders (`runs/`)
 are not committed, so nothing can be reviewed from cached answers. Without a key, `review` stops with
