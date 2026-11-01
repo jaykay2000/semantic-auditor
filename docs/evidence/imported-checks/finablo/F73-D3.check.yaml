@@ -1,0 +1,124 @@
+id: F73-D3
+source:
+  ref: finlearn-73-card#D3
+  trial: finlearn §73 card, found by D3
+  heading: 'GUEST-PENDING-FIRST-MOVE-SKIPS-THE-STATUTORY-CORRECTOR: pending/failed
+    guest first move is the raw ranked plan, never corrected; 61-year-old sees $24,500
+    not $35,750 [P1] (D3) — fix in flight on feat/73-p0-pending-first-move-corrector'
+  claim: GUEST-PENDING-FIRST-MOVE-SKIPS-THE-STATUTORY-CORRECTOR
+  where: ''
+  shown: pending/failed guest first move is the raw ranked plan, never corrected;
+    61-year-old sees $24,500 not $35,750
+  should_be: ''
+  reproduce: pending/failed guest first move is the raw ranked plan, never corrected;
+    61-year-old sees $24,500 not $35,750
+  rule: ''
+  sha256: c005fedcc3c475b2
+clauses:
+- text: 'pending/failed guest first move is the raw ranked plan, never corrected; '
+  kind: observation
+  steps: []
+  sets: []
+  unmapped: null
+- text: '61-year-old '
+  kind: context
+  steps: []
+  sets:
+  - exact_age
+  - age_range
+  - exact_age_provided
+  unmapped: null
+- text: sees $24,500 not $35,750
+  kind: observation
+  steps: []
+  sets: []
+  unmapped: null
+persona:
+  id: ic_f73-d3
+  name: ic_f73-d3
+  role: imported
+  context:
+    age_range: 55+
+    exact_age_provided: true
+    marital_status: single
+    goals:
+    - retire_early
+    top_priority: retire_early
+    monthly_income: 12000
+    income_type: salary
+    annual_gross: 210000
+    housing: 3000
+    is_mortgage: false
+    transportation: 500
+    food: 1200
+    utilities: 300
+    entertainment: 500
+    other_expenses: 500
+    emergency_fund: 60000
+    monthly_savings: 2500
+    monthly_retirement: 1000
+    retirement_balance: 650000
+    has_employer_match: 'yes'
+    stock_investments: 150000
+    credit_card_debt: 0
+    exact_age: 61
+scenario:
+  id: IC-F73-D3
+  description: imported check F73-D3
+  day0: '2026-11-02T00:00:00+00:00'
+  personas:
+  - ic_f73-d3
+  steps:
+  - at: D0 10:00
+    do: take_assessment
+    params: {}
+  - at: D0 10:01
+    do: open_report
+    params:
+      hold_plan: held
+invariant:
+  rule: H1
+  surface: guest_report
+  statement: every 401(k)/403(b) contribution limit shown on the guest report while
+    the action plan is pending or failed equals the IRS 2026 statutory limit for the
+    user's exact age including any applicable catch-up amount and matches the limit
+    stored in the application's own record
+conversion:
+  status: partially_converted
+  reasons:
+  - no action clause is carried out by any step
+  gaps: []
+  unmapped: []
+  alternatives: []
+  defaulted:
+  - annual_gross
+  - credit_card_debt
+  - emergency_fund
+  - entertainment
+  - food
+  - goals
+  - has_employer_match
+  - housing
+  - income_type
+  - is_mortgage
+  - marital_status
+  - monthly_income
+  - monthly_retirement
+  - monthly_savings
+  - other_expenses
+  - retirement_balance
+  - stock_investments
+  - top_priority
+  - transportation
+  - utilities
+  implied_steps:
+  - take_assessment
+  - open_report
+  gate_rounds: 1
+  gate_errors:
+  - []
+  model: meta-models/muse-spark-open-1026
+  cost_usd: 0.01763
+converter:
+  sra_commit: 8aa31c7
+  prompt_sha: 128b9f7b9ac3e616
