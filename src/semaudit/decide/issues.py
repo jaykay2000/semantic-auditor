@@ -261,8 +261,11 @@ def build_issues(release: str, results: dict[str, tuple[Story, list[Entry]]], co
                 evs = cited_events(primary, story)
                 sig = signature(primary, evs)
                 group = groups.setdefault(sig, [])
-                if any(o.persona == persona and set(o.events) == {e.id for e in evs} for o in group):
-                    continue                     # the same disagreement, raised from its other side
+                same = next((o for o in group if o.persona == persona and set(o.events) == {e.id for e in evs}), None)
+                if same is not None:             # the same disagreement, raised from its other side: keep what
+                    if also:                     # else this side breaks, or it would be dropped unseen
+                        same.also = sorted(same.also + also, key=lambda a: order[a.rule])
+                    continue
                 group.append(Occurrence(persona, story.id, [e.id for e in evs], primary,
                                         timing_of(evs, story, contract), also))
     issues = []
