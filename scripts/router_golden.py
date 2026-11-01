@@ -7,7 +7,6 @@ header with the key replaced by its env-var name, and the cache digest. tests/te
 compares a fresh capture against this file.
 """
 
-import hashlib
 import json
 import sys
 import tempfile

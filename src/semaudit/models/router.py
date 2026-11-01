@@ -9,6 +9,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import time
 import tomllib
 from dataclasses import dataclass, field
@@ -46,6 +47,60 @@ PRICES_PER_MTOK: dict[str, tuple[float, float] | None] = {
     "muse-spark-1.3-contributor": None,
     "muse-spark-1.2-contributor": None,
 }
+
+ENV_NAME = re.compile(r"[A-Z_][A-Z0-9_]*")
+
+
+class ConfigError(ValueError):
+    """semaudit.toml asks for something the router will not do (a bad or clashing [providers] or price entry)."""
+
+
+def config_providers(cfg: dict) -> tuple[dict[str, dict], dict[str, tuple[float, float]]]:
+    """[providers.<name>] tables from semaudit.toml: extra OpenAI-compatible endpoints (POST {base_url}/chat/completions
+    with `Authorization: Bearer $<key_env>`), plus optional per-model prices.
+
+        [providers.myhost]
+        base_url = "https://llm.example.com/v1"
+        key_env = "MYHOST_API_KEY"
+        max_completion_tokens = 8000            # optional default cap for this provider
+        [providers.myhost.prices]               # optional, USD per million tokens: [input, output]
+        "my-model" = [0.5, 1.5]
+
+    A name that is already built in (meta, baseten, anthropic) is refused, not merged: a built-in's address, key
+    and cache keys are part of what the measured runs mean, and a redefined `meta` would also be served the cached
+    answers of the real one (its cache keys carry no provider name). Use a new name for a proxy or another host.
+    A price for a model that already has a built-in price is refused for the same reason."""
+    providers, prices = {}, {}
+    for name, t in (cfg.get("providers") or {}).items():
+        where = f"semaudit.toml [providers.{name}]"
+        if name in PROVIDERS:
+            raise ConfigError(f"{where}: '{name}' is a built-in provider and cannot be redefined; use another name")
+        if not isinstance(t, dict):
+            raise ConfigError(f"{where}: must be a table")
+        extra = set(t) - {"base_url", "key_env", "max_completion_tokens", "prices"}
+        if extra:
+            raise ConfigError(f"{where}: unknown keys {sorted(extra)}")
+        url, env = t.get("base_url"), t.get("key_env")
+        if not isinstance(url, str) or not url.startswith(("https://", "http://")):
+            raise ConfigError(f"{where}: base_url must be an http(s) URL")
+        if not isinstance(env, str) or not ENV_NAME.fullmatch(env):
+            raise ConfigError(f"{where}: key_env must name an environment variable (e.g. MYHOST_API_KEY), "
+                              "not hold the key itself")
+        entry = {"base_url": url.rstrip("/"), "key_env": env}
+        if "max_completion_tokens" in t:
+            if not isinstance(t["max_completion_tokens"], int) or t["max_completion_tokens"] <= 0:
+                raise ConfigError(f"{where}: max_completion_tokens must be a positive integer")
+            entry["max_completion_tokens"] = t["max_completion_tokens"]
+        for model, pr in (t.get("prices") or {}).items():
+            if model in PRICES_PER_MTOK and PRICES_PER_MTOK[model] is not None:
+                raise ConfigError(f"{where}.prices: '{model}' already has a built-in price")
+            if (not isinstance(pr, list) or len(pr) != 2
+                    or not all(isinstance(x, int | float) and not isinstance(x, bool) and x >= 0 for x in pr)):
+                raise ConfigError(f"{where}.prices: '{model}' must be [input, output] USD per million tokens")
+            prices[model] = (float(pr[0]), float(pr[1]))
+        providers[name] = entry
+    return providers, prices
+
 
 DEFAULT_ROLES = {
     "interpreter": {"provider": "meta", "model": "muse-spark-1.3", "reasoning_effort": "medium"},
@@ -109,9 +164,15 @@ class Router:
         self.root = root or Path.cwd()
         load_env(self.root / ".env")
         self.roles = dict(DEFAULT_ROLES)
+        self.providers = dict(PROVIDERS)
+        self.prices = dict(PRICES_PER_MTOK)
         cfg = config_path or self.root / "semaudit.toml"
         if cfg.exists():
-            self.roles.update(tomllib.loads(cfg.read_text()).get("roles", {}))
+            data = tomllib.loads(cfg.read_text())
+            self.roles.update(data.get("roles", {}))
+            extra, prices = config_providers(data)
+            self.providers.update(extra)
+            self.prices.update(prices)
         self.cache_dir = self.root / ".semaudit-cache"
         self.ledger_path = self.root / "runs" / "ledger.jsonl"
         self.max_usd = max_usd
@@ -120,11 +181,17 @@ class Router:
         self.tag: str | None = None       # the run/condition each ledger row belongs to (benchmark accounting)
         self.usage: dict[str, dict[str, float]] = {}   # role -> calls, cached, spent, if_fresh, tokens
 
+    def _provider(self, provider: str) -> dict:
+        if provider not in self.providers:
+            raise ModelError(f"provider '{provider}' is neither built in ({', '.join(PROVIDERS)}) nor defined under "
+                             "[providers] in semaudit.toml")
+        return self.providers[provider]
+
     def _key(self, provider: str) -> str:
-        env = PROVIDERS[provider]["key_env"]
+        env = self._provider(provider)["key_env"]
         key = os.environ.get(env)
         if not key:
-            raise ModelError(f"{env} is not set (expected in .env)")
+            raise ModelError(f"{env} is not set (expected in .env); provider '{provider}' needs it")
         return key
 
     def complete(self, role: str, messages: list[dict], *, schema: dict | None = None,
@@ -134,6 +201,7 @@ class Router:
                  timeout_s: float = 180.0) -> Result:
         spec = self.roles[role]
         provider, model = spec["provider"], spec["model"]
+        pconf = self._provider(provider)
         body: dict[str, Any] = {"model": model, "messages": messages}
         effort = reasoning_effort or spec.get("reasoning_effort")
         if effort:
@@ -146,7 +214,7 @@ class Router:
         if seed is not None:
             body["seed"] = seed
         max_completion_tokens = (max_completion_tokens or spec.get("max_completion_tokens")
-                                 or PROVIDERS[provider].get("max_completion_tokens"))
+                                 or pconf.get("max_completion_tokens"))
         retries = int(spec.get("unreadable_retries", UNREADABLE_RETRIES))
         if max_completion_tokens:
             body["max_completion_tokens"] = max_completion_tokens
@@ -204,15 +272,15 @@ class Router:
             raise ModelError(f"offline: no cached answer for {role} ({digest[:12]})")
         if self.max_usd is not None and self.spent_usd >= self.max_usd:
             raise ModelError(f"budget exhausted: spent ${self.spent_usd:.4f} of ${self.max_usd}")
-        if self.max_usd is not None and not PRICES_PER_MTOK.get(model):
+        if self.max_usd is not None and not self.prices.get(model):
             raise ModelError(f"{model} has no price, so a ${self.max_usd} cap could not count it: refused")
-        if PROVIDERS[provider].get("sdk") == "anthropic":
+        if self._provider(provider).get("sdk") == "anthropic":
             return self._fetch_anthropic(model, body, timeout_s)
         t0 = time.monotonic()
         resp = None
         for attempt in range(4):           # transient failures: timeouts, 429, 5xx
             try:
-                resp = httpx.post(f"{PROVIDERS[provider]['base_url']}/chat/completions", json=body,
+                resp = httpx.post(f"{self._provider(provider)['base_url']}/chat/completions", json=body,
                                   headers={"Authorization": f"Bearer {self._key(provider)}"},
                                   timeout=timeout_s)
             except (httpx.TimeoutException, httpx.TransportError) as e:
@@ -253,9 +321,8 @@ class Router:
                 "by_role": {r: {k: round(v, 6) if isinstance(v, float) else v for k, v in u.items()}
                             for r, u in sorted(self.usage.items())}}
 
-    @staticmethod
-    def _cost(model: str, usage: dict) -> float | None:
-        price = PRICES_PER_MTOK.get(model)
+    def _cost(self, model: str, usage: dict) -> float | None:
+        price = self.prices.get(model)
         if not price:
             return None
         return (usage.get("prompt_tokens", 0) * price[0] + usage.get("completion_tokens", 0) * price[1]) / 1e6

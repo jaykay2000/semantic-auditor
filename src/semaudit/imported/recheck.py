@@ -138,6 +138,18 @@ def judge_payload(check: ImportedCheck, contract: Contract, msgs: list, record: 
             "persona": persona_ctx, "record": record}
 
 
+def schema_shaped(j: Any) -> bool:
+    """The parsed reply has the judgment schema's shape: outcome in the enum, `why` a string, and `cited` and `record`
+    lists of string-valued objects with the required keys. A strict-schema provider always returns this; anything
+    else is treated as an unreadable vote, never a pass or a fail."""
+    def items(v, keys):
+        return isinstance(v, list) and all(isinstance(x, dict) and set(x) == keys
+                                           and all(isinstance(x[k], str) for k in keys) for x in v)
+    return (isinstance(j, dict) and set(j) == {"outcome", "why", "cited", "record"}
+            and j["outcome"] in ("pass", "fail", "not_measurable") and isinstance(j["why"], str)
+            and items(j["cited"], {"event_id", "quote"}) and items(j["record"], {"field", "value"}))
+
+
 def judge(router: Router, body: dict, *, seed: int, fresh: bool = False) -> dict[str, Any]:
     """One judgment. A reply that is still not JSON after the router's retries (the model ran away to its token cap)
     is a not_measurable vote with no evidence, never a crash and never a pass or a fail."""
@@ -150,6 +162,9 @@ def judge(router: Router, body: dict, *, seed: int, fresh: bool = False) -> dict
                 "seed": seed, "model": (getattr(router, "roles", {}).get(ROLE) or {}).get("model"), "cached": False,
                 "cost_usd": None, "unreadable": True}
     out = dict(r.parsed or {"outcome": "not_measurable", "why": "unreadable reply", "cited": [], "record": []})
+    if not schema_shaped(out):        # JSON, but not the judgment schema (a provider that ignores strict schemas)
+        out = {"outcome": "not_measurable", "why": "reply does not match the judgment schema", "cited": [],
+               "record": [], "nonschema": True}
     out.update(seed=seed, model=r.model, cached=r.cached, cost_usd=r.cost_usd,
                runaway_retries=r.unreadable_attempts, runaway_cost_usd=round(r.unreadable_cost_usd, 6))
     return out
