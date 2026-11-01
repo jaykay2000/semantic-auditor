@@ -198,18 +198,59 @@ def _same(want: Any, got: str) -> bool:
     return len(nums) == 1 and abs(float(nums[0].replace(",", "")) - w) < 0.005
 
 
+def _lookup(record: dict, field: str) -> tuple[bool, Any]:
+    """(found, value) of a record path; the path may start with an oracle name."""
+    for root in [record] + [record[k] for k in record]:
+        try:
+            return True, _path(root, field)
+        except KeyError:
+            continue
+    return False, None
+
+
+CLEAN_NUMBER = re.compile(r"\s*[:=]?\s*\$?\s*-?\$?\d[\d,]*(?:\.\d+)?\s*")
+MALFORMED_REASKS = 3      # a judgment whose record values are garbage is asked again (fresh seed) up to this many times
+
+
+def malformed_values(j: dict, record: dict) -> list[str]:
+    """Record values a judgment wrote that are not a number at all where the record holds a number: model garbage
+    (`'|1|7|9|.|9|8|'`, `'***REDACTED***'`, `'},{'`), not a reading. A clean number that is WRONG is not listed here:
+    that is a misreading, and it still counts against the evidence."""
+    bad = []
+    for r in j.get("record", []):
+        found, val = _lookup(record, r.get("field", ""))
+        if (found and isinstance(val, (int, float)) and not isinstance(val, bool)
+                and not CLEAN_NUMBER.fullmatch(str(r.get("value", "")))):
+            bad.append(f"{r.get('field')}: {str(r.get('value'))[:40]!r}")
+    return bad
+
+
+def judge_clean(router: Router, body: dict, record: dict, *, seed: int, fresh: bool = False,
+                reasks: int = MALFORMED_REASKS) -> dict[str, Any]:
+    """One judgment; asked again with a fresh seed while its record values are garbage. The discarded judgments are
+    kept (with what was malformed and what they cost). If garbage persists, the last one stands and its evidence is
+    graded as it is (partially verified at best): nothing is ever loosened, only asked again."""
+    j = judge(router, body, seed=seed, fresh=fresh)
+    discarded = []
+    for k in range(reasks):
+        bad = malformed_values(j, record)
+        if not bad:
+            break
+        discarded.append({"seed": j["seed"], "outcome": j["outcome"], "malformed": bad,
+                          "cost_usd": 0.0 if j.get("cached") else (j.get("cost_usd") or 0.0)
+                          + j.get("runaway_cost_usd", 0.0)})
+        j = judge(router, body, seed=seed + 2000 + k, fresh=fresh)
+    j["malformed_reasks"] = len(discarded)
+    j["malformed_discarded"] = discarded
+    return j
+
+
 def record_checks(cited: list[dict], record: dict) -> tuple[list[str], list[str]]:
     """(ok, refused) for the record values a judgment says it used. A path may start with an oracle name."""
     ok, bad = [], []
     for r in cited:
         f, v = r.get("field", ""), r.get("value", "")
-        found, val = False, None
-        for root in [record] + [record[k] for k in record]:
-            try:
-                val, found = _path(root, f), True
-                break
-            except KeyError:
-                continue
+        found, val = _lookup(record, f)
         if not found:
             bad.append(f"{f}: not in the record")
         elif not _same(val, v):
@@ -262,7 +303,7 @@ def recheck(check: ImportedCheck, ep: Episode | None, contract: Contract, spec: 
     msgs = [e for e in story.messages() if e.surface == check.invariant.surface]
     record = record_at(ep, msgs)
     body = judge_payload(check, contract, msgs, record, story.context)
-    js = [judge(router, body, seed=k + 1, fresh=fresh) for k in range(judgments)]
+    js = [judge_clean(router, body, record, seed=k + 1, fresh=fresh) for k in range(judgments)]
     votes = Counter(j["outcome"] for j in js)
     top, n = votes.most_common(1)[0]
     outcome = top if n * 2 > judgments else "not_measurable"
@@ -283,5 +324,6 @@ def recheck(check: ImportedCheck, ep: Episode | None, contract: Contract, spec: 
             "judgments": js, "payload_sha256": hashlib.sha256(json.dumps(body, sort_keys=True,
                                                                          default=str).encode()).hexdigest()[:16],
             "runaway_retries": sum(j.get("runaway_retries", 0) for j in js),
-            "cost_usd": round(sum((j["cost_usd"] or 0.0) + j.get("runaway_cost_usd", 0.0)
-                                  for j in js if not j["cached"]), 6)}
+            "malformed_reasks": sum(j.get("malformed_reasks", 0) for j in js),
+            "cost_usd": round(sum(((j["cost_usd"] or 0.0) + j.get("runaway_cost_usd", 0.0) if not j["cached"] else 0.0)
+                                  + sum(d["cost_usd"] for d in j.get("malformed_discarded", [])) for j in js), 6)}

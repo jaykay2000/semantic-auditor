@@ -209,3 +209,25 @@ keeps what they said. FAIL is left as voted. The card shows the reason line. Tes
 | 4 | none | fix_confirmed, unchanged |
 
 `cards-run3b.html` is rendered from the re-derived Run 3b (`run3b-saved-checks.rederived.json`).
+
+## Follow-up 2026-10-31 (2): re-ask on garbage record values, then Run 3 again (3c)
+
+**Re-ask (owner go).** `recheck.judge_clean` asks a judgment again, with a fresh seed and up to 3 times, when a record
+value it wrote is not a number at all where the record holds a number (`recheck.malformed_values`, `CLEAN_NUMBER`).
+Examples: `'|1|7|9|.|9|8|'`, `'***REDACTED***'`, `'},{'`, `'  1 4 . 4'`. **A clean number that is wrong is never
+re-asked** and still counts against the evidence. If garbage persists, the last judgment stands and is graded as it
+is. Discarded judgments are kept, with what was malformed and what they cost. Tests:
+`test_garbage_record_value_is_asked_again`, `test_wrong_clean_number_is_not_asked_again`,
+`test_garbage_re_asks_are_bounded`, plus three mutations, all red (33 of 33 overall). 414 tests pass.
+
+**Run 3c** (`acceptance/run3c-transcript.txt`, `run3c-saved-checks.json`, `cards-run3c.html`): the same command from
+storage, run id `ic-accept-run3c`.
+
+| check | beta2 | beta3 | memory |
+|---|---|---|---|
+| C1-04 | fail 3/3, verified | pass 3/3, verified | **fix_confirmed** |
+| C1-04-v1 | fail 3/3, partially verified (garbage persisted after 3 re-asks in one judgment) | pass 3/3, verified | **fix_confirmed** |
+
+The cost is the catch: **$0.543** for 12 judgments, which needed 23 readable calls plus 6 runaways. There were 11
+garbage re-asks across the 12 judgments, so the model writes garbage record values in most first replies. Running
+total **$10.06** (ledger), past the $10 ask-first line by $0.06. The run's own cap (`--max-usd 0.6`) held.

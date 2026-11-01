@@ -491,3 +491,43 @@ def test_card_shows_why_a_pass_was_not_counted(tmp_path):
                        title="t").read_text()
     assert "pass without verified evidence (partially_verified)" in html and "not_measurable" in html
     assert "Total $15.00" in html            # what the majority cited is still shown
+
+
+def _recheck_values(monkeypatch, values):
+    """Three pass judgments; the record value each successive judge call writes comes from `values`."""
+    chk = _check()
+    monkeypatch.setattr(rc, "replay_status", lambda *a, **k: {"status": "succeeded", "reasons": [], "notes": []})
+    monkeypatch.setattr(rc, "_story", lambda *a, **k: _story())
+    monkeypatch.setattr(rc, "record_at", lambda *a, **k: {"record": {"total": 15.0}})
+    vals, seeds = iter(values), []
+
+    def fake(router, body, *, seed, fresh=False):
+        seeds.append(seed)
+        return {"outcome": "pass", "why": "", "cited": [{"event_id": "m1", "quote": "Total $15.00"}],
+                "record": [{"field": "total", "value": next(vals)}], "seed": seed, "model": "fake", "cached": False,
+                "cost_usd": 0.001}
+    monkeypatch.setattr(rc, "judge", fake)
+    return rc.recheck(chk, _ep(), C, SPEC, None, judgments=3, approved=False), seeds
+
+
+def test_garbage_record_value_is_asked_again(monkeypatch):
+    """safeguard: a judgment whose record value is garbage (not a number at all) is re-asked with a fresh seed, and the
+    discarded judgment is kept; a clean answer then verifies."""
+    r, seeds = _recheck_values(monkeypatch, ["|1|5|.|0|", "15.00", "$15.00", ": 15.0"])
+    assert r["evidence"]["status"] == "verified" and r["assertion"]["outcome"] == "pass"
+    assert r["malformed_reasks"] == 1 and len(seeds) == 4 and len(set(seeds)) == 4
+    d = r["judgments"][0]["malformed_discarded"]
+    assert d[0]["malformed"] == ["total: '|1|5|.|0|'"] and r["cost_usd"] == 0.004
+
+
+def test_wrong_clean_number_is_not_asked_again(monkeypatch):
+    """A clean number that disagrees with the record is a misreading: never re-asked, still counts against."""
+    r, seeds = _recheck_values(monkeypatch, ["12.50", "15.00", "15.00"])
+    assert len(seeds) == 3 and r["evidence"]["status"] == "partially_verified"
+    assert r["assertion"]["outcome"] == "not_measurable"
+
+
+def test_garbage_re_asks_are_bounded(monkeypatch):
+    r, seeds = _recheck_values(monkeypatch, ["***REDACTED***"] * 4 + ["15.00", "15.00"])
+    assert r["judgments"][0]["malformed_reasks"] == 3 and len(seeds) == 6
+    assert r["evidence"]["status"] == "partially_verified" and r["assertion"]["outcome"] == "not_measurable"
