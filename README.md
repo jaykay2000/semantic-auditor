@@ -169,7 +169,7 @@ All from [docs/evidence/imported-checks/README.md](docs/evidence/imported-checks
 
 ### Reproduce the Spree demo
 
-The Spree harness lives in its own repository, [spree-semaudit](<SPREE_HARNESS_URL>): the store's contract, its
+The Spree harness lives in its own repository, [spree-semaudit](https://github.com/jaykay2000/spree-semaudit): the store's contract, its
 driver, the import vocabulary (`contract-imported/`) and `imported_checks.py`. That is where the demo's Spree beat is
 reproduced. Run 3c was:
 
