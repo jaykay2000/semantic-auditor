@@ -1,0 +1,242 @@
+{
+ "anthropic/plain": {
+  "cache_files": [
+   "895be705070199ca2a96d4f7994a55cf5764d65e6a3340c196f7cc9e946642c1"
+  ],
+  "requests": [
+   {
+    "api_key": "<ANTHROPIC_API_KEY>",
+    "max_retries": 3,
+    "sdk": "anthropic",
+    "timeout": 600.0
+   },
+   {
+    "params": {
+     "max_tokens": 64000,
+     "messages": [
+      {
+       "content": "U",
+       "role": "user"
+      }
+     ],
+     "model": "claude-opus-5-5",
+     "output_config": {
+      "effort": "low"
+     },
+     "system": "S"
+    }
+   }
+  ]
+ },
+ "anthropic/schema": {
+  "cache_files": [
+   "1d10481b24891fff1c81768a8712cc0289e67af8adc77242262fa1e5bfc1aa89"
+  ],
+  "requests": [
+   {
+    "api_key": "<ANTHROPIC_API_KEY>",
+    "max_retries": 3,
+    "sdk": "anthropic",
+    "timeout": 600.0
+   },
+   {
+    "params": {
+     "max_tokens": 64000,
+     "messages": [
+      {
+       "content": "U",
+       "role": "user"
+      }
+     ],
+     "model": "claude-opus-5-5",
+     "output_config": {
+      "effort": "low",
+      "format": {
+       "schema": {
+        "additionalProperties": false,
+        "properties": {
+         "ok": {
+          "anyOf": [
+           {
+            "type": "string"
+           },
+           {
+            "type": "null"
+           }
+          ]
+         }
+        },
+        "required": [
+         "ok"
+        ],
+        "type": "object"
+       },
+       "type": "json_schema"
+      }
+     },
+     "system": "S"
+    }
+   }
+  ]
+ },
+ "baseten/plain": {
+  "cache_files": [
+   "9777ef7673297a4a49cd963ac15f021ab931062153869294f40362d1d8459e26"
+  ],
+  "requests": [
+   {
+    "headers": {
+     "Authorization": "Bearer <BASETEN_API_KEY>"
+    },
+    "json": {
+     "max_completion_tokens": 16000,
+     "messages": [
+      {
+       "content": "S",
+       "role": "system"
+      },
+      {
+       "content": "U",
+       "role": "user"
+      }
+     ],
+     "model": "meta-models/muse-spark-open-1026",
+     "reasoning_effort": "low"
+    },
+    "timeout": 180.0,
+    "url": "https://inference.baseten.co/v1/chat/completions"
+   }
+  ]
+ },
+ "baseten/schema": {
+  "cache_files": [
+   "5141fff2d42d0f2774f188fa6379c08a694f08a5175f3a558bd9951930e7a27b"
+  ],
+  "requests": [
+   {
+    "headers": {
+     "Authorization": "Bearer <BASETEN_API_KEY>"
+    },
+    "json": {
+     "max_completion_tokens": 16000,
+     "messages": [
+      {
+       "content": "S",
+       "role": "system"
+      },
+      {
+       "content": "U",
+       "role": "user"
+      }
+     ],
+     "model": "meta-models/muse-spark-open-1026",
+     "reasoning_effort": "low",
+     "response_format": {
+      "json_schema": {
+       "name": "g",
+       "schema": {
+        "additionalProperties": false,
+        "properties": {
+         "ok": {
+          "type": [
+           "string",
+           "null"
+          ]
+         }
+        },
+        "required": [
+         "ok"
+        ],
+        "type": "object"
+       },
+       "strict": true
+      },
+      "type": "json_schema"
+     },
+     "seed": 3
+    },
+    "timeout": 180.0,
+    "url": "https://inference.baseten.co/v1/chat/completions"
+   }
+  ]
+ },
+ "meta/plain": {
+  "cache_files": [
+   "fb2c1cc649e438ca6a6bf3cdd13124076d31dd8fba48af9212d6b32cada32c7a"
+  ],
+  "requests": [
+   {
+    "headers": {
+     "Authorization": "Bearer <META_MODEL_API_KEY>"
+    },
+    "json": {
+     "messages": [
+      {
+       "content": "S",
+       "role": "system"
+      },
+      {
+       "content": "U",
+       "role": "user"
+      }
+     ],
+     "model": "muse-spark-1.3",
+     "reasoning_effort": "low"
+    },
+    "timeout": 180.0,
+    "url": "https://api.meta.ai/v1/chat/completions"
+   }
+  ]
+ },
+ "meta/schema": {
+  "cache_files": [
+   "79db9b03457806e53236988cdd4e7afe74bfe8ed37c84ca6fabe5e61c7dfec95"
+  ],
+  "requests": [
+   {
+    "headers": {
+     "Authorization": "Bearer <META_MODEL_API_KEY>"
+    },
+    "json": {
+     "messages": [
+      {
+       "content": "S",
+       "role": "system"
+      },
+      {
+       "content": "U",
+       "role": "user"
+      }
+     ],
+     "model": "muse-spark-1.3",
+     "reasoning_effort": "low",
+     "response_format": {
+      "json_schema": {
+       "name": "g",
+       "schema": {
+        "additionalProperties": false,
+        "properties": {
+         "ok": {
+          "type": [
+           "string",
+           "null"
+          ]
+         }
+        },
+        "required": [
+         "ok"
+        ],
+        "type": "object"
+       },
+       "strict": true
+      },
+      "type": "json_schema"
+     },
+     "seed": 3
+    },
+    "timeout": 180.0,
+    "url": "https://api.meta.ai/v1/chat/completions"
+   }
+  ]
+ }
+}
