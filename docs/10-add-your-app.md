@@ -1,0 +1,223 @@
+# Add your app, and use another model
+
+For someone who has cloned this repo and wants SRA to review **their own** web app. It covers what SRA needs from
+the app, the contract, the adapter, the first run, what it costs, and how to point SRA at a model other than Muse
+Spark. Every command below was run on a fresh clone (2026-11-01) unless it is labelled otherwise.
+
+The worked example throughout is the Northbound demo app in [`examples/northbound/`](../examples/northbound/). Copy
+its contract and adapter and change them; that is the intended way to start.
+
+## What runs without a model key
+
+Tested on a fresh clone with no key in the environment:
+
+| Step | Works without a key? |
+|---|---|
+| Install and run the tests ([README, "Run the tests"](../README.md#run-the-tests)) | yes; every model call in the suite is mocked |
+| `semaudit contract check <dir>` and `semaudit contract review <dir> --out page.html` | yes |
+| `semaudit capture` (drives the app in Chromium and records everything it shows) | yes; it makes no model call |
+| `semaudit review`, `repro`, `verify-report`, `checks run` | **no** |
+
+There is **no cached replay on a fresh clone**. The model cache (`.semaudit-cache/`) and the run folders (`runs/`)
+are not committed, so nothing can be reviewed from cached answers. Without a key, `review` stops with
+`cannot measure: META_MODEL_API_KEY is not set (expected in .env); provider 'meta' needs it` and exit code 2.
+Once you have run a review yourself, re-running it (`--reuse`) is served from your own cache at $0.
+
+## What SRA needs from your app
+
+SRA drives your app like a user, in a real browser, and compares what the app **said** with what the app **knows**.
+So it needs two things from you beyond the app itself:
+
+1. **A way to read the app's own record**: "oracle" endpoints that return the true state as JSON (an order's total,
+   a booking's status, seats left). The Northbound app serves them at `/api/oracle/...`.
+2. **Test hooks** (all optional, each one adds something):
+   - `reset`: start every scenario from a clean app;
+   - `persona`: create the test user and their situation;
+   - `clock`: set a simulated time. Without it, anything the app sends later (a reminder email the next day) is
+     recorded as "not measured";
+   - `world`: seed the state the oracles will report.
+
+Building these into your app is usually the biggest piece of work. Run them only in a test build, never in
+production.
+
+## 1. The contract: a folder of YAML
+
+Start from a copy of [`examples/northbound/contract/`](../examples/northbound/contract/). Each file:
+
+| File | What it says | Northbound example |
+|---|---|---|
+| `app.yaml` | name, `base_url`, `releases`, test `hooks`, `launch`, `adapter`; `fictional` and `data` (`synthetic` or `real`) | releases `2.3`, `2.4`, `2.4.1`; hooks under `/api/test/` |
+| `subject.yaml` | who the user is (`noun`) and the fields that describe their situation | `traveller`; route, departure time, flexible |
+| `personas.yaml` | test users: their `context`, the `world` to seed, any experiment arms | Maya, flexible, departs in 42 days |
+| `scenarios.yaml` | time-ordered steps: `{at: "D0 10:03", do: <verb>, params: {...}}`; `when_offered: true` for an action a release may not offer | search, open the cheapest fare, book, read the inbox two days later |
+| `surfaces.yaml` | every place the app talks to the user, and how to find its messages: `web` (CSS selector), `chat`, `email` and `push` (a folder the app writes to), `pdf` | fare page, checkout, inbox, itinerary PDF |
+| `oracles.yaml` | the app's own record: endpoint templates and the JSON fields to read, after every step | `/api/oracle/booking?traveller={traveller}` |
+| `facts.yaml` | the kinds of claim a message can make, and which oracle field holds the truth | "seats left" is `inventory.seats_left` |
+| `state.yaml` | state derived from the user's actions (booked or not, a lock held) | `booking_status` set by `book` |
+| `features.yaml` | the app's features and how a message is attributed to one (a DOM attribute or a header) | `core`, `price_watch`, `fare_lock` |
+| `decisions.yaml` | the decisions your app advises on, and which advice conflicts | `when_to_book`: book now vs wait for a drop |
+| `principles.yaml` | **your rules**: what must hold for every user, with severity and a `check` | "every scarcity claim matches our own data" |
+| `rubric.md` | instructions for reading a message (its kind, urgency cues) | urgency cues U-a to U-c |
+| `release_policy.yaml` | how issues become a recommendation (Ship / Hold), top row first | hold on a verified critical issue |
+
+`semaudit contract check <dir>` validates the cross-references and lists the items you have not yet approved.
+`semaudit contract review <dir> --out page.html` renders the whole contract for you to read. Without `--out`, it
+serves the page with working Approve buttons. `semaudit contract approve` records approval, pinned to each item's
+content hash; a review of an unapproved contract is always marked provisional.
+
+Field-by-field formats: `src/semaudit/contract/schema.py`. The Northbound rules and why they read as they do:
+[`examples/northbound/README.md`](../examples/northbound/README.md).
+
+### `app.launch`: let SRA start each release
+
+```yaml
+launch:                    # in app.yaml; omit it and SRA uses an app you have already started at base_url
+  cwd: ..                  # relative to the contract folder
+  cmd: ["{python}", "-m", "uvicorn", "northbound.app:app", "--host", "127.0.0.1", "--port", "{port}"]
+  env: {NORTHBOUND_OUTBOX: "{scratch}/outbox"}
+  sink_root: "{scratch}"   # email and push folders in surfaces.yaml are resolved under this
+  health: /                # SRA polls this until the app answers
+release_env: NORTHBOUND_RELEASE   # the release to start is passed in this env var
+```
+
+`{python}`, `{port}`, `{release}` and `{scratch}` (a fresh temp folder per launch) are filled in by SRA.
+
+## 2. The adapter: your scenario verbs, in Python
+
+The adapter turns each scenario verb into clicks and requests on **your** app. It is a file named in `app.yaml`
+(`adapter: ../adapter.py`) that defines a class `Adapter`. Northbound's is
+[`examples/northbound/adapter.py`](../examples/northbound/adapter.py) (about 200 lines). The full interface is in the
+docstring of `src/semaudit/adapters/base.py`; the shape is:
+
+```python
+from semaudit.adapters.base import StepFailed, StepResult
+
+class Adapter:
+    def persona_body(self, persona, context):   # JSON body for your `persona` hook
+        return {"user": persona.id, **context}
+
+    def oracle_params(self, persona, session):  # values for the {placeholders} in oracles.yaml
+        return {"user": persona.id}
+
+    def run_step(self, step, session):          # one scenario step
+        fn = getattr(self, f"verb_{step.do}", None)
+        if fn is None:
+            raise StepFailed(f"unknown verb {step.do!r}")
+        return fn(step, session)
+
+    def verb_open_product(self, step, s):       # session.page is a Playwright page
+        s.page.goto(f"{s.base_url}/products/{step.params['id']}")
+        return StepResult(landed="product_page")  # a surface id from surfaces.yaml; SRA captures it
+```
+
+Drive through the browser wherever a user would. Use `session.http` only for hooks and oracles. A verb the app does
+not offer in a release returns `StepResult(offered=False)`; the step is then recorded as skipped, not failed.
+
+## 3. The first run
+
+```bash
+semaudit contract check examples/northbound/contract           # exit 1 while items are not yet approved
+semaudit capture --contract examples/northbound/contract --release 2.3 --persona maya --run-id first
+semaudit capture --contract examples/northbound/contract --release 2.4 --persona maya --run-id first
+```
+
+On a fresh clone (no key), each capture took about 6 seconds and printed
+`2.4/maya/S-book-flexible: 8 done, 1 skipped, 0 failed; 10 captures`. The episodes are in
+`runs/first/episodes/<release>/` and every page, email, push and PDF is under `runs/first/captures/`. Capture exits 2
+if a release would not boot, a step failed, or a surface could not be measured; the episodes are still written.
+
+With a model key in `.env` (see the next section):
+
+```bash
+semaudit review --contract examples/northbound/contract --base 2.3 --head 2.4 --run-id first --reuse --max-usd 3
+semaudit report runs/first/review-2.3-2.4.json            # a static release review page (--reader: *.reader.json)
+semaudit serve --review runs/first/review-2.3-2.4.json --by you   # the same page, with decision buttons
+```
+
+`review` exits 0 only for a decided Ship (every persona measured and the contract approved), 1 when the owner must
+act (including any provisional recommendation), and 2 when it could not measure. The commands that come after a
+review (`repro`, `decide`, `decide-release`, `verify-report`) are listed in the
+[README, "Review a release"](../README.md#review-a-release).
+
+**What a run costs** (measured figures, all on Muse Spark; yours depend on your app, rules and personas):
+
+- `capture`: no model cost.
+- The Northbound 2.3 → 2.4 review work: about $0.79 in total, including development and the falsifiability
+  runs ([evidence](evidence/w9-review.md)).
+- The Spree reader review of 134 checkouts: $9.44 if read fresh (`manifest.spend.if_fresh_usd` in the Spree
+  harness's review; see [demo/video-assets/scenes/README.md](../demo/video-assets/scenes/README.md), note 1).
+- Re-running a review from the model cache: $0.000 ([evidence](evidence/w11b-severity-and-page.md)).
+- `--max-usd` is required on every `review` and is a hard cap. A model with no price is refused under a cap, so an
+  unknown cost can never slip past it.
+
+## Use another model
+
+Every model call goes through one router (`src/semaudit/models/router.py`). Each **role** (a job: `extractor`,
+`interpreter`, `cross_checker_extract`, `cross_checker_interpret`, `defender`; for saved checks `importer` and
+`check_judge`) is mapped to a provider and a model in `semaudit.toml`, in the folder you run `semaudit` from. Keys go
+in a `.env` beside it. Start from [`semaudit.toml.example`](../semaudit.toml.example).
+
+**The measured setup is Muse Spark.** Every result in this repo was produced with Muse Spark 1.3 / 1.2 on the Meta
+Model API or Muse Spark Open on Baseten ([README, "Models (measured)"](../README.md#models-measured)). Results with
+any other model have not been measured.
+
+Built-in providers: `meta` (`META_MODEL_API_KEY`), `baseten` (`BASETEN_API_KEY`) and `anthropic`
+(`ANTHROPIC_API_KEY`; install the `[anthropic]` extra).
+
+### Any OpenAI-compatible endpoint
+
+> **Untested against a live endpoint.** This config is tested offline only: `tests/test_router_config_providers.py`
+> sends the calls to a mocked HTTP layer and checks the URL, the key, the pricing and the failure paths. No real
+> provider has been called through it.
+
+```toml
+# semaudit.toml
+[providers.myhost]
+base_url = "https://llm.example.com/v1"   # SRA POSTs to {base_url}/chat/completions
+key_env = "MYHOST_API_KEY"                # sent as "Authorization: Bearer <value of MYHOST_API_KEY>"
+max_completion_tokens = 8000              # optional: default reply cap for this provider
+
+[providers.myhost.prices]                 # optional: USD per million tokens, [input, output]
+"my-model" = [0.5, 1.5]
+
+[roles.extractor]                         # repeat for every role you want on this model
+provider = "myhost"
+model = "my-model"
+```
+
+```bash
+# .env, beside semaudit.toml (never in semaudit.toml)
+MYHOST_API_KEY=...
+```
+
+Rules the router enforces:
+
+- **A new name only.** `[providers.meta]`, `[providers.baseten]` and `[providers.anthropic]` are refused. Their
+  address and key are part of what the measured runs mean, and `meta`'s cached answers are not keyed by provider, so
+  a redefined `meta` would be served the real one's cache. Point a proxy at a new name.
+- `key_env` must be the **name** of an environment variable (capital letters, digits and underscores). A value with
+  other characters, as most keys have, is refused, so a key pasted there is caught. A missing key
+  fails when the first call is made, naming the variable: `MYHOST_API_KEY is not set (expected in .env); provider
+  'myhost' needs it`. The value is never printed.
+- **Unpriced means unpriced.** Without a `prices` entry the ledger (`runs/ledger.jsonl`) records each call with
+  `"cost_usd": null, "priced": false`, never $0, and `--max-usd` refuses the model rather than guess.
+- A price for a model that already has a built-in price is refused.
+
+What the endpoint must support:
+
+- **Structured output** (`response_format` of type `json_schema` with `"strict": true`). A reply that is not JSON is
+  retried with another seed and logged; if it stays unreadable, that reading is "not measurable". A JSON reply that
+  does not match the schema is also a not-measurable reading. Neither can ever become a PASS or a confirmed fix.
+- `max_completion_tokens` and `seed`, and `reasoning_effort` when a role sets it (leave it off for a model that does
+  not accept it).
+
+One more effect: SRA caps a review's confidence at medium unless the second-pass roles run a **different model
+family** from the first. A model SRA does not recognise has no family, so it never counts as independent
+(`src/semaudit/verify/steps.py`).
+
+## What is not built
+
+- **Automatic onboarding.** SRA cannot yet draft a contract from your docs; `src/semaudit/onboard/` and
+  `src/semaudit/explore/` are empty. You write the contract and the adapter by hand, starting from Northbound's.
+- **Spoken intent** (turning the owner's voice notes into draft rules) is not built.
+- **No list view of saved checks.** `semaudit checks` has `approve`, `run` and `card` only.

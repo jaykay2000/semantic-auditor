@@ -296,10 +296,28 @@ release review page says why. In `review --reader` mode (used for the Spree and 
 model reads every rule and every captured story and names the issues, and SRA checks each citation against the
 captures ([docs/03-architecture.md](docs/03-architecture.md)).
 
-**Adding an app** needs no core change: a contract (rules, decisions, features, surfaces, facts and oracles,
-`subject.yaml` for who the user is and what describes their situation, personas, scenarios, release policy) and an
-adapter for its scenario verbs. `tests/test_core_is_generic.py` keeps app vocabulary out of `src/semaudit/` and
-runs a non-travel contract through the rules.
+## Add your app
+
+Adding an app needs no core change: a contract (rules, decisions, features, surfaces, facts and oracles,
+`subject.yaml` for who the user is and what describes their situation, personas, scenarios, release policy), an
+adapter for its scenario verbs, and, in the app, read-only "oracle" endpoints for its own record plus optional test
+hooks (reset, persona, clock, world). Start from a copy of `examples/northbound/`. The step-by-step guide, with the
+first run and what it costs: **[docs/10-add-your-app.md](docs/10-add-your-app.md)**.
+
+Without a model key you can run the tests, check and render a contract, and capture releases. A review needs a
+key: the model cache and run folders are not committed, so a fresh clone has no cached answers to replay.
+`tests/test_core_is_generic.py` keeps app vocabulary out of `src/semaudit/` and runs a non-travel contract through
+the rules.
+
+## Use another model
+
+Muse Spark is the measured default (next section). `semaudit.toml` maps each role to a provider and model; besides
+the built-in `meta`, `baseten` and `anthropic`, any OpenAI-compatible endpoint can be added as
+`[providers.<name>]` with `base_url`, `key_env` and optional prices. Built-in names cannot be redefined, an unpriced
+model is logged as unpriced (never $0) and refused under `--max-usd`, and a non-schema reply can never pass. The
+config is tested offline only, with a mocked HTTP layer. See
+[docs/10-add-your-app.md, "Use another model"](docs/10-add-your-app.md#use-another-model) and
+[`semaudit.toml.example`](semaudit.toml.example).
 
 ## Models (measured)
 
@@ -360,6 +378,7 @@ python3.12 -m venv .venv
 
 - [Vision](docs/01-vision.md)
 - [Problem](docs/02-problem.md)
+- [Add your app, and use another model](docs/10-add-your-app.md)
 - [Architecture](docs/03-architecture.md)
 - [Onboarding](docs/04-onboarding.md) (design; not built)
 - [Release review workflow](docs/05-audit-workflow.md)
