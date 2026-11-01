@@ -167,6 +167,10 @@ All from [docs/evidence/imported-checks/README.md](docs/evidence/imported-checks
 - **The "next" release changes only the storefront.** No newer Spree backend was available, so the emails did not
   change between beta3 and the next release.
 - The converter was run once; how much conversion varies between runs was not measured.
+- **Release review: one defect can show as several issues.** A figure that disagrees across three surfaces is
+  raised once per set of disagreeing surfaces (3 issues for 1 defect), and the page's "shown ≠ true" box can say
+  "No record value" beside a correct message whose value the app's record holds. Seen in an outside new-user
+  adoption test (one price shown differently on three surfaces); not fixed yet.
 - **Prompt injection is not defended against explicitly.** The converter's prompt carries the finding's text
   ([`convert.py:115`](src/semaudit/imported/convert.py#L115)), and the judge's prompt carries every captured app
   message on the surface ([`recheck.py:137`](src/semaudit/imported/recheck.py#L137)), each as JSON in the user
@@ -273,7 +277,7 @@ These examples come from Northbound, a fictional travel app written for this pro
 `semaudit capture` runs each persona's scenarios against one release of the app and writes **episodes**: the ordered steps, everything the product showed or sent, and the oracle state after each step. It costs no model budget.
 
 ```bash
-pip install -e '.[demo,dev]' && playwright install chromium
+pip install -e '.[test]' && playwright install chromium     # the same extras as "Run the tests" below
 semaudit capture --contract examples/northbound/contract --release 2.4 [--persona maya --persona omar] [--run-id ID] [--runs-dir runs]
 ```
 

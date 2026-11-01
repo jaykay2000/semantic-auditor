@@ -65,6 +65,34 @@ Start from a copy of [`examples/northbound/contract/`](../examples/northbound/co
 serves the page with working Approve buttons. `semaudit contract approve` records approval, pinned to each item's
 content hash; a review of an unapproved contract is always marked provisional.
 
+```bash
+semaudit contract check examples/northbound/contract      # lists each pending item, e.g. "  pending: rule:P2"
+semaudit contract approve examples/northbound/contract --item rule:P2 --item persona:maya --by you
+```
+
+Item keys are the ones `check` prints: `rule:<id>`, `exception:<id>`, `decision:<id>`, `feature:<id>`,
+`persona:<id>`, `scenario:<id>`, `app:<name>`, `policy:release`, and `state:all`, `surfaces:all`, `oracles:all`,
+`facts:all`, `subject:all` for the files approved as a whole. Repeat `--item` for each. Change an item and its
+approval no longer applies.
+
+### Check verbs: what a rule's `check: {must: …}` can say
+
+A `universal` rule names one verb in `check.must`. These are the verbs the rule engine evaluates
+(`src/semaudit/relate/rules.py`, `_UNIVERSAL`):
+
+| `must:` | Also needs | What the code checks |
+|---|---|---|
+| `match_oracle` | `claims` (fact ids) | each claim of those facts equals the app's own record at the moment it was shown (`facts.yaml` says which oracle field holds the truth); a fact with no recorded value is skipped, never a violation |
+| `match_charge` | `claims`, `charge` | each displayed amount equals what the user is finally charged (the state value `charge` names, same feature); no charge in the story means not applicable |
+| `agree_across_surfaces` | `claims` | every claim of the same fact that one persona sees reads the same on every surface, when shown in the same state; no oracle needed |
+| `agree_across_states` | `claims`, `states: {var: [before, after]}` | a fact shown before a state change (for example signed out → signed in) reads the same after it, when nothing else changed |
+| `precondition_holds_at_shown_time` | — | each recommendation's action is possible at the moment it is shown (the action's precondition in `decisions.yaml`) |
+
+A `universal` rule with no `must:` but `applies_to: {message_kind: …, state: …}` forbids that kind of message in
+that state. Any other verb is not evaluated: the review lists the rule as not measured, never as passed
+(`review --reader` judges the rule's text instead). `conditional`, `coherence` and `load` rules have their own
+shapes; Northbound's [`principles.yaml`](../examples/northbound/contract/principles.yaml) has one of each.
+
 Field-by-field formats: `src/semaudit/contract/schema.py`. The Northbound rules and why they read as they do:
 [`examples/northbound/README.md`](../examples/northbound/README.md).
 
@@ -81,6 +109,47 @@ release_env: NORTHBOUND_RELEASE   # the release to start is passed in this env v
 ```
 
 `{python}`, `{port}`, `{release}` and `{scratch}` (a fresh temp folder per launch) are filled in by SRA.
+
+### Marking messages
+
+On a web page, a message is an element that matches the surface's `message_selector` and carries a
+`data-message-key` attribute (optionally `data-feature`, `data-component` and `data-shown-at`). SRA stores the
+element's rendered text as the message, and later accepts a quote as evidence only if that exact text is in the
+stored page (after HTML entities are decoded). So:
+
+- **The marked element holds its text directly, with no tags inside it**, not even `<b>` or `<span>`.
+  `<p data-message-key="pricing.pro">Pro costs $12 per month.</p>` works.
+  `<div data-message-key="pricing.pro"><h2>Pro</h2><p>Pro costs $12 per month.</p></div>` does not: the rendered
+  text ("Pro", a line break, "Pro costs…") is not in the page source, so no issue on it can be verified.
+- Keep the text on one line with single spaces; the browser collapses runs of spaces and line breaks.
+- Mark the innermost element that holds the words. A heading is a separate message, or no message.
+
+Northbound does this with one template macro (`examples/northbound/northbound/templates/macros.html`).
+`semaudit capture` and `semaudit review` print a `warning:` line, with the key and the page, for every marked
+message whose text is not in the stored page.
+
+### Email and push sinks
+
+SRA does not read a mailbox. The app writes each email or push notification it sends as **one JSON file** in a
+folder, and SRA reads every new file after each step, in file-name order. The folder is the surface's `sink` in
+`surfaces.yaml`, under `app.launch.sink_root`. Each file:
+
+```json
+{
+  "message_id": "m000001",
+  "sent_at": "2026-11-02T10:01:00+00:00",
+  "headers": {"X-Message-Key": "pw.email.forecast", "X-Feature": "price_watch"},
+  "text": "Prices on your dates are likely to drop over the next two weeks. We suggest waiting.",
+  "subject": "Your fare forecast"
+}
+```
+
+- `headers["X-Message-Key"]` is **required**: a message without it is captured but not read as a message.
+  `capture` and `review` print a `warning:` line with the count. `X-Feature` attributes it to a feature.
+- `text` is the message as the user reads it; quotes must come from it.
+- `sent_at` (ISO time with a zone) places the message in time when the app runs on the simulated clock; otherwise it
+  is placed at the step that received it.
+- Every other top-level field (`subject`, `to`, `title`…) and header is kept with the message.
 
 ## 2. The adapter: your scenario verbs, in Python
 
@@ -154,7 +223,9 @@ review (`repro`, `decide`, `decide-release`, `verify-report`) are listed in the
 
 Every model call goes through one router (`src/semaudit/models/router.py`). Each **role** (a job: `extractor`,
 `interpreter`, `cross_checker_extract`, `cross_checker_interpret`, `defender`; for saved checks `importer` and
-`check_judge`) is mapped to a provider and a model in `semaudit.toml`, in the folder you run `semaudit` from. Keys go
+`check_judge`) is mapped to a provider and a model in `semaudit.toml`, in the folder you run `semaudit` from.
+One more role, `smoke`, is used only by `scripts/w1_smoke.py` to check that a key works; no review or check calls
+it (default: Muse Spark 1.3 on the Meta API). Keys go
 in a `.env` beside it. Start from [`semaudit.toml.example`](../semaudit.toml.example).
 
 **The measured setup is Muse Spark.** Every result in this repo was produced with Muse Spark 1.3 / 1.2 on the Meta
@@ -201,7 +272,10 @@ Rules the router enforces:
   'myhost' needs it`. The value is never printed.
 - **Unpriced means unpriced.** Without a `prices` entry the ledger (`runs/ledger.jsonl`) records each call with
   `"cost_usd": null, "priced": false`, never $0, and `--max-usd` refuses the model rather than guess.
-- A price for a model that already has a built-in price is refused.
+- **Prices belong to the provider.** Your provider's calls are priced only by its own `prices` table, even when
+  the model has the same name as one a built-in provider prices (for example `meta-models/muse-spark-open-1026`
+  served by your own host is unpriced until you price it). Each ledger row of your provider also records
+  `"provider": "<name>"`; rows of the built-in providers are unchanged and carry no `provider` field.
 
 What the endpoint must support:
 

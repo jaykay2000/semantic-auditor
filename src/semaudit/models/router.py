@@ -55,9 +55,9 @@ class ConfigError(ValueError):
     """semaudit.toml asks for something the router will not do (a bad or clashing [providers] or price entry)."""
 
 
-def config_providers(cfg: dict) -> tuple[dict[str, dict], dict[str, tuple[float, float]]]:
+def config_providers(cfg: dict) -> tuple[dict[str, dict], dict[tuple[str, str], tuple[float, float]]]:
     """[providers.<name>] tables from semaudit.toml: extra OpenAI-compatible endpoints (POST {base_url}/chat/completions
-    with `Authorization: Bearer $<key_env>`), plus optional per-model prices.
+    with `Authorization: Bearer $<key_env>`), plus optional per-model prices, keyed by (provider, model).
 
         [providers.myhost]
         base_url = "https://llm.example.com/v1"
@@ -69,7 +69,8 @@ def config_providers(cfg: dict) -> tuple[dict[str, dict], dict[str, tuple[float,
     A name that is already built in (meta, baseten, anthropic) is refused, not merged: a built-in's address, key
     and cache keys are part of what the measured runs mean, and a redefined `meta` would also be served the cached
     answers of the real one (its cache keys carry no provider name). Use a new name for a proxy or another host.
-    A price for a model that already has a built-in price is refused for the same reason."""
+    A config provider's prices are its own: a model it serves is priced only by its own `prices` table, never by a
+    built-in provider's price for a model of the same name, and is unpriced without one."""
     providers, prices = {}, {}
     for name, t in (cfg.get("providers") or {}).items():
         where = f"semaudit.toml [providers.{name}]"
@@ -92,12 +93,10 @@ def config_providers(cfg: dict) -> tuple[dict[str, dict], dict[str, tuple[float,
                 raise ConfigError(f"{where}: max_completion_tokens must be a positive integer")
             entry["max_completion_tokens"] = t["max_completion_tokens"]
         for model, pr in (t.get("prices") or {}).items():
-            if model in PRICES_PER_MTOK and PRICES_PER_MTOK[model] is not None:
-                raise ConfigError(f"{where}.prices: '{model}' already has a built-in price")
             if (not isinstance(pr, list) or len(pr) != 2
                     or not all(isinstance(x, int | float) and not isinstance(x, bool) and x >= 0 for x in pr)):
                 raise ConfigError(f"{where}.prices: '{model}' must be [input, output] USD per million tokens")
-            prices[model] = (float(pr[0]), float(pr[1]))
+            prices[(name, model)] = (float(pr[0]), float(pr[1]))
         providers[name] = entry
     return providers, prices
 
@@ -165,14 +164,15 @@ class Router:
         load_env(self.root / ".env")
         self.roles = dict(DEFAULT_ROLES)
         self.providers = dict(PROVIDERS)
-        self.prices = dict(PRICES_PER_MTOK)
+        self.prices = dict(PRICES_PER_MTOK)                       # built-in providers: by model
+        self.provider_prices: dict[tuple[str, str], tuple[float, float]] = {}   # config providers: (provider, model)
         cfg = config_path or self.root / "semaudit.toml"
         if cfg.exists():
             data = tomllib.loads(cfg.read_text())
             self.roles.update(data.get("roles", {}))
             extra, prices = config_providers(data)
             self.providers.update(extra)
-            self.prices.update(prices)
+            self.provider_prices.update(prices)
         self.cache_dir = self.root / ".semaudit-cache"
         self.ledger_path = self.root / "runs" / "ledger.jsonl"
         self.max_usd = max_usd
@@ -233,10 +233,11 @@ class Router:
                 raw, latency = self._fetch(role, provider, model, send, digest, timeout_s)
                 if schema is None or _readable(raw):
                     break
-                cost = self._cost(model, raw.get("usage", {}))   # charged though unusable: count and log it
+                cost = self._cost(provider, model, raw.get("usage", {}))   # charged though unusable: count and log it
                 self.spent_usd += cost or 0.0
                 lost, lost_usd = lost + 1, lost_usd + (cost or 0.0)
-                self._log(role, model, raw.get("usage", {}), cost, False, latency, digest, discarded="unreadable")
+                self._log(role, model, raw.get("usage", {}), cost, False, latency, digest, discarded="unreadable",
+                          provider=provider)
                 if unreadable == retries:
                     fin = raw["choices"][0].get("finish_reason")
                     raise UnreadableReply(f"{provider}/{model}: reply is not JSON (finish_reason={fin}) after "
@@ -251,7 +252,7 @@ class Router:
         if schema is not None and content:
             parsed = json.loads(content)
         usage = raw.get("usage", {})
-        cost = self._cost(model, usage)
+        cost = self._cost(provider, model, usage)
         if not cached and cost is not None:
             self.spent_usd += cost
         u = self.usage.setdefault(role, {"calls": 0, "cached": 0, "spent_usd": 0.0, "if_fresh_usd": 0.0,
@@ -262,7 +263,7 @@ class Router:
         u["spent_usd"] += 0.0 if cached else (cost or 0.0)
         u["prompt_tokens"] += usage.get("prompt_tokens", 0)
         u["completion_tokens"] += usage.get("completion_tokens", 0)
-        self._log(role, model, usage, cost, cached, latency, digest)
+        self._log(role, model, usage, cost, cached, latency, digest, provider=provider)
         result = Result(role, model, content, parsed, usage, cost, cached, latency, raw,
                         0 if cached else lost, 0.0 if cached else lost_usd)
         return result
@@ -272,7 +273,7 @@ class Router:
             raise ModelError(f"offline: no cached answer for {role} ({digest[:12]})")
         if self.max_usd is not None and self.spent_usd >= self.max_usd:
             raise ModelError(f"budget exhausted: spent ${self.spent_usd:.4f} of ${self.max_usd}")
-        if self.max_usd is not None and not self.prices.get(model):
+        if self.max_usd is not None and not self._price(provider, model):
             raise ModelError(f"{model} has no price, so a ${self.max_usd} cap could not count it: refused")
         if self._provider(provider).get("sdk") == "anthropic":
             return self._fetch_anthropic(model, body, timeout_s)
@@ -321,21 +322,29 @@ class Router:
                 "by_role": {r: {k: round(v, 6) if isinstance(v, float) else v for k, v in u.items()}
                             for r, u in sorted(self.usage.items())}}
 
-    def _cost(self, model: str, usage: dict) -> float | None:
-        price = self.prices.get(model)
+    def _price(self, provider: str, model: str) -> tuple[float, float] | None:
+        """A built-in provider's model by its built-in price; a config provider's only by its own `prices`."""
+        return self.prices.get(model) if provider in PROVIDERS else self.provider_prices.get((provider, model))
+
+    def _cost(self, provider: str, model: str, usage: dict) -> float | None:
+        price = self._price(provider, model)
         if not price:
             return None
         return (usage.get("prompt_tokens", 0) * price[0] + usage.get("completion_tokens", 0) * price[1]) / 1e6
 
-    def _log(self, role, model, usage, cost, cached, latency, digest, discarded: str | None = None) -> None:
+    def _log(self, role, model, usage, cost, cached, latency, digest, discarded: str | None = None,
+             provider: str | None = None) -> None:
         """One ledger row per call. A reply the router discarded (charged, but not usable: `discarded` says why) is
         marked `"discarded": true` with `"discard_reason"`; every other row has neither field, so rows written before
-        the marker existed read the same. Discarded rows count toward spend like any other uncached row."""
+        the marker existed read the same. Discarded rows count toward spend like any other uncached row.
+        A config provider's row also names its `provider` (a model name alone does not say who served and priced
+        it); a built-in provider's row is unchanged."""
         self.ledger_path.parent.mkdir(exist_ok=True)
         with self.ledger_path.open("a") as f:
             f.write(json.dumps({"ts": time.time(), "role": role, "model": model, "usage": usage,
                                 "cost_usd": cost, "priced": cost is not None, "cached": cached,
                                 "latency_s": round(latency, 2), "digest": digest[:16],
+                                **({"provider": provider} if provider and provider not in PROVIDERS else {}),
                                 **({"tag": self.tag} if self.tag else {}),
                                 **({"discarded": True, "discard_reason": discarded} if discarded else {})}) + "\n")
 

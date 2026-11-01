@@ -88,6 +88,9 @@ def capture_cmd(contract_dir: Path = typer.Option(..., "--contract", exists=True
     typer.echo(f"episodes in {run_dir / 'episodes' / release}")
     for p in problems:
         typer.echo(f"  not measured: {p}")
+    from .capture.marking import warnings
+    for w in warnings(episodes, run_dir):
+        typer.echo(f"  warning: {w}", err=True)
     raise typer.Exit(2 if problems else 0)
 
 
@@ -141,6 +144,13 @@ def review_cmd(contract_dir: Path = typer.Option(..., "--contract", exists=True,
             typer.echo(f"  set aside by owner: {x['subjects'][0]} ({x['memory']['decision']})")
     for i in r["unconfirmed"]:
         typer.echo(f"  NOT CONFIRMED resolved: {i['id']} ({i['delta_basis']})")
+    from .capture.marking import run_warnings
+    lines, n_unquotable, n_keyless = run_warnings(path.parent, [base, head])
+    if lines:
+        typer.echo(f"warning: {n_unquotable} marked message(s) cannot be quoted as evidence; {n_keyless} email or "
+                   "push message(s) have no message key and were not read", err=True)
+        for w in lines:
+            typer.echo(f"  warning: {w}", err=True)
     from .report.page import build
     page = build(path)
     typer.echo(f"not raised: {len(r['not_raised'])} · spent ${r['cost_usd']:.3f} · {path}")

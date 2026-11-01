@@ -1,7 +1,7 @@
 """Providers from semaudit.toml (`[providers.<name>]`): any OpenAI-compatible endpoint, offline against a mocked httpx.
 
 Pins: the call goes to the configured base_url with the configured key env; a built-in cannot be redefined; an
-unpriced model stays unpriced (never $0); a missing key names its env var; an unreadable or non-schema reply from
+unpriced model stays unpriced (never $0), even when a built-in provider prices a model of the same name; a missing key names its env var; an unreadable or non-schema reply from
 such a provider is retried and counted, and drives the re-check to not_measurable, never PASS or fix_confirmed;
 and the built-in providers send byte-for-byte what they sent before (tests/fixtures/router_golden.json, recorded
 before the change by scripts/router_golden.py).
@@ -74,7 +74,7 @@ def test_a_config_provider_gets_the_call_at_its_url_with_its_key(tmp_path, monke
     assert call["json"]["model"] == "my-model" and call["json"]["max_completion_tokens"] == 4000
     assert res.cost_usd is None                                          # unpriced: never $0
     row = json.loads((tmp_path / "runs" / "ledger.jsonl").read_text().splitlines()[-1])
-    assert row["priced"] is False and row["cost_usd"] is None
+    assert row["priced"] is False and row["cost_usd"] is None and row["provider"] == "myhost"
     assert len(list((tmp_path / ".semaudit-cache").glob("*.json"))) == 1
 
 
@@ -84,6 +84,34 @@ def test_a_config_price_prices_the_model(tmp_path, monkeypatch):
     r = R.Router(root=_cfg(tmp_path, TOML + '[providers.myhost.prices]\n"my-model" = [0.5, 1.5]\n'), max_usd=1)
     res = r.complete("check_judge", [{"role": "user", "content": "hi"}])
     assert res.cost_usd == pytest.approx((1000 * 0.5 + 100 * 1.5) / 1e6)
+
+
+# A model name that a built-in provider prices (Baseten's Muse Spark Open), served through a config provider
+SAME_NAME = TOML.replace('model = "my-model"', 'model = "meta-models/muse-spark-open-1026"')
+
+
+def test_a_config_provider_never_inherits_a_built_in_price(tmp_path, monkeypatch):
+    monkeypatch.setenv("MYHOST_API_KEY", "k")
+    post = _Replies(["x"])
+    monkeypatch.setattr(httpx, "post", post)
+    res = R.Router(root=_cfg(tmp_path, SAME_NAME)).complete("check_judge", [{"role": "user", "content": "hi"}])
+    assert R.PRICES_PER_MTOK["meta-models/muse-spark-open-1026"] is not None     # Baseten's price exists
+    assert res.cost_usd is None                                                    # but is not this provider's
+    row = json.loads((tmp_path / "runs" / "ledger.jsonl").read_text().splitlines()[-1])
+    assert row["priced"] is False and row["provider"] == "myhost"
+    with pytest.raises(R.ModelError, match="no price"):                            # and a cap refuses it
+        R.Router(root=_cfg(tmp_path, SAME_NAME), max_usd=1).complete("check_judge", [{"role": "user", "content": "x"}])
+    assert len(post.calls) == 1
+
+
+def test_a_config_provider_prices_a_built_in_model_name_its_own_way(tmp_path, monkeypatch):
+    monkeypatch.setenv("MYHOST_API_KEY", "k")
+    monkeypatch.setattr(httpx, "post", _Replies(["x"]))
+    text = SAME_NAME + '[providers.myhost.prices]\n"meta-models/muse-spark-open-1026" = [0.1, 0.2]\n'
+    r = R.Router(root=_cfg(tmp_path, text), max_usd=1)
+    res = r.complete("check_judge", [{"role": "user", "content": "hi"}])
+    assert res.cost_usd == pytest.approx((1000 * 0.1 + 100 * 0.2) / 1e6)
+    assert r.prices["meta-models/muse-spark-open-1026"] == R.PRICES_PER_MTOK["meta-models/muse-spark-open-1026"]
 
 
 def test_an_unpriced_config_model_is_refused_under_a_cap(tmp_path, monkeypatch):
@@ -117,7 +145,6 @@ def test_a_built_in_cannot_be_redefined(tmp_path, name):
     ('base_url = "https://x.test"\nkey_env = "sk-live-abc123"', "key_env"),
     ('base_url = "https://x.test"\nkey_env = "K"\napi_key = "sk"', "unknown keys"),
     ('base_url = "https://x.test"\nkey_env = "K"\nmax_completion_tokens = -1', "positive"),
-    ('base_url = "https://x.test"\nkey_env = "K"\n[providers.p.prices]\n"muse-spark-1.3" = [0, 0]', "built-in price"),
     ('base_url = "https://x.test"\nkey_env = "K"\n[providers.p.prices]\n"m" = [1]', "USD per million"),
 ])
 def test_bad_provider_tables_are_refused(tmp_path, table, match):
@@ -198,6 +225,7 @@ def test_a_discarded_reply_is_marked_and_totals_are_the_same_in_old_and_new_form
     assert [x.get("discarded", False) for x in new] == [True, False, False, False]
     assert new[0]["discard_reason"] == "unreadable" and new[0]["digest"] == new[1]["digest"]
     assert all("discard_reason" not in x for x in new[1:])                            # normal rows unchanged
+    assert all("provider" not in x for x in new)                                      # built-in rows: no new field
     old = [{k: v for k, v in x.items() if k not in ("discarded", "discard_reason")} for x in new]
     assert _spent_as_the_bench_scripts_sum_it(old) == _spent_as_the_bench_scripts_sum_it(new)
     assert _spent_as_the_bench_scripts_sum_it(new) == pytest.approx(r.spent_usd)
