@@ -46,7 +46,7 @@ function panel(r, at, label) {
   const tq = r.lines.total.quote, tc = tq.lastIndexOf(' ');
   const terms = ORDER.map(([k, op], i) => `<span class="fade" style="--at:${at + .9 + i * .55};--d:.25s">${op ? op + ' ' : ''}${Number(r.lines[k].amount).toFixed(2)}</span>`).join('');
   const sumAt = at + .9 + ORDER.length * .55;
-  const votes = Object.entries(r.votes).map(([k, v]) => `${v} ${k}`).join(', ');
+  const votes = Object.entries(r.votes).map(([k, v]) => `${v} ${k.replace(/_/g, ' ')}`).join(' · ');   // as the run says, every vote shown
   return `<div class="box rel in" style="--at:${at}">
     <div class="hd"><span class="nm">${label === 'next' ? 'Next release' : 'Older release'}</span><span class="v">${esc(r.name)}</span></div>
     <div class="lbl">Order confirmation email, as captured</div>
@@ -56,7 +56,7 @@ function panel(r, at, label) {
       ${r.adds_up ? '=' : '≠'} ${Number(r.lines.total.amount).toFixed(2)} shown</span></div>
     <div class="verdict"><span class="big ${r.assertion} pop" style="--at:${sumAt + .6}">${r.assertion.toUpperCase()}</span>
       <span class="sub fade" style="--at:${sumAt + .9}">${r.adds_up ? 'adds up to the total shown' : 'the free-shipping discount is counted twice'}<br>
-      <span class="stats">${r.readings} readings: ${esc(votes)} · evidence ${esc(r.evidence.replace('_', ' '))} · replay ${esc(r.replay)}</span></span></div>
+      <span class="stats">${r.readings} readings: ${esc(votes)} · confidence ${esc(r.agreement)} · evidence ${esc(r.evidence.replace('_', ' '))} · replay ${esc(r.replay)}</span></span></div>
   </div>`;
 }
 document.getElementById('root').innerHTML = b4Head(2, 'The same check on two releases') +
