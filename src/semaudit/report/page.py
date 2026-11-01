@@ -8,6 +8,7 @@ page with working decision buttons; the static page shows the command for each d
 
 from __future__ import annotations
 
+import html
 import json
 import shutil
 from pathlib import Path, PurePosixPath
@@ -109,7 +110,8 @@ def render(review_path: Path, *, interactive: bool = False, by: str | None = Non
     review = json.loads(review_path.read_text())
     data = json.dumps(review, ensure_ascii=False).replace("</", "<\\/")
     owner = _blob(owner_data(review_path, review, interactive=interactive, by=by))
-    title = f"{review['app']['name'] if review.get('app') else ''} {review['release']['base']} → {review['release']['head']}"
+    title = html.escape(f"{review['app']['name'] if review.get('app') else ''} {review['release']['base']} → "
+                        f"{review['release']['head']}")
     return (TEMPLATE.read_text().replace("__OWNER_JSON__", owner).replace("__EXTRAS_JSON__", _blob(page_extras(review_path, review)))
             .replace("__TITLE__", title).replace("__REVIEW_JSON__", data))
 
