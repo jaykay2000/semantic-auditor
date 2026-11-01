@@ -3,7 +3,7 @@
   replay               succeeded | failed: every step ran ("done"), nothing was left unmeasured, no step note says
                        the app refused what the finding needs (imports.yaml `step_note_fails`), and the invariant's
                        surface was captured with at least one message. Deterministic given the app.
-  assertion            pass | fail | not_measurable: the majority of N independent judgments (one small model call
+  assertion            pass | fail | not_measurable: the majority of N seeded judgments by the same model (one small call
                        each: the invariant, the rule, the surface's captured messages and the app's own record; never
                        the original quote). No majority -> not_measurable.
   semantic_confidence  how many of the N judgments agree with the majority (high: all, medium: >= 2/3, low:

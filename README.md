@@ -92,7 +92,7 @@ review page.
 | Status | Values | What it says |
 |---|---|---|
 | Replay | succeeded · failed | Every step ran, nothing was left unmeasured, the app did not refuse a step the finding needs, and the rule's page or email was captured with at least one message. No model is involved. |
-| Rule result | pass · fail · not_measurable | The majority of 3 independent readings. Each reading sees the rule, the captured messages on that surface and the app's own record, never the original quote. |
+| Rule result | pass · fail · not_measurable | The majority of 3 seeded readings by the same model. Each reading sees the rule, the captured messages on that surface and the app's own record, never the original quote. |
 | Readings that agree | 3/3 · 2/3 · lower | How many of the 3 readings agree with the majority. The replay can be repeatable while the reading varies; this says how much. |
 | Evidence | verified · partially_verified · unverified | Every quote in the majority readings is checked against the captured text, and every record value they cite against the record itself. |
 
