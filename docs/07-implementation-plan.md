@@ -29,7 +29,7 @@ How the work runs:
 
 ## The minimum compelling version (MCV)
 
-The MCV is everything the demo storyboard needs to be true ([06-demo-vision.md](06-demo-vision.md)). **Every item the storyboard marks "never cut" is P0.**
+The MCV is everything the demo storyboard needs to be true ([archive/06-demo-vision.md](archive/06-demo-vision.md), since superseded). **Every item the storyboard marks "never cut" is P0.**
 
 1. **Semantic core proof (W1b):** hand-authored stories → real generators → real Muse Spark extraction and interpretation → exact expected status vectors.
 2. **Northbound** 2.3 / 2.4 / 2.4.1 ([examples/northbound](../examples/northbound/README.md)), with persona and clock hooks, attribution, event keys and oracles.

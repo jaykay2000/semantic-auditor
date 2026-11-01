@@ -1,7 +1,7 @@
 # Video scenes: still frames for the 3-minute demo
 
 3840×2160 PNGs (1920×1080 CSS px, device scale 2), one takeaway each, for assembly in Canva. Scene times follow
-`docs/07-demo-reframe-draft.md` (v3.1). Every number on a frame comes from that file's Evidence table or from a
+`docs/archive/07-demo-reframe-draft.md` (v3.1, superseded). Every number on a frame comes from that file's Evidence table or from a
 source named below. Nothing is rounded differently from its source.
 
 ## Regenerate
