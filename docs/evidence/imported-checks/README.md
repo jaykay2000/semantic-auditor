@@ -157,6 +157,7 @@ these digests.
 | 3. A NEW run from storage only (`run-saved`; nothing imported) | runs at the same approved digest, same results | **ran from storage at digest `f0cb1dc9ee14fc8f`**: beta2 FAIL (2 fail / 1 pass), beta3 PASS (2 pass / 1 runaway), evidence verified on beta3; memory `fix_confirmed`. Same digest: yes. Same results as Run 2: base yes (FAIL), head no (Run 2 was not_measurable) | `acceptance/run3-transcript.txt` (command, file listing with hashes, output), `run3-saved-checks.json`, `cards-run3.html` |
 | 4. Optional: different basket, same saved invariant (hand variant C1-04-v1: Personal Blender x3, nothing else changed) | same FAIL/PASS, different figures | **pass**: beta2 FAIL 3/3, beta3 PASS 3/3, evidence verified on beta3; memory `fix_confirmed` | `acceptance/run4-*.json`, `cards-run4-variant.html`, `C1-04-v1.yaml` |
 | 5. Optional: converted findings in groups SRA's 11 shoppers did not report (F11, P01, P03, P04, P06, P07) | report N of M | **0 of 24**. (Correction: only F11 is in `grading/key-v4.json`; the P groups are in `scores/scores.json` `new_families`.) 4 of the 24 are partially converted, 2 adapter_gap, 18 not converted | below |
+| 6. Owner-approved run from storage (`ic-owner-rec-1`, 2026-11-01; SRA `1a11982`) | the owner approves both digests under their own name, then a new run from storage | **C1-04 `fix_confirmed`**: beta2 FAIL (2 fail / 1 not measurable, confidence 2/3, evidence verified), beta3 PASS 3/3 (verified). **C1-04-v1 `not_confirmed`**: beta2 FAIL 3/3 (verified), beta3 3 pass votes but evidence partially verified, so not measurable. $0.446 all-in; 13 malformed re-asks, 5 runaway retries | `acceptance/run-owner-2026-11-01-transcript.txt`, `run-owner-2026-11-01-saved-checks.json`, `cards-run-owner-2026-11-01.html` |
 
 Transcripts are kept as captured on the author's machine (file listings show the local username).
 
@@ -240,6 +241,28 @@ storage, run id `ic-accept-run3c`.
 The cost is the catch: **$0.543** for 12 judgments, which needed 23 readable calls plus 6 runaways. There were 11
 garbage re-asks across the 12 judgments, so the model writes garbage record values in most first replies. Running
 total **$10.06** (ledger), past the $10 ask-first line by $0.06. The run's own cap (`--max-usd 0.6`) held.
+
+**Owner-approved run, 2026-11-01** (`acceptance/run-owner-2026-11-01-transcript.txt`,
+`run-owner-2026-11-01-saved-checks.json`, `cards-run-owner-2026-11-01.html`; run id `ic-owner-rec-1`). The owner
+approved C1-04 (`f0cb1dc9ee14fc8f`) and C1-04-v1 (`30f3f436e3fa99a5`) under their own name on 2026-11-01, then ran
+`run-saved` from storage with `--max-usd 0.8`; nothing was imported. SRA was at `1a11982` (converter and judge prompt
+unchanged since Run 3c). Every figure below is recomputed from the saved-checks file:
+
+| check | beta2 | beta3 | memory |
+|---|---|---|---|
+| C1-04 | fail, votes 2 fail / 1 not measurable, confidence 2/3, evidence verified | pass 3/3, verified | **fix_confirmed** |
+| C1-04-v1 | fail 3/3, verified | votes 3 pass, evidence **partially verified**, so `not_measurable` | **not_confirmed** |
+
+**Why C1-04-v1 is not confirmed.** All six quoted email lines in every beta3 reading were found in the capture. The
+third reading wrote three record values in exponent form, and the record check refused them: "order.item_total:
+judgment read '.14997e3', record holds 149.97", "order.items[0].price: judgment read '.4999e2', record holds 49.99"
+and "order.items[0].quantity: judgment read '.3e1', record holds 3". That reading had already been asked again 3
+times for garbled values (the limit), so its last answer stands, and a PASS needs verified evidence. The rule
+working as built, not a change in the store.
+
+**Cost and retries.** $0.446097 all-in (the four results' `cost_usd`: 0.087481 + 0.152576 + 0.083221 + 0.122819),
+including discarded attempts; the run's own cost line printed $0.295, which leaves them out. 13 malformed re-asks
+(4, 3, 3, 3 per result) and 5 runaway retries (0, 3, 0, 2).
 
 **Chosen for the video (owner, 2026-10-31): Run 3c**, using `acceptance/cards-run3c.html` and `run3c-transcript.txt`
 as they came out. Owner on spend: model spend is not a concern when it helps the video demo or the open-source repo,
