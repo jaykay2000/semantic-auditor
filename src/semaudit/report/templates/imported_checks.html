@@ -30,7 +30,7 @@ margin:2px 0}.implied{color:var(--muted);font-style:italic}.outcome{font-size:17
     · drafted by <code>{{ ch.conversion.model }}</code>, gate rounds {{ ch.conversion.gate_rounds }}
     {% if c.run %}· approved digest <code>{{ c.run.approved_digest }}</code> (by {{ c.run.approved_by }}){% endif %}</div>
 
-  <h3>(a) The agent's finding, as written (kept as evidence only; never shown to the judge)</h3>
+  <h3>(a) The agent's finding, as written (kept as evidence only; never shown to the judging model)</h3>
   <blockquote><b>Shown:</b> {{ ch.source.shown }}
 <b>Should be:</b> {{ ch.source.should_be }}
 <b>Reproduce:</b> {{ ch.source.reproduce }}</blockquote>

@@ -30,7 +30,7 @@ margin:2px 0}.implied{color:var(--muted);font-style:italic}.outcome{font-size:17
     · drafted by <code>meta-models/muse-spark-open-1026</code>, gate rounds 2
     · approved digest <code>f0cb1dc9ee14fc8f</code> (by acceptance-run (main session, owner plan 2026-10-31; owner has not reviewed this digest))</div>
 
-  <h3>(a) The agent's finding, as written (kept as evidence only; never shown to the judge)</h3>
+  <h3>(a) The agent's finding, as written (kept as evidence only; never shown to the judging model)</h3>
   <blockquote><b>Shown:</b> (text part): &#34;Subtotal: $179.98 / Promotion: Promotion (Free Shipping) -$15.00 / Shipping: Express $0.00 / Tax: $14.40 / Order Total: $194.38&#34;. HTML part: &#34;Shipping Express $0.00&#34;.
 <b>Should be:</b> Shipping Express $15.00 (record delivery_total 15.00, fulfillment cost 15.00, discount -15.00) — as checkout, order page and admin show. As shown, 179.98 − 15.00 + 0.00 + 14.40 = 179.38 ≠ 194.38: the free-shipping discount is counted twice.
 <b>Reproduce:</b> 2 × Drip Coffee Maker → NY address → Express → apply FREESHIP → Check → place order → read email. How checked: message read via API; compared to record /order/current/R1004 and to the candidate&#39;s email for the identical order (candidate R1004 shows &#34;Shipping: Express $15.00&#34;).</blockquote>
@@ -96,7 +96,7 @@ margin:2px 0}.implied{color:var(--muted);font-style:italic}.outcome{font-size:17
     · drafted by <code>meta-models/muse-spark-open-1026</code>, gate rounds 2
     · approved digest <code>30f3f436e3fa99a5</code> (by acceptance-run (main session, owner plan 2026-10-31; owner has not reviewed this digest))</div>
 
-  <h3>(a) The agent's finding, as written (kept as evidence only; never shown to the judge)</h3>
+  <h3>(a) The agent's finding, as written (kept as evidence only; never shown to the judging model)</h3>
   <blockquote><b>Shown:</b> (text part): &#34;Subtotal: $179.98 / Promotion: Promotion (Free Shipping) -$15.00 / Shipping: Express $0.00 / Tax: $14.40 / Order Total: $194.38&#34;. HTML part: &#34;Shipping Express $0.00&#34;.
 <b>Should be:</b> Shipping Express $15.00 (record delivery_total 15.00, fulfillment cost 15.00, discount -15.00) — as checkout, order page and admin show. As shown, 179.98 − 15.00 + 0.00 + 14.40 = 179.38 ≠ 194.38: the free-shipping discount is counted twice.
 <b>Reproduce:</b> 2 × Drip Coffee Maker → NY address → Express → apply FREESHIP → Check → place order → read email. How checked: message read via API; compared to record /order/current/R1004 and to the candidate&#39;s email for the identical order (candidate R1004 shows &#34;Shipping: Express $15.00&#34;).</blockquote>
