@@ -43,7 +43,7 @@ class RunningApp:
             shutil.rmtree(self.scratch, ignore_errors=True)
             self.scratch = None
 
-    def __enter__(self) -> RunningApp:
+    def __enter__(self) -> "RunningApp":
         return self
 
     def __exit__(self, *exc) -> None:

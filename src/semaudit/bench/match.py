@@ -16,7 +16,7 @@ from collections import Counter, defaultdict
 from dataclasses import dataclass
 from typing import Any
 
-from .findings import Finding, Findings, Truth
+from .findings import Finding, Findings, Truth, TruthItem
 
 
 @dataclass(frozen=True)

@@ -52,3 +52,7 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 # The frozen converter and re-check (and their prompt text) are not edited for lint: ignore, don't rewrite.
 "src/semaudit/imported/*" = ["F401", "I001", "UP017", "UP035", "UP037"]
+# Files whose bytes are still pinned by sha256 in bench/conditions/FROZEN-*.md: ignored, not rewritten.
+"src/semaudit/bench/judge.py" = ["B007"]
+"src/semaudit/bench/match.py" = ["F401"]
+"src/semaudit/capture/launcher.py" = ["UP037"]
