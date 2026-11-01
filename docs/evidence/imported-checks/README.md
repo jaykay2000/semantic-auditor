@@ -158,6 +158,8 @@ these digests.
 | 4. Optional: different basket, same saved invariant (hand variant C1-04-v1: Personal Blender x3, nothing else changed) | same FAIL/PASS, different figures | **pass**: beta2 FAIL 3/3, beta3 PASS 3/3, evidence verified on beta3; memory `fix_confirmed` | `acceptance/run4-*.json`, `cards-run4-variant.html`, `C1-04-v1.yaml` |
 | 5. Optional: converted findings in groups SRA's 11 shoppers did not report (F11, P01, P03, P04, P06, P07) | report N of M | **0 of 24**. (Correction: only F11 is in `grading/key-v4.json`; the P groups are in `scores/scores.json` `new_families`.) 4 of the 24 are partially converted, 2 adapter_gap, 18 not converted | below |
 
+Transcripts are kept as captured on the author's machine (file listings show the local username).
+
 **Email figures from these captures (for the video):**
 - Run 2/3, beta2: `Subtotal: $179.98 / Promotion: Promotion (Free Shipping) -$15.00 / Shipping: Express $0.00 /
   Tax: $14.40 / Order Total: $194.38` (179.98 - 15.00 + 0.00 + 14.40 = 179.38, not 194.38).
