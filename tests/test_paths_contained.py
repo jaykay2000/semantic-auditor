@@ -154,3 +154,41 @@ def test_a_plain_checks_folder_still_works(tmp_path):
     c = ImportedCheck(**_check("C1-01"))
     p = c.write(tmp_path / "checks")
     assert p == tmp_path / "checks" / "C1-01.yaml" and ImportedCheck.load(tmp_path, "C1-01").id == "C1-01"
+
+
+# ---------- round 3, R2-02: a symlink at the contract folder is refused; one above it is the owner's choice ----------
+
+def _linked_contract(tmp_path):
+    real = tmp_path / "real-contract"
+    real.mkdir()
+    link = tmp_path / "contract-link"
+    os.symlink(real, link)
+    return real, link
+
+
+def test_a_symlinked_contract_folder_is_refused_for_writing(tmp_path):
+    real, link = _linked_contract(tmp_path)
+    with pytest.raises(ValueError, match="symlink"):
+        ImportedCheck(**_check("C1-01")).write(link / "checks")
+    assert list(real.iterdir()) == []                  # not even the checks folder is created
+
+
+def test_a_symlinked_contract_folder_is_refused_for_reading(tmp_path):
+    real, link = _linked_contract(tmp_path)
+    ImportedCheck(**_check("C1-01")).write(real / "checks")
+    with pytest.raises(ValueError, match="symlink"):
+        ImportedCheck.load(link, "C1-01")
+    (real / "approvals.yaml").write_text(yaml.safe_dump({"check:C1-01": {"hash": "x", "by": "o"}}))
+    ok, refused = saved_checks(link)
+    assert ok == [] and len(refused) == 1 and "symlink" in refused[0]
+
+
+def test_a_symlink_above_the_contract_folder_is_accepted(tmp_path):
+    real_parent = tmp_path / "real-parent"
+    (real_parent / "contract").mkdir(parents=True)
+    os.symlink(real_parent, tmp_path / "parent-link")
+    contract = tmp_path / "parent-link" / "contract"
+    p = ImportedCheck(**_check("C1-01")).write(contract / "checks")
+    assert p == contract / "checks" / "C1-01.yaml"
+    assert (real_parent / "contract" / "checks" / "C1-01.yaml").is_file()
+    assert ImportedCheck.load(contract, "C1-01").id == "C1-01"

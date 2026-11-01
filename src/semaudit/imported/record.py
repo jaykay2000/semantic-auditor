@@ -43,15 +43,18 @@ def valid_check_id(check_id: str) -> str:
 
 
 def check_path(directory: Path, check_id: str) -> Path:
-    """<directory>/<id>.yaml for a valid id. Containment is anchored to the resolved contract folder (the parent of
-    `directory`): the path must resolve to exactly <contract>/<checks>/<id>.yaml, so a symlink anywhere on it (the
-    checks folder itself or the record file) is refused. Every read and write of a check record goes through here."""
+    """<directory>/<id>.yaml for a valid id, where `directory` is <contract>/checks. Every read and write of a check
+    record goes through here. Refused: a symlink at the contract folder itself, at its checks folder, or at the record
+    file, and any path that does not resolve to exactly <resolved contract>/checks/<id>.yaml. Not refused: a symlink
+    above the contract folder (on macOS /tmp is one, and where the contract lives is the owner's choice); containment
+    is anchored to wherever the contract folder resolves."""
     d = Path(directory)
     name = f"{valid_check_id(check_id)}.yaml"
-    expected = d.parent.resolve() / d.name / name
-    if d.is_symlink() or (d / name).is_symlink() or (d / name).resolve() != expected:
+    contract = d.parent
+    expected = contract.resolve() / d.name / name
+    if contract.is_symlink() or d.is_symlink() or (d / name).is_symlink() or (d / name).resolve() != expected:
         raise ValueError(f"check {check_id!r}: {d / name} is not a plain file inside the contract folder "
-                         "(a symlink on the checks path is refused)")
+                         "(a symlink at the contract folder, its checks folder or the record is refused)")
     return d / name
 
 
@@ -167,8 +170,8 @@ class ImportedCheck(Strict):
         return hashlib.sha256(json.dumps(body, sort_keys=True, default=str).encode()).hexdigest()[:16]
 
     def write(self, directory: Path) -> Path:
+        p = check_path(directory, self.id)             # before mkdir, so a refused path creates nothing
         directory.mkdir(parents=True, exist_ok=True)
-        p = check_path(directory, self.id)
         p.write_text(yaml.safe_dump(self.model_dump(mode="json"), sort_keys=False, allow_unicode=True))
         return p
 
