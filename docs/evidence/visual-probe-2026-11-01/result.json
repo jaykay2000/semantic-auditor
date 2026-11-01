@@ -1,0 +1,182 @@
+{
+ "date": "2026-11-01",
+ "provider": "baseten (SRA Router, built-in provider)",
+ "endpoint": "POST https://inference.baseten.co/v1/chat/completions",
+ "source": {
+  "run": "spree-semaudit/runs/spree-scale-2t",
+  "screenshot": "captures/v6.0.0.beta3/ana__S-buy/v6.0.0.beta3.ana.S-buy.s09.c01.screenshot.png",
+  "screenshot_sha256": "ae87910989f4016519a8355184e46d641ade2c746fbf5a67e27b68c72c13fe1c",
+  "screenshot_size": [
+   1280,
+   1285
+  ],
+  "crop_box_px": [
+   140,
+   380,
+   692,
+   690
+  ],
+  "sent_size": [
+   512,
+   288
+  ],
+  "sent_png_bytes": 20705,
+  "sent_sha256": "4bcd7dc54e542f9605340293934a784096cc57604402e805ed1fd2708b3f9ff3"
+ },
+ "request_shape": {
+  "model": "meta-models/muse-spark-open-1026",
+  "reasoning_effort": "low",
+  "messages": [
+   {
+    "role": "user",
+    "content": [
+     {
+      "type": "text",
+      "text": "This is a crop of an order confirmation page. Read, exactly as printed, the amount on the item line, the Subtotal, the Tax and the Total. Answer as JSON with the dollar sign, e.g. \"$1.00\"."
+     },
+     {
+      "type": "image_url",
+      "image_url": {
+       "url": "data:image/png;base64,<20705 bytes elided, sha256 4bcd7dc54e542f9605340293934a784096cc57604402e805ed1fd2708b3f9ff3>"
+      }
+     }
+    ]
+   }
+  ],
+  "response_format": {
+   "type": "json_schema",
+   "json_schema": {
+    "name": "order_summary",
+    "schema": {
+     "type": "object",
+     "additionalProperties": false,
+     "required": [
+      "line_amount",
+      "subtotal",
+      "tax",
+      "total"
+     ],
+     "properties": {
+      "line_amount": {
+       "type": "string"
+      },
+      "subtotal": {
+       "type": "string"
+      },
+      "tax": {
+       "type": "string"
+      },
+      "total": {
+       "type": "string"
+      }
+     }
+    },
+    "strict": true
+   }
+  },
+  "seed": "1 | 2 | 3",
+  "max_completion_tokens": 16000
+ },
+ "expected": {
+  "line_amount": "$43.19",
+  "subtotal": "$39.99",
+  "tax": "$3.60",
+  "total": "$48.59"
+ },
+ "replies": [
+  {
+   "seed": 1,
+   "ok": true,
+   "reply": {
+    "line_amount": "$43.19",
+    "subtotal": "$39.99",
+    "tax": "$3.60",
+    "total": "$48.59"
+   },
+   "exact": true,
+   "usage": {
+    "prompt_tokens": 376,
+    "completion_tokens": 315,
+    "total_tokens": 691,
+    "prompt_tokens_details": {
+     "audio_tokens": 0,
+     "cached_tokens": 128
+    },
+    "completion_tokens_details": {
+     "accepted_prediction_tokens": 228,
+     "audio_tokens": 0,
+     "reasoning_tokens": 274,
+     "rejected_prediction_tokens": 381
+    }
+   },
+   "cost_usd": 0.00180875,
+   "latency_s": 5.5,
+   "finish_reason": "stop"
+  },
+  {
+   "seed": 2,
+   "ok": true,
+   "reply": {
+    "line_amount": "$43.19",
+    "subtotal": "$39.99",
+    "tax": "$3.60",
+    "total": "$48.59"
+   },
+   "exact": true,
+   "usage": {
+    "prompt_tokens": 376,
+    "completion_tokens": 233,
+    "total_tokens": 609,
+    "prompt_tokens_details": {
+     "audio_tokens": 0,
+     "cached_tokens": 256
+    },
+    "completion_tokens_details": {
+     "accepted_prediction_tokens": 169,
+     "audio_tokens": 0,
+     "reasoning_tokens": 192,
+     "rejected_prediction_tokens": 279
+    }
+   },
+   "cost_usd": 0.00146025,
+   "latency_s": 3.2,
+   "finish_reason": "stop"
+  },
+  {
+   "seed": 3,
+   "ok": true,
+   "reply": {
+    "line_amount": "$43.19",
+    "subtotal": "$39.99",
+    "tax": "$3.60",
+    "total": "$48.59"
+   },
+   "exact": true,
+   "usage": {
+    "prompt_tokens": 376,
+    "completion_tokens": 260,
+    "total_tokens": 636,
+    "prompt_tokens_details": {
+     "audio_tokens": 0,
+     "cached_tokens": 256
+    },
+    "completion_tokens_details": {
+     "accepted_prediction_tokens": 191,
+     "audio_tokens": 0,
+     "reasoning_tokens": 219,
+     "rejected_prediction_tokens": 292
+    }
+   },
+   "cost_usd": 0.001575,
+   "latency_s": 3.4,
+   "finish_reason": "stop"
+  }
+ ],
+ "exact": 3,
+ "of": 3,
+ "cost_usd": 0.004844,
+ "tokens": {
+  "prompt": 1128,
+  "completion": 808
+ }
+}
