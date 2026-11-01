@@ -1,0 +1,14 @@
+{
+ "_README": "Derived from demo/evidence/newuser-brightdesk-2026-11-01/record.json by slides-src/extract_brightdesk.py; tests/test_demo_brightdesk_evidence.py checks it.",
+ "app": "Brightdesk",
+ "hold": {
+  "label": "HOLD",
+  "new": 3
+ },
+ "ship": {
+  "label": "SHIP",
+  "resolved": 3
+ },
+ "billed_calls": 15,
+ "cost_shown": "$0.13"
+}

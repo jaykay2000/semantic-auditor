@@ -4,13 +4,12 @@
     python3 slides-src/shoot_v8.py --github   # also the public GitHub issue and pull request (network)
 
 Local pages come from SRA/runs/recording-2026-11-01/pages/ (built with semaudit.report.page.build; see
-docs/11-recording-runsheet.md and docs/12-demo-script-v8.md). Each shot prints the probes it found on the page, so a
-shot that lands on the wrong state is visible in the log.
+docs/11-recording-runsheet.md and docs/12-demo-script-v8.md). Every probe text must be on the page before a shot is
+written: if any is missing, that shot is skipped (the previous image stays as it was) and the script exits 1.
+tests/test_shoot_v8_probes.py checks this with a fake page, no browser needed.
 """
 import pathlib
 import sys
-
-from playwright.sync_api import sync_playwright
 
 HERE = pathlib.Path(__file__).resolve().parent
 SRA = HERE.parents[2]
@@ -34,32 +33,52 @@ GITHUB = [
 ]
 
 
+def missing_probes(text, probes):
+    """The probes not on the page. A shot is written only when this is empty."""
+    return [p for p in probes if p not in text]
+
+
 def shoot(b, name, url, probes, block_network, clips=None):
+    """Write the shot(s) for one page and return [], or write nothing and return the missing probes."""
     pg = b.new_page(viewport={'width': 1920, 'height': 1080}, device_scale_factor=2, color_scheme='light')
-    if block_network:
-        pg.route('**/*', lambda r: r.continue_() if r.request.url.startswith('file://') else r.abort())
-    pg.goto(url, timeout=120000, wait_until='load')
-    pg.wait_for_timeout(1800)
-    txt = pg.inner_text('body')
-    if clips:
-        for cname, (x, y, w, h) in clips.items():
-            pg.screenshot(path=str(OUT / f'{cname}.png'), clip={'x': x, 'y': y, 'width': w, 'height': h})
-    else:
-        pg.screenshot(path=str(OUT / f'{name}.png'))
-    print(f'{name}: found {[p for p in probes if p in txt]} missing {[p for p in probes if p not in txt]}')
-    pg.close()
+    try:
+        if block_network:
+            pg.route('**/*', lambda r: r.continue_() if r.request.url.startswith('file://') else r.abort())
+        pg.goto(url, timeout=120000, wait_until='load')
+        pg.wait_for_timeout(1800)
+        missing = missing_probes(pg.inner_text('body'), probes)
+        if missing:
+            print(f'{name}: REFUSED, missing {missing}; nothing written')
+            return missing
+        if clips:
+            for cname, (x, y, w, h) in clips.items():
+                pg.screenshot(path=str(OUT / f'{cname}.png'), clip={'x': x, 'y': y, 'width': w, 'height': h})
+        else:
+            pg.screenshot(path=str(OUT / f'{name}.png'))
+        print(f'{name}: all {len(probes)} probes found')
+        return []
+    finally:
+        pg.close()
+
+
+def shoot_all(b, github):
+    """Every shot; returns the names of the pages that were refused."""
+    refused = [name for name, page, h, probes in LOCAL
+               if shoot(b, name, (PAGES / page).as_uri() + ('#' + h if h else ''), probes, True)]
+    if github:
+        refused += [name for name, url, probes, clips in GITHUB if shoot(b, name, url, probes, False, clips)]
+    return refused
 
 
 def main():
+    from playwright.sync_api import sync_playwright
     OUT.mkdir(parents=True, exist_ok=True)
     with sync_playwright() as pw:
         b = pw.chromium.launch()
-        for name, page, h, probes in LOCAL:
-            shoot(b, name, (PAGES / page).as_uri() + ('#' + h if h else ''), probes, True)
-        if '--github' in sys.argv:
-            for name, url, probes, clips in GITHUB:
-                shoot(b, name, url, probes, False, clips)
+        refused = shoot_all(b, '--github' in sys.argv)
         b.close()
+    if refused:
+        sys.exit(f'wrong page state, not written: {refused}')
 
 
 if __name__ == '__main__':

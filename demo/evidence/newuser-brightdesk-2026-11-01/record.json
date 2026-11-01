@@ -1,0 +1,139 @@
+{
+ "_README": "See README.md in this folder. Paths are relative to sra-newuser-test/work/runs.",
+ "sources": {
+  "t3/review-1.1-1.0.json": "1cd383c7b331a9cfbab4a02b6536831e2c193c08b209280b68adc2c2201068c3",
+  "t3/review-1.0-1.1.json": "fc2402e9e4eb14fbe3e7be2e140a908f1e9df283f1156b2d4a96b062e8085423",
+  "ledger.jsonl": "2c58b2e38e7d206358bcbda434b8547b91e64b145faa57da8ebbbde690be4c99"
+ },
+ "reviews": {
+  "hold": {
+   "file": "t3/review-1.1-1.0.json",
+   "app": "Brightdesk",
+   "release": {
+    "base": "1.1",
+    "head": "1.0"
+   },
+   "recommendation": "hold",
+   "rule_fired": "an open issue is major or critical and verified",
+   "cost_usd": 0.077,
+   "code_git": "1eb164e51108213ede9b1ebe08f6f601f5896cfa",
+   "issues": [
+    {
+     "id": "I-1.0-B1-plan-price-checkout-summary-email-welcome",
+     "rule": "B1",
+     "delta": "new",
+     "delta_basis": "absent in base",
+     "rule_text": "The Pro plan's price reads the same on every page and email a customer sees before and after subscribing.",
+     "why": "plan_price 12 on inbox; 15 on checkout; 15 on checkout"
+    },
+    {
+     "id": "I-1.0-B1-plan-price-checkout-summary-email-welcome-pricing-pro",
+     "rule": "B1",
+     "delta": "new",
+     "delta_basis": "absent in base",
+     "rule_text": "The Pro plan's price reads the same on every page and email a customer sees before and after subscribing.",
+     "why": "plan_price 15 on checkout; 12 on pricing; 12 on inbox; 12 on inbox"
+    },
+    {
+     "id": "I-1.0-B1-plan-price-checkout-summary-pricing-pro",
+     "rule": "B1",
+     "delta": "new",
+     "delta_basis": "absent in base",
+     "rule_text": "The Pro plan's price reads the same on every page and email a customer sees before and after subscribing.",
+     "why": "plan_price 12 on pricing; 15 on checkout; 15 on checkout"
+    }
+   ],
+   "resolved": []
+  },
+  "ship": {
+   "file": "t3/review-1.0-1.1.json",
+   "app": "Brightdesk",
+   "release": {
+    "base": "1.0",
+    "head": "1.1"
+   },
+   "recommendation": "ship",
+   "rule_fired": "no open issues",
+   "cost_usd": 0.0,
+   "code_git": "1eb164e51108213ede9b1ebe08f6f601f5896cfa",
+   "issues": [],
+   "resolved": [
+    {
+     "id": "I-1.0-B1-plan-price-checkout-summary-email-welcome",
+     "rule": "B1",
+     "delta": "resolved",
+     "delta_basis": "absent in head; every affected persona measured",
+     "rule_text": "The Pro plan's price reads the same on every page and email a customer sees before and after subscribing.",
+     "why": "plan_price 12 on inbox; 15 on checkout; 15 on checkout"
+    },
+    {
+     "id": "I-1.0-B1-plan-price-checkout-summary-email-welcome-pricing-pro",
+     "rule": "B1",
+     "delta": "resolved",
+     "delta_basis": "absent in head; every affected persona measured",
+     "rule_text": "The Pro plan's price reads the same on every page and email a customer sees before and after subscribing.",
+     "why": "plan_price 15 on checkout; 12 on pricing; 12 on inbox; 12 on inbox"
+    },
+    {
+     "id": "I-1.0-B1-plan-price-checkout-summary-pricing-pro",
+     "rule": "B1",
+     "delta": "resolved",
+     "delta_basis": "absent in head; every affected persona measured",
+     "rule_text": "The Pro plan's price reads the same on every page and email a customer sees before and after subscribing.",
+     "why": "plan_price 12 on pricing; 15 on checkout; 15 on checkout"
+    }
+   ]
+  }
+ },
+ "ledger": {
+  "file": "ledger.jsonl",
+  "rows": 58,
+  "billed_calls": 15,
+  "billed_usd": 0.132284,
+  "models": [
+   "meta-models/muse-spark-open-1026"
+  ],
+  "by_tag": {
+   "semaudit-full:1.0-1.1:t1": {
+    "billed_calls": 2,
+    "billed_usd": 0.00633125,
+    "cached_calls": 0
+   },
+   "semaudit-full:1.0-1.1:t1-b2first": {
+    "billed_calls": 0,
+    "billed_usd": 0.0,
+    "cached_calls": 2
+   },
+   "semaudit-full:1.1-1.0:t1": {
+    "billed_calls": 2,
+    "billed_usd": 0.0217355,
+    "cached_calls": 2
+   },
+   "semaudit-full:1.1-1.0:t2": {
+    "billed_calls": 4,
+    "billed_usd": 0.027234,
+    "cached_calls": 4
+   },
+   "semaudit-full:1.0-1.1:t2": {
+    "billed_calls": 0,
+    "billed_usd": 0.0,
+    "cached_calls": 4
+   },
+   "semaudit-full:1.1-1.0:t3": {
+    "billed_calls": 7,
+    "billed_usd": 0.0769835,
+    "cached_calls": 1
+   },
+   "semaudit-full:1.0-1.1:t3": {
+    "billed_calls": 0,
+    "billed_usd": 0.0,
+    "cached_calls": 2
+   },
+   "(untagged)": {
+    "billed_calls": 0,
+    "billed_usd": 0.0,
+    "cached_calls": 28
+   }
+  }
+ }
+}

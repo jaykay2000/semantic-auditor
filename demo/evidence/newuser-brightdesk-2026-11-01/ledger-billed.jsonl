@@ -1,0 +1,15 @@
+{"ts": 1793552058.0983171, "tag": "semaudit-full:1.0-1.1:t1", "role": "extractor", "model": "meta-models/muse-spark-open-1026", "priced": true, "cached": false, "cost_usd": 0.002543}
+{"ts": 1793552060.6821408, "tag": "semaudit-full:1.0-1.1:t1", "role": "extractor", "model": "meta-models/muse-spark-open-1026", "priced": true, "cached": false, "cost_usd": 0.00378825}
+{"ts": 1793552121.20119, "tag": "semaudit-full:1.1-1.0:t1", "role": "cross_checker_extract", "model": "meta-models/muse-spark-open-1026", "priced": true, "cached": false, "cost_usd": 0.003835}
+{"ts": 1793552135.6020858, "tag": "semaudit-full:1.1-1.0:t1", "role": "defender", "model": "meta-models/muse-spark-open-1026", "priced": true, "cached": false, "cost_usd": 0.0179005}
+{"ts": 1793552168.3616052, "tag": "semaudit-full:1.1-1.0:t2", "role": "extractor", "model": "meta-models/muse-spark-open-1026", "priced": true, "cached": false, "cost_usd": 0.00376325}
+{"ts": 1793552170.5797482, "tag": "semaudit-full:1.1-1.0:t2", "role": "extractor", "model": "meta-models/muse-spark-open-1026", "priced": true, "cached": false, "cost_usd": 0.00351675}
+{"ts": 1793552174.321406, "tag": "semaudit-full:1.1-1.0:t2", "role": "cross_checker_extract", "model": "meta-models/muse-spark-open-1026", "priced": true, "cached": false, "cost_usd": 0.00402675}
+{"ts": 1793552186.682765, "tag": "semaudit-full:1.1-1.0:t2", "role": "defender", "model": "meta-models/muse-spark-open-1026", "priced": true, "cached": false, "cost_usd": 0.01592725}
+{"ts": 1793552251.82204, "tag": "semaudit-full:1.1-1.0:t3", "role": "extractor", "model": "meta-models/muse-spark-open-1026", "priced": true, "cached": false, "cost_usd": 0.0044275}
+{"ts": 1793552255.052098, "tag": "semaudit-full:1.1-1.0:t3", "role": "extractor", "model": "meta-models/muse-spark-open-1026", "priced": true, "cached": false, "cost_usd": 0.00457625}
+{"ts": 1793552258.656718, "tag": "semaudit-full:1.1-1.0:t3", "role": "cross_checker_extract", "model": "meta-models/muse-spark-open-1026", "priced": true, "cached": false, "cost_usd": 0.00390325}
+{"ts": 1793552275.169055, "tag": "semaudit-full:1.1-1.0:t3", "role": "defender", "model": "meta-models/muse-spark-open-1026", "priced": true, "cached": false, "cost_usd": 0.0206105}
+{"ts": 1793552277.529871, "tag": "semaudit-full:1.1-1.0:t3", "role": "cross_checker_extract", "model": "meta-models/muse-spark-open-1026", "priced": true, "cached": false, "cost_usd": 0.00381975}
+{"ts": 1793552293.03574, "tag": "semaudit-full:1.1-1.0:t3", "role": "defender", "model": "meta-models/muse-spark-open-1026", "priced": true, "cached": false, "cost_usd": 0.01914725}
+{"ts": 1793552308.536351, "tag": "semaudit-full:1.1-1.0:t3", "role": "defender", "model": "meta-models/muse-spark-open-1026", "priced": true, "cached": false, "cost_usd": 0.020499}

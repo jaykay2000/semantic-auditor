@@ -108,7 +108,7 @@ stop before the PR's branch name and description footer, because both name a cod
 | `m8-b4-0-agents-intro` | 4 · 1:01–1:06 | 5.5 s | `m8-b4-0-agents-intro.html`. Two runs of one agent overlap in part; no numbers |
 | `m8-b4-1/2/3-*` | 4 · 1:06–1:39 | 16.5 / 11 / 11 s | the m7 beat-4 layouts with `window.V8`: no prototype pill, no votes, "Approved by Jayant Kumar" (run `ic-owner-rec-1`) |
 | `m8-b5-intent` | 5 · 1:39–2:02 | 22 s | `m8-b5-intent.html`. Rule P2, Maya's two messages (crops), flagged; then Lena, cleared |
-| `m8-b6-your-app` | 6 · 2:02–2:21 | 19 s | `m8-b6-your-app.html`. Brightdesk reviews (HOLD: 3 new; SHIP: 3 resolved), $0.13 in model calls. sra-newuser-test `work/runs/t3`, ledger 15 billed calls $0.1323 |
+| `m8-b6-your-app` | 6 · 2:02–2:21 | 19 s | `m8-b6-your-app.html`. Brightdesk reviews (HOLD: 3 new; SHIP: 3 resolved), $0.13 in model calls (15 billed calls, $0.1323). Numbers from `scenes-data/brightdesk.json`, derived from the committed record `demo/evidence/newuser-brightdesk-2026-11-01/` by `extract_brightdesk.py` |
 | `m8-b7-finablo-v706-v707` | 7 · 2:21–2:33 | 12 s | `m7-b7` retimed |
 | `m8-b8-close` | 8 · 2:33–2:48 | 15 s | `m8-b8-close.html`. The three review pages side by side, plus the one-line idea |
 | `m8-b8-end-card` | end card · 2:48–2:54 | 6 s | `m7-b8` with the one-line idea; repo URL from `scenes-data/close.json` |
