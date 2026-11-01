@@ -1,0 +1,335 @@
+{
+ "check": "C1-04-v1",
+ "check_digest": "30f3f436e3fa99a5",
+ "approved": true,
+ "models": {
+  "conversion": "meta-models/muse-spark-open-1026",
+  "judging": "meta-models/muse-spark-open-1026"
+ },
+ "release": "current",
+ "episode": "current/ic_c1-04-v1/IC-C1-04-v1",
+ "replay": {
+  "status": "succeeded",
+  "reasons": [],
+  "notes": [],
+  "surface_messages": 1
+ },
+ "assertion": {
+  "outcome": "fail",
+  "votes": {
+   "fail": 3
+  }
+ },
+ "semantic_confidence": {
+  "level": "high",
+  "agreement": "3/3",
+  "judgments": 3
+ },
+ "evidence": {
+  "status": "partially_verified",
+  "per_judgment": [
+   "verified",
+   "verified",
+   "partially_verified"
+  ]
+ },
+ "judgments": [
+  {
+   "outcome": "fail",
+   "why": "Email shows Subtotal $149.97 + Shipping $0.00 + Tax $12.00 - Promotion $15.00 = $146.97, not the shown Order Total $161.97 (difference $15.00). It is arithmetically inconsistent and the Shipping amount does not match the order record. Record has delivery_total $15.00 (gross) with discount_total -$15.00 netting to fulfillments total $0.00; email shows the net $0.00 shipping but still subtracts the $15.00 promotion, counting the discount twice (or missing $15 of delivery). Correct arithmetic per record is 149.97+15.00+12.00-15.00=161.97.",
+   "cited": [
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "PERSONAL-BLENDER-WHITE Personal Blender 600ml Color: White (3) @ $49.99 = $149.97"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Subtotal: $149.97"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Promotion: Promotion (Free Shipping) -$15.00"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Shipping: Express $0.00"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Tax: $12.00"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Order Total: $161.97"
+    }
+   ],
+   "record": [
+    {
+     "field": "order.item_total",
+     "value": "149.97"
+    },
+    {
+     "field": "order.discount_total",
+     "value": "-15.0"
+    },
+    {
+     "field": "order.delivery_total",
+     "value": "15.0"
+    },
+    {
+     "field": "order.tax_total",
+     "value": "12.0"
+    },
+    {
+     "field": "order.total",
+     "value": "161.97"
+    },
+    {
+     "field": "fulfillments[0].cost",
+     "value": "15.0"
+    },
+    {
+     "field": "fulfillments[0].discount_total",
+     "value": "-15.0"
+    },
+    {
+     "field": "fulfillments[0].total",
+     "value": "0.0"
+    },
+    {
+     "field": "order.items[0].price",
+     "value": "49.99"
+    },
+    {
+     "field": "order.items[0].quantity",
+     "value": "3"
+    }
+   ],
+   "seed": 1,
+   "model": "meta-models/muse-spark-open-1026",
+   "cached": false,
+   "cost_usd": 0.013822,
+   "evidence": {
+    "status": "verified",
+    "quotes_ok": 6,
+    "quotes_bare": [],
+    "quotes_refused": [],
+    "record_ok": [
+     "order.item_total = 149.97",
+     "order.discount_total = -15.0",
+     "order.delivery_total = 15.0",
+     "order.tax_total = 12.0",
+     "order.total = 161.97",
+     "fulfillments[0].cost = 15.0",
+     "fulfillments[0].discount_total = -15.0",
+     "fulfillments[0].total = 0.0",
+     "order.items[0].price = 49.99",
+     "order.items[0].quantity = 3"
+    ],
+    "record_refused": []
+   }
+  },
+  {
+   "outcome": "fail",
+   "why": "Line amount reconciles (3 x $49.99 = $149.97) and subtotal matches, but the total reconciliation fails with components as shown. Email shows Subtotal $149.97 + Shipping $0.00 + Tax $12.00 + Promotion -$15.00 = $146.97, not the displayed Order Total $161.97 (149.97+0.00+12.00-15.00=146.97 \u2260 161.97). Correct total requires gross shipping $15.00: 149.97+15.00+12.00-15.00=161.97. Email Shipping $0.00 also mismatches record delivery_total $15.00 / fulfillment cost $15.00, causing either double-counting or omission.",
+   "cited": [
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "PERSONAL-BLENDER-WHITE Personal Blender 600ml Color: White (3) @ $49.99 = $149.97"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Subtotal: $149.97"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Promotion: Promotion (Free Shipping) -$15.00"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Shipping: Express $0.00"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Tax: $12.00"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Order Total: $161.97"
+    }
+   ],
+   "record": [
+    {
+     "field": "order.item_total",
+     "value": "149.97"
+    },
+    {
+     "field": "order.discount_total",
+     "value": "-15.0"
+    },
+    {
+     "field": "order.delivery_total",
+     "value": "15.0"
+    },
+    {
+     "field": "order.tax_total",
+     "value": "12.0"
+    },
+    {
+     "field": "order.total",
+     "value": "161.97"
+    },
+    {
+     "field": "order.items[0].price",
+     "value": "49.99"
+    },
+    {
+     "field": "order.items[0].quantity",
+     "value": "3"
+    },
+    {
+     "field": "fulfillments[0].cost",
+     "value": "15.0"
+    },
+    {
+     "field": "fulfillments[0].total",
+     "value": "0.0"
+    },
+    {
+     "field": "fulfillments[0].discount_total",
+     "value": "-15.0"
+    },
+    {
+     "field": "discounts[0].amount",
+     "value": "-15.0"
+    }
+   ],
+   "seed": 2,
+   "model": "meta-models/muse-spark-open-1026",
+   "cached": false,
+   "cost_usd": 0.01250875,
+   "evidence": {
+    "status": "verified",
+    "quotes_ok": 6,
+    "quotes_bare": [],
+    "quotes_refused": [],
+    "record_ok": [
+     "order.item_total = 149.97",
+     "order.discount_total = -15.0",
+     "order.delivery_total = 15.0",
+     "order.tax_total = 12.0",
+     "order.total = 161.97",
+     "order.items[0].price = 49.99",
+     "order.items[0].quantity = 3",
+     "fulfillments[0].cost = 15.0",
+     "fulfillments[0].total = 0.0",
+     "fulfillments[0].discount_total = -15.0",
+     "discounts[0].amount = -15.0"
+    ],
+    "record_refused": []
+   }
+  },
+  {
+   "outcome": "fail",
+   "why": "Email shows line 49.99*3=149.97 which matches Subtotal 149.97, but component arithmetic fails: 149.97 (subtotal) -15.00 (promotion) +0.00 (shipping) +12.00 (tax) = 146.97, not the displayed Order Total 161.97 (difference 15.00). This indicates the free-shipping discount was counted as a separate -$15 line while shipping was already shown as $0.00, or conversely the total ignores the discount. Record confirms correct components are item_total 149.97, delivery_total 15.00, discount_total -15.00, tax_total 12.00, total 161.97; email shipping $0.00 mismatches record delivery_total $15.00, and email total 161.97 is inconsistent with its own itemised components.",
+   "cited": [
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "PERSONAL-BLENDER-WHITE Personal Blender 600ml Color: White (3) @ $49.99 = $149.97"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Subtotal: $149.97"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Promotion: Promotion (Free Shipping) -$15.00"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Shipping: Express $0.00"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Tax: $12.00"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Order Total: $161.97"
+    }
+   ],
+   "record": [
+    {
+     "field": "order.total",
+     "value": "/api/v1/orders/R1003/total = 161.97"
+    },
+    {
+     "field": "order.item_total",
+     "value": "/api/v1/orders/R1003/item_total = 149.97"
+    },
+    {
+     "field": "order.delivery_total",
+     "value": "/api/v1/orders/R1003/delivery_total = 15.0"
+    },
+    {
+     "field": "order.discount_total",
+     "value": "/api/v1/orders/R1003/discount_total = -15.0"
+    },
+    {
+     "field": "order.tax_total",
+     "value": "/api/v1/orders/R1003/tax_total = 12.0"
+    },
+    {
+     "field": "order.fee_total",
+     "value": "/api/v1/orders/R1003/fee_total = 0.0"
+    },
+    {
+     "field": "order.items[0].price",
+     "value": "/api/v1/orders/R1003/items[0]/price = 49.99"
+    },
+    {
+     "field": "order.items[0].quantity",
+     "value": "/api/v1/orders/R1003/items[0]/quantity = 3"
+    },
+    {
+     "field": "order.fulfillments[0].cost",
+     "value": "/api/v1/orders/R1003/fulfillments[0]/cost = 15.0"
+    },
+    {
+     "field": "order.fulfillments[0].discount_total",
+     "value": "/api/v1/orders/R1003/fulfillments[0]/discount_total = -15.0"
+    },
+    {
+     "field": "order.discounts[0].amount",
+     "value": "/api/v1/orders/R1003/discounts[0]/amount = -15.0"
+    }
+   ],
+   "seed": 3,
+   "model": "meta-models/muse-spark-open-1026",
+   "cached": false,
+   "cost_usd": 0.01365625,
+   "evidence": {
+    "status": "partially_verified",
+    "quotes_ok": 6,
+    "quotes_bare": [],
+    "quotes_refused": [],
+    "record_ok": [],
+    "record_refused": [
+     "order.total: judgment read '/api/v1/orders/R1003/total = 161.97', record holds 161.97",
+     "order.item_total: judgment read '/api/v1/orders/R1003/item_total = 149.97', record holds 149.97",
+     "order.delivery_total: judgment read '/api/v1/orders/R1003/delivery_total = 15.0', record holds 15.0",
+     "order.discount_total: judgment read '/api/v1/orders/R1003/discount_total = -15.0', record holds -15.0",
+     "order.tax_total: judgment read '/api/v1/orders/R1003/tax_total = 12.0', record holds 12.0",
+     "order.fee_total: judgment read '/api/v1/orders/R1003/fee_total = 0.0', record holds 0.0",
+     "order.items[0].price: judgment read '/api/v1/orders/R1003/items[0]/price = 49.99', record holds 49.99",
+     "order.items[0].quantity: judgment read '/api/v1/orders/R1003/items[0]/quantity = 3', record holds 3",
+     "order.fulfillments[0].cost: judgment read '/api/v1/orders/R1003/fulfillments[0]/cost = 15.0', record holds 15.0",
+     "order.fulfillments[0].discount_total: judgment read '/api/v1/orders/R1003/fulfillments[0]/discount_total = -15.0', record holds -15.0",
+     "order.discounts[0].amount: judgment read '/api/v1/orders/R1003/discounts[0]/amount = -15.0', record holds -15.0"
+    ]
+   }
+  }
+ ],
+ "payload_sha256": "d2edc5f603cd0941",
+ "cost_usd": 0.039987
+}

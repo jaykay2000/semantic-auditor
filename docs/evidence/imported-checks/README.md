@@ -110,7 +110,7 @@ The F02 result on `next` agrees with the upstream issue already filed (spree/sto
 | re-check, clean calls | **$0.035 per replay** (3 judgments, ~5K tokens each) |
 | re-check, all-in (runaways, re-judging after the crash fix) | $4.72 / 54 = $0.087 per replay |
 | dev (conversion + re-check) | $0.86 |
-| **total** | **$8.61** |
+| **total (held-out work)** | **$8.61** |
 
 A release re-check of these 6 checks costs about $0.21 at the clean rate ($0.52 all-in), plus about 1.5 min of capture per
 check (6 checks took about 8-9 min per release run). No Meta API spend.
@@ -134,3 +134,39 @@ check (6 checks took about 8-9 min per release run). No Meta API spend.
 - No owner approval was given or simulated; all replays are measurement runs.
 - The converter was run once; conversion variance across reruns was not measured.
 - `adapter_gap` names were checked by reading only for the 5 held-out cases above.
+
+## Acceptance runs for the demo (owner-approved plan, `docs/09-demo-script-v7.md`), 2026-10-31
+
+Every model call in this slice, conversion and judging, used a Meta model: `meta-models/muse-spark-open-1026` (Muse
+Spark Open on Baseten): 57/57 check records, every judgment, and all ledger rows. Every re-check result now records
+`models: {conversion, judging}`. The approval of C1-04 and C1-04-v1 is recorded as
+`acceptance-run (main session, owner plan 2026-10-31; owner has not reviewed this digest)`: the owner has not looked at
+these digests.
+
+| Run | Pass condition | Outcome as it came out | Evidence |
+|---|---|---|---|
+| 1. Convert the raw F01 finding (C1#04, frozen converter `b6d672b`, held-out run) | journey reaches the confirmation email; invariant is the "adds up and matches the order record" rule, not the figures | **pass**: last step `read_order_email`; invariant U3 on `order_email_text`: "the itemised summary shown in the order confirmation email is arithmetically consistent with its total, with each component counted exactly once, and each amount matches the order record". Converted by `meta-models/muse-spark-open-1026` (2 gate rounds) | `demo/C1-04.yaml` |
+| 2. Approve, then fresh replay on beta2 and beta3 | beta2 FAIL and beta3 PASS | **did not pass**: beta2 FAIL (3/3, evidence partially verified); beta3 **not_measurable** (2 of 3 judgments ran to the 16K-token cap, 1 said pass). Memory: `not_confirmed` | `acceptance/run2-*.json` |
+| 3. A NEW run from storage only (`run-saved`; nothing imported) | runs at the same approved digest, same results | **ran from storage at digest `f0cb1dc9ee14fc8f`**: beta2 FAIL (2 fail / 1 pass), beta3 PASS (2 pass / 1 runaway), evidence verified on beta3; memory `fix_confirmed`. Same digest: yes. Same results as Run 2: base yes (FAIL), head no (Run 2 was not_measurable) | `acceptance/run3-transcript.txt` (command, file listing with hashes, output), `run3-saved-checks.json`, `cards-run3.html` |
+| 4. Optional: different basket, same saved invariant (hand variant C1-04-v1: Personal Blender x3, nothing else changed) | same FAIL/PASS, different figures | **pass**: beta2 FAIL 3/3, beta3 PASS 3/3, evidence verified on beta3; memory `fix_confirmed` | `acceptance/run4-*.json`, `cards-run4-variant.html`, `C1-04-v1.yaml` |
+| 5. Optional: converted findings in groups SRA's 11 shoppers did not report (F11, P01, P03, P04, P06, P07) | report N of M | **0 of 24**. (Correction: only F11 is in `grading/key-v4.json`; the P groups are in `scores/scores.json` `new_families`.) 4 of the 24 are partially converted, 2 adapter_gap, 18 not converted | below |
+
+**Email figures from these captures (for the video):**
+- Run 2/3, beta2: `Subtotal: $179.98 / Promotion: Promotion (Free Shipping) -$15.00 / Shipping: Express $0.00 /
+  Tax: $14.40 / Order Total: $194.38` (179.98 - 15.00 + 0.00 + 14.40 = 179.38, not 194.38).
+- Run 3, beta3: same, with `Shipping: Express $15.00` (adds up).
+- Run 4, beta2: `(3) @ $49.99 = $149.97 / Subtotal: $149.97 / Promotion -$15.00 / Shipping: Express $0.00 /
+  Tax: $12.00 / Order Total: $161.97`; beta3: `Shipping: Express $15.00`.
+
+**What the runs show beyond pass/fail:** the semantic-confidence status earned its place. In Run 3 one beta2 judgment
+said PASS on the broken email, reasoning that the promotion was "already reflected in net shipping"; it was outvoted
+2-1 and the page shows "medium, 2/3". Runaway replies hit the beta3 / next email for this check unusually often (2/3
+in Run 2, 1/3 in Run 3, 2/3 in next run 3 of the held-out set); that is the main threat to the demo beat.
+
+Run 5 detail (held-out findings whose graded family is one of the six): C1#02, C1#03, C1#05, C1#10, C1#14, C2#03,
+C2#05, C2#06, C2#07, C2#08, X1#00, X1#02, X1#05, X1#06, X2#01, X2#03, X2#05, M2#04, M2#05, M2#06, M3#03, M3#04, M3#05,
+M3#06. None converted, so no second demo example qualifies under the rule "first such finding in held-out order that
+converts".
+
+Spend for the acceptance runs: $0.70 (of which $0.34 in Run 2, mostly four replies at the token cap). Total for the
+slice: **$9.31**, all Baseten.

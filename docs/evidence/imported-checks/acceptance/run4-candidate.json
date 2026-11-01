@@ -1,0 +1,300 @@
+{
+ "check": "C1-04-v1",
+ "check_digest": "30f3f436e3fa99a5",
+ "approved": true,
+ "models": {
+  "conversion": "meta-models/muse-spark-open-1026",
+  "judging": "meta-models/muse-spark-open-1026"
+ },
+ "release": "candidate",
+ "episode": "candidate/ic_c1-04-v1/IC-C1-04-v1",
+ "replay": {
+  "status": "succeeded",
+  "reasons": [],
+  "notes": [],
+  "surface_messages": 1
+ },
+ "assertion": {
+  "outcome": "pass",
+  "votes": {
+   "pass": 3
+  }
+ },
+ "semantic_confidence": {
+  "level": "high",
+  "agreement": "3/3",
+  "judgments": 3
+ },
+ "evidence": {
+  "status": "verified",
+  "per_judgment": [
+   "verified",
+   "verified",
+   "verified"
+  ]
+ },
+ "judgments": [
+  {
+   "outcome": "pass",
+   "why": "Line arithmetic: 3 x $49.99 = $149.97 matches line total and Subtotal $149.97. Total arithmetic: $149.97 (subtotal) - $15.00 (promotion) + $15.00 (shipping) + $12.00 (tax) = $161.97 which equals Order Total $161.97, with each component counted once. All amounts match order record (item_total 149.97, discount_total -15.0, delivery_total 15.0, tax_total 12.0, total 161.97).",
+   "cited": [
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "PERSONAL-BLENDER-WHITE Personal Blender 600ml Color: White (3) @ $49.99 = $149.97"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Subtotal: $149.97"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Promotion: Promotion (Free Shipping) -$15.00"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Shipping: Express $15.00"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Tax: $12.00"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Order Total: $161.97"
+    }
+   ],
+   "record": [
+    {
+     "field": "order.items[0].price",
+     "value": "value: 49.99"
+    },
+    {
+     "field": "order.items[0].quantity",
+     "value": "value: 3"
+    },
+    {
+     "field": "order.item_total",
+     "value": "value: 149.97"
+    },
+    {
+     "field": "order.discount_total",
+     "value": "value: -15.0"
+    },
+    {
+     "field": "order.delivery_total",
+     "value": "value: 15.0"
+    },
+    {
+     "field": "order.tax_total",
+     "value": "value: 12.0"
+    },
+    {
+     "field": "order.total",
+     "value": "value: 161.97"
+    }
+   ],
+   "seed": 1,
+   "model": "meta-models/muse-spark-open-1026",
+   "cached": false,
+   "cost_usd": 0.0095325,
+   "evidence": {
+    "status": "verified",
+    "quotes_ok": 6,
+    "quotes_bare": [],
+    "quotes_refused": [],
+    "record_ok": [
+     "order.items[0].price = value: 49.99",
+     "order.items[0].quantity = value: 3",
+     "order.item_total = value: 149.97",
+     "order.discount_total = value: -15.0",
+     "order.delivery_total = value: 15.0",
+     "order.tax_total = value: 12.0",
+     "order.total = value: 161.97"
+    ],
+    "record_refused": []
+   }
+  },
+  {
+   "outcome": "pass",
+   "why": "Email line item 3 \u00d7 $49.99 = $149.97 correct (149.97). Subtotal $149.97 equals line sum. Total check: 149.97 (subtotal) + 15.00 (shipping) + 12.00 (tax) - 15.00 (discount) = 161.97 which equals Order Total $161.97. All components match order record values exactly once.",
+   "cited": [
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "PERSONAL-BLENDER-WHITE Personal Blender 600ml Color: White (3) @ $49.99 = $149.97"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Subtotal: $149.97"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Promotion: Promotion (Free Shipping) -$15.00"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Shipping: Express $15.00"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Tax: $12.00"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Order Total: $161.97"
+    }
+   ],
+   "record": [
+    {
+     "field": "order.items[0].quantity",
+     "value": "3"
+    },
+    {
+     "field": "order.items[0].price",
+     "value": "49.99"
+    },
+    {
+     "field": "order.item_total",
+     "value": "149.97"
+    },
+    {
+     "field": "order.discount_total",
+     "value": "-15.0"
+    },
+    {
+     "field": "order.delivery_total",
+     "value": "15.0"
+    },
+    {
+     "field": "order.tax_total",
+     "value": "12.0"
+    },
+    {
+     "field": "order.fee_total",
+     "value": "0.0"
+    },
+    {
+     "field": "order.total",
+     "value": "161.97"
+    }
+   ],
+   "seed": 2,
+   "model": "meta-models/muse-spark-open-1026",
+   "cached": false,
+   "cost_usd": 0.00890775,
+   "evidence": {
+    "status": "verified",
+    "quotes_ok": 6,
+    "quotes_bare": [],
+    "quotes_refused": [],
+    "record_ok": [
+     "order.items[0].quantity = 3",
+     "order.items[0].price = 49.99",
+     "order.item_total = 149.97",
+     "order.discount_total = -15.0",
+     "order.delivery_total = 15.0",
+     "order.tax_total = 12.0",
+     "order.fee_total = 0.0",
+     "order.total = 161.97"
+    ],
+    "record_refused": []
+   }
+  },
+  {
+   "outcome": "pass",
+   "why": "Email shows line 3 @ $49.99 = $149.97; 3*49.99=149.97 matches Subtotal $149.97. Subtotal $149.97 + Shipping $15.00 + Tax $12.00 - Discount $15.00 = $161.97 which equals Order Total $161.97, each component once. All amounts match order record (item_total 149.97, delivery_total 15.0, discount_total -15.0, tax_total 12.0, total 161.97, item price 49.99 qty 3).",
+   "cited": [
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "PERSONAL-BLENDER-WHITE Personal Blender 600ml Color: White (3) @ $49.99 = $149.97"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Subtotal: $149.97"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Promotion: Promotion (Free Shipping) -$15.00"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Shipping: Express $15.00"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Tax: $12.00"
+    },
+    {
+     "event_id": "order_email_order_confirmation#2",
+     "quote": "Order Total: $161.97"
+    }
+   ],
+   "record": [
+    {
+     "field": "order.items[0].quantity",
+     "value": "3"
+    },
+    {
+     "field": "order.items[0].price",
+     "value": "49.99"
+    },
+    {
+     "field": "order.items[0].pre_tax_amount",
+     "value": "149.97"
+    },
+    {
+     "field": "order.item_total",
+     "value": "149.97"
+    },
+    {
+     "field": "order.discount_total",
+     "value": "-15.0"
+    },
+    {
+     "field": "order.delivery_total",
+     "value": "15.0"
+    },
+    {
+     "field": "order.tax_total",
+     "value": "12.0"
+    },
+    {
+     "field": "order.total",
+     "value": "161.97"
+    },
+    {
+     "field": "order.discounts[0].amount",
+     "value": "-15.0"
+    },
+    {
+     "field": "order.fulfillments[0].cost",
+     "value": "15.0"
+    }
+   ],
+   "seed": 3,
+   "model": "meta-models/muse-spark-open-1026",
+   "cached": false,
+   "cost_usd": 0.0094475,
+   "evidence": {
+    "status": "verified",
+    "quotes_ok": 6,
+    "quotes_bare": [],
+    "quotes_refused": [],
+    "record_ok": [
+     "order.items[0].quantity = 3",
+     "order.items[0].price = 49.99",
+     "order.items[0].pre_tax_amount = 149.97",
+     "order.item_total = 149.97",
+     "order.discount_total = -15.0",
+     "order.delivery_total = 15.0",
+     "order.tax_total = 12.0",
+     "order.total = 161.97",
+     "order.discounts[0].amount = -15.0",
+     "order.fulfillments[0].cost = 15.0"
+    ],
+    "record_refused": []
+   }
+  }
+ ],
+ "payload_sha256": "46874cee8aab6657",
+ "cost_usd": 0.027888
+}

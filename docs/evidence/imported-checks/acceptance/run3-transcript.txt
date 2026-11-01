@@ -1,0 +1,19 @@
+$ ls -la contract-imported/approvals.yaml contract-imported/dispositions.yaml contract-imported/checks/C1-04.yaml
+-rw-r--r--  1 jayantkumar  staff    262 Oct 31 18:55 contract-imported/approvals.yaml
+-rw-r--r--  1 jayantkumar  staff   4198 Oct 31 17:09 contract-imported/checks/C1-04.yaml
+-rw-r--r--  1 jayantkumar  staff  10558 Oct 31 19:00 contract-imported/dispositions.yaml
+
+$ shasum -a 256 (first 16) of the stored files
+b5da0080c956e884  contract-imported/approvals.yaml
+f92a9e5444b9fa67  contract-imported/dispositions.yaml
+d3408fbc3d2146e2  contract-imported/checks/C1-04.yaml
+
+$ python3 imported_checks.py run-saved --base current --head candidate --run ic-accept-run3 --max-usd 0.5
+current: preflight ok (Demo Store, no beta name)
+current: store reset after run: {'release': 'current', 'seconds': 6.8}
+candidate: preflight ok (Demo Store, no beta name)
+candidate: store reset after run: {'release': 'candidate', 'seconds': 6.9}
+C1-04 current: replay=succeeded assertion=fail {'pass': 1, 'fail': 2} confidence=2/3 evidence=partially_verified judged_by=meta-models/muse-spark-open-1026
+C1-04 candidate: replay=succeeded assertion=pass {'not_measurable': 1, 'pass': 2} confidence=2/3 evidence=verified judged_by=meta-models/muse-spark-open-1026
+C1-04 current->candidate: fix_confirmed (fails on the base, passes on the head with verified evidence)
+{"tag": "saved:ic-accept-run3", "fresh": true, "calls": 5, "cached": 0, "spent_usd": 0.071253, "if_fresh_usd": 0.071253, "by_role": {"check_judge": {"calls": 5, "cached": 0, "spent_usd": 0.071253, "if_fresh_usd": 0.071253, "prompt_tokens": 18640, "completion_tokens": 11283}}}
