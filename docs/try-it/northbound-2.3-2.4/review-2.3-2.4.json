@@ -41,9 +41,13 @@
    },
    "sink_root": "{scratch}",
    "health": "/",
-   "startup_timeout": 30.0
+   "startup_timeout": 30.0,
+   "per_episode": false
   },
-  "adapter": "../adapter.py"
+  "network": "open",
+  "adapter": "../adapter.py",
+  "share_readings": false,
+  "claim_roles": false
  },
  "subject": {
   "noun": "traveller"
@@ -311,7 +315,7 @@
      "defended": {
       "result": "pass",
       "detail": {
-       "kai": "[none] the defender found no defense · Having checked each cited reading against the rubric, no honest defense removes the P2 conflict. pw.email.forecast (2026-11-02T10:01) is correctly a directive suggest for when_to_book/wait_for_drop ('We suggest waiting' is an explicit wait recommendation, not just a forecast/promised notify) and fl."
+       "kai": "[none] the defender found no defense · Strongest honest case: price_watch (10:01) and fare_lock (10:03) both address when_to_book, wait_for_drop vs book_now. The fare_lock banner says 'Book now, or lock it for 12 h for €9 total if your plans might change' and is read as explains_own_tradeoff:true, offering lock as a fallback that bridges"
       },
       "occurrences": {
        "kai": "pass"
@@ -381,7 +385,7 @@
    "id": "I-2.4-U1-fare-lock-fl-banner-urgent",
    "signature": [
     "U1",
-    "fare_lock",
+    "fare_lock|fact:units_left",
     "fl.banner.urgent",
     []
    ],
@@ -492,7 +496,7 @@
      "defended": {
       "result": "pass",
       "detail": {
-       "omar": "[none] the defender found no defense · The banner fl.banner.urgent at 10:03 says 'only 2 seats left at this fare. Book now, or lock it for 12 h for €9 total...' As read under the rubric this is a directive (when_to_book/book_now/urge) that explains its own tradeoff, but U1 applies to every scarcity/availability claim regardless of streng"
+       "omar": "[none] the defender found no defense · Strongest honest case for NOT a violation would have to argue the scarcity phrase is not a U1 units_left claim or not comparable to the measured 9: that 'only 2 seats left at this fare' is fare-bucket availability, not total cabin inventory, so the 9 vs 2 comparison is not like-for-like, and the fee"
       },
       "occurrences": {
        "omar": "pass"
@@ -626,7 +630,7 @@
      "defended": {
       "result": "pass",
       "detail": {
-       "sam_alex": "[none] the defender found no defense · Strongest attempted case: argue (a) banner €9 is fee_per_traveller so 2*€9=€18 matches checkout fee_total €18, (b) checkout total €306 shows lock not part of fare transaction, or (c) timing/quote changed. Each fails honestly under the rubric and measured data: (a) fl.banner text explicitly says '€9 "
+       "sam_alex": "[none] the defender found no defense · Strongest honest attempt: argue U2 does not cover this because (a) the 'same transaction' is the fare purchase (Total to pay today: €306 = €258 + €48) and the Fare Lock line is a separate optional-service transaction, or (b) the banner's '€9 total, for your whole booking' could be read as per-travel"
       },
       "occurrences": {
        "sam_alex": "pass"
@@ -851,9 +855,9 @@
      "defended": {
       "result": "pass",
       "detail": {
-       "hana": "[none] the defender found no defense · P1 expressly permits sharing true inventory, and the banner does so ('only 2 seats left at this fare'). Viewed in context, the banner does not present a bare urgency push: it pairs 'Book now' with an immediate balanced alternative 'or lock it for 12 h for €9 total if your plans might change' that we",
-       "raj_72h_1m": "[extraction_wrong] the defender found no defense · P1 prohibits urging immediate booking, but the cited banner as shown to the user does not urge book_now as defined by the rubric read as a whole. The text is 'Book now, or lock it for 12 h for €9 total if your plans might change.' Per rubric, action 'conditional' is ONLY for a message that presents ",
-       "raj_72h_30s": "[exception_applies] overruled: claims a met; measured not_met · Honest case under user-visible messages that P1 is not violated: fl.banner.urgent shares true inventory ('only 2 seats left at this fare') - condition b measured met and permitted by first sentence of P1 - and its 'Book now' is not a prohibited standalone urge when read as a whole. The same message "
+       "hana": "[none] the defender found no defense · Under P1 the message's inventory statement ('only 2 seats left at this fare') is expressly permitted as true inventory information. The imperative 'Book now' is not a standalone urge in the rubric's sense because the same message in the same sentence offers the primary-plus-fallback alternative 'or ",
+       "raj_72h_1m": "[exception_applies] the defender found no defense · P1 permits true inventory sharing and bars urge book_now except for genuinely time-sensitive trips as defined by P1-E1. The cited banner is the only directive urging book_now, but on what the traveller actually saw it satisfies all other P1-E1 elements: b - units_left claim 'only 2 seats' is true pe",
+       "raj_72h_30s": "[none] the defender found no defense · Strongest honest case on what the user actually saw: fl.banner.urgent shares true inventory ('only 2 seats left at this fare') which P1 expressly permits. The remainder 'Book now, or lock it for 12 h for €9 total if your plans might change' offers a primary instruction plus an immediate, priced fall"
       },
       "occurrences": {
        "hana": "pass",
@@ -1012,7 +1016,7 @@
      "defended": {
       "result": "pass",
       "detail": {
-       "raj_x": "[none] the defender found no defense · Strongest honest non-violation case: P1 sentence 1 expressly permits sharing true inventory and the banner does so - 'Only 2 seats left' is true per oracle (measured b met) and Rule states 'We may always share true inventory information.' The second sentence bans urge except for genuinely time-sensi"
+       "raj_x": "[none] the defender found no defense · Strongest honest case was examined and fails. fl.banner.urgent_bare text \"Only 2 seats left. Book now.\" is correctly read under the rubric as directive, when_to_book/book_now, strength=urge via U-a (\"now\" attached to \"Book\") - U-c would also require same-sentence coupling which is not needed. explai"
       },
       "occurrences": {
        "raj_x": "pass"
@@ -1155,9 +1159,9 @@
      "defended": {
       "result": "pass",
       "detail": {
-       "family": "[none] the defender found no defense · The best honest case is that the two directives were on different channels (email at 10:01 vs banner at 10:03) and were never co-visible, so the 'while both are live' window before the 10:06 book decision was not met, and/or that a banner stating 'Lock it for 48 h for €9 total' is mere information n",
-       "maya": "[none] the defender found no defense · Strongest honest NOT-violation case would have to be timing / same-decision: argue pw.email.forecast at 10:01 (email) and fl.banner at 10:03 (banner) were never concurrently visible on the fare page where the traveller decided at 10:06, so 'while both are live' was not satisfied, and/or that fl.bann",
-       "sam_alex": "[extraction_wrong] the defender found no defense · On the rubric as written, P2 only applies when more than one feature gives an active recommendation about the SAME decision. The price_watch messages ('We suggest waiting; we'll tell you when to book' - pw.card 10:00 and pw.email.forecast 10:01) recommend deferring the when_to_book decision (wait_fo"
+       "family": "[rule_does_not_apply] the defender found no defense · Strongest honest NOT-a-violation case: Both cited directives are about when_to_book and are compatible, but before the 10:06 booking the traveller had actually seen both material facts: pw.email.forecast (10:01) disclosed the 14-day forecast window for waiting, and fl.banner (10:03) disclosed the lo",
+       "maya": "[none] the defender found no defense · On the rubric, pw.email.forecast (10:01) and fl.banner (10:03) are both directive suggest for decision when_to_book (wait_for_drop and lock_fare). The strongest no-violation argument is that P2 requires reconciling incompatible actions or explaining material tradeoffs between compatible actions whil",
+       "sam_alex": "[timing] the defender found no defense · The two cited directives were never co-present to the traveller live before the decision the rule protects (a04_buy_lock at 10:04). pw.email.forecast was shown in the email channel at 10:01 after a02_check_inbox, then the traveller executed a03_open_fare at 10:03 and moved to the fare page where fl."
       },
       "occurrences": {
        "family": "pass",
@@ -1305,9 +1309,9 @@
      "defended": {
       "result": "pass",
       "detail": {
-       "family": "[none] the defender found no defense · Strongest honest case examined: (1) extraction_wrong - pw.email.after text 'Keep waiting to book. We'll tell you when prices drop.' explicitly says to keep waiting, which rubric says IS a recommendation to wait ('we suggest waiting' / 'keep waiting' counts, a forecast/promise alone would not, but th",
-       "maya": "[none] the defender found no defense · Strongest honest non-violation argument would have to treat pw.email.after (12:00 'Keep waiting to book. We'll tell you when prices drop.') as not a recommendation under the rubric - i.e., as information/forecast/promise to notify, which U3 (\"Every recommendation we show is one the traveller can sti",
-       "maya_r": "[none] the defender found no defense · Strongest honest case: pw.email.after ('Keep waiting to book. We'll tell you when prices drop.' at 12:00) is a stale Price Watch auto-email repeating the 10:01 forecast, queued before the 10:06 booking. At 10:03 cg.reconcile already presented waiting conditionally ('If you can move your dates, wait "
+       "family": "[none] the defender found no defense · Strongest honest non-violation argument: pw.email.after at 12:00 (\"Keep waiting to book. We'll tell you when prices drop.\") is a stale asynchronous Price Watch notification duplicating the 10:00/10:01 forecast that WAS actionable when generated (booking_status=not_booked), and its core content is a ",
+       "maya": "[none] the defender found no defense · Honest best case for NOT a violation would be to argue pw.email.after at 12:00 is not a directive recommendation at all. Under the rubric a forecast or a promise to notify is not by itself a recommendation; a message recommends waiting only if it says so (e.g. \"we suggest waiting\"). Viewed that way ",
+       "maya_r": "[none] the defender found no defense · Strongest honest NOT-violation case for U3 for pw.email.after at 12:00: (1) extraction_wrong - argue the text 'Keep waiting to book. We'll tell you when prices drop.' is a forecast/promise to notify which the rubric says 'is not by itself a recommendation; a message recommends waiting only if it say"
       },
       "occurrences": {
        "family": "pass",
@@ -1433,9 +1437,9 @@
      "defended": {
       "result": "pass",
       "detail": {
-       "family": "[none] the defender found no defense · Strongest honest non-violation case would require showing cg.regret at 2026-11-04T09:02:00+00:00 is not second-guessing under U4. U4 text is 'After purchase, we never second-guess a completed choice. Offering an action the traveller can still take is not second-guessing.' The purchase (a05_book) occ",
-       "maya": "[none] the defender found no defense · Strongest honest case under the owner's text and rubric: U4 says 'After purchase, we never second-guess a completed choice. Offering an action the traveller can still take is not second-guessing.' cg.regret at 2026-11-04T09:02:00 ('You should have booked a refundable fare.') is correctly classified ",
-       "maya_r": "[rule_does_not_apply] the defender found no defense · Strongest honest case for NOT a violation under U4 as written: U4 says 'After purchase, we never second-guess a completed choice. Offering an action the traveller can still take is not second-guessing.' Read as a whole, 'completed choice' could be read to mean a choice that is no longer reversible. "
+       "family": "[none] the defender found no defense · Strongest honest defense considered: (1) rule_does_not_apply - that U4 only bars second-guessing the decision to purchase itself, not fare_type, or that the second sentence exempts regretting a choice that was once correctable; (2) extraction_wrong - that cg.regret at 2026-11-04T09:02:00Z 'You shoul",
+       "maya": "[none] the defender found no defense · Strongest honest argument: U4 says ‘Offering an action the traveller can still take is not second-guessing.’ One could argue cg.regret at 2026-11-04T09:02:00 (“You should have booked a refundable fare.”) is implicitly about the same action offered in cg.upgrade/core.confirmed.fare_window and therefo",
+       "maya_r": "[none] the defender found no defense · The strongest honest attempt would be to argue cg.regret (2026-11-04T09:02:00 'You should have booked a refundable fare.') is not U4 second-guessing because it does not offer a now-action and therefore is merely informational, or that the rule's carve-out 'Offering an action the traveller can still "
       },
       "occurrences": {
        "family": "pass",
@@ -1567,9 +1571,9 @@
      "defended": {
       "result": "pass",
       "detail": {
-       "family": "[rule_does_not_apply] overruled: this rule is applied by code from the contract's own definitions · P3 limits 'Beyond messages about the booking itself' to outbound contacts other than the booking itself. The traveller's booking NB0001 was made at 2026-11-02T10:06:00Z and the booking confirmation email at 10:06 is expressly excluded. The cited pw.email.forecast at 2026-11-02T10:01:00Z was sent BEF",
-       "maya": "[none] the defender found no defense · Strongest honest case was examined: P3 excludes only 'messages about the booking itself' and 'in-app cards and user-initiated conversations'. The three cited contacts are pw.email.forecast (email 10:01 price_watch), pw.email.after (email 12:00 price_watch) and pw.push.moving (push 18:00 price_watch)",
-       "maya_r": "[none] the defender found no defense · We reviewed the three cited outbound messages against P3 as written. P3 allows at most 2 outbound contacts (email or push) in any 24 hours beyond messages about the booking itself, with only in-app cards and user-initiated conversations excluded. The cited messages are pw.email.forecast (email 2026-"
+       "family": "[none] the defender found no defense · No honest defense avoids the count under P3 as written. P3 allows at most 2 outbound contacts (email or push) in any 24h beyond messages about the booking itself, with only in-app cards and user-initiated conversations excluded. The user actually saw: pw.email.forecast (email) at 2026-11-02T10:01:00",
+       "maya": "[none] the defender found no defense · No honest defense under P3 on the measured data. P3 counts every email or push beyond messages about the booking itself, excluding only in-app cards and user-initiated conversations. The three cited events are all email/push and none are about the booking itself: pw.email.forecast (email 10:01), pw.",
+       "maya_r": "[none] the defender found no defense · The strongest honest reading still shows 3 non-booking outbound contacts within ~8 hours. P3 counts every email or push beyond messages about the booking itself; in-app cards and user-initiated conversations are not contacts. core.email.confirmation at 2026-11-02T10:06 is about the booking (NB0001) "
       },
       "occurrences": {
        "family": "pass",
@@ -1728,6 +1732,8 @@
    "reason": "exception P1-E1 applies: (a) met, (b) met, (c) met, (scope) met, (expiry) met"
   }
  ],
+ "mode": "rules",
+ "reader": null,
  "personas": [
   {
    "id": "family",
@@ -2148,8 +2154,11 @@
       "claims": [
        {
         "type": "fee_total",
-        "unit": "EUR",
-        "value": 30
+        "unit": "€",
+        "value": 30.0,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -2216,12 +2225,18 @@
        {
         "type": "units_left",
         "unit": "seats",
-        "value": 9
+        "value": 9.0,
+        "truth": 9,
+        "verdict": "match",
+        "shown": "9"
        },
        {
         "type": "fee_total",
-        "unit": "EUR",
-        "value": 9
+        "unit": "€",
+        "value": 9.0,
+        "truth": null,
+        "verdict": null,
+        "shown": "9"
        }
       ],
       "normalized": null
@@ -2478,8 +2493,11 @@
       "claims": [
        {
         "type": "fee_total",
-        "unit": "EUR",
-        "value": 30
+        "unit": "€",
+        "value": 30.0,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -2607,7 +2625,10 @@
        {
         "type": "fee_total",
         "unit": "EUR",
-        "value": 30
+        "value": 30,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -2924,7 +2945,10 @@
        {
         "type": "fee_total",
         "unit": "EUR",
-        "value": 30
+        "value": 30,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -3223,7 +3247,7 @@
      "status": "violated",
      "label": "unexplained_tradeoff",
      "conditions": [],
-     "note": "wait_for_drop (14-day forecast) and lock_fare (€9 total for 48h) are compatible but have material tradeoff: lock does not cover full wait window and costs €9. Both were live together from 10:03 (fl.ba"
+     "note": "Both recommendations were live together from 10:03 (fl.banner) until the book decision at 10:06, with pw.email.forecast from 10:01 still active. wait_for_drop (wait 14 days) and lock_fare (pay €9 for "
     },
     {
      "rule": "P3",
@@ -3890,7 +3914,10 @@
        {
         "type": "fee_total",
         "unit": "EUR",
-        "value": 30.0
+        "value": 30,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -4138,7 +4165,10 @@
        {
         "type": "fee_total",
         "unit": "EUR",
-        "value": 30.0
+        "value": 30,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -4262,7 +4292,10 @@
        {
         "type": "fee_total",
         "unit": "EUR",
-        "value": 30.0
+        "value": 30,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -5112,8 +5145,11 @@
       "claims": [
        {
         "type": "fee_total",
-        "unit": "EUR",
-        "value": 30
+        "unit": "€",
+        "value": 30.0,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -5180,12 +5216,18 @@
        {
         "type": "units_left",
         "unit": "seats",
-        "value": 2
+        "value": 2.0,
+        "truth": 2,
+        "verdict": "match",
+        "shown": "2"
        },
        {
         "type": "fee_total",
-        "unit": "EUR",
-        "value": 9
+        "unit": "€",
+        "value": 9.0,
+        "truth": null,
+        "verdict": null,
+        "shown": "9"
        }
       ],
       "normalized": null
@@ -5601,7 +5643,10 @@
        {
         "type": "fee_total",
         "unit": "EUR",
-        "value": 30.0
+        "value": 30,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -6047,8 +6092,11 @@
       "claims": [
        {
         "type": "fee_total",
-        "unit": "EUR",
-        "value": 30
+        "unit": "€",
+        "value": 30.0,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -6115,12 +6163,18 @@
        {
         "type": "units_left",
         "unit": "seats",
-        "value": 2
+        "value": 2.0,
+        "truth": 2,
+        "verdict": "match",
+        "shown": "2"
        },
        {
         "type": "fee_total",
-        "unit": "EUR",
-        "value": 9
+        "unit": "€",
+        "value": 9.0,
+        "truth": null,
+        "verdict": null,
+        "shown": "9"
        }
       ],
       "normalized": null
@@ -6239,7 +6293,7 @@
      "status": "violated",
      "label": "conflict",
      "conditions": [],
-     "note": "fare_lock urges book_now due to scarcity/departing soon while price_watch urges wait_for_drop for two weeks - incompatible act-now vs wait. No user-visible message after both were live (from 10:03) re"
+     "note": "Incompatible pair: fare_lock says book_now (fl.banner.urgent at 10:03) while price_watch says wait_for_drop for two weeks (pw.email.forecast at 10:01). Both were live after 10:03 with no user decision"
     },
     {
      "rule": "P3",
@@ -6560,7 +6614,10 @@
        {
         "type": "fee_total",
         "unit": "EUR",
-        "value": 30.0
+        "value": 30,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -7032,8 +7089,11 @@
       "claims": [
        {
         "type": "fee_total",
-        "unit": "EUR",
-        "value": 30
+        "unit": "€",
+        "value": 30.0,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -7100,12 +7160,18 @@
        {
         "type": "units_left",
         "unit": "seats",
-        "value": 2
+        "value": 2.0,
+        "truth": 2,
+        "verdict": "match",
+        "shown": "2"
        },
        {
         "type": "fee_total",
-        "unit": "EUR",
-        "value": 9
+        "unit": "€",
+        "value": 9.0,
+        "truth": null,
+        "verdict": null,
+        "shown": "9"
        }
       ],
       "normalized": null
@@ -7237,7 +7303,10 @@
        {
         "type": "units_left",
         "unit": "seats",
-        "value": 2
+        "value": 2,
+        "truth": 2,
+        "verdict": "match",
+        "shown": "2"
        }
       ],
       "normalized": null
@@ -7342,7 +7411,7 @@
      "status": "passed",
      "label": "explained_tradeoff",
      "conditions": [],
-     "note": "cg.reconcile refers to both actions (wait for the alert/drop and locking) and gives conditional guidance on how to choose (if dates flexible wait, if not lock), shown at 10:04 while both pw.email.fore"
+     "note": "Both recommendations were live from 10:03 (email wait + banner lock) and cg.reconcile at 10:04 before leave at 10:06 refers to each action - 'wait for the alert' for likely drop and 'locking protects "
     },
     {
      "rule": "P3",
@@ -7711,7 +7780,10 @@
        {
         "type": "fee_total",
         "unit": "EUR",
-        "value": 30.0
+        "value": 30,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -8371,8 +8443,11 @@
       "claims": [
        {
         "type": "fee_total",
-        "unit": "EUR",
-        "value": 30
+        "unit": "€",
+        "value": 30.0,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -8439,12 +8514,18 @@
        {
         "type": "units_left",
         "unit": "seats",
-        "value": 2
+        "value": 2.0,
+        "truth": 2,
+        "verdict": "match",
+        "shown": "2"
        },
        {
         "type": "fee_total",
-        "unit": "EUR",
-        "value": 9
+        "unit": "€",
+        "value": 9.0,
+        "truth": null,
+        "verdict": null,
+        "shown": "9"
        }
       ],
       "normalized": null
@@ -8701,8 +8782,11 @@
       "claims": [
        {
         "type": "fee_total",
-        "unit": "EUR",
-        "value": 30
+        "unit": "€",
+        "value": 30.0,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -8830,7 +8914,10 @@
        {
         "type": "fee_total",
         "unit": "EUR",
-        "value": 30
+        "value": 30,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -9147,7 +9234,10 @@
        {
         "type": "fee_total",
         "unit": "EUR",
-        "value": 30
+        "value": 30,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -9446,7 +9536,7 @@
      "status": "violated",
      "label": "unexplained_tradeoff",
      "conditions": [],
-     "note": "Both recommendations were live together before decision: wait_for_drop (pw.email.forecast at 10:01) and lock_fare (fl.banner at 10:03) overlapped until book at 10:06. They are compatible but have mate"
+     "note": "fare_lock (fl.banner) recommends lock_fare for €9 for 48h and price_watch (pw.email.forecast) recommends wait_for_drop over 14 days. Both were live from 10:03 until booking at 10:06. The €9 cost and 4"
     },
     {
      "rule": "P3",
@@ -10113,7 +10203,10 @@
        {
         "type": "fee_total",
         "unit": "EUR",
-        "value": 30.0
+        "value": 30,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -10361,7 +10454,10 @@
        {
         "type": "fee_total",
         "unit": "EUR",
-        "value": 30.0
+        "value": 30,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -10485,7 +10581,10 @@
        {
         "type": "fee_total",
         "unit": "EUR",
-        "value": 30.0
+        "value": 30,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -11385,8 +11484,11 @@
       "claims": [
        {
         "type": "fee_total",
-        "unit": "EUR",
-        "value": 30
+        "unit": "€",
+        "value": 30.0,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -11453,12 +11555,18 @@
        {
         "type": "units_left",
         "unit": "seats",
-        "value": 2
+        "value": 2.0,
+        "truth": 2,
+        "verdict": "match",
+        "shown": "2"
        },
        {
         "type": "fee_total",
-        "unit": "EUR",
-        "value": 9
+        "unit": "€",
+        "value": 9.0,
+        "truth": null,
+        "verdict": null,
+        "shown": "9"
        }
       ],
       "normalized": null
@@ -11525,7 +11633,10 @@
        {
         "type": "units_left",
         "unit": "seats",
-        "value": 2
+        "value": 2,
+        "truth": 2,
+        "verdict": "match",
+        "shown": "2"
        }
       ],
       "normalized": null
@@ -11782,8 +11893,11 @@
       "claims": [
        {
         "type": "fee_total",
-        "unit": "EUR",
-        "value": 30
+        "unit": "€",
+        "value": 30.0,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -11911,7 +12025,10 @@
        {
         "type": "fee_total",
         "unit": "EUR",
-        "value": 30
+        "value": 30,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -12228,7 +12345,10 @@
        {
         "type": "fee_total",
         "unit": "EUR",
-        "value": 30
+        "value": 30,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -12543,7 +12663,7 @@
      "status": "passed",
      "label": "explained_tradeoff",
      "conditions": [],
-     "note": "Pair is tradeoff: lock for €9/48h vs wait 14 days for drop. cg.reconcile at 10:03, while both live and before book at 10:06, refers to both actions ('wait for the alert' and 'locking protects this pri"
+     "note": "cg.reconcile was shown at 10:03 while both fl.banner (lock) and pw.email.forecast (wait) were live and before book at 10:06. It refers to both actions - 'wait for the alert' for wait_for_drop and 'loc"
     },
     {
      "rule": "P3",
@@ -13210,7 +13330,10 @@
        {
         "type": "fee_total",
         "unit": "EUR",
-        "value": 30.0
+        "value": 30,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -13458,7 +13581,10 @@
        {
         "type": "fee_total",
         "unit": "EUR",
-        "value": 30.0
+        "value": 30,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -13582,7 +13708,10 @@
        {
         "type": "fee_total",
         "unit": "EUR",
-        "value": 30.0
+        "value": 30,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -14432,8 +14561,11 @@
       "claims": [
        {
         "type": "fee_total",
-        "unit": "EUR",
-        "value": 30
+        "unit": "€",
+        "value": 30.0,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -14500,12 +14632,18 @@
        {
         "type": "units_left",
         "unit": "seats",
-        "value": 2
+        "value": 2.0,
+        "truth": 9,
+        "verdict": "mismatch",
+        "shown": "2"
        },
        {
         "type": "fee_total",
-        "unit": "EUR",
-        "value": 9
+        "unit": "€",
+        "value": 9.0,
+        "truth": null,
+        "verdict": null,
+        "shown": "9"
        }
       ],
       "normalized": null
@@ -14921,7 +15059,10 @@
        {
         "type": "fee_total",
         "unit": "EUR",
-        "value": 30.0
+        "value": 30,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -15367,8 +15508,11 @@
       "claims": [
        {
         "type": "fee_total",
-        "unit": "EUR",
-        "value": 30
+        "unit": "€",
+        "value": 30.0,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -15435,12 +15579,18 @@
        {
         "type": "units_left",
         "unit": "seats",
-        "value": 2
+        "value": 2.0,
+        "truth": 2,
+        "verdict": "match",
+        "shown": "2"
        },
        {
         "type": "fee_total",
-        "unit": "EUR",
-        "value": 9
+        "unit": "€",
+        "value": 9.0,
+        "truth": null,
+        "verdict": null,
+        "shown": "9"
        }
       ],
       "normalized": null
@@ -15856,7 +16006,10 @@
        {
         "type": "fee_total",
         "unit": "EUR",
-        "value": 30.0
+        "value": 30,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -16302,8 +16455,11 @@
       "claims": [
        {
         "type": "fee_total",
-        "unit": "EUR",
-        "value": 30
+        "unit": "€",
+        "value": 30.0,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -16370,12 +16526,18 @@
        {
         "type": "units_left",
         "unit": "seats",
-        "value": 2
+        "value": 2.0,
+        "truth": 2,
+        "verdict": "match",
+        "shown": "2"
        },
        {
         "type": "fee_total",
-        "unit": "EUR",
-        "value": 9
+        "unit": "€",
+        "value": 9.0,
+        "truth": null,
+        "verdict": null,
+        "shown": "9"
        }
       ],
       "normalized": null
@@ -16791,7 +16953,10 @@
        {
         "type": "fee_total",
         "unit": "EUR",
-        "value": 30.0
+        "value": 30,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -17237,8 +17402,11 @@
       "claims": [
        {
         "type": "fee_total",
-        "unit": "EUR",
-        "value": 30
+        "unit": "€",
+        "value": 30.0,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -17305,12 +17473,18 @@
        {
         "type": "units_left",
         "unit": "seats",
-        "value": 2
+        "value": 2.0,
+        "truth": 2,
+        "verdict": "match",
+        "shown": "2"
        },
        {
         "type": "fee_total",
-        "unit": "EUR",
-        "value": 9
+        "unit": "€",
+        "value": 9.0,
+        "truth": null,
+        "verdict": null,
+        "shown": "9"
        }
       ],
       "normalized": null
@@ -17726,7 +17900,10 @@
        {
         "type": "fee_total",
         "unit": "EUR",
-        "value": 30.0
+        "value": 30,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -18172,8 +18349,11 @@
       "claims": [
        {
         "type": "fee_total",
-        "unit": "EUR",
-        "value": 30
+        "unit": "€",
+        "value": 30.0,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -18240,12 +18420,18 @@
        {
         "type": "units_left",
         "unit": "seats",
-        "value": 2
+        "value": 2.0,
+        "truth": 2,
+        "verdict": "match",
+        "shown": "2"
        },
        {
         "type": "fee_total",
-        "unit": "EUR",
-        "value": 9
+        "unit": "€",
+        "value": 9.0,
+        "truth": null,
+        "verdict": null,
+        "shown": "9"
        }
       ],
       "normalized": null
@@ -18661,7 +18847,10 @@
        {
         "type": "fee_total",
         "unit": "EUR",
-        "value": 30.0
+        "value": 30,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -19107,8 +19296,11 @@
       "claims": [
        {
         "type": "fee_total",
-        "unit": "EUR",
-        "value": 30
+        "unit": "€",
+        "value": 30.0,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -19175,7 +19367,10 @@
        {
         "type": "units_left",
         "unit": "seats",
-        "value": 2
+        "value": 2.0,
+        "truth": 2,
+        "verdict": "match",
+        "shown": "2"
        }
       ],
       "normalized": null
@@ -19591,7 +19786,10 @@
        {
         "type": "fee_total",
         "unit": "EUR",
-        "value": 30.0
+        "value": 30,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -20138,8 +20336,11 @@
       "claims": [
        {
         "type": "fee_total",
-        "unit": "EUR",
-        "value": 30
+        "unit": "€",
+        "value": 30.0,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -20206,12 +20407,18 @@
        {
         "type": "units_left",
         "unit": "seats",
-        "value": 2
+        "value": 2.0,
+        "truth": 2,
+        "verdict": "match",
+        "shown": "2"
        },
        {
         "type": "fee_total",
-        "unit": "EUR",
-        "value": 9
+        "unit": "€",
+        "value": 9.0,
+        "truth": null,
+        "verdict": null,
+        "shown": "9"
        }
       ],
       "normalized": null
@@ -20407,8 +20614,11 @@
       "claims": [
        {
         "type": "fee_total",
-        "unit": "EUR",
-        "value": 18
+        "unit": "€",
+        "value": 18.0,
+        "truth": 18.0,
+        "verdict": "match",
+        "shown": "18"
        }
       ],
       "normalized": null
@@ -20535,8 +20745,11 @@
       "claims": [
        {
         "type": "fee_total",
-        "unit": "EUR",
-        "value": 30
+        "unit": "€",
+        "value": 30.0,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -20637,7 +20850,7 @@
      "status": "violated",
      "label": "unexplained_tradeoff",
      "conditions": [],
-     "note": "Pair is tradeoff: wait_for_drop (14-day forecast) and lock_fare (48h for €9 total) are compatible but have material tradeoff of cost vs short coverage. Both live from fl.banner at 10:03 until user dec"
+     "note": "wait_for_drop (pw.email.forecast) and lock_fare (fl.banner) were both live before buy_lock at 10:04, with material tradeoff of €9 cost for 48h protection vs 14-day drop window. No message refers to bo"
     },
     {
      "rule": "P3",
@@ -20993,7 +21206,10 @@
        {
         "type": "fee_total",
         "unit": "EUR",
-        "value": 30.0
+        "value": 30,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -21226,8 +21442,11 @@
       "claims": [
        {
         "type": "fee_total",
-        "unit": "EUR",
-        "value": 30
+        "unit": "€",
+        "value": 30.0,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -21294,12 +21513,18 @@
        {
         "type": "units_left",
         "unit": "seats",
-        "value": 2
+        "value": 2.0,
+        "truth": 2,
+        "verdict": "match",
+        "shown": "2"
        },
        {
         "type": "fee_total",
-        "unit": "EUR",
-        "value": 9
+        "unit": "€",
+        "value": 9.0,
+        "truth": null,
+        "verdict": null,
+        "shown": "9"
        }
       ],
       "normalized": null
@@ -21556,8 +21781,11 @@
       "claims": [
        {
         "type": "fee_total",
-        "unit": "EUR",
-        "value": 30
+        "unit": "€",
+        "value": 30.0,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -21685,7 +21913,10 @@
        {
         "type": "fee_total",
         "unit": "EUR",
-        "value": 30
+        "value": 30,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -21995,7 +22226,10 @@
        {
         "type": "fee_total",
         "unit": "EUR",
-        "value": 30
+        "value": 30,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -22220,7 +22454,10 @@
        {
         "type": "fee_total",
         "unit": "EUR",
-        "value": 30.0
+        "value": 30,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -22468,7 +22705,10 @@
        {
         "type": "fee_total",
         "unit": "EUR",
-        "value": 30.0
+        "value": 30,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -22592,7 +22832,10 @@
        {
         "type": "fee_total",
         "unit": "EUR",
-        "value": 30.0
+        "value": 30,
+        "truth": null,
+        "verdict": null,
+        "shown": "30"
        }
       ],
       "normalized": null
@@ -22921,8 +23164,8 @@
  "manifest": {
   "schema": "semaudit.manifest/1",
   "code": {
-   "git": "f847bd2209873f6f72bda8c5df717441f5873959",
-   "src_dirty": true
+   "git": "8c2c76279742592e5f34e23e3af7d937bdf7f8bd",
+   "src_dirty": false
   },
   "contract": {
    "dir": "examples/northbound/contract",
@@ -22992,6 +23235,88 @@
    "defender": "muse-spark-1.2",
    "smoke": "muse-spark-1.3"
   },
+  "model_settings": {
+   "interpreter": {
+    "provider": "meta",
+    "model": "muse-spark-1.3",
+    "reasoning_effort": "medium"
+   },
+   "extractor": {
+    "provider": "meta",
+    "model": "muse-spark-1.3",
+    "reasoning_effort": "low"
+   },
+   "cross_checker_extract": {
+    "provider": "meta",
+    "model": "muse-spark-1.2",
+    "reasoning_effort": "low"
+   },
+   "cross_checker_interpret": {
+    "provider": "meta",
+    "model": "muse-spark-1.2",
+    "reasoning_effort": "medium"
+   },
+   "defender": {
+    "provider": "meta",
+    "model": "muse-spark-1.2",
+    "reasoning_effort": "medium"
+   },
+   "smoke": {
+    "provider": "meta",
+    "model": "muse-spark-1.3",
+    "reasoning_effort": "minimal"
+   }
+  },
+  "spend": {
+   "tag": null,
+   "fresh": false,
+   "calls": 62,
+   "cached": 62,
+   "spent_usd": 0.0,
+   "if_fresh_usd": 0.873859,
+   "by_role": {
+    "cross_checker_extract": {
+     "calls": 19,
+     "cached": 19,
+     "spent_usd": 0.0,
+     "if_fresh_usd": 0.135514,
+     "prompt_tokens": 15057,
+     "completion_tokens": 27457
+    },
+    "cross_checker_interpret": {
+     "calls": 14,
+     "cached": 14,
+     "spent_usd": 0.0,
+     "if_fresh_usd": 0.156563,
+     "prompt_tokens": 35164,
+     "completion_tokens": 26496
+    },
+    "defender": {
+     "calls": 19,
+     "cached": 19,
+     "spent_usd": 0.0,
+     "if_fresh_usd": 0.482243,
+     "prompt_tokens": 58150,
+     "completion_tokens": 96366
+    },
+    "extractor": {
+     "calls": 4,
+     "cached": 4,
+     "spent_usd": 0.0,
+     "if_fresh_usd": 0.050954,
+     "prompt_tokens": 8069,
+     "completion_tokens": 9616
+    },
+    "interpreter": {
+     "calls": 6,
+     "cached": 6,
+     "spent_usd": 0.0,
+     "if_fresh_usd": 0.048586,
+     "prompt_tokens": 13569,
+     "completion_tokens": 7441
+    }
+   }
+  },
   "prompts": {
    "extraction": "30d78067f00000e445e62f34f142ac63fa1e3bc126d8fd1b2528b1794fb575c6",
    "interpret": "2529592202c137a08ca3ca8b5e04c737c7771680acce4ffc673b1e56561bf914",
@@ -23016,5 +23341,5 @@
    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
   }
  },
- "written_at": "2026-10-27T19:40:00Z"
+ "written_at": "2026-11-02T02:48:12Z"
 }

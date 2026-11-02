@@ -69,10 +69,6 @@ def test_cli_exit_2_when_inputs_are_missing(copy, tmp_path):
     assert "cannot verify: 1 pinned input(s) missing" in r.output
 
 
-def test_the_committed_inputs_are_all_there(copy, tmp_path):
-    """Every pinned input is present: the run gets past the missing-input checks (its verdict is asserted
-    separately, against the review that is committed)."""
-    try:
-        run(copy, tmp_path)
-    except CannotVerify as e:
-        pytest.fail(f"cannot verify: {e}")
+def test_the_committed_sample_review_verifies(copy, tmp_path):
+    """Every pinned input is committed, and the review is what they produce at this code: CONSISTENT."""
+    assert run(copy, tmp_path) == []

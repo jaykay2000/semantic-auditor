@@ -24,7 +24,12 @@ It rebuilds two pages from files committed in this repo and prints where they we
    page that is [hosted](docs/sample-review/index.html);
 2. the saved-check cards from the owner's run of the two approved Spree checks (`ic-owner-rec-1`, 2026-11-01).
 
-Each rebuilt file is compared byte for byte with its committed copy, and the command says so. It makes no model
+Each rebuilt file is compared byte for byte with its committed copy, and the command says so. To check the review
+itself against its pinned inputs, also offline:
+`.venv/bin/semaudit verify-report docs/try-it/northbound-2.3-2.4/review-2.3-2.4.json` (prints `CONSISTENT`). The
+sample review was rebuilt at commit `8c2c762` from the run's recorded episodes and cached model replies; some
+defender explanations in it are the wording of a later run that sent identical requests, and no result changed
+([details](docs/try-it/README.md)). It makes no model
 call: it only re-renders recorded results, and its test runs it with every model call and network connection made to
 fail ([tests/test_demo.py](tests/test_demo.py)). The inputs are listed in
 [docs/try-it/demo.json](docs/try-it/demo.json). Running a new review or a saved check needs a model key and the app
