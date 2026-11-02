@@ -223,7 +223,7 @@
  },
  "northbound": {
   "review": "runs/e2e-2/review-2.3-2.4.json",
-  "review_sha256": "d1a5c025aed4d7a9958fa0515a19920856a52700b2a2f6ef4596e4d03f6bcd02",
+  "review_sha256": "44f03edebc849417231889d7bd3df32271ff254ef933e258ddc393824291ae9c",
   "rules": "examples/northbound/contract/principles.yaml",
   "rules_sha256": "14bea987f13a8171de1e69575e9ff65b6ceb984b110e52b29c6905bae3a2a1c3",
   "release": {
