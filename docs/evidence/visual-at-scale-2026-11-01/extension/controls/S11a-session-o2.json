@@ -1,0 +1,55 @@
+{
+ "review": "review-current-candidate.reader.json",
+ "controls": [
+  {
+   "issue": "R-candidate-U3-line-amount-core-4f237b451a-88803e39",
+   "event": "core.4f237b451a#5",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s06.c02.screenshot.png",
+   "real_quote": "$43.19",
+   "control_quote": "$0.00",
+   "source": "same_page",
+   "replaced": "$43.19",
+   "with": "$0.00"
+  },
+  {
+   "issue": "R-candidate-U3-line-amount-core-4f237b451a-1b447444",
+   "event": "core.4f237b451a#6",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png",
+   "real_quote": "$43.19",
+   "control_quote": "$39.99",
+   "source": "same_page",
+   "replaced": "$43.19",
+   "with": "$39.99"
+  },
+  {
+   "issue": "R-candidate-U1-line-amount-core-4f237b451a-c86a4dd5",
+   "event": "core.4f237b451a#8",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png",
+   "real_quote": "$43.19",
+   "control_quote": "$39.99",
+   "source": "same_page",
+   "replaced": "$43.19",
+   "with": "$39.99"
+  },
+  {
+   "issue": "R-candidate-P1-unnamed-fact-core-4f237b451a-51e4145e",
+   "event": "core.4f237b451a#3#2",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s04.c01.screenshot.png",
+   "real_quote": "$39.99",
+   "control_quote": "$40.99",
+   "source": "plus_one",
+   "replaced": "$39.99",
+   "with": "$40.99"
+  },
+  {
+   "issue": "R-candidate-P1-unnamed-fact-core-4f237b451a-cecaf475",
+   "event": "core.4f237b451a#4#2",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s06.c01.screenshot.png",
+   "real_quote": "$39.99",
+   "control_quote": "$0.00",
+   "source": "same_page",
+   "replaced": "$39.99",
+   "with": "$0.00"
+  }
+ ]
+}

@@ -1,0 +1,25 @@
+{
+ "review": "review-current-candidate.reader.json",
+ "controls": [
+  {
+   "issue": "R-candidate-P1-order-total-core-4f237b451a-d4f7ca9e",
+   "event": "core.4f237b451a#3#2",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s04.c01.screenshot.png",
+   "real_quote": "$39.99",
+   "control_quote": "$40.99",
+   "source": "plus_one",
+   "replaced": "$39.99",
+   "with": "$40.99"
+  },
+  {
+   "issue": "R-candidate-P1-order-total-core-4f237b451a-8478a636",
+   "event": "core.4f237b451a#4#2",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s06.c01.screenshot.png",
+   "real_quote": "$39.99",
+   "control_quote": "$0.00",
+   "source": "same_page",
+   "replaced": "$39.99",
+   "with": "$0.00"
+  }
+ ]
+}

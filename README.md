@@ -341,11 +341,13 @@ screenshot and says what the text says, and writes a copy of the review with `vi
 only its quote was matched to the capture. It never changes a
 verdict, a verification status, PASS, `fix_confirmed` or the outcome, and it does not find new issues or read emails or
 PDFs ([first measured on the Spree tax line](docs/evidence/visual-confirm-spree-2026-11-01/README.md)). On every
-issue in the Northbound 2.3 → 2.4 review and the Spree reader review that has a screenshot (7 issues), it confirmed
-7 of 7; with one figure in each claim changed to another figure from the same page (7 planted wrong values), it
-answered `contradicted` 7 of 7, for $0.027 in all
-([evidence](docs/evidence/visual-at-scale-2026-11-01/README.md)). That is 7 easy-to-read crops and one seed, not a
-rate.
+eligible issue with a screenshot in 21 review files of three apps (Northbound, Spree, Finablo: 65 issues, but only 31
+distinct crops, because many issues point at the same element), one figure in each claim was changed to another
+figure from the same page: all 58 planted wrong values came back `contradicted`. The real claims came back 58
+`confirmed`, 2 `contradicted` and 5 `unreadable`. One `contradicted` caught a reader issue that cited the wrong
+element; the 5 `unreadable` are exact readings that differ only by an emoji or a curly apostrophe, which SRA's strict
+comparison does not normalize. $0.15 in all, one seed, mostly clean text
+([evidence](docs/evidence/visual-at-scale-2026-11-01/README.md)).
 
 ## Add your app
 

@@ -1,0 +1,15 @@
+{
+ "review": "review-current-candidate.reader.json",
+ "controls": [
+  {
+   "issue": "R-candidate-P1-unnamed-fact-core-4f237b451a-51e4145e",
+   "event": "core.4f237b451a#3#2",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s04.c01.screenshot.png",
+   "real_quote": "$39.99",
+   "control_quote": "$40.99",
+   "source": "plus_one",
+   "replaced": "$39.99",
+   "with": "$40.99"
+  }
+ ]
+}

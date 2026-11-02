@@ -1,0 +1,457 @@
+[
+{
+"app": "Northbound",
+"review": "first",
+"issue": "I-2.4-P2-fare-lock-price-watch-conflict",
+"sha256": "60032ea112fcf414100c8f8255774f08f506c9076f7f1119b919170fc3cb119f",
+"group": 58
+},
+{
+"app": "Northbound",
+"review": "first",
+"issue": "I-2.4-U1-fare-lock-fl-banner-urgent",
+"sha256": "4dd4417a741192ee742166b675d6e57751f5f8ac4cf5239ddb3268e5fb17bed2",
+"group": 58
+},
+{
+"app": "Northbound",
+"review": "first",
+"issue": "I-2.4-U2-fare-lock-fl-banner",
+"sha256": "99df6e95f362fd01cc70157a3bb83143901f359a137f091a6a32c399528e580d",
+"group": 2
+},
+{
+"app": "Northbound",
+"review": "first",
+"issue": "I-2.4-P1-fare-lock-fl-banner-urgent-a",
+"sha256": "7460b25d5e4d17a9978e07a1f2c240a1e8e0861ffdb8dbd2476083b5fdda91a8",
+"group": 58
+},
+{
+"app": "Northbound",
+"review": "first",
+"issue": "I-2.4-P1-fare-lock-fl-banner-urgent-bare-c",
+"sha256": "1043dab56d18f3263e918da634287e19be7c5466f476d2771539831c03718fea",
+"group": 59
+},
+{
+"app": "Northbound",
+"review": "first",
+"issue": "I-2.4-P2-fare-lock-price-watch-unexplained-tradeoff",
+"sha256": "0e1806a0331df8dbd0b4baa8037c15fc1e8eb9a562c3cfa341f93426df33f466",
+"group": 5
+},
+{
+"app": "Spree",
+"review": "first",
+"issue": "R-v6.0.0.beta3-U1-line-amount-core-4f237b451a-ab6a0c63",
+"sha256": "7ed89eef7c13681e05308beff3e1f58e3064ce146725f0f280651491c6cb439c",
+"group": 61
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__r1-run-1__review-10ff1e3-a183626",
+"issue": "I-a183626-U1-first-move-plan-first-move-plan-89c55589d7",
+"sha256": "c005ff1edc7922c57624ca4580febe09472c6fcbc78ed65b71a5a8d0c39c0813",
+"group": 14
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__r1-run-1__review-10ff1e3-a183626",
+"issue": "I-a183626-U1-freedom-snapshot-freedom-snapshot-83e15a4362",
+"sha256": "d283bae4a15423c656ebb77846a9ac1d185ad83db83183c50e0fae09fc3f6fe5",
+"group": 8
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__r1-run-1__review-10ff1e3-a183626",
+"issue": "I-a183626-U2-ai-export-text-ai-export-text-45814d9baa",
+"sha256": "c005ff1edc7922c57624ca4580febe09472c6fcbc78ed65b71a5a8d0c39c0813",
+"group": 14
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__r1-run-1__review-10ff1e3-a183626",
+"issue": "I-a183626-U2-ai-export-text-ai-export-text-6eef2f05f0",
+"sha256": "978a11b183a2158689c3a068cb3b59bffb01aedd223a6bd8f2d616e5de6357ce",
+"group": 15
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__r1-run-1__review-10ff1e3-a183626",
+"issue": "I-a183626-U2-ai-export-text-ai-export-text-8ee7269673",
+"sha256": "c005ff1edc7922c57624ca4580febe09472c6fcbc78ed65b71a5a8d0c39c0813",
+"group": 14
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__r1-run-1__review-10ff1e3-a183626",
+"issue": "I-a183626-U2-ai-export-text-ai-export-text-abbd6ca9a1",
+"sha256": "c005ff1edc7922c57624ca4580febe09472c6fcbc78ed65b71a5a8d0c39c0813",
+"group": 14
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__r1-run-1__review-10ff1e3-a183626",
+"issue": "I-a183626-U2-ai-export-text-ai-export-text-cdf7e925f5",
+"sha256": "c005ff1edc7922c57624ca4580febe09472c6fcbc78ed65b71a5a8d0c39c0813",
+"group": 14
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__r1-run-1__review-10ff1e3-a183626",
+"issue": "I-a183626-U2-ai-export-text-ai-export-text-df2d888b73",
+"sha256": "c005ff1edc7922c57624ca4580febe09472c6fcbc78ed65b71a5a8d0c39c0813",
+"group": 14
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__r1-run-1__review-10ff1e3-a183626",
+"issue": "I-a183626-U2-first-move-plan-first-move-plan-4c1b92bbc4",
+"sha256": "978a11b183a2158689c3a068cb3b59bffb01aedd223a6bd8f2d616e5de6357ce",
+"group": 15
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__r1-run-1__review-10ff1e3-a183626",
+"issue": "I-a183626-U2-first-move-plan-first-move-plan-5352ff4e52",
+"sha256": "02a4052a70a5c123f71a23256825aafc8b219cdd5a75d3476101422ceb83f315",
+"group": 55
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__r1-run-1__review-10ff1e3-a183626",
+"issue": "I-a183626-U2-first-move-plan-first-move-plan-a1641aa7e6",
+"sha256": "5f3d37d6ebf6df7095c48465803cb12e064fdf3e55e7dcc440df54c6c50551bb",
+"group": 17
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__wide-run-3k__review-10ff1e3-a183626",
+"issue": "I-a183626-K1-ai-export-text-first-move-plan-conflict",
+"sha256": "4fa658736df1bc6ae01f6f026be5a625499f44709e79cb5b25f03cdcd3b142f8",
+"group": 53
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__wide-run-3k__review-10ff1e3-a183626",
+"issue": "I-a183626-K1-dash-whatif-first-move-plan-conflict",
+"sha256": "4fa658736df1bc6ae01f6f026be5a625499f44709e79cb5b25f03cdcd3b142f8",
+"group": 53
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__wide-run-3k__review-10ff1e3-a183626",
+"issue": "I-a183626-K1-dashboard-first-move-plan-conflict",
+"sha256": "4fa658736df1bc6ae01f6f026be5a625499f44709e79cb5b25f03cdcd3b142f8",
+"group": 53
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__wide-run-3k__review-10ff1e3-a183626",
+"issue": "I-a183626-U1-dashboard-dashboard-c7c67f8574",
+"sha256": "f447eca01a78c618135fd48f66b235056125b6af10debbd366baa1f3571d6b40",
+"group": 21
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__wide-run-3k__review-10ff1e3-a183626",
+"issue": "I-a183626-U1-dashboard-dashboard-e3350e59dd",
+"sha256": "3dd94711b640dd2b0dd972a8b1a63a9ebffae12b6eb07db09e569cb58d6f3f3f",
+"group": 46
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__wide-run-3k__review-10ff1e3-a183626",
+"issue": "I-a183626-U1-freedom-snapshot-freedom-snapshot-7236b24b4b",
+"sha256": "e5861667a6314bb47902729f048bce3f9aa890ebf4ac47cf5c4d57de93ecf0e2",
+"group": 36
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__wide-run-3k__review-10ff1e3-a183626",
+"issue": "I-a183626-U1-timeline-timeline-042f8dd775",
+"sha256": "5077370f04882e073523bf6db3d53f6f74fb4ec5f4cec54b941e01e812aeb1e6",
+"group": 44
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__wide-run-3k__review-10ff1e3-a183626",
+"issue": "I-a183626-U1-timeline-timeline-042f8dd775-3",
+"sha256": "55790dc22f3855e1b1ca788b5164b9c5e8534445c2076217e2568edc22170479",
+"group": 35
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__wide-run-3k__review-10ff1e3-a183626",
+"issue": "I-a183626-U2-freedom-age-ai-export-text-cdf7e925f5-timeline-042f8dd775",
+"sha256": "8a7b1f4e84889628890113151e18e1d3c50709942ef37b01f2c75d167797905f",
+"group": 34
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__wide-run-3k__review-10ff1e3-a183626",
+"issue": "I-a183626-U2-freedom-age-ai-export-text-cdf7e925f5-timeline-042f8dd775-3",
+"sha256": "55790dc22f3855e1b1ca788b5164b9c5e8534445c2076217e2568edc22170479",
+"group": 35
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__wide-run-3k__review-10ff1e3-a183626",
+"issue": "I-a183626-U2-freedom-age-ai-export-text-df2d888b73-timeline-042f8dd775-3",
+"sha256": "55790dc22f3855e1b1ca788b5164b9c5e8534445c2076217e2568edc22170479",
+"group": 35
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__wide-run-3k__review-10ff1e3-a183626",
+"issue": "I-a183626-U2-freedom-age-dashboard-528d2ea21e-timeline-042f8dd775",
+"sha256": "7e0aaea9e86d34ac029c807b676e79cbcc145a86331d40615b8b4d88db55914e",
+"group": 29
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__wide-run-3k__review-10ff1e3-a183626",
+"issue": "I-a183626-U2-freedom-age-dashboard-528d2ea21e-timeline-042f8dd775-3",
+"sha256": "91b7bedf8f75c7597535b18ff860ad8d95456da8737c009dd5873ca34dd58450",
+"group": 30
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__wide-run-3k__review-10ff1e3-a183626",
+"issue": "I-a183626-U2-freedom-age-dashboard-fdef9438d8-timeline-042f8dd775-3",
+"sha256": "7b5be47d21c1c02eb910a341050206cbb913d08025416236afb5708a87dc1a19",
+"group": 31
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__wide-run-3k__review-10ff1e3-a183626",
+"issue": "I-a183626-U2-freedom-age-email-welcome-report-timeline-042f8dd775",
+"sha256": "8a7b1f4e84889628890113151e18e1d3c50709942ef37b01f2c75d167797905f",
+"group": 34
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__wide-run-3k__review-10ff1e3-a183626",
+"issue": "I-a183626-U2-freedom-age-pdf-report-text-0a526daf68-timeline-042f8dd775-3",
+"sha256": "23e8fcebfa884e710c6cbdcfd0f631bf931bceadbdb91348e17dfe88a877d046",
+"group": 35
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__wide-run-3k__review-10ff1e3-a183626",
+"issue": "I-a183626-U2-freedom-age-pdf-report-text-46c6c041f8-timeline-042f8dd775",
+"sha256": "8a7b1f4e84889628890113151e18e1d3c50709942ef37b01f2c75d167797905f",
+"group": 34
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__wide-run-3k__review-10ff1e3-a183626",
+"issue": "I-a183626-U2-freedom-age-pdf-report-text-46c6c041f8-timeline-042f8dd775-3",
+"sha256": "23e8fcebfa884e710c6cbdcfd0f631bf931bceadbdb91348e17dfe88a877d046",
+"group": 35
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__wide-run-3k__review-10ff1e3-a183626",
+"issue": "I-a183626-U2-retirement-balance-ai-export-text-8ee7269673-freedom-snapshot-7236b24b4b",
+"sha256": "e5861667a6314bb47902729f048bce3f9aa890ebf4ac47cf5c4d57de93ecf0e2",
+"group": 36
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__wide-run-3k__review-10ff1e3-a183626",
+"issue": "I-a183626-U2-retirement-balance-freedom-snapshot-7236b24b4b-pdf-report-text-46c6c041f8",
+"sha256": "7fff15bda659d1171512c0b2a6e554827e8d3b1ce8fca2131f73b3d57b1e1645",
+"group": 37
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__wide-run-3k__review-10ff1e3-a183626",
+"issue": "I-a183626-U2-total-debt-ai-export-text-8ee7269673-dashboard-e3350e59dd",
+"sha256": "3dd94711b640dd2b0dd972a8b1a63a9ebffae12b6eb07db09e569cb58d6f3f3f",
+"group": 46
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__wide-run-3k__review-10ff1e3-a183626",
+"issue": "I-a183626-U2-total-debt-ai-export-text-cdf7e925f5-dashboard-e3350e59dd",
+"sha256": "3dd94711b640dd2b0dd972a8b1a63a9ebffae12b6eb07db09e569cb58d6f3f3f",
+"group": 46
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__wide-run-3k__review-10ff1e3-a183626",
+"issue": "I-a183626-U2-total-debt-dashboard-e3350e59dd-pdf-report-text-0129f8b5a1",
+"sha256": "3dd94711b640dd2b0dd972a8b1a63a9ebffae12b6eb07db09e569cb58d6f3f3f",
+"group": 46
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__wide-run-3k__review-10ff1e3-a183626",
+"issue": "I-a183626-U2-total-debt-dashboard-e3350e59dd-pdf-report-text-46c6c041f8",
+"sha256": "3dd94711b640dd2b0dd972a8b1a63a9ebffae12b6eb07db09e569cb58d6f3f3f",
+"group": 46
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__wide-run-3k__review-10ff1e3-a183626",
+"issue": "I-a183626-U2-total-debt-dashboard-e3350e59dd-pdf-report-text-50577b2802",
+"sha256": "3dd94711b640dd2b0dd972a8b1a63a9ebffae12b6eb07db09e569cb58d6f3f3f",
+"group": 46
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__wide-run-3k__review-10ff1e3-a183626",
+"issue": "I-a183626-U4-freedom-age-timeline-042f8dd775-2-timeline-042f8dd775-3",
+"sha256": "73d12d933cd04237714198f4e1c57e8acaf32f8d66a24963fca929938442e940",
+"group": 43
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__wide-run-3k__review-10ff1e3-a183626",
+"issue": "I-a183626-U4-freedom-age-timeline-042f8dd775-timeline-042f8dd775-3",
+"sha256": "3777e29d5d47f04f60a0e76effa637bb11a66fad5e4bbbc8d6ca7dea5bdd2950",
+"group": 44
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__wide-run-3k__review-10ff1e3-a183626",
+"issue": "I-a183626-U4-total-debt-ai-export-text-8ee7269673-dashboard-e3350e59dd",
+"sha256": "3dd94711b640dd2b0dd972a8b1a63a9ebffae12b6eb07db09e569cb58d6f3f3f",
+"group": 46
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__wide-run-3k__review-10ff1e3-a183626",
+"issue": "I-a183626-U4-total-debt-ai-export-text-cdf7e925f5-dashboard-e3350e59dd",
+"sha256": "3dd94711b640dd2b0dd972a8b1a63a9ebffae12b6eb07db09e569cb58d6f3f3f",
+"group": 46
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__wide-run-3k__review-10ff1e3-a183626",
+"issue": "I-a183626-K1-ai-export-text-dash-todays-move-unexplained-tradeoff",
+"sha256": "118faef8cc0056077e46daf9e37dfacdc5a63898f80354716e338a2fb207cfb5",
+"group": 47
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__wide-run-3k__review-10ff1e3-a183626",
+"issue": "I-a183626-K1-ai-export-text-dashboard-unexplained-tradeoff",
+"sha256": "6da9d2e97d4e2d7d2f8119463e0274f1cae35263d41e37ec1fac89c96113a418",
+"group": 49
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__wide-run-3k__review-10ff1e3-a183626",
+"issue": "I-a183626-K1-dash-todays-move-dashboard-unexplained-tradeoff",
+"sha256": "6da9d2e97d4e2d7d2f8119463e0274f1cae35263d41e37ec1fac89c96113a418",
+"group": 49
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__wide-run-3k__review-10ff1e3-a183626",
+"issue": "I-a183626-K1-dash-todays-move-first-move-plan-unexplained-tradeoff",
+"sha256": "e992160ce8d51854ccf501e2e116452d3c8f14ae9a1b19522958098ee38b2a97",
+"group": 53
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__wide-run-3k__review-10ff1e3-a183626",
+"issue": "I-a183626-K1-dashboard-first-move-plan-unexplained-tradeoff",
+"sha256": "ef13c72e946e75afebc649a94ea11189fe9df6577cb1faeb6bd4cad3fa717bdf",
+"group": 51
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__wide-run-3k__review-10ff1e3-a183626",
+"issue": "I-a183626-K1-dashboard-pdf-report-text-unexplained-tradeoff",
+"sha256": "2fb18d5d7766f41ada15587a9f20f69fd98cfa063a3624782c6f4ad6fbbf3545",
+"group": 52
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__wide-run-3k__review-10ff1e3-a183626",
+"issue": "I-a183626-K1-first-move-plan-pdf-report-text-unexplained-tradeoff",
+"sha256": "e992160ce8d51854ccf501e2e116452d3c8f14ae9a1b19522958098ee38b2a97",
+"group": 53
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__wide-run-3k__review-10ff1e3-a183626",
+"issue": "I-a183626-H1-dash-whatif-dash-whatif-c1026d9e82",
+"sha256": "90666a2afe4b81cc86023fa5a1d5fc65806aa7580b60a6290b7723ff249b3f3d",
+"group": 54
+},
+{
+"app": "Finablo",
+"review": "finablo-semaudit__wide-run-3k__review-10ff1e3-a183626",
+"issue": "I-a183626-H2-limit-ira-ai-export-text-45814d9baa-first-move-plan-5352ff4e52",
+"sha256": "02a4052a70a5c123f71a23256825aafc8b219cdd5a75d3476101422ceb83f315",
+"group": 55
+},
+{
+"app": "Northbound",
+"review": "semantic-auditor__e2e-3__review-2.4-2.4.1",
+"issue": "I-2.4.1-P2-fare-lock-price-watch-conflict",
+"sha256": "e6586907998095b03d4104874c1b95f6bcd3d1b6c1fa80df8d853f438cd77767",
+"group": 58
+},
+{
+"app": "Northbound",
+"review": "semantic-auditor__e2e-3__review-2.4-2.4.1",
+"issue": "I-2.4.1-U1-fare-lock-fl-banner-urgent",
+"sha256": "4dd4417a741192ee742166b675d6e57751f5f8ac4cf5239ddb3268e5fb17bed2",
+"group": 58
+},
+{
+"app": "Northbound",
+"review": "semantic-auditor__e2e-3__review-2.4-2.4.1",
+"issue": "I-2.4.1-P1-fare-lock-fl-banner-urgent-a",
+"sha256": "7460b25d5e4d17a9978e07a1f2c240a1e8e0861ffdb8dbd2476083b5fdda91a8",
+"group": 58
+},
+{
+"app": "Northbound",
+"review": "semantic-auditor__e2e-3__review-2.4-2.4.1",
+"issue": "I-2.4.1-P1-fare-lock-fl-banner-urgent-bare-c",
+"sha256": "1043dab56d18f3263e918da634287e19be7c5466f476d2771539831c03718fea",
+"group": 59
+},
+{
+"app": "Northbound",
+"review": "semantic-auditor__e2e-3__review-2.4-2.4.1",
+"issue": "I-2.4.1-P1-fare-lock-fl-hotel-urgent-scope",
+"sha256": "c138a6a220ff12424298b7d59cab3d3ac33f8bd9415b1242036e596aed1c6215",
+"group": 60
+},
+{
+"app": "Spree",
+"review": "spree-semaudit__S11a__review-current-candidate.reader",
+"issue": "R-candidate-U1-line-amount-core-4f237b451a-ab6a0c63",
+"sha256": "7ed89eef7c13681e05308beff3e1f58e3064ce146725f0f280651491c6cb439c",
+"group": 61
+},
+{
+"app": "Spree",
+"review": "spree-semaudit__S11c__review-current-candidate.reader",
+"issue": "R-candidate-U1-line-amount-core-4f237b451a-88803e39",
+"sha256": "21b781ec99261dbec9e4268358b199d083a055390eb7029200497306ea7fb583",
+"group": 62
+},
+{
+"app": "Spree",
+"review": "spree-semaudit__S11c__review-current-candidate.reader",
+"issue": "R-candidate-U2-unnamed-fact-core-4f237b451a-51e4145e",
+"sha256": "20e6941355ca831c75ae5c2887172c27471ec6b3b1f88bb9aefef3ec9d759538",
+"group": 63
+},
+{
+"app": "Spree",
+"review": "spree-semaudit__S11d__review-current-candidate.reader",
+"issue": "R-candidate-P1-unnamed-fact-core-4f237b451a-51e4145e",
+"sha256": "5b6f44a9206e20ad3f9c8aa2a3de31b266a3215ddb61e9e9142585333e6d89ee",
+"group": 64
+}
+]

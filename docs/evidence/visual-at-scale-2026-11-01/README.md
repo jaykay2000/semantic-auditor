@@ -1,5 +1,12 @@
 # Visual confirmation on every eligible issue, with a planted wrong value for each (2026-11-01)
 
+**Combined result (first run + owner-approved extension, three apps): 65 issues sent, which are 31 distinct crops.
+Planted wrong values: 58 of 58 `contradicted` (29 distinct crop-and-claim pairs). Real issues: 58 `confirmed`,
+2 `contradicted`, 5 `unreadable` (by distinct crop: 26 / 2 / 3). $0.1538 billed.** Details of the extension are in
+[its section below](#extension-three-apps-31-distinct-crops); this first section is the first run.
+
+## First run: the two named reviews
+
 **Result: 7 of 7 real issues `confirmed`; 7 of 7 mutated controls `contradicted`. 14 model calls, $0.0273.**
 The sample is small: two reviews hold only 7 issues that can be sent, so this shows the check works on these pages,
 not a rate.
@@ -65,3 +72,67 @@ not a rate.
 - Hard cases: small or low-contrast text, long tables, values that need scrolling, pages where the outlined element
   is covered. None of the 7 crops is hard to read.
 - Emails, PDFs and chat: the check reads web screenshots only.
+
+## Extension: three apps, 31 distinct crops
+
+Approved by the owner on 2026-11-01: the same check on every eligible issue of more reviews, with the control rule
+unchanged (`probe/make_controls.py`, byte-identical to its first commit; checked with `git diff cb51ffd`), seed 1, no
+prompt or code change, one $0.50 cap over all calls (`probe/run_extension.py`). Reviews (`extension/reviews.txt`; two run folders are listed under neutral labels, `screen-11-session-agent-a` and `screen-11-session-agent-b`, in place of their local folder names):
+Northbound 2.4 → 2.4.1 (`e2e-3`), the 15 Spree `S11*` / `screen-11*` reader reviews, and Finablo `r1-run-1` and
+`wide-run-3k` (both of its review files).
+
+**Combined with the first run:**
+
+| App | Eligible | Sent | Distinct crops | Real: confirmed / contradicted / unreadable (by issue) | (by distinct crop) | Controls sent | Controls contradicted |
+|---|---|---|---|---|---|---|---|
+| Northbound (2.3→2.4, 2.4→2.4.1) | 15 | 11 | 5 | 11 / 0 / 0 | 5 / 0 / 0 | 11 | 11 (5 distinct) |
+| Spree (spree-scale-2t, S11*, screen-11*) | 32 | 5 | 4 | 4 / 1 / 0 | 3 / 1 / 0 | 5 | 5 (4 distinct) |
+| Finablo (r1-run-1, wide-run-3k) | 61 | 49 | 22 | 43 / 1 / 5 | 18 / 1 / 3 | 42 | 42 (20 distinct) |
+| **Total** | 108 | 65 | 31 | **58 / 2 / 5** | **26 / 2 / 3** | 58 | **58 (29 distinct)** |
+
+**Why the honest n is 31, not 65.** Many issues point at the same element on the same page: the Northbound
+"Departing soon" banner appears on several personas' pages in both releases, and Finablo's two runs and several
+rules cite the same messages. `probe/near_duplicates.py` (method fixed before it was run) puts two crops in one group
+when their sha256 is equal, or when the claim is the same text and the 64 x 64 grayscale crops differ by under 3/255
+on average. 28 of the 65 sent crops are byte-identical to another; the 65 collapse to 31 groups
+(`extension/near-duplicates.json`). Within every group the real result was the same. 44 of the extension's 109 calls
+were answered from the router's cache, because an identical image, claim and seed had already been sent; they are
+counted per issue above but are not new model readings.
+
+**Not sent: 43 of 108 eligible.**
+- 16 (Northbound 4, Finablo 12): every cited event is an email, chat or push message, so there is no screenshot.
+- 27 (Spree): the review's `captures` folder is a symlink to another run's captures (`runs/S11a/captures`).
+  `semaudit visual` refuses a screenshot path that leads outside the review's folder, by design (the same
+  containment rule as the review page). These are re-readings of the S11a pages, whose own issue was sent.
+- 8 more Spree issues (the `screen-11-session-agent-a` review) and 5 others are not eligible at all: their
+  quotes were not matched to the capture, so `basis_of` refuses them. They are not in the 108.
+
+**The 7 real issues that were not `confirmed`:**
+- **Spree, `S11c` U1 line amount: `contradicted`, and right.** The reader's issue cites the order Total element
+  (which shows $48.59) with the quote $43.19 (the line amount, a different element of the same message). The text
+  evidence check accepted it because it looks for a bare figure anywhere in the same message. The crop shows the
+  outlined Total reading $48.59 (`extension/crops/S11c__…88803e39.png`). So the visual check caught a mis-cited
+  element that the text check let through.
+- **Finablo, 1 issue: `contradicted` ("not visible").** In its screenshot the page is dimmed and the outlined element
+  is nearly blank; the model said the element is not visible. That looks right from the crop, but it was not checked
+  further. Its control also came back `contradicted` for the same reason, not because the planted value was caught:
+  so 57 of the 58 controls were caught on the value itself.
+- **Finablo, 5 issues (3 distinct crops): `unreadable`, the reply's fields disagree.** In each, the model read the
+  text exactly except for an emoji that it left out (3 issues) or a curly apostrophe that it wrote as a
+  straight one (2 issues), and said `same_as_text: true`. SRA's comparison does not normalize either, so the reply
+  counts as self-contradictory. Normalizing them would make these `confirmed`; it was not changed after seeing the
+  results.
+
+**Finablo is a private product.** For it, only ids, result codes, reasons (SRA's own wording) and sha256 hashes are
+committed (`extension/results-finablo.json`): no crop, quote, model reading or page text. Northbound and Spree
+records are in full (`extension/results-northbound-spree.json`, `extension/controls/`, `extension/crops/`).
+
+**Checked, not a result:** `visual.target` takes the occurrence's first quote even when the first cited web event is
+not the occurrence's first event. Of the 92 issues with a web target, 29 use a later event; in none of them does the
+quote at that event's position differ from the first quote, so no result here is affected. Not changed.
+
+**Cost:** extension $0.126463 billed (65 calls; the 44 cache hits are not billed; `extension/ledger.jsonl`), first
+run $0.027277, together $0.1538.
+
+**Not shown by this:** a rate for hard pages. 31 distinct crops from three apps, one seed, mostly clean text. No
+email, PDF or chat. The Finablo results cannot be checked by a reader of this repo beyond the hashes.

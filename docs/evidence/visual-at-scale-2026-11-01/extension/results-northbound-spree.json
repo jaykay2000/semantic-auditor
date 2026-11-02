@@ -1,0 +1,1382 @@
+[
+ {
+  "review": "semantic-auditor__e2e-3__review-2.4-2.4.1",
+  "issue": "I-2.4.1-P2-fare-lock-price-watch-conflict",
+  "sent": true,
+  "real": {
+   "result": "confirmed",
+   "basis": "evidence_linked",
+   "event": "fl.banner.urgent",
+   "screenshot": "captures/2.4.1/kai__S-browse-imminent/2.4.1.kai.S-browse-imminent.s02.c01.screenshot.png",
+   "quote": "Departing soon: only 2 seats left at this fare. Book now, or lock it for 12 h for €9 total if your plans might change.",
+   "crop_box": [
+    0,
+    132,
+    931,
+    479
+   ],
+   "sent_sha256": "e6586907998095b03d4104874c1b95f6bcd3d1b6c1fa80df8d853f438cd77767",
+   "crop": "I-2.4.1-P2-fare-lock-price-watch-conflict.png",
+   "reason": "the element shows the quoted value",
+   "reads": "Departing soon: only 2 seats left at this fare. Book now, or lock it for 12 h for €9 total if your plans might change.",
+   "model": "meta-models/muse-spark-open-1026",
+   "cost_usd": 0.0020695,
+   "cached": false
+  },
+  "control": {
+   "issue": "I-2.4.1-P2-fare-lock-price-watch-conflict",
+   "event": "fl.banner.urgent",
+   "screenshot": "captures/2.4.1/kai__S-browse-imminent/2.4.1.kai.S-browse-imminent.s02.c01.screenshot.png",
+   "real_quote": "Departing soon: only 2 seats left at this fare. Book now, or lock it for 12 h for €9 total if your plans might change.",
+   "control_quote": "Departing soon: only 1 seats left at this fare. Book now, or lock it for 12 h for €9 total if your plans might change.",
+   "source": "same_page",
+   "replaced": "2",
+   "with": "1",
+   "visual": {
+    "result": "contradicted",
+    "basis": "evidence_linked",
+    "event": "fl.banner.urgent",
+    "screenshot": "captures/2.4.1/kai__S-browse-imminent/2.4.1.kai.S-browse-imminent.s02.c01.screenshot.png",
+    "quote": "Departing soon: only 1 seats left at this fare. Book now, or lock it for 12 h for €9 total if your plans might change.",
+    "crop_box": [
+     0,
+     132,
+     931,
+     479
+    ],
+    "sent_sha256": "e6586907998095b03d4104874c1b95f6bcd3d1b6c1fa80df8d853f438cd77767",
+    "crop": "I-2.4.1-P2-fare-lock-price-watch-conflict.png",
+    "reason": "the element shows something else",
+    "reads": "Departing soon: only 2 seats left at this fare. Book now, or lock it for 12 h for €9 total if your plans might change.",
+    "model": "meta-models/muse-spark-open-1026",
+    "cost_usd": 0.00280475,
+    "cached": false
+   }
+  },
+  "app": "Northbound"
+ },
+ {
+  "review": "semantic-auditor__e2e-3__review-2.4-2.4.1",
+  "issue": "I-2.4.1-U1-fare-lock-fl-banner-urgent",
+  "sent": true,
+  "real": {
+   "result": "confirmed",
+   "basis": "verifier",
+   "event": "fl.banner.urgent",
+   "screenshot": "captures/2.4.1/omar__S-browse-imminent/2.4.1.omar.S-browse-imminent.s02.c01.screenshot.png",
+   "quote": "Departing soon: only 2 seats left at this fare. Book now, or lock it for 12 h for €9 total if your plans might change.",
+   "crop_box": [
+    0,
+    132,
+    931,
+    479
+   ],
+   "sent_sha256": "4dd4417a741192ee742166b675d6e57751f5f8ac4cf5239ddb3268e5fb17bed2",
+   "crop": "I-2.4.1-U1-fare-lock-fl-banner-urgent.png",
+   "reason": "the element shows the quoted value",
+   "reads": "Departing soon: only 2 seats left at this fare. Book now, or lock it for 12 h for €9 total if your plans might change.",
+   "model": "meta-models/muse-spark-open-1026",
+   "cost_usd": 0.002078,
+   "cached": false
+  },
+  "control": {
+   "issue": "I-2.4.1-U1-fare-lock-fl-banner-urgent",
+   "event": "fl.banner.urgent",
+   "screenshot": "captures/2.4.1/omar__S-browse-imminent/2.4.1.omar.S-browse-imminent.s02.c01.screenshot.png",
+   "real_quote": "Departing soon: only 2 seats left at this fare. Book now, or lock it for 12 h for €9 total if your plans might change.",
+   "control_quote": "Departing soon: only 1 seats left at this fare. Book now, or lock it for 12 h for €9 total if your plans might change.",
+   "source": "same_page",
+   "replaced": "2",
+   "with": "1",
+   "visual": {
+    "result": "contradicted",
+    "basis": "verifier",
+    "event": "fl.banner.urgent",
+    "screenshot": "captures/2.4.1/omar__S-browse-imminent/2.4.1.omar.S-browse-imminent.s02.c01.screenshot.png",
+    "quote": "Departing soon: only 1 seats left at this fare. Book now, or lock it for 12 h for €9 total if your plans might change.",
+    "crop_box": [
+     0,
+     132,
+     931,
+     479
+    ],
+    "sent_sha256": "4dd4417a741192ee742166b675d6e57751f5f8ac4cf5239ddb3268e5fb17bed2",
+    "crop": "I-2.4.1-U1-fare-lock-fl-banner-urgent.png",
+    "reason": "the element shows something else",
+    "reads": "Departing soon: only 2 seats left at this fare. Book now, or lock it for 12 h for €9 total if your plans might change.",
+    "model": "meta-models/muse-spark-open-1026",
+    "cost_usd": 0.00182725,
+    "cached": false
+   }
+  },
+  "app": "Northbound"
+ },
+ {
+  "review": "semantic-auditor__e2e-3__review-2.4-2.4.1",
+  "issue": "I-2.4.1-P1-fare-lock-fl-banner-urgent-a",
+  "sent": true,
+  "real": {
+   "result": "confirmed",
+   "basis": "verifier",
+   "event": "fl.banner.urgent",
+   "screenshot": "captures/2.4.1/hana__S-browse-imminent/2.4.1.hana.S-browse-imminent.s02.c01.screenshot.png",
+   "quote": "Departing soon: only 2 seats left at this fare. Book now, or lock it for 12 h for €9 total if your plans might change.",
+   "crop_box": [
+    0,
+    132,
+    931,
+    479
+   ],
+   "sent_sha256": "7460b25d5e4d17a9978e07a1f2c240a1e8e0861ffdb8dbd2476083b5fdda91a8",
+   "crop": "I-2.4.1-P1-fare-lock-fl-banner-urgent-a.png",
+   "reason": "the element shows the quoted value",
+   "reads": "Departing soon: only 2 seats left at this fare. Book now, or lock it for 12 h for €9 total if your plans might change.",
+   "model": "meta-models/muse-spark-open-1026",
+   "cost_usd": 0.001959,
+   "cached": false
+  },
+  "control": {
+   "issue": "I-2.4.1-P1-fare-lock-fl-banner-urgent-a",
+   "event": "fl.banner.urgent",
+   "screenshot": "captures/2.4.1/hana__S-browse-imminent/2.4.1.hana.S-browse-imminent.s02.c01.screenshot.png",
+   "real_quote": "Departing soon: only 2 seats left at this fare. Book now, or lock it for 12 h for €9 total if your plans might change.",
+   "control_quote": "Departing soon: only 1 seats left at this fare. Book now, or lock it for 12 h for €9 total if your plans might change.",
+   "source": "same_page",
+   "replaced": "2",
+   "with": "1",
+   "visual": {
+    "result": "contradicted",
+    "basis": "verifier",
+    "event": "fl.banner.urgent",
+    "screenshot": "captures/2.4.1/hana__S-browse-imminent/2.4.1.hana.S-browse-imminent.s02.c01.screenshot.png",
+    "quote": "Departing soon: only 1 seats left at this fare. Book now, or lock it for 12 h for €9 total if your plans might change.",
+    "crop_box": [
+     0,
+     132,
+     931,
+     479
+    ],
+    "sent_sha256": "7460b25d5e4d17a9978e07a1f2c240a1e8e0861ffdb8dbd2476083b5fdda91a8",
+    "crop": "I-2.4.1-P1-fare-lock-fl-banner-urgent-a.png",
+    "reason": "the element shows something else",
+    "reads": "Departing soon: only 2 seats left at this fare. Book now, or lock it for 12 h for €9 total if your plans might change.",
+    "model": "meta-models/muse-spark-open-1026",
+    "cost_usd": 0.00203975,
+    "cached": false
+   }
+  },
+  "app": "Northbound"
+ },
+ {
+  "review": "semantic-auditor__e2e-3__review-2.4-2.4.1",
+  "issue": "I-2.4.1-P1-fare-lock-fl-banner-urgent-bare-c",
+  "sent": true,
+  "real": {
+   "result": "confirmed",
+   "basis": "verifier",
+   "event": "fl.banner.urgent_bare",
+   "screenshot": "captures/2.4.1/raj_x__S-browse-imminent/2.4.1.raj_x.S-browse-imminent.s02.c01.screenshot.png",
+   "quote": "Only 2 seats left. Book now.",
+   "crop_box": [
+    0,
+    138,
+    1058,
+    463
+   ],
+   "sent_sha256": "1043dab56d18f3263e918da634287e19be7c5466f476d2771539831c03718fea",
+   "crop": "I-2.4.1-P1-fare-lock-fl-banner-urgent-bare-c.png",
+   "reason": "the element shows the quoted value",
+   "reads": "Only 2 seats left. Book now.",
+   "model": "meta-models/muse-spark-open-1026",
+   "cost_usd": 0.00172175,
+   "cached": false
+  },
+  "control": {
+   "issue": "I-2.4.1-P1-fare-lock-fl-banner-urgent-bare-c",
+   "event": "fl.banner.urgent_bare",
+   "screenshot": "captures/2.4.1/raj_x__S-browse-imminent/2.4.1.raj_x.S-browse-imminent.s02.c01.screenshot.png",
+   "real_quote": "Only 2 seats left. Book now.",
+   "control_quote": "Only 1 seats left. Book now.",
+   "source": "same_page",
+   "replaced": "2",
+   "with": "1",
+   "visual": {
+    "result": "contradicted",
+    "basis": "verifier",
+    "event": "fl.banner.urgent_bare",
+    "screenshot": "captures/2.4.1/raj_x__S-browse-imminent/2.4.1.raj_x.S-browse-imminent.s02.c01.screenshot.png",
+    "quote": "Only 1 seats left. Book now.",
+    "crop_box": [
+     0,
+     138,
+     1058,
+     463
+    ],
+    "sent_sha256": "1043dab56d18f3263e918da634287e19be7c5466f476d2771539831c03718fea",
+    "crop": "I-2.4.1-P1-fare-lock-fl-banner-urgent-bare-c.png",
+    "reason": "the element shows something else",
+    "reads": "Only 2 seats left. Book now.",
+    "model": "meta-models/muse-spark-open-1026",
+    "cost_usd": 0.00150925,
+    "cached": false
+   }
+  },
+  "app": "Northbound"
+ },
+ {
+  "review": "semantic-auditor__e2e-3__review-2.4-2.4.1",
+  "issue": "I-2.4.1-P1-fare-lock-fl-hotel-urgent-scope",
+  "sent": true,
+  "real": {
+   "result": "confirmed",
+   "basis": "verifier",
+   "event": "fl.hotel.urgent",
+   "screenshot": "captures/2.4.1/rina__S-hotel-imminent/2.4.1.rina.S-hotel-imminent.s01.c01.screenshot.png",
+   "quote": "Checking in soon: only 1 room left at this rate. Book now, or hold it for 12 h for €9 total if your plans might change.",
+   "crop_box": [
+    0,
+    49,
+    1164,
+    397
+   ],
+   "sent_sha256": "c138a6a220ff12424298b7d59cab3d3ac33f8bd9415b1242036e596aed1c6215",
+   "crop": "I-2.4.1-P1-fare-lock-fl-hotel-urgent-scope.png",
+   "reason": "the element shows the quoted value",
+   "reads": "Checking in soon: only 1 room left at this rate. Book now, or hold it for 12 h for €9 total if your plans might change.",
+   "model": "meta-models/muse-spark-open-1026",
+   "cost_usd": 0.00239725,
+   "cached": false
+  },
+  "control": {
+   "issue": "I-2.4.1-P1-fare-lock-fl-hotel-urgent-scope",
+   "event": "fl.hotel.urgent",
+   "screenshot": "captures/2.4.1/rina__S-hotel-imminent/2.4.1.rina.S-hotel-imminent.s01.c01.screenshot.png",
+   "real_quote": "Checking in soon: only 1 room left at this rate. Book now, or hold it for 12 h for €9 total if your plans might change.",
+   "control_quote": "Checking in soon: only 03 room left at this rate. Book now, or hold it for 12 h for €9 total if your plans might change.",
+   "source": "same_page",
+   "replaced": "1",
+   "with": "03",
+   "visual": {
+    "result": "contradicted",
+    "basis": "verifier",
+    "event": "fl.hotel.urgent",
+    "screenshot": "captures/2.4.1/rina__S-hotel-imminent/2.4.1.rina.S-hotel-imminent.s01.c01.screenshot.png",
+    "quote": "Checking in soon: only 03 room left at this rate. Book now, or hold it for 12 h for €9 total if your plans might change.",
+    "crop_box": [
+     0,
+     49,
+     1164,
+     397
+    ],
+    "sent_sha256": "c138a6a220ff12424298b7d59cab3d3ac33f8bd9415b1242036e596aed1c6215",
+    "crop": "I-2.4.1-P1-fare-lock-fl-hotel-urgent-scope.png",
+    "reason": "the element shows something else",
+    "reads": "Checking in soon: only 1 room left at this rate. Book now, or hold it for 12 h for €9 total if your plans might change.",
+    "model": "meta-models/muse-spark-open-1026",
+    "cost_usd": 0.0027415,
+    "cached": false
+   }
+  },
+  "app": "Northbound"
+ },
+ {
+  "review": "semantic-auditor__e2e-3__review-2.4-2.4.1",
+  "issue": "I-2.4.1-U4-concierge-cg-regret",
+  "sent": false,
+  "real": {
+   "result": "unreadable",
+   "basis": "verifier",
+   "reason": "no cited event has a web capture"
+  },
+  "control": null,
+  "app": "Northbound"
+ },
+ {
+  "review": "spree-semaudit__S11a-b2-meta-1__review-current-candidate.reader",
+  "issue": "R-candidate-P1-order-total-core-4f237b451a-d4f7ca9e",
+  "sent": false,
+  "real": {
+   "result": "unreadable",
+   "basis": "evidence_linked",
+   "event": "core.4f237b451a#3#2",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s04.c01.screenshot.png",
+   "quote": "$39.99",
+   "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s04.c01.screenshot.png' leads outside the review's folder"
+  },
+  "control": {
+   "issue": "R-candidate-P1-order-total-core-4f237b451a-d4f7ca9e",
+   "event": "core.4f237b451a#3#2",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s04.c01.screenshot.png",
+   "real_quote": "$39.99",
+   "control_quote": "$40.99",
+   "source": "plus_one",
+   "replaced": "$39.99",
+   "with": "$40.99",
+   "visual": {
+    "result": "unreadable",
+    "basis": "evidence_linked",
+    "event": "core.4f237b451a#3#2",
+    "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s04.c01.screenshot.png",
+    "quote": "$40.99",
+    "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s04.c01.screenshot.png' leads outside the review's folder"
+   }
+  },
+  "app": "Spree"
+ },
+ {
+  "review": "spree-semaudit__S11a-b2-meta-1__review-current-candidate.reader",
+  "issue": "R-candidate-U2-line-amount-core-4f237b451a-ab6a0c63",
+  "sent": false,
+  "real": {
+   "result": "unreadable",
+   "basis": "evidence_linked",
+   "event": "core.4f237b451a#8",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png",
+   "quote": "$43.19",
+   "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png' leads outside the review's folder"
+  },
+  "control": {
+   "issue": "R-candidate-U2-line-amount-core-4f237b451a-ab6a0c63",
+   "event": "core.4f237b451a#8",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png",
+   "real_quote": "$43.19",
+   "control_quote": "$39.99",
+   "source": "same_page",
+   "replaced": "$43.19",
+   "with": "$39.99",
+   "visual": {
+    "result": "unreadable",
+    "basis": "evidence_linked",
+    "event": "core.4f237b451a#8",
+    "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png",
+    "quote": "$39.99",
+    "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png' leads outside the review's folder"
+   }
+  },
+  "app": "Spree"
+ },
+ {
+  "review": "spree-semaudit__S11a-b2-noorder-1__review-current-candidate.reader",
+  "issue": "R-candidate-U1-line-amount-core-4f237b451a-ab6a0c63",
+  "sent": false,
+  "real": {
+   "result": "unreadable",
+   "basis": "evidence_linked",
+   "event": "core.4f237b451a#8",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png",
+   "quote": "$43.19",
+   "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png' leads outside the review's folder"
+  },
+  "control": {
+   "issue": "R-candidate-U1-line-amount-core-4f237b451a-ab6a0c63",
+   "event": "core.4f237b451a#8",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png",
+   "real_quote": "$43.19",
+   "control_quote": "$39.99",
+   "source": "same_page",
+   "replaced": "$43.19",
+   "with": "$39.99",
+   "visual": {
+    "result": "unreadable",
+    "basis": "evidence_linked",
+    "event": "core.4f237b451a#8",
+    "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png",
+    "quote": "$39.99",
+    "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png' leads outside the review's folder"
+   }
+  },
+  "app": "Spree"
+ },
+ {
+  "review": "spree-semaudit__S11a-b2-noorder-1__review-current-candidate.reader",
+  "issue": "R-candidate-P1-unnamed-fact-core-4f237b451a-51e4145e",
+  "sent": false,
+  "real": {
+   "result": "unreadable",
+   "basis": "evidence_linked",
+   "event": "core.4f237b451a#3#2",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s04.c01.screenshot.png",
+   "quote": "$39.99",
+   "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s04.c01.screenshot.png' leads outside the review's folder"
+  },
+  "control": {
+   "issue": "R-candidate-P1-unnamed-fact-core-4f237b451a-51e4145e",
+   "event": "core.4f237b451a#3#2",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s04.c01.screenshot.png",
+   "real_quote": "$39.99",
+   "control_quote": "$40.99",
+   "source": "plus_one",
+   "replaced": "$39.99",
+   "with": "$40.99",
+   "visual": {
+    "result": "unreadable",
+    "basis": "evidence_linked",
+    "event": "core.4f237b451a#3#2",
+    "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s04.c01.screenshot.png",
+    "quote": "$40.99",
+    "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s04.c01.screenshot.png' leads outside the review's folder"
+   }
+  },
+  "app": "Spree"
+ },
+ {
+  "review": "spree-semaudit__S11a-b2-open-1__review-current-candidate.reader",
+  "issue": "R-candidate-U1-line-amount-core-4f237b451a-ab6a0c63",
+  "sent": false,
+  "real": {
+   "result": "unreadable",
+   "basis": "evidence_linked",
+   "event": "core.4f237b451a#8",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png",
+   "quote": "$43.19",
+   "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png' leads outside the review's folder"
+  },
+  "control": {
+   "issue": "R-candidate-U1-line-amount-core-4f237b451a-ab6a0c63",
+   "event": "core.4f237b451a#8",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png",
+   "real_quote": "$43.19",
+   "control_quote": "$39.99",
+   "source": "same_page",
+   "replaced": "$43.19",
+   "with": "$39.99",
+   "visual": {
+    "result": "unreadable",
+    "basis": "evidence_linked",
+    "event": "core.4f237b451a#8",
+    "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png",
+    "quote": "$39.99",
+    "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png' leads outside the review's folder"
+   }
+  },
+  "app": "Spree"
+ },
+ {
+  "review": "spree-semaudit__S11a-session-c1__review-current-candidate.reader",
+  "issue": "R-candidate-U1-unnamed-fact-core-4f237b451a-51e4145e",
+  "sent": false,
+  "real": {
+   "result": "unreadable",
+   "basis": "evidence_linked",
+   "event": "admin.ee654bb512",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s12.c01.screenshot.png",
+   "quote": "$39.99 × 1",
+   "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s12.c01.screenshot.png' leads outside the review's folder"
+  },
+  "control": {
+   "issue": "R-candidate-U1-unnamed-fact-core-4f237b451a-51e4145e",
+   "event": "admin.ee654bb512",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s12.c01.screenshot.png",
+   "real_quote": "$39.99 × 1",
+   "control_quote": "$5.00 × 1",
+   "source": "same_page",
+   "replaced": "$39.99",
+   "with": "$5.00",
+   "visual": {
+    "result": "unreadable",
+    "basis": "evidence_linked",
+    "event": "admin.ee654bb512",
+    "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s12.c01.screenshot.png",
+    "quote": "$5.00 × 1",
+    "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s12.c01.screenshot.png' leads outside the review's folder"
+   }
+  },
+  "app": "Spree"
+ },
+ {
+  "review": "spree-semaudit__S11a-session-c1__review-current-candidate.reader",
+  "issue": "R-candidate-U3-line-amount-core-4f237b451a-c86a4dd5",
+  "sent": false,
+  "real": {
+   "result": "unreadable",
+   "basis": "evidence_linked",
+   "event": "core.4f237b451a#7",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png",
+   "quote": "$43.19",
+   "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png' leads outside the review's folder"
+  },
+  "control": {
+   "issue": "R-candidate-U3-line-amount-core-4f237b451a-c86a4dd5",
+   "event": "core.4f237b451a#7",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png",
+   "real_quote": "$43.19",
+   "control_quote": "$39.99",
+   "source": "same_page",
+   "replaced": "$43.19",
+   "with": "$39.99",
+   "visual": {
+    "result": "unreadable",
+    "basis": "evidence_linked",
+    "event": "core.4f237b451a#7",
+    "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png",
+    "quote": "$39.99",
+    "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png' leads outside the review's folder"
+   }
+  },
+  "app": "Spree"
+ },
+ {
+  "review": "spree-semaudit__S11a-session-c1__review-current-candidate.reader",
+  "issue": "R-candidate-U1-line-amount-core-4f237b451a-ab6a0c63",
+  "sent": false,
+  "real": {
+   "result": "unreadable",
+   "basis": "evidence_linked",
+   "event": "core.4f237b451a#9",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s10.c01.screenshot.png",
+   "quote": "$43.19",
+   "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s10.c01.screenshot.png' leads outside the review's folder"
+  },
+  "control": {
+   "issue": "R-candidate-U1-line-amount-core-4f237b451a-ab6a0c63",
+   "event": "core.4f237b451a#9",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s10.c01.screenshot.png",
+   "real_quote": "$43.19",
+   "control_quote": "$39.99",
+   "source": "same_page",
+   "replaced": "$43.19",
+   "with": "$39.99",
+   "visual": {
+    "result": "unreadable",
+    "basis": "evidence_linked",
+    "event": "core.4f237b451a#9",
+    "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s10.c01.screenshot.png",
+    "quote": "$39.99",
+    "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s10.c01.screenshot.png' leads outside the review's folder"
+   }
+  },
+  "app": "Spree"
+ },
+ {
+  "review": "spree-semaudit__S11a-session-c2__review-current-candidate.reader",
+  "issue": "R-candidate-P1-order-total-core-4f237b451a-d4f7ca9e",
+  "sent": false,
+  "real": {
+   "result": "unreadable",
+   "basis": "evidence_linked",
+   "event": "core.4f237b451a#3#2",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s04.c01.screenshot.png",
+   "quote": "$39.99",
+   "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s04.c01.screenshot.png' leads outside the review's folder"
+  },
+  "control": {
+   "issue": "R-candidate-P1-order-total-core-4f237b451a-d4f7ca9e",
+   "event": "core.4f237b451a#3#2",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s04.c01.screenshot.png",
+   "real_quote": "$39.99",
+   "control_quote": "$40.99",
+   "source": "plus_one",
+   "replaced": "$39.99",
+   "with": "$40.99",
+   "visual": {
+    "result": "unreadable",
+    "basis": "evidence_linked",
+    "event": "core.4f237b451a#3#2",
+    "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s04.c01.screenshot.png",
+    "quote": "$40.99",
+    "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s04.c01.screenshot.png' leads outside the review's folder"
+   }
+  },
+  "app": "Spree"
+ },
+ {
+  "review": "spree-semaudit__S11a-session-c2__review-current-candidate.reader",
+  "issue": "R-candidate-P1-order-total-core-4f237b451a-8478a636",
+  "sent": false,
+  "real": {
+   "result": "unreadable",
+   "basis": "evidence_linked",
+   "event": "core.4f237b451a#4#2",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s06.c01.screenshot.png",
+   "quote": "$39.99",
+   "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s06.c01.screenshot.png' leads outside the review's folder"
+  },
+  "control": {
+   "issue": "R-candidate-P1-order-total-core-4f237b451a-8478a636",
+   "event": "core.4f237b451a#4#2",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s06.c01.screenshot.png",
+   "real_quote": "$39.99",
+   "control_quote": "$0.00",
+   "source": "same_page",
+   "replaced": "$39.99",
+   "with": "$0.00",
+   "visual": {
+    "result": "unreadable",
+    "basis": "evidence_linked",
+    "event": "core.4f237b451a#4#2",
+    "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s06.c01.screenshot.png",
+    "quote": "$0.00",
+    "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s06.c01.screenshot.png' leads outside the review's folder"
+   }
+  },
+  "app": "Spree"
+ },
+ {
+  "review": "spree-semaudit__S11a-session-o1__review-current-candidate.reader",
+  "issue": "R-candidate-U2-line-amount-core-4f237b451a-c86a4dd5",
+  "sent": false,
+  "real": {
+   "result": "unreadable",
+   "basis": "evidence_linked",
+   "event": "core.4f237b451a#7",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png",
+   "quote": "$43.19",
+   "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png' leads outside the review's folder"
+  },
+  "control": {
+   "issue": "R-candidate-U2-line-amount-core-4f237b451a-c86a4dd5",
+   "event": "core.4f237b451a#7",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png",
+   "real_quote": "$43.19",
+   "control_quote": "$39.99",
+   "source": "same_page",
+   "replaced": "$43.19",
+   "with": "$39.99",
+   "visual": {
+    "result": "unreadable",
+    "basis": "evidence_linked",
+    "event": "core.4f237b451a#7",
+    "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png",
+    "quote": "$39.99",
+    "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png' leads outside the review's folder"
+   }
+  },
+  "app": "Spree"
+ },
+ {
+  "review": "spree-semaudit__S11a-session-o1__review-current-candidate.reader",
+  "issue": "R-candidate-U3-line-amount-core-4f237b451a-88803e39",
+  "sent": false,
+  "real": {
+   "result": "unreadable",
+   "basis": "evidence_linked",
+   "event": "core.4f237b451a#5",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s06.c02.screenshot.png",
+   "quote": "$43.19",
+   "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s06.c02.screenshot.png' leads outside the review's folder"
+  },
+  "control": {
+   "issue": "R-candidate-U3-line-amount-core-4f237b451a-88803e39",
+   "event": "core.4f237b451a#5",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s06.c02.screenshot.png",
+   "real_quote": "$43.19",
+   "control_quote": "$0.00",
+   "source": "same_page",
+   "replaced": "$43.19",
+   "with": "$0.00",
+   "visual": {
+    "result": "unreadable",
+    "basis": "evidence_linked",
+    "event": "core.4f237b451a#5",
+    "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s06.c02.screenshot.png",
+    "quote": "$0.00",
+    "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s06.c02.screenshot.png' leads outside the review's folder"
+   }
+  },
+  "app": "Spree"
+ },
+ {
+  "review": "spree-semaudit__S11a-session-o1__review-current-candidate.reader",
+  "issue": "R-candidate-U3-line-amount-core-4f237b451a-1b447444",
+  "sent": false,
+  "real": {
+   "result": "unreadable",
+   "basis": "evidence_linked",
+   "event": "core.4f237b451a#6",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png",
+   "quote": "$43.19",
+   "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png' leads outside the review's folder"
+  },
+  "control": {
+   "issue": "R-candidate-U3-line-amount-core-4f237b451a-1b447444",
+   "event": "core.4f237b451a#6",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png",
+   "real_quote": "$43.19",
+   "control_quote": "$39.99",
+   "source": "same_page",
+   "replaced": "$43.19",
+   "with": "$39.99",
+   "visual": {
+    "result": "unreadable",
+    "basis": "evidence_linked",
+    "event": "core.4f237b451a#6",
+    "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png",
+    "quote": "$39.99",
+    "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png' leads outside the review's folder"
+   }
+  },
+  "app": "Spree"
+ },
+ {
+  "review": "spree-semaudit__S11a-session-o1__review-current-candidate.reader",
+  "issue": "R-candidate-U1-item-total-core-4f237b451a-031cf2d2",
+  "sent": false,
+  "real": {
+   "result": "unreadable",
+   "basis": "evidence_linked",
+   "event": "core.4f237b451a#8",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png",
+   "quote": "$43.19",
+   "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png' leads outside the review's folder"
+  },
+  "control": {
+   "issue": "R-candidate-U1-item-total-core-4f237b451a-031cf2d2",
+   "event": "core.4f237b451a#8",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png",
+   "real_quote": "$43.19",
+   "control_quote": "$39.99",
+   "source": "same_page",
+   "replaced": "$43.19",
+   "with": "$39.99",
+   "visual": {
+    "result": "unreadable",
+    "basis": "evidence_linked",
+    "event": "core.4f237b451a#8",
+    "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png",
+    "quote": "$39.99",
+    "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png' leads outside the review's folder"
+   }
+  },
+  "app": "Spree"
+ },
+ {
+  "review": "spree-semaudit__S11a-session-o1__review-current-candidate.reader",
+  "issue": "R-candidate-P1-unnamed-fact-core-4f237b451a-51e4145e",
+  "sent": false,
+  "real": {
+   "result": "unreadable",
+   "basis": "evidence_linked",
+   "event": "core.4f237b451a#2#2",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s04.c01.screenshot.png",
+   "quote": "$39.99",
+   "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s04.c01.screenshot.png' leads outside the review's folder"
+  },
+  "control": {
+   "issue": "R-candidate-P1-unnamed-fact-core-4f237b451a-51e4145e",
+   "event": "core.4f237b451a#2#2",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s04.c01.screenshot.png",
+   "real_quote": "$39.99",
+   "control_quote": "$40.99",
+   "source": "plus_one",
+   "replaced": "$39.99",
+   "with": "$40.99",
+   "visual": {
+    "result": "unreadable",
+    "basis": "evidence_linked",
+    "event": "core.4f237b451a#2#2",
+    "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s04.c01.screenshot.png",
+    "quote": "$40.99",
+    "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s04.c01.screenshot.png' leads outside the review's folder"
+   }
+  },
+  "app": "Spree"
+ },
+ {
+  "review": "spree-semaudit__S11a-session-o1__review-current-candidate.reader",
+  "issue": "R-candidate-P1-unnamed-fact-core-4f237b451a-cecaf475",
+  "sent": false,
+  "real": {
+   "result": "unreadable",
+   "basis": "evidence_linked",
+   "event": "core.4f237b451a#2#3",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s06.c01.screenshot.png",
+   "quote": "$39.99",
+   "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s06.c01.screenshot.png' leads outside the review's folder"
+  },
+  "control": {
+   "issue": "R-candidate-P1-unnamed-fact-core-4f237b451a-cecaf475",
+   "event": "core.4f237b451a#2#3",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s06.c01.screenshot.png",
+   "real_quote": "$39.99",
+   "control_quote": "$0.00",
+   "source": "same_page",
+   "replaced": "$39.99",
+   "with": "$0.00",
+   "visual": {
+    "result": "unreadable",
+    "basis": "evidence_linked",
+    "event": "core.4f237b451a#2#3",
+    "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s06.c01.screenshot.png",
+    "quote": "$0.00",
+    "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s06.c01.screenshot.png' leads outside the review's folder"
+   }
+  },
+  "app": "Spree"
+ },
+ {
+  "review": "spree-semaudit__S11a-session-o2__review-current-candidate.reader",
+  "issue": "R-candidate-U3-line-amount-core-4f237b451a-88803e39",
+  "sent": false,
+  "real": {
+   "result": "unreadable",
+   "basis": "evidence_linked",
+   "event": "core.4f237b451a#5",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s06.c02.screenshot.png",
+   "quote": "$43.19",
+   "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s06.c02.screenshot.png' leads outside the review's folder"
+  },
+  "control": {
+   "issue": "R-candidate-U3-line-amount-core-4f237b451a-88803e39",
+   "event": "core.4f237b451a#5",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s06.c02.screenshot.png",
+   "real_quote": "$43.19",
+   "control_quote": "$0.00",
+   "source": "same_page",
+   "replaced": "$43.19",
+   "with": "$0.00",
+   "visual": {
+    "result": "unreadable",
+    "basis": "evidence_linked",
+    "event": "core.4f237b451a#5",
+    "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s06.c02.screenshot.png",
+    "quote": "$0.00",
+    "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s06.c02.screenshot.png' leads outside the review's folder"
+   }
+  },
+  "app": "Spree"
+ },
+ {
+  "review": "spree-semaudit__S11a-session-o2__review-current-candidate.reader",
+  "issue": "R-candidate-U3-line-amount-core-4f237b451a-1b447444",
+  "sent": false,
+  "real": {
+   "result": "unreadable",
+   "basis": "evidence_linked",
+   "event": "core.4f237b451a#6",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png",
+   "quote": "$43.19",
+   "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png' leads outside the review's folder"
+  },
+  "control": {
+   "issue": "R-candidate-U3-line-amount-core-4f237b451a-1b447444",
+   "event": "core.4f237b451a#6",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png",
+   "real_quote": "$43.19",
+   "control_quote": "$39.99",
+   "source": "same_page",
+   "replaced": "$43.19",
+   "with": "$39.99",
+   "visual": {
+    "result": "unreadable",
+    "basis": "evidence_linked",
+    "event": "core.4f237b451a#6",
+    "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png",
+    "quote": "$39.99",
+    "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png' leads outside the review's folder"
+   }
+  },
+  "app": "Spree"
+ },
+ {
+  "review": "spree-semaudit__S11a-session-o2__review-current-candidate.reader",
+  "issue": "R-candidate-U1-line-amount-core-4f237b451a-c86a4dd5",
+  "sent": false,
+  "real": {
+   "result": "unreadable",
+   "basis": "evidence_linked",
+   "event": "core.4f237b451a#8",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png",
+   "quote": "$43.19",
+   "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png' leads outside the review's folder"
+  },
+  "control": {
+   "issue": "R-candidate-U1-line-amount-core-4f237b451a-c86a4dd5",
+   "event": "core.4f237b451a#8",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png",
+   "real_quote": "$43.19",
+   "control_quote": "$39.99",
+   "source": "same_page",
+   "replaced": "$43.19",
+   "with": "$39.99",
+   "visual": {
+    "result": "unreadable",
+    "basis": "evidence_linked",
+    "event": "core.4f237b451a#8",
+    "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png",
+    "quote": "$39.99",
+    "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png' leads outside the review's folder"
+   }
+  },
+  "app": "Spree"
+ },
+ {
+  "review": "spree-semaudit__S11a-session-o2__review-current-candidate.reader",
+  "issue": "R-candidate-P1-unnamed-fact-core-4f237b451a-51e4145e",
+  "sent": false,
+  "real": {
+   "result": "unreadable",
+   "basis": "evidence_linked",
+   "event": "core.4f237b451a#3#2",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s04.c01.screenshot.png",
+   "quote": "$39.99",
+   "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s04.c01.screenshot.png' leads outside the review's folder"
+  },
+  "control": {
+   "issue": "R-candidate-P1-unnamed-fact-core-4f237b451a-51e4145e",
+   "event": "core.4f237b451a#3#2",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s04.c01.screenshot.png",
+   "real_quote": "$39.99",
+   "control_quote": "$40.99",
+   "source": "plus_one",
+   "replaced": "$39.99",
+   "with": "$40.99",
+   "visual": {
+    "result": "unreadable",
+    "basis": "evidence_linked",
+    "event": "core.4f237b451a#3#2",
+    "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s04.c01.screenshot.png",
+    "quote": "$40.99",
+    "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s04.c01.screenshot.png' leads outside the review's folder"
+   }
+  },
+  "app": "Spree"
+ },
+ {
+  "review": "spree-semaudit__S11a-session-o2__review-current-candidate.reader",
+  "issue": "R-candidate-P1-unnamed-fact-core-4f237b451a-cecaf475",
+  "sent": false,
+  "real": {
+   "result": "unreadable",
+   "basis": "evidence_linked",
+   "event": "core.4f237b451a#4#2",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s06.c01.screenshot.png",
+   "quote": "$39.99",
+   "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s06.c01.screenshot.png' leads outside the review's folder"
+  },
+  "control": {
+   "issue": "R-candidate-P1-unnamed-fact-core-4f237b451a-cecaf475",
+   "event": "core.4f237b451a#4#2",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s06.c01.screenshot.png",
+   "real_quote": "$39.99",
+   "control_quote": "$0.00",
+   "source": "same_page",
+   "replaced": "$39.99",
+   "with": "$0.00",
+   "visual": {
+    "result": "unreadable",
+    "basis": "evidence_linked",
+    "event": "core.4f237b451a#4#2",
+    "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s06.c01.screenshot.png",
+    "quote": "$0.00",
+    "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s06.c01.screenshot.png' leads outside the review's folder"
+   }
+  },
+  "app": "Spree"
+ },
+ {
+  "review": "spree-semaudit__S11a__review-current-candidate.reader",
+  "issue": "R-candidate-U1-line-amount-core-4f237b451a-ab6a0c63",
+  "sent": true,
+  "real": {
+   "result": "confirmed",
+   "basis": "evidence_linked",
+   "event": "core.4f237b451a#8",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png",
+   "quote": "$43.19",
+   "crop_box": [
+    144,
+    308,
+    828,
+    669
+   ],
+   "sent_sha256": "7ed89eef7c13681e05308beff3e1f58e3064ce146725f0f280651491c6cb439c",
+   "crop": "R-candidate-U1-line-amount-core-4f237b451a-ab6a0c63.png",
+   "reason": "the element shows the quoted value",
+   "reads": "$43.19",
+   "model": "meta-models/muse-spark-open-1026",
+   "cost_usd": 0.00128225,
+   "cached": false
+  },
+  "control": {
+   "issue": "R-candidate-U1-line-amount-core-4f237b451a-ab6a0c63",
+   "event": "core.4f237b451a#8",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png",
+   "real_quote": "$43.19",
+   "control_quote": "$39.99",
+   "source": "same_page",
+   "replaced": "$43.19",
+   "with": "$39.99",
+   "visual": {
+    "result": "contradicted",
+    "basis": "evidence_linked",
+    "event": "core.4f237b451a#8",
+    "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png",
+    "quote": "$39.99",
+    "crop_box": [
+     144,
+     308,
+     828,
+     669
+    ],
+    "sent_sha256": "7ed89eef7c13681e05308beff3e1f58e3064ce146725f0f280651491c6cb439c",
+    "crop": "R-candidate-U1-line-amount-core-4f237b451a-ab6a0c63.png",
+    "reason": "the element shows something else",
+    "reads": "$43.19",
+    "model": "meta-models/muse-spark-open-1026",
+    "cost_usd": 0.00172425,
+    "cached": false
+   }
+  },
+  "app": "Spree"
+ },
+ {
+  "review": "spree-semaudit__S11c__review-current-candidate.reader",
+  "issue": "R-candidate-U1-line-amount-core-4f237b451a-88803e39",
+  "sent": true,
+  "real": {
+   "result": "contradicted",
+   "basis": "evidence_linked",
+   "event": "core.4f237b451a#5",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s06.c02.screenshot.png",
+   "quote": "$43.19",
+   "crop_box": [
+    589,
+    92,
+    1280,
+    421
+   ],
+   "sent_sha256": "21b781ec99261dbec9e4268358b199d083a055390eb7029200497306ea7fb583",
+   "crop": "R-candidate-U1-line-amount-core-4f237b451a-88803e39.png",
+   "reason": "the element shows something else",
+   "reads": "$48.59",
+   "model": "meta-models/muse-spark-open-1026",
+   "cost_usd": 0.001676,
+   "cached": false
+  },
+  "control": {
+   "issue": "R-candidate-U1-line-amount-core-4f237b451a-88803e39",
+   "event": "core.4f237b451a#5",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s06.c02.screenshot.png",
+   "real_quote": "$43.19",
+   "control_quote": "$0.00",
+   "source": "same_page",
+   "replaced": "$43.19",
+   "with": "$0.00",
+   "visual": {
+    "result": "contradicted",
+    "basis": "evidence_linked",
+    "event": "core.4f237b451a#5",
+    "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s06.c02.screenshot.png",
+    "quote": "$0.00",
+    "crop_box": [
+     589,
+     92,
+     1280,
+     421
+    ],
+    "sent_sha256": "21b781ec99261dbec9e4268358b199d083a055390eb7029200497306ea7fb583",
+    "crop": "R-candidate-U1-line-amount-core-4f237b451a-88803e39.png",
+    "reason": "the element shows something else",
+    "reads": "$48.59",
+    "model": "meta-models/muse-spark-open-1026",
+    "cost_usd": 0.0017865,
+    "cached": false
+   }
+  },
+  "app": "Spree"
+ },
+ {
+  "review": "spree-semaudit__S11c__review-current-candidate.reader",
+  "issue": "R-candidate-U2-unnamed-fact-core-4f237b451a-51e4145e",
+  "sent": true,
+  "real": {
+   "result": "confirmed",
+   "basis": "evidence_linked",
+   "event": "core.4f237b451a#2#2",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s04.c01.screenshot.png",
+   "quote": "$39.99",
+   "crop_box": [
+    691,
+    91,
+    1280,
+    416
+   ],
+   "sent_sha256": "20e6941355ca831c75ae5c2887172c27471ec6b3b1f88bb9aefef3ec9d759538",
+   "crop": "R-candidate-U2-unnamed-fact-core-4f237b451a-51e4145e.png",
+   "reason": "the element shows the quoted value",
+   "reads": "$39.99",
+   "model": "meta-models/muse-spark-open-1026",
+   "cost_usd": 0.00178825,
+   "cached": false
+  },
+  "control": {
+   "issue": "R-candidate-U2-unnamed-fact-core-4f237b451a-51e4145e",
+   "event": "core.4f237b451a#2#2",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s04.c01.screenshot.png",
+   "real_quote": "$39.99",
+   "control_quote": "$40.99",
+   "source": "plus_one",
+   "replaced": "$39.99",
+   "with": "$40.99",
+   "visual": {
+    "result": "contradicted",
+    "basis": "evidence_linked",
+    "event": "core.4f237b451a#2#2",
+    "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s04.c01.screenshot.png",
+    "quote": "$40.99",
+    "crop_box": [
+     691,
+     91,
+     1280,
+     416
+    ],
+    "sent_sha256": "20e6941355ca831c75ae5c2887172c27471ec6b3b1f88bb9aefef3ec9d759538",
+    "crop": "R-candidate-U2-unnamed-fact-core-4f237b451a-51e4145e.png",
+    "reason": "the element shows something else",
+    "reads": "$39.99",
+    "model": "meta-models/muse-spark-open-1026",
+    "cost_usd": 0.00172875,
+    "cached": false
+   }
+  },
+  "app": "Spree"
+ },
+ {
+  "review": "spree-semaudit__S11d__review-current-candidate.reader",
+  "issue": "R-candidate-P1-unnamed-fact-core-4f237b451a-51e4145e",
+  "sent": true,
+  "real": {
+   "result": "confirmed",
+   "basis": "evidence_linked",
+   "event": "core.4f237b451a#3#2",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s04.c01.screenshot.png",
+   "quote": "$39.99",
+   "crop_box": [
+    680,
+    148,
+    1280,
+    477
+   ],
+   "sent_sha256": "5b6f44a9206e20ad3f9c8aa2a3de31b266a3215ddb61e9e9142585333e6d89ee",
+   "crop": "R-candidate-P1-unnamed-fact-core-4f237b451a-51e4145e.png",
+   "reason": "the element shows the quoted value",
+   "reads": "$39.99",
+   "model": "meta-models/muse-spark-open-1026",
+   "cost_usd": 0.00152475,
+   "cached": false
+  },
+  "control": {
+   "issue": "R-candidate-P1-unnamed-fact-core-4f237b451a-51e4145e",
+   "event": "core.4f237b451a#3#2",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s04.c01.screenshot.png",
+   "real_quote": "$39.99",
+   "control_quote": "$40.99",
+   "source": "plus_one",
+   "replaced": "$39.99",
+   "with": "$40.99",
+   "visual": {
+    "result": "contradicted",
+    "basis": "evidence_linked",
+    "event": "core.4f237b451a#3#2",
+    "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s04.c01.screenshot.png",
+    "quote": "$40.99",
+    "crop_box": [
+     680,
+     148,
+     1280,
+     477
+    ],
+    "sent_sha256": "5b6f44a9206e20ad3f9c8aa2a3de31b266a3215ddb61e9e9142585333e6d89ee",
+    "crop": "R-candidate-P1-unnamed-fact-core-4f237b451a-51e4145e.png",
+    "reason": "the element shows something else",
+    "reads": "$39.99",
+    "model": "meta-models/muse-spark-open-1026",
+    "cost_usd": 0.00168625,
+    "cached": false
+   }
+  },
+  "app": "Spree"
+ },
+ {
+  "review": "spree-semaudit__screen-11-b2-open-1__review-current-candidate.reader",
+  "issue": "R-candidate-P1-unnamed-fact-core-4f237b451a-51e4145e",
+  "sent": false,
+  "real": {
+   "result": "unreadable",
+   "basis": "evidence_linked",
+   "event": "core.4f237b451a#3",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s04.c01.screenshot.png",
+   "quote": "$39.99",
+   "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s04.c01.screenshot.png' leads outside the review's folder"
+  },
+  "control": {
+   "issue": "R-candidate-P1-unnamed-fact-core-4f237b451a-51e4145e",
+   "event": "core.4f237b451a#3",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s04.c01.screenshot.png",
+   "real_quote": "$39.99",
+   "control_quote": "$40.99",
+   "source": "plus_one",
+   "replaced": "$39.99",
+   "with": "$40.99",
+   "visual": {
+    "result": "unreadable",
+    "basis": "evidence_linked",
+    "event": "core.4f237b451a#3",
+    "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s04.c01.screenshot.png",
+    "quote": "$40.99",
+    "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s04.c01.screenshot.png' leads outside the review's folder"
+   }
+  },
+  "app": "Spree"
+ },
+ {
+  "review": "spree-semaudit__screen-11-session-agent-b__review-current-candidate.reader",
+  "issue": "R-candidate-U1-line-amount-core-4f237b451a-c86a4dd5",
+  "sent": false,
+  "real": {
+   "result": "unreadable",
+   "basis": "evidence_linked",
+   "event": "core.d6084d1edc",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png",
+   "quote": "Qty: 1",
+   "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png' leads outside the review's folder"
+  },
+  "control": {
+   "issue": "R-candidate-U1-line-amount-core-4f237b451a-c86a4dd5",
+   "event": "core.d6084d1edc",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png",
+   "real_quote": "Qty: 1",
+   "control_quote": "Qty: 1003",
+   "source": "same_page",
+   "replaced": "1",
+   "with": "1003",
+   "visual": {
+    "result": "unreadable",
+    "basis": "evidence_linked",
+    "event": "core.d6084d1edc",
+    "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png",
+    "quote": "Qty: 1003",
+    "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png' leads outside the review's folder"
+   }
+  },
+  "app": "Spree"
+ },
+ {
+  "review": "spree-semaudit__screen-11-session-agent-b__review-current-candidate.reader",
+  "issue": "R-candidate-U3-line-amount-core-4f237b451a-88803e39",
+  "sent": false,
+  "real": {
+   "result": "unreadable",
+   "basis": "evidence_linked",
+   "event": "core.4f237b451a#5",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s06.c02.screenshot.png",
+   "quote": "$43.19",
+   "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s06.c02.screenshot.png' leads outside the review's folder"
+  },
+  "control": {
+   "issue": "R-candidate-U3-line-amount-core-4f237b451a-88803e39",
+   "event": "core.4f237b451a#5",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s06.c02.screenshot.png",
+   "real_quote": "$43.19",
+   "control_quote": "$0.00",
+   "source": "same_page",
+   "replaced": "$43.19",
+   "with": "$0.00",
+   "visual": {
+    "result": "unreadable",
+    "basis": "evidence_linked",
+    "event": "core.4f237b451a#5",
+    "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s06.c02.screenshot.png",
+    "quote": "$0.00",
+    "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s06.c02.screenshot.png' leads outside the review's folder"
+   }
+  },
+  "app": "Spree"
+ },
+ {
+  "review": "spree-semaudit__screen-11-session-agent-b__review-current-candidate.reader",
+  "issue": "R-candidate-U3-line-amount-core-4f237b451a-1b447444",
+  "sent": false,
+  "real": {
+   "result": "unreadable",
+   "basis": "evidence_linked",
+   "event": "core.4f237b451a#6",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png",
+   "quote": "$43.19",
+   "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png' leads outside the review's folder"
+  },
+  "control": {
+   "issue": "R-candidate-U3-line-amount-core-4f237b451a-1b447444",
+   "event": "core.4f237b451a#6",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png",
+   "real_quote": "$43.19",
+   "control_quote": "$39.99",
+   "source": "same_page",
+   "replaced": "$43.19",
+   "with": "$39.99",
+   "visual": {
+    "result": "unreadable",
+    "basis": "evidence_linked",
+    "event": "core.4f237b451a#6",
+    "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png",
+    "quote": "$39.99",
+    "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s09.c01.screenshot.png' leads outside the review's folder"
+   }
+  },
+  "app": "Spree"
+ },
+ {
+  "review": "spree-semaudit__screen-11-session-agent-b__review-current-candidate.reader",
+  "issue": "R-candidate-P1-unnamed-fact-core-4f237b451a-51e4145e",
+  "sent": false,
+  "real": {
+   "result": "unreadable",
+   "basis": "evidence_linked",
+   "event": "core.4f237b451a#2#2",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s04.c01.screenshot.png",
+   "quote": "$39.99",
+   "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s04.c01.screenshot.png' leads outside the review's folder"
+  },
+  "control": {
+   "issue": "R-candidate-P1-unnamed-fact-core-4f237b451a-51e4145e",
+   "event": "core.4f237b451a#2#2",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s04.c01.screenshot.png",
+   "real_quote": "$39.99",
+   "control_quote": "$40.99",
+   "source": "plus_one",
+   "replaced": "$39.99",
+   "with": "$40.99",
+   "visual": {
+    "result": "unreadable",
+    "basis": "evidence_linked",
+    "event": "core.4f237b451a#2#2",
+    "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s04.c01.screenshot.png",
+    "quote": "$40.99",
+    "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s04.c01.screenshot.png' leads outside the review's folder"
+   }
+  },
+  "app": "Spree"
+ },
+ {
+  "review": "spree-semaudit__screen-11-session-agent-b__review-current-candidate.reader",
+  "issue": "R-candidate-P1-unnamed-fact-core-4f237b451a-cecaf475",
+  "sent": false,
+  "real": {
+   "result": "unreadable",
+   "basis": "evidence_linked",
+   "event": "core.4f237b451a#2#3",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s06.c01.screenshot.png",
+   "quote": "$39.99",
+   "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s06.c01.screenshot.png' leads outside the review's folder"
+  },
+  "control": {
+   "issue": "R-candidate-P1-unnamed-fact-core-4f237b451a-cecaf475",
+   "event": "core.4f237b451a#2#3",
+   "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s06.c01.screenshot.png",
+   "real_quote": "$39.99",
+   "control_quote": "$0.00",
+   "source": "same_page",
+   "replaced": "$39.99",
+   "with": "$0.00",
+   "visual": {
+    "result": "unreadable",
+    "basis": "evidence_linked",
+    "event": "core.4f237b451a#2#3",
+    "screenshot": "captures/candidate/ana__S-buy/candidate.ana.S-buy.s06.c01.screenshot.png",
+    "quote": "$0.00",
+    "reason": "screenshot not usable: capture path 'captures/candidate/ana__S-buy/candidate.ana.S-buy.s06.c01.screenshot.png' leads outside the review's folder"
+   }
+  },
+  "app": "Spree"
+ }
+]
