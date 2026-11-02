@@ -21,6 +21,10 @@ Refuses to write when a value the frames rely on is not what the source says:
           screenshot, must quote the line amount the page shows, must read it back and be "confirmed"; the control on
           the same crop (claim changed to the subtotal) must be "contradicted"; the committed crop must be the image
           that was sent (its sha256)
+  beat 7  SRA's review of Finablo v707 -> v731 (docs/evidence/finablo-fresh-releases-2026-11-01/counts.json): the
+          README's JSON block must equal counts.json, the base must be v707 at the tree beat 7's tiles show, and the
+          counts the voice-over says (24 releases apart, 3 fixes reported and confirmed, 1 regression confirmed) must
+          be the record's
   beat 6  Brightdesk's broken release: the pricing and checkout captures must carry their probe texts and the prices
           the committed record reports for those pages (scenes-data/brightdesk.json), and their DOM must pass the
           demo hygiene patterns (no local path, no agent or non-Meta model name)
@@ -55,6 +59,10 @@ VISUAL = SRA / 'docs' / 'evidence' / 'visual-confirm-spree-2026-11-01'   # semau
 # Brightdesk (beat 6's opening): the broken release 1.0's own pages, as the t3 review captured them
 BD_CAPTURES = pathlib.Path(os.environ.get('NEWUSER_RUNS', SRC / 'sra-newuser-test' / 'work' / 'runs')) / 't3' / 'captures' / '1.0'
 BD_PAGES = {'pricing': ('s01', ('Pricing', 'Pro costs', 'Choose Pro')), 'checkout': ('s02', ('Checkout', 'Pro plan:', 'Subscribe'))}
+FRESH = SRA / 'docs' / 'evidence' / 'finablo-fresh-releases-2026-11-01'   # SRA's own review of v707 -> v731
+# what beat 7's voice-over says, as numbers: "Twenty-four releases later, SRA confirmed three fixes and flagged a
+# regression I've confirmed." The record must agree, or nothing is written.
+FRESH_SAID = {'releases_apart': 24, 'fixes_reported': 3, 'fixes_confirmed': 3, 'regressions_confirmed': 1}
 BD_BOX = (0, 0, 560, 215)                    # page px (1x): the page's heading, price line and button; nothing else
 NB_RULES = SRA / 'examples' / 'northbound' / 'contract' / 'principles.yaml'
 
@@ -200,6 +208,26 @@ def spree(errors):
             'stars': {'count': 15805, 'read': '2026-11-01', 'how': 'gh api repos/spree/spree (stargazers_count)'}}
 
 
+def finablo_fresh(errors):
+    rec = FRESH / 'counts.json'
+    d = json.loads(rec.read_text())
+    block = re.search(r'```json\n(.*?)\n```', (FRESH / 'README.md').read_text(), re.S)
+    if not block or json.loads(block.group(1)) != d:
+        errors.append('finablo fresh: README.md\'s JSON block differs from counts.json')
+    if d.get('base') != 'v707' or d.get('base_sha') != TREES['v707']:
+        errors.append(f"finablo fresh: base {d.get('base')} {d.get('base_sha')}, expected v707 {TREES['v707']}")
+    for k, v in FRESH_SAID.items():
+        if d.get(k) != v:
+            errors.append(f'finablo fresh: {k} = {d.get(k)!r}, but the voice-over says {v}')
+    return {'source': str(rec.relative_to(SRA)), 'sha256': sha256(rec),
+            **{k: d.get(k) for k in ('app', 'base', 'head', 'base_sha', 'head_sha', 'releases_apart', 'model',
+                                     'fixes_reported', 'fixes_confirmed', 'fixes_landed', 'regressions_confirmed',
+                                     'regression_introduced', 'new_confirmed_on_target_personas')},
+            'regressions_flagged': d.get('regressions_confirmed'),
+            'fixes_checked_by': 'code history and builds (not owner-reviewed)',
+            'regression_checked_by': 'the owner, on a target persona'}
+
+
 def brightdesk_pages(errors):
     sys.path.insert(0, str(SRA / 'tests'))
     from test_demo_assets_clean import LOCAL_PATH, NAMES
@@ -293,6 +321,7 @@ def main():
     if data['spree']:
         data['visual'] = visual(errors, data['spree'])
     data['brightdesk_pages'] = brightdesk_pages(errors)
+    data['finablo_fresh'] = finablo_fresh(errors)
     if errors:
         sys.exit('refusing to write:\n  ' + '\n  '.join(errors))
     OUT.write_text(json.dumps(data, indent=1, ensure_ascii=False) + '\n')

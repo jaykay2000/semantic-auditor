@@ -243,3 +243,21 @@ def test_cue_tables_define_every_cue_they_use():
         assert used and used <= keys, (name, used - keys)
         times = [float(t) for t in re.findall(r"\w+:\s*([\d.]+)", table)]
         assert times == sorted(times), name                                     # cues run in spoken order
+
+
+def test_beat7_fresh_review_strip_is_the_committed_record():
+    f = V9["finablo_fresh"]
+    rec = ROOT / f["source"]
+    assert hashlib.sha256(rec.read_bytes()).hexdigest() == f["sha256"]
+    d = json.loads(rec.read_text())
+    readme = (rec.parent / "README.md").read_text()
+    assert json.loads(re.search(r"```json\n(.*?)\n```", readme, re.S).group(1)) == d     # one record, two copies agree
+    # what the voice-over says: "Twenty-four releases later, SRA confirmed three fixes and flagged a regression"
+    assert (d["releases_apart"], d["fixes_reported"], d["fixes_confirmed"], d["regressions_confirmed"]) == (24, 3, 3, 1)
+    assert d["base"] == "v707" and d["base_sha"] == json.loads((ASSETS / "scenes-data/finablo.json").read_text())["trees"]["v707"]
+    src = _visible(SLIDES / "m9-b7-finablo.html")
+    assert "Twenty-four releases later, SRA" in re.sub(r"\s+", " ", (SLIDES / "m9-b7-finablo.html").read_text())
+    assert "blind" not in src.lower()                                   # the regression came from a target persona
+    fixes = re.search(r"fixes confirmed<small>([^<]*)</small>", src).group(1)
+    assert "owner" not in fixes and "code history" in fixes             # the fixes were not owner-reviewed
+    assert "owner-confirmed, on a test persona" in src

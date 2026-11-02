@@ -1,9 +1,9 @@
-# Sound cues for the v9 cut (2026-11-01, second owner review: 2:55.0)
+# Sound cues for the v9 cut (2026-11-01, second owner review + beat 7's v707 → v731 line: 2:57.0)
 
 The clips are silent. These are the moments worth a short sound, at **cut time** (the v9 timeline in
 `docs/13-demo-script-v9.md`: beats placed back to back from 0:00) and at **clip time** (seconds into that clip), so
 a cue survives a re-timed edit. Required by the owner review: FAIL, PASS, HOLD, SHIP, merged. The rest are optional.
-For beats 2, 4a, 5 and 6 the clip time follows the clip's `CUES` table (the word's time minus the 0.25 s lead): if
+For beats 2, 4a, 5, 6 and 7 the clip time follows the clip's `CUES` table (the word's time minus the 0.25 s lead): if
 those tables are re-timed to the recorded voice, move these cues with them.
 
 | Cut time | Clip · clip time | Cue | On screen | Suggested sound |
@@ -22,7 +22,9 @@ those tables are re-timed to the recorded voice, move these cues with them.
 | 2:03.2 | `m9-b5-intent` · 21.7 s | optional | Lena: Cleared | short success ding (quieter than PASS) |
 | 2:19.6 | `m9-b6-your-app` · 15.1 s | **HOLD** | HOLD pops (broken release) | short error buzz |
 | 2:21.2 | `m9-b6-your-app` · 16.7 s | **SHIP** | SHIP pops (fixed release) | short success ding |
-| 2:32.6 | `m9-b7-finablo` · 9.6 s | optional | "$35,750 in all 8 of 8" | soft confirm |
+| 2:28.9 | `m9-b7-finablo` · 5.9 s | optional | "$35,750 in all 8 of 8" | soft confirm |
+| 2:33.5 | `m9-b7-finablo` · 10.5 s | optional | "3 fixes confirmed" | soft confirm |
+| 2:35.6 | `m9-b7-finablo` · 12.6 s | optional | "1 regression flagged" | short low thud |
 
 Keep FAIL / HOLD and PASS / SHIP as the same two sounds, so the viewer learns the pair once (beat 4) and recognises it
 in beat 6.

@@ -138,9 +138,9 @@ which records each source's sha256 and refuses on any mismatch), `beat4.json`, `
 | `m9-b4-2-fail-pass-reload` | 4 · 1:31.5–1:41.5 | 10 s | dark: FAIL (beta2) / PASS (beta3) with each email's own sum, then the stored files reloaded and hashed, nothing imported, fix confirmed |
 | `m9-b5-intent` | 5 · 1:41.5–2:04.5 | 23 s | "No test assertion can express this rule", P2, Maya and Lena side by side (same offers, in sans), Flagged / Cleared |
 | `m9-b6-your-app` | 6 · 2:04.5–2:23 | 18.5 s | Brightdesk 1.0's own pricing and checkout pages (t3 captures), the agent's 49-line adapter and its 4 verbs, its endpoint, open weights, rule B1 with the broken prices, HOLD / SHIP, $0.13 |
-| `m9-b7-finablo` | 7 · 2:23–2:35.5 | 12.5 s | the 8 steps that state the limit: v706 red ($24,500 at 1, $32,500 at 7), v707 green ($35,750 at all 8) |
-| `m9-b8-close` | 8 · 2:35.5–2:50 | 14.5 s | who it is for (finance · health · commerce), the live sample review in a browser frame with a slow push-in onto its "Unexplained tradeoff" card, the thesis |
-| `m9-b8-end-card` | end card · 2:50–2:55 | 5 s | thesis, repo URL, live sample URL, run commands, built during the hackathon, owner's name, the models (Muse Spark 1.3 · 1.2 on the Meta Model API; Muse Spark Open, open weights) |
+| `m9-b7-finablo` | 7 · 2:23–2:37.5 | 14.5 s | the 8 steps that state the limit: v706 red ($24,500 at 1, $32,500 at 7), v707 green ($35,750 at all 8); then SRA's own review of v707 → v731 (24 releases apart): 3 fixes confirmed by code history, 1 regression flagged, owner-confirmed on a test persona (`docs/evidence/finablo-fresh-releases-2026-11-01/counts.json`). One `CUES` table |
+| `m9-b8-close` | 8 · 2:37.5–2:52 | 14.5 s | who it is for (finance · health · commerce), the live sample review in a browser frame with a slow push-in onto its "Unexplained tradeoff" card, the thesis |
+| `m9-b8-end-card` | end card · 2:52–2:57 | 5 s | thesis, repo URL, live sample URL, run commands, built during the hackathon, owner's name, the models (Muse Spark 1.3 · 1.2 on the Meta Model API; Muse Spark Open, open weights) |
 
 Also: `scenes/m9-thumbnail.png` (beat 1 at 12.4 s, an extra still written by `render_motion.py`) and the sound-cue
 sheet `SOUND-CUES-v9.md`.
@@ -154,5 +154,5 @@ python3 slides-src/shoot_v9.py                    # img/v9/sample-review.png, fr
 python3 slides-src/render_motion.py m9            # every v9 clip + still + the thumbnail
 ```
 
-Re-timing to the recorded voice: beats 2, 4a, 5 and 6 each keep one `CUES` table (seconds per spoken word); edit the
+Re-timing to the recorded voice: beats 2, 4a, 5, 6 and 7 each keep one `CUES` table (seconds per spoken word); edit the
 table, re-render the clip. `slides-src/_v9.inc.js::applyCues` turns `data-cue="name"` into the element's start time.

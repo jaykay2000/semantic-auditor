@@ -343,5 +343,25 @@
    "price": "$15",
    "text": "Checkout Pricing Checkout Pro plan: $15 per month. You will be charged $15 today. Subscribe"
   }
+ },
+ "finablo_fresh": {
+  "source": "docs/evidence/finablo-fresh-releases-2026-11-01/counts.json",
+  "sha256": "5974312320a21c76d87ef24f30fc1d5b3d3074b74bf40837c12e3eb692b20dbd",
+  "app": "Finablo",
+  "base": "v707",
+  "head": "v731",
+  "base_sha": "a183626",
+  "head_sha": "c09505f0",
+  "releases_apart": 24,
+  "model": "muse-spark-1.3",
+  "fixes_reported": 3,
+  "fixes_confirmed": 3,
+  "fixes_landed": "v708",
+  "regressions_confirmed": 1,
+  "regression_introduced": "v708",
+  "new_confirmed_on_target_personas": 2,
+  "regressions_flagged": 1,
+  "fixes_checked_by": "code history and builds (not owner-reviewed)",
+  "regression_checked_by": "the owner, on a target persona"
  }
 }

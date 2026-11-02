@@ -1,46 +1,75 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><title>m9 beat 7 Finablo on the next release: the right limit in all eight places</title>
 <link rel="stylesheet" href="slides.css"><link rel="stylesheet" href="motion.css"><link rel="stylesheet" href="v9.css">
-<!-- Beat 7 v9 (2:23-2:35.5, 12.5 s). Voice-over, cue = clip seconds:
-       0.3  "And my app? That bug is now one of SRA's journeys."            v706: eight places, two wrong figures
-       4.9  "On the next release, all eight places that state the limit"     v707: tiles flip one by one (6.5-8.6)
-      10.3  "read thirty-five thousand seven hundred fifty."                 "$35,750 in all 8" at 9.6
-     The numbers are the focus (owner review): each tile is one step of the harness's model-free target_61 journey
-     that states the limit, with the figure it states on each release (window.DATA.v9.finablo.limits.places, counted
-     from the captures by extract_v9.py). No HOLD/SHIP badge: SRA's review of v706 -> v707 is provisional with other
-     issues open, so no ship verdict exists to show. The "unused 401(k) headroom" line is wrong on both releases and is
-     not counted here (it is not a limit statement; fixed in v708; docs/evidence/imported-checks/finablo/README.md). -->
+<!-- Beat 7 v9 (owner-approved change, 2026-11-01: a closing line on SRA's own review of Finablo v707 -> v731).
+     Voice-over ([cue] = CUES entry):
+       [app] And my app? [next] On the next release, all [eight] eight places that state the limit [read] read
+       thirty-five thousand seven hundred fifty. [later] Twenty-four releases later, SRA [confirmed] confirmed [three]
+       three fixes and [flagged] flagged a [regression] regression [mine] I've confirmed.
+     "Twenty-four releases later" means SRA compared v707 with v731 directly, not each release in between.
+     The tiles: each step of the harness's model-free target_61 journey that states the limit, with the figure it
+     states on each release (window.DATA.v9.finablo.limits.places, counted by extract_v9.py). The closing strip:
+     window.DATA.v9.finablo_fresh, read by extract_v9.py from the committed record
+     docs/evidence/finablo-fresh-releases-2026-11-01/counts.json (commit 640e976; it refuses on a mismatch, and this
+     frame refuses to render without it). The 3 fixes were checked against code history and builds, not by the owner,
+     so the strip says "confirmed by code history"; the 1 regression (introduced in v708) is owner-confirmed, on a
+     target persona, so it says "owner-confirmed, on a test persona" and never "found blind". Model: the record's. The "unused 401(k) headroom" line is wrong on both v706 and v707 and is not counted (fixed in v708;
+     docs/evidence/imported-checks/finablo/README.md). -->
 <style>
 .rels{display:grid;grid-template-columns:200px 1fr;gap:20px 30px;align-items:center}
 .rl{font:760 44px var(--disp);letter-spacing:-.02em}
 .rl span{display:block;font:600 24px var(--mono);color:var(--ink3);letter-spacing:0}
 .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
-.tile{padding:14px 18px;border-radius:16px;border:2px solid;display:flex;flex-direction:column;gap:2px}
-.tile b{font:820 44px/1.05 var(--disp);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.tile{padding:10px 16px;border-radius:16px;border:2px solid;display:flex;flex-direction:column;gap:2px}
+.tile b{font:820 40px/1.05 var(--disp);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
 .tile span{font:600 24px/1.2 var(--sans);color:var(--ink2)}
 .tile.bad{background:var(--badbg);border-color:#F3C2BB}.tile.bad b{color:var(--bad)}
 .tile.good{background:var(--goodbg);border-color:#9FD3B6}.tile.good b{color:var(--good)}
-.sumr{grid-column:2;display:flex;align-items:center;gap:18px;font:650 30px var(--sans);color:var(--ink2);min-height:56px}
-.sumr b{font:850 52px var(--disp);letter-spacing:-.03em}
-.lead{font:800 56px/1.05 var(--disp);letter-spacing:-.035em;margin:0 0 30px}
-</style></head><body data-duration="12.5">
+.sumr{grid-column:2;display:flex;align-items:center;gap:18px;font:650 30px var(--sans);color:var(--ink2);min-height:50px}
+.sumr b{font:850 46px var(--disp);letter-spacing:-.03em}
+.lead{font:800 48px/1.05 var(--disp);letter-spacing:-.035em;margin:0 0 18px}
+.fresh{margin-top:20px;display:flex;flex-direction:column;gap:8px;padding:16px 28px;border-radius:20px;background:#14161B;color:#fff}
+.fresh .l1{font:600 26px var(--sans);color:#B9BCC4}.fresh .l1 .mono9{color:#fff;font-weight:700}
+.fresh .l2{display:flex;gap:56px;align-items:baseline}
+.fresh small{font:500 25px var(--sans);color:#9EA3AD;margin-left:14px}
+.fresh .rg{font:700 32px var(--mono);white-space:nowrap}.fresh .rg span{color:#9EA3AD;font:600 26px var(--sans);margin-left:12px}
+.fresh .c{display:flex;align-items:baseline;gap:10px;font:650 30px var(--sans);color:#C9CCD3;white-space:nowrap}
+.fresh .c b{font:850 46px var(--disp);letter-spacing:-.03em}
+.fresh .c.ok b{color:#9FE0BC}.fresh .c.rg2 b{color:#FFB4AA}
+.fresh i{font-style:normal;color:#6E737D;font:700 34px var(--sans)}
+</style></head><body data-duration="14.5">
 <div id="hd"></div>
 <div class="stage">
-  <div class="lead in" style="--at:.3">Every step of this journey that states the 401(k) limit</div>
+  <div class="lead in" data-cue="app">Every step of this journey that states the 401(k) limit</div>
   <div class="rels" id="rels"></div>
+  <div class="fresh in" data-cue="later" id="fresh"></div>
 </div>
-<div class="src9 fade" style="--at:.3"><b>Source:</b> Finablo v706 (10ff1e3) and v707 (a183626), run locally, model-free captures of one 61-year-old test journey</div>
+<div class="src9 fade" style="--at:.3"><b>Source:</b> Finablo v706 and v707, run locally, model-free captures of one 61-year-old test journey · SRA review v707 → v731 (docs/evidence/finablo-fresh-releases-2026-11-01)</div>
+<script>
+// THE cue table (2.4 words/s from 0.3 s). Re-time here only.
+const CUES = {app: 0.3, next: 1.55, eight: 3.63, read: 6.13, later: 8.63, confirmed: 10.3, three: 10.72, flagged: 11.97,
+  regression: 12.8, mine: 13.22};
+</script>
 <script src="_v9.inc.js"></script>
 <script>
 const L = window.DATA.v9.finablo.limits, P = L.places, OK = window.DATA.v9.finablo.correct_limit;
 document.getElementById('hd').innerHTML = v9Head({app: 'finablo', note: 'my existing app, the app under audit'});
-const tiles = (rel, at, dt) => P.map((p, i) => `<div class="tile ${p[rel] === OK ? 'good' : 'bad'} pop" style="--at:${at + i * dt}"><b>${p[rel]}</b><span>${esc(p.name)}</span></div>`).join('');
+const tiles = (rel, cue, dt) => P.map((p, i) => `<div class="tile ${p[rel] === OK ? 'good' : 'bad'} pop" data-cue="${cue}+${(i * dt).toFixed(2)}"><b>${p[rel]}</b><span>${esc(p.name)}</span></div>`).join('');
 const wrong = [...new Set(P.map(p => p.v706))].filter(v => v !== OK);
 document.getElementById('rels').innerHTML = `
-  <div class="rl in" style="--at:.8">v706<span>${window.DATA.finablo.trees.v706}</span></div><div class="tiles">${tiles('v706', 1.0, .22)}</div>
-  <div class="sumr fade" style="--at:3.0"><b class="bad">${wrong.join(' and ')}</b>&nbsp;two figures, neither right</div>
-  <div class="rl in" style="--at:5.2">v707<span>${window.DATA.finablo.trees.v707}</span></div><div class="tiles">${tiles('v707', 6.5, .3)}</div>
-  <div class="sumr pop" style="--at:9.6"><b class="good">${OK}</b>&nbsp;in all ${P.filter(p => p.v707 === OK).length} of ${P.length}</div>`;
+  <div class="rl in" data-cue="app">v706<span>${window.DATA.finablo.trees.v706}</span></div><div class="tiles">${tiles('v706', 'app+0.1', .08)}</div>
+  <div class="sumr fade" data-cue="app+1.0"><b class="bad">${wrong.join(' and ')}</b>&nbsp;two figures, neither right</div>
+  <div class="rl in" data-cue="next">v707<span>${window.DATA.finablo.trees.v707}</span></div><div class="tiles">${tiles('v707', 'eight', .25)}</div>
+  <div class="sumr pop" data-cue="read"><b class="good">${OK}</b>&nbsp;in all ${P.filter(p => p.v707 === OK).length} of ${P.length}</div>`;
+// the closing strip: SRA's own review of v707 -> v731, from the committed record (extract_v9.py refuses on a mismatch)
+const FR = window.DATA.v9.finablo_fresh;
+if (!FR) throw new Error('beat 7 needs docs/evidence/finablo-fresh-releases-2026-11-01 (run extract_v9.py once it is committed)');
+const MODEL = 'Muse Spark ' + FR.model.replace('muse-spark-', '');
+document.getElementById('fresh').innerHTML = `<div class="l1">SRA's review · ${esc(MODEL)} · <span class="mono9">${esc(FR.base)} → ${esc(FR.head)}</span> · ${FR.releases_apart} releases apart</div>
+  <div class="l2"><span class="c ok pop" data-cue="three"><b>${FR.fixes_confirmed}</b> fixes confirmed<small>by code history</small></span>
+  <span class="c rg2 pop" data-cue="regression"><b>${FR.regressions_flagged}</b> regression flagged<small class="fade" data-cue="mine">owner-confirmed, on a test persona</small></span></div>`;
+if (FR.fixes_confirmed !== FR.fixes_reported) throw new Error('fixes reported vs confirmed');
+applyCues(CUES);
 </script>
 <script src="motion.js"></script>
 </body></html>
