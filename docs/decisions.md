@@ -8,7 +8,7 @@
 | 2026-10-26 | No code copied from Finablo's harness; ideas only, recorded in HACKATHON.md | hackathon "new work only" rule |
 | 2026-10-26 | Solo entry (Indie Developer track) | owner |
 | 2026-10-26 | Skip Finablo's Sage chat surface | owner |
-| 2026-10-26 | Mobile is a generic adapter for later | owner |
+| 2026-10-26 | No relation to any other product or company anywhere in the project; mobile is a generic adapter for later | owner |
 | 2026-10-26 | Name **Semantic Auditor** (CLI `semaudit`); license **Apache-2.0**; published under the **`finablo`** GitHub account, with only this repo made public | owner |
 | 2026-10-26 | Build priority: prove Maya's conflict detection and Raj's allowed exception first, using a **written draft** of the Northbound principles. Voice onboarding is a demo enhancement, recorded once the principles are final | owner |
 | 2026-10-26 | Push and publish only on the owner's word | owner standing rule |
