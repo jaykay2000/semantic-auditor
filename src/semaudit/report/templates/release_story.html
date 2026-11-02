@@ -80,6 +80,7 @@ input.btn{font-weight:400;cursor:text}
 .rec-provisional,.rec-not_measurable{background:#fff;color:var(--ink2);border:1.5px dashed #B9BCC4}
 .vwhy{font-size:13.5px;color:var(--ink2);margin-top:8px;max-width:980px;line-height:1.55}
 .vwhy .mono{font-size:12.5px;color:var(--ink)}
+.vwhy.sc-passed{color:var(--good)}.vwhy.sc-failed{color:var(--bad);font-weight:700}
 .tiles{display:flex;gap:12px}
 .tile{min-width:148px;padding:14px 18px 12px;border-radius:12px;border:1px solid var(--line);background:var(--sunk);text-align:left;display:flex;flex-direction:column;gap:2px}
 .tile .num{font:750 44px/1 var(--disp);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
@@ -589,8 +590,9 @@ function verdict() {
   const policyLine = `policy row ${pol.row}: <span class="mono">${esc(pol.rule_fired)}</span>` +
     (firedBy.length ? ` · fired by ${firedBy.slice(0, 2).map(i => `<button class="linkbtn firedby" data-goto="${esc(personaOf(i))}|${esc(i.id)}">${esc(issueTitle(i))} (${esc(who(i))})</button>`).join(', ')}${firedBy.length > 2 ? ` and ${firedBy.length - 2} more` : ''}` : '');
   const word = out.status === 'provisional' ? out.policy_would_say : out.recommendation;
-  const lead = out.status === 'provisional' ? 'The policy would say' : out.status === 'decided' ? 'Recommendation' : 'Not measurable';
+  const lead = out.status === 'provisional' ? 'The policy would say' : out.status === 'decided' ? 'Recommendation' : out.self_check ? "Can't tell" : 'Not measurable';
   const why = out.status === 'decided' ? policyLine
+    : out.self_check ? `<b style="color:var(--ink)">Can't tell:</b> ${esc(out.reason)}. ${policyLine.replace(/^policy row/, 'Policy row')}.`
     : out.status === 'provisional' ? `<b style="color:var(--ink)">Provisional:</b> ${esc(out.reason)}. ${policyLine.replace(/^policy row/, 'Policy row')}.`
     : `${esc(out.reason)}: ${[...Object.entries((R.measurement || {}).head || {}).map(([p, r]) => esc(p) + ' (' + esc(r[0]) + ')'),
         ...((R.measurement || {}).rules_not_measured || []).map(x => 'rule ' + esc(x.rule) + ' (' + esc(x.reason) + ')')].join(', ') || 'base release'}`;
@@ -602,6 +604,7 @@ function verdict() {
       <div class="rel"><span class="mono">${esc(BASE)}</span><span class="arr">→</span><span class="mono">${esc(HEAD)}</span></div>
       <div class="vline">${esc(lead)} <span class="word ${esc(word)}">${esc(words(word))}</span><span class="rec rec-${esc(out.recommendation)}">${esc(words(out.recommendation))}</span></div>
       <div class="vwhy">${why}</div>
+      <div class="vwhy sc-${esc((R.self_check || {}).status || 'none')}">${esc((R.self_check || {}).line || 'Judge self-check: not run (none recorded in this review)')}</div>
       <div class="vwhy">${ownerRelease()} · ${R.issues.length} open issue${R.issues.length === 1 ? '' : 's'} · ${R.personas.length} personas</div></div>
     <div><div class="tiles">${tiles}</div><div class="reach">${esc(nouns(R.personas.length))} played through both releases · ${ALL.length} issue${ALL.length === 1 ? '' : 's'} in this review</div></div>
   </section>`;

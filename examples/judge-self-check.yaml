@@ -1,0 +1,211 @@
+# Judge self-check cases (dev). `semaudit review` sends these to its own model judge on every run, in calls of their
+# own, before it gives a recommendation (src/semaudit/verify/selfcheck.py). Half carry one planted mistake the judge
+# must catch; half are correct and must be cleared. If the judge gets any of them wrong, the review gives no Hold or
+# Ship: its outcome is "not measurable", with the reason "judge self-check failed" and the failing case ids.
+#
+# Where they come from: only the public Northbound narrative fixture in examples/northbound/ (labelled dev; the
+# auditor's prompts were tuned on it). The message texts are the app's own copy (copy.py, features/fare_lock.py and
+# features/concierge_v2.py) with the values release 2.4 fills in; the timelines follow the personas table in
+# examples/northbound/README.md. Nothing here comes from the benchmark (bench/), a sealed release or a scored run.
+# Because the prompts were tuned on this fixture, a pass says the judge still answers as it did when it was tuned:
+# it is a canary, not an accuracy figure.
+#
+# Times: "D<n> HH:MM[:SS]" is n days after day0, UTC. The judge is given the Northbound contract below.
+version: 1
+label: dev
+contract: northbound/contract
+day0: "2026-11-02"
+component: flight           # every message below is about a flight unless it says otherwise
+
+copy:
+  pw.card: "Prices on your dates are likely to drop over the next two weeks. We suggest waiting; we'll tell you when to book."
+  pw.card.nodrop: "Our forecast: prices on this trip are unlikely to drop before departure."
+  fl.banner: "2 seats left at this fare. Lock it for 48 h for €9 total, for your whole booking."
+  fl.banner.urgent: "Departing soon: only 2 seats left at this fare. Book now, or lock it for 12 h for €9 total if your plans might change."
+  cg.reconcile: "Prices on your dates are likely to drop, but this fare has 2 seats left. If you can move your dates, wait for the alert; if not, locking protects this price."
+  cg.upgrade: "You can still switch to a refundable fare for €30 until tomorrow 10:06."
+  cg.regret: "You should have booked a refundable fare."
+
+# Rules mode only. What each message recommends, as the extractor reads it in a review. It is held fixed here, so the
+# only model judgment under test is the interpreter's label; a planted text keeps the extraction of its original.
+extraction:
+  pw.card: {message_kind: directive, decision: when_to_book, action: wait_for_drop, strength: suggest, urgency_cue: none, explains_own_tradeoff: false}
+  pw.card.nodrop: {message_kind: information, decision: none, action: none, strength: inform, urgency_cue: none, explains_own_tradeoff: false}
+  fl.banner: {message_kind: directive, decision: when_to_book, action: lock_fare, strength: suggest, urgency_cue: none, explains_own_tradeoff: false}
+  fl.banner.urgent: {message_kind: directive, decision: when_to_book, action: book_now, strength: urge, urgency_cue: U-a, explains_own_tradeoff: true}
+  cg.reconcile: {message_kind: directive, decision: when_to_book, action: conditional, strength: suggest, urgency_cue: none, explains_own_tradeoff: true}
+  cg.upgrade: {message_kind: directive, decision: fare_type, action: upgrade_to_refundable, strength: suggest, urgency_cue: none, explains_own_tradeoff: false}
+  cg.regret: {message_kind: retrospective, decision: fare_type, action: choose_refundable, strength: inform, urgency_cue: none, explains_own_tradeoff: false}
+
+cases:
+  # ---------------------------------------------------------------- rules mode: the interpreter labels the coherence
+  # rule's candidate pair (prompt: relate/interpret.py). One call per case. "flag" = the rule comes out violated.
+  - id: rules-right-1
+    mode: rules
+    expect: clear
+    made: "Lena (README): Price Watch says wait, Fare Lock offers a lock, she asks Concierge, whose answer explains the tradeoff before she leaves. Unchanged."
+    context: {departure_at: "D42 08:00"}
+    events:
+      - {id: a_search, at: "D0 10:00", do: search}
+      - {id: pw_card, at: "D0 10:00:05", msg: pw.card, feature: price_watch, surface: search_results, channel: card}
+      - {id: pw_email, at: "D0 10:01", msg: pw.card, feature: price_watch, surface: inbox, channel: email}
+      - {id: fl_banner, at: "D0 10:03", msg: fl.banner, feature: fare_lock, surface: fare_detail, channel: banner}
+      - {id: a_ask, at: "D0 10:04", do: ask}
+      - {id: cg_answer, at: "D0 10:04:10", msg: cg.reconcile, feature: concierge, surface: chat, channel: chat, user_initiated: true}
+      - {id: a_leave, at: "D0 10:06", do: leave}
+
+  - id: rules-wrong-1
+    mode: rules
+    expect: flag
+    made: "rules-right-1 with one planted mistake: Concierge's answer is cut after 'wait for the alert', so it no longer mentions the lock; nothing explains the tradeoff."
+    planted: {event: cg_answer, was: "...wait for the alert; if not, locking protects this price.", now: "...wait for the alert."}
+    context: {departure_at: "D42 08:00"}
+    events:
+      - {id: a_search, at: "D0 10:00", do: search}
+      - {id: pw_card, at: "D0 10:00:05", msg: pw.card, feature: price_watch, surface: search_results, channel: card}
+      - {id: pw_email, at: "D0 10:01", msg: pw.card, feature: price_watch, surface: inbox, channel: email}
+      - {id: fl_banner, at: "D0 10:03", msg: fl.banner, feature: fare_lock, surface: fare_detail, channel: banner}
+      - {id: a_ask, at: "D0 10:04", do: ask}
+      - {id: cg_answer, at: "D0 10:04:10", msg: cg.reconcile, feature: concierge, surface: chat, channel: chat, user_initiated: true,
+         text: "Prices on your dates are likely to drop, but this fare has 2 seats left. If you can move your dates, wait for the alert."}
+      - {id: a_leave, at: "D0 10:06", do: leave}
+
+  - id: rules-right-2
+    mode: rules
+    expect: clear
+    made: "Maya on 2.4.1 (README): the inline Concierge card under the Fare Lock banner explains wait vs lock before she books. Unchanged."
+    context: {departure_at: "D42 08:00"}
+    events:
+      - {id: a_search, at: "D0 10:00", do: search}
+      - {id: pw_card, at: "D0 10:00:05", msg: pw.card, feature: price_watch, surface: search_results, channel: card}
+      - {id: pw_email, at: "D0 10:01", msg: pw.card, feature: price_watch, surface: inbox, channel: email}
+      - {id: fl_banner, at: "D0 10:03", msg: fl.banner, feature: fare_lock, surface: fare_detail, channel: banner}
+      - {id: cg_inline, at: "D0 10:03:05", msg: cg.reconcile, feature: concierge, surface: fare_detail, channel: card}
+      - {id: a_book, at: "D0 10:06", do: book, effects: {booking_status: booked}}
+
+  - id: rules-wrong-2
+    mode: rules
+    expect: flag
+    made: "rules-right-2 with one planted mistake: the reconciling Concierge card is removed (Maya on 2.4, the fixture's own unexplained tradeoff)."
+    planted: {event: cg_inline, was: "shown at D0 10:03:05", now: "not shown"}
+    context: {departure_at: "D42 08:00"}
+    events:
+      - {id: a_search, at: "D0 10:00", do: search}
+      - {id: pw_card, at: "D0 10:00:05", msg: pw.card, feature: price_watch, surface: search_results, channel: card}
+      - {id: pw_email, at: "D0 10:01", msg: pw.card, feature: price_watch, surface: inbox, channel: email}
+      - {id: fl_banner, at: "D0 10:03", msg: fl.banner, feature: fare_lock, surface: fare_detail, channel: banner}
+      - {id: a_book, at: "D0 10:06", do: book, effects: {booking_status: booked}}
+
+  - id: rules-right-3
+    mode: rules
+    expect: clear
+    made: "rules-right-2 followed by Maya's later 2.4.1 messages (the upgrade tip after booking, then a regret answer two days later): the pair is still reconciled before she books, and the later messages are about another decision. Unchanged copy."
+    context: {departure_at: "D42 08:00"}
+    events:
+      - {id: a_search, at: "D0 10:00", do: search}
+      - {id: pw_card, at: "D0 10:00:05", msg: pw.card, feature: price_watch, surface: search_results, channel: card}
+      - {id: pw_email, at: "D0 10:01", msg: pw.card, feature: price_watch, surface: inbox, channel: email}
+      - {id: fl_banner, at: "D0 10:03", msg: fl.banner, feature: fare_lock, surface: fare_detail, channel: banner}
+      - {id: cg_inline, at: "D0 10:03:05", msg: cg.reconcile, feature: concierge, surface: fare_detail, channel: card}
+      - {id: a_book, at: "D0 10:06", do: book, effects: {booking_status: booked}}
+      - {id: cg_upgrade, at: "D0 13:00", msg: cg.upgrade, feature: concierge, surface: chat, channel: chat}
+      - {id: a_ask, at: "D2 09:02", do: ask}
+      - {id: cg_regret, at: "D2 09:02:10", msg: cg.regret, feature: concierge, surface: chat, channel: chat, user_initiated: true}
+
+  - id: rules-wrong-3
+    mode: rules
+    expect: flag
+    made: "Kai (README), departing in 30 h: Price Watch says wait while the urgent Fare Lock banner says 'Book now'. The banner explains only its own choice (book or lock), which does not reconcile the two."
+    planted: {event: fl_urgent, was: "a lock offer (fl.banner)", now: "'Book now' (fl.banner.urgent) beside a 'wait' forecast"}
+    context: {departure_at: "D1 16:00"}
+    events:
+      - {id: a_search, at: "D0 10:00", do: search}
+      - {id: pw_card, at: "D0 10:00:05", msg: pw.card, feature: price_watch, surface: search_results, channel: card}
+      - {id: pw_email, at: "D0 10:01", msg: pw.card, feature: price_watch, surface: inbox, channel: email}
+      - {id: fl_urgent, at: "D0 10:03", msg: fl.banner.urgent, feature: fare_lock, surface: fare_detail, channel: banner}
+
+  # ---------------------------------------------------------------- reader mode: the interpreter reads every rule
+  # and the stories and names what is wrong (prompt: bench/conditions/prompts/judge_one.md). All six stories go in
+  # one call, each as its own persona. A wrong case is caught when a finding cites its planted message with a quote
+  # that is in that message; a right case is cleared when no finding cites it with such a quote.
+  - id: reader-right-1
+    mode: reader
+    expect: clear
+    made: "Raj (README), departing in 30 h, 2 seats left and 2 in inventory: the urgent banner is allowed by exception P1-E1. Unchanged."
+    context: {departure_at: "D1 16:00"}
+    truth: {units_left: 2}
+    events:
+      - {id: a_search, at: "D0 10:00", do: search}
+      - {id: pw_nodrop, at: "D0 10:00:05", msg: pw.card.nodrop, feature: price_watch, surface: search_results, channel: card}
+      - {id: pw_email, at: "D0 10:01", msg: pw.card.nodrop, feature: price_watch, surface: inbox, channel: email}
+      - {id: fl_urgent, at: "D0 10:03", msg: fl.banner.urgent, feature: fare_lock, surface: fare_detail, channel: banner}
+
+  - id: reader-right-2
+    mode: reader
+    expect: clear
+    made: "Lena (README): the explained tradeoff, as rules-right-1, with the inventory reading. Unchanged."
+    context: {departure_at: "D42 08:00"}
+    truth: {units_left: 2}
+    events:
+      - {id: a_search, at: "D0 10:00", do: search}
+      - {id: pw_card, at: "D0 10:00:05", msg: pw.card, feature: price_watch, surface: search_results, channel: card}
+      - {id: pw_email, at: "D0 10:01", msg: pw.card, feature: price_watch, surface: inbox, channel: email}
+      - {id: fl_banner, at: "D0 10:03", msg: fl.banner, feature: fare_lock, surface: fare_detail, channel: banner}
+      - {id: a_ask, at: "D0 10:04", do: ask}
+      - {id: cg_answer, at: "D0 10:04:10", msg: cg.reconcile, feature: concierge, surface: chat, channel: chat, user_initiated: true}
+      - {id: a_leave, at: "D0 10:06", do: leave}
+
+  - id: reader-right-3
+    mode: reader
+    expect: clear
+    made: "Theo (README): opens a fare, books, then gets the upgrade tip, which he can still act on. Unchanged."
+    context: {departure_at: "D42 08:00"}
+    truth: {units_left: 2}
+    events:
+      - {id: a_open, at: "D0 10:05", do: open_fare}
+      - {id: fl_banner, at: "D0 10:05:05", msg: fl.banner, feature: fare_lock, surface: fare_detail, channel: banner}
+      - {id: a_book, at: "D0 10:06", do: book, effects: {booking_status: booked}}
+      - {id: cg_upgrade, at: "D0 13:00", msg: cg.upgrade, feature: concierge, surface: chat, channel: chat}
+
+  - id: reader-wrong-1
+    mode: reader
+    expect: flag
+    made: "A Raj-like traveller departing in 48 h, with one planted mistake: the banner's seat count is changed from 2 to 12, a figure from the same banner ('12 h'). Inventory still reads 2."
+    planted: {event: fl_urgent, was: "only 2 seats left", now: "only 12 seats left"}
+    context: {departure_at: "D2 10:00"}
+    truth: {units_left: 2}
+    events:
+      - {id: a_search, at: "D0 10:00", do: search}
+      - {id: pw_nodrop, at: "D0 10:00:05", msg: pw.card.nodrop, feature: price_watch, surface: search_results, channel: card}
+      - {id: pw_email, at: "D0 10:01", msg: pw.card.nodrop, feature: price_watch, surface: inbox, channel: email}
+      - {id: fl_urgent, at: "D0 10:03", msg: fl.banner.urgent, feature: fare_lock, surface: fare_detail, channel: banner,
+         text: "Departing soon: only 12 seats left at this fare. Book now, or lock it for 12 h for €9 total if your plans might change."}
+
+  - id: reader-wrong-2
+    mode: reader
+    expect: flag
+    made: "Maya on 2.4.1 up to booking (as rules-right-2), with one planted mistake: the inline Concierge card says 9 seats, a figure from the banner on the same page ('€9'). Inventory reads 2."
+    planted: {event: cg_inline, was: "this fare has 2 seats left", now: "this fare has 9 seats left"}
+    context: {departure_at: "D42 08:00"}
+    truth: {units_left: 2}
+    events:
+      - {id: a_search, at: "D0 10:00", do: search}
+      - {id: pw_card, at: "D0 10:00:05", msg: pw.card, feature: price_watch, surface: search_results, channel: card}
+      - {id: pw_email, at: "D0 10:01", msg: pw.card, feature: price_watch, surface: inbox, channel: email}
+      - {id: fl_banner, at: "D0 10:03", msg: fl.banner, feature: fare_lock, surface: fare_detail, channel: banner}
+      - {id: cg_inline, at: "D0 10:03:05", msg: cg.reconcile, feature: concierge, surface: fare_detail, channel: card,
+         text: "Prices on your dates are likely to drop, but this fare has 9 seats left. If you can move your dates, wait for the alert; if not, locking protects this price."}
+      - {id: a_book, at: "D0 10:06", do: book, effects: {booking_status: booked}}
+
+  - id: reader-wrong-3
+    mode: reader
+    expect: flag
+    made: "Omar (README), departing in 20 h: the banner says 2 seats left, and the app's record (inventory) reads 9. The planted mistake is in the record: a claim that contradicts it."
+    planted: {event: fl_urgent, was: "inventory 2", now: "inventory 9"}
+    context: {departure_at: "D1 06:00"}
+    truth: {units_left: 9}
+    events:
+      - {id: a_search, at: "D0 10:00", do: search}
+      - {id: pw_nodrop, at: "D0 10:00:05", msg: pw.card.nodrop, feature: price_watch, surface: search_results, channel: card}
+      - {id: pw_email, at: "D0 10:01", msg: pw.card.nodrop, feature: price_watch, surface: inbox, channel: email}
+      - {id: fl_urgent, at: "D0 10:03", msg: fl.banner.urgent, feature: fare_lock, surface: fare_detail, channel: banner}

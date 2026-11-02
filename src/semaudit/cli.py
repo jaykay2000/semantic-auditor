@@ -106,11 +106,17 @@ def review_cmd(contract_dir: Path = typer.Option(..., "--contract", exists=True,
                reader: bool = typer.Option(False, "--reader",
                                            help="the model reads SRA's context and names the issues; SRA checks the "
                                                 "evidence and the release delta"),
-               reader_chunk: int = typer.Option(11, "--reader-chunk", help="personas per reading call")):
+               reader_chunk: int = typer.Option(11, "--reader-chunk", help="personas per reading call"),
+               self_check: bool = typer.Option(True, "--self-check/--no-self-check",
+                                               help="send the model judge a fixed set of known cases (planted "
+                                                    "mistakes and correct stories) in calls of its own; any wrong "
+                                                    "answer, or a self-check that cannot run, blocks Hold and Ship. "
+                                                    "Its spend counts toward --max-usd")):
     """Review a release against its base: issues, verification, recommendation. Writes review-<base>-<head>.json.
 
-    Exit 0: a decided Ship (complete measurement, approved contract); 1: anything that needs the owner,
-    including a provisional recommendation from an unapproved contract; 2: could not measure.
+    Exit 0: a decided Ship (complete measurement, approved contract, judge self-check passed or turned off);
+    1: anything that needs the owner, including a provisional recommendation from an unapproved contract;
+    2: could not measure, including a judge self-check that failed or could not run.
     """
     import json
     import time
@@ -120,7 +126,8 @@ def review_cmd(contract_dir: Path = typer.Option(..., "--contract", exists=True,
     run_id = run_id or f"review-{time.strftime('%Y%m%dT%H%M%S')}"
     try:
         path = run_review(contract_dir, base, head, run_id=run_id, runs_dir=runs_dir, max_usd=max_usd,
-                          reuse=reuse, fresh=fresh, ablation=ablation, reader=reader, reader_chunk=reader_chunk)
+                          reuse=reuse, fresh=fresh, ablation=ablation, reader=reader, reader_chunk=reader_chunk,
+                          self_check=self_check)
     except ModelError as e:
         typer.echo(f"cannot measure: {e}", err=True)
         raise typer.Exit(2)
@@ -129,6 +136,8 @@ def review_cmd(contract_dir: Path = typer.Option(..., "--contract", exists=True,
     typer.echo(f"{base} -> {head}: {out['recommendation'].upper()}"
                + (f"  (policy row {r['policy']['row']}: {r['policy']['rule_fired']})" if out["status"] == "decided"
                   else f"  ({out['reason']}; policy would say {r['policy']['recommendation']})"))
+    from .verify.selfcheck import line
+    typer.echo(f"  {line(r.get('self_check'))}")
     for side in ("base", "head"):
         for p, probs in r["measurement"][side].items():
             typer.echo(f"  not measured ({side}) {p}: {'; '.join(probs)}")
@@ -153,7 +162,9 @@ def review_cmd(contract_dir: Path = typer.Option(..., "--contract", exists=True,
             typer.echo(f"  warning: {w}", err=True)
     from .report.page import build
     page = build(path)
-    typer.echo(f"not raised: {len(r['not_raised'])} · spent ${r['cost_usd']:.3f} · {path}")
+    sc_usd = (r.get("self_check") or {}).get("cost_usd") or 0.0
+    typer.echo(f"not raised: {len(r['not_raised'])} · spent ${r['cost_usd']:.3f}"
+               + (f" + ${sc_usd:.3f} judge self-check" if r.get("self_check") else "") + f" · {path}")
     typer.echo(f"Release Story: {page}")
     if out["status"] == "not_measurable":
         raise typer.Exit(2)

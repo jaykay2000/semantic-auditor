@@ -1,0 +1,66 @@
+{
+ "role": "interpreter",
+ "mode": "reader",
+ "prompt": "bench/conditions/prompts/judge_one.md",
+ "prompt_sha256": "61ac00b3b056870d",
+ "cases_file": "examples/judge-self-check.yaml",
+ "calls": 1,
+ "cost_usd": 0.042118,
+ "cases_sha256": "0e1033e2ddcf8d17",
+ "model": "muse-spark-1.3",
+ "provider": "meta",
+ "cases_run": 6,
+ "planted": 3,
+ "caught": 3,
+ "correct_cases": 3,
+ "cleared": 3,
+ "answered_correctly": 6,
+ "failing": [],
+ "cases": [
+  {
+   "id": "reader-right-1",
+   "expect": "clear",
+   "got": "clear",
+   "correct": true,
+   "detail": "no finding with a checked quote"
+  },
+  {
+   "id": "reader-right-2",
+   "expect": "clear",
+   "got": "clear",
+   "correct": true,
+   "detail": "no finding with a checked quote"
+  },
+  {
+   "id": "reader-right-3",
+   "expect": "clear",
+   "got": "clear",
+   "correct": true,
+   "detail": "no finding with a checked quote"
+  },
+  {
+   "id": "reader-wrong-1",
+   "expect": "flag",
+   "got": "flag",
+   "correct": true,
+   "detail": "P1 on fl_urgent, U1 on fl_urgent"
+  },
+  {
+   "id": "reader-wrong-2",
+   "expect": "flag",
+   "got": "flag",
+   "correct": true,
+   "detail": "U1 on cg_inline"
+  },
+  {
+   "id": "reader-wrong-3",
+   "expect": "flag",
+   "got": "flag",
+   "correct": true,
+   "detail": "P1 on fl_urgent, U1 on fl_urgent"
+  }
+ ],
+ "status": "passed",
+ "reason": "",
+ "line": "Judge self-check: 6 of 6 planted cases answered correctly (3 of 3 planted mistakes caught, 3 of 3 correct cases cleared) · $0.042"
+}

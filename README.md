@@ -335,11 +335,23 @@ semaudit decide-release hold --review runs/<id>/review-2.3-2.4.json --by <you>
 semaudit serve --review runs/<id>/review-2.3-2.4.json --by <you>                 # the page with working decision buttons
 ```
 
-`review` exits 0 only for a decided Ship: every persona measured and every contract item owner-approved at its
-current content. Otherwise the recommendation is `provisional` (exit 1) or `not_measurable` (exit 2), and the
+`review` exits 0 only for a decided Ship: every persona measured, every contract item owner-approved at its
+current content, and the judge self-check passed (or turned off). Otherwise the recommendation is `provisional` (exit 1) or `not_measurable` (exit 2), and the
 release review page says why. In `review --reader` mode (used for the Spree and Finablo reviews in the demo) the
 model reads every rule and every captured story and names the issues, and SRA checks each citation against the
 captures ([docs/03-architecture.md](docs/03-architecture.md)).
+
+**Judge self-check (on by default).** Before a review may say Hold or Ship, its model judge (the `interpreter`
+role) answers 6 fixed cases with the review's own prompt, in calls of its own: 3 with one planted mistake it must
+catch, 3 correct ones it must clear ([examples/judge-self-check.yaml](examples/judge-self-check.yaml), built only from
+the Northbound dev fixture). Code scores the answers. The review page and the CLI show one line, such as "Judge
+self-check: 6 of 6 planted cases answered correctly". If the judge gets any case wrong, or the self-check cannot run
+(no key, no budget left, an unreadable reply), the outcome is `not_measurable` ("can't tell", exit 2) with the reason
+and the case ids. Its spend counts toward `--max-usd`; `--no-self-check` turns it off and says so on the page. It
+never changes an issue or the policy row. First live run, Northbound 2.3 → 2.4 on Muse Spark 1.3: 6 of 6 for $0.046
+in rules mode, and 6 of 6 for $0.042 for the reader-mode cases run on their own. It covers the interpreter only, not
+the extractor, the verifier or `semaudit visual`, and its cases come from the fixture the prompts were tuned on, so
+it is a canary, not an accuracy figure ([evidence](docs/evidence/judge-self-check-2026-11-02/README.md)).
 
 **On a real app, Finablo v707 → v731 (24 release numbers apart, reader mode, 2026-11-01).** SRA reported 3 fixes,
 all real per the code history. It flagged 2 new issues that the owner confirmed: 1 regression, bisected to v708, and

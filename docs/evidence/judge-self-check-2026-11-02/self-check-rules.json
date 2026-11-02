@@ -1,0 +1,66 @@
+{
+ "role": "interpreter",
+ "mode": "rules",
+ "prompt": "relate/interpret.py INSTRUCTIONS",
+ "prompt_sha256": "1ada1f71ab07c129",
+ "cases_file": "examples/judge-self-check.yaml",
+ "calls": 6,
+ "cost_usd": 0.046092,
+ "cases_sha256": "0e1033e2ddcf8d17",
+ "model": "muse-spark-1.3",
+ "provider": "meta",
+ "cases_run": 6,
+ "planted": 3,
+ "caught": 3,
+ "correct_cases": 3,
+ "cleared": 3,
+ "answered_correctly": 6,
+ "failing": [],
+ "cases": [
+  {
+   "id": "rules-right-1",
+   "expect": "clear",
+   "got": "clear",
+   "correct": true,
+   "detail": "P2 passed (explained_tradeoff)"
+  },
+  {
+   "id": "rules-wrong-1",
+   "expect": "flag",
+   "got": "flag",
+   "correct": true,
+   "detail": "P2 violated (unexplained_tradeoff)"
+  },
+  {
+   "id": "rules-right-2",
+   "expect": "clear",
+   "got": "clear",
+   "correct": true,
+   "detail": "P2 passed (explained_tradeoff)"
+  },
+  {
+   "id": "rules-wrong-2",
+   "expect": "flag",
+   "got": "flag",
+   "correct": true,
+   "detail": "P2 violated (unexplained_tradeoff)"
+  },
+  {
+   "id": "rules-right-3",
+   "expect": "clear",
+   "got": "clear",
+   "correct": true,
+   "detail": "P2 passed (explained_tradeoff)"
+  },
+  {
+   "id": "rules-wrong-3",
+   "expect": "flag",
+   "got": "flag",
+   "correct": true,
+   "detail": "P2 violated (conflict)"
+  }
+ ],
+ "status": "passed",
+ "reason": "",
+ "line": "Judge self-check: 6 of 6 planted cases answered correctly (3 of 3 planted mistakes caught, 3 of 3 correct cases cleared) · $0.046"
+}

@@ -222,10 +222,19 @@ def other_rules(i: Issue, results: dict[str, tuple[Story, list]]) -> list[dict]:
             for e in entries if e.subject in cited and (e.rule, e.status) != (i.rule, "violated")]
 
 
-def outcome_of(policy_rec: str, measured: bool | dict, approval: dict) -> dict:
+def outcome_of(policy_rec: str, measured: bool | dict, approval: dict, self_check: dict | None = None) -> dict:
     """What the review may actually recommend. The owner's policy decides only over a complete measurement and a
     fully approved contract; otherwise the review says why it cannot decide, and never says ship. `measured`: the
-    review's measurement dict (or a bare bool), so the reason names what was not measured."""
+    review's measurement dict (or a bare bool), so the reason names what was not measured. `self_check`: the judge
+    self-check's record (verify/selfcheck.py). If it ran and the judge got a known case wrong, or it was asked for
+    and could not run, the review cannot tell: no Hold, no Ship. None (not asked for) or "off" changes nothing."""
+    sc = self_check or {}
+    if sc.get("status") == "failed":
+        return {"status": "not_measurable", "recommendation": "not_measurable", "self_check": "failed",
+                "reason": "judge self-check failed: " + ", ".join(sc.get("failing") or [])}
+    if sc.get("status") == "not_run":
+        return {"status": "not_measurable", "recommendation": "not_measurable", "self_check": "not_run",
+                "reason": f"judge self-check not run ({sc.get('reason') or 'no reason recorded'})"}
     m = measured if isinstance(measured, dict) else {"complete": measured}
     if not m["complete"]:
         gaps = []
@@ -245,9 +254,10 @@ def outcome_of(policy_rec: str, measured: bool | dict, approval: dict) -> dict:
 def assemble(base: ReleaseEval, head: ReleaseEval, contract: Contract, verified: list[Issue],
              resolved: list[Issue], spent_usd: float, *, approval: dict,
              unconfirmed: list[Issue] = (), manifest: dict | None = None, review_path: str | None = None,
-             set_aside: list[Issue] = (), reader: dict | None = None) -> dict:
+             set_aside: list[Issue] = (), reader: dict | None = None, self_check: dict | None = None) -> dict:
     """`reader`: set in reader mode ({"refused": not_raised rows, "base"/"head": accounting}); the issues then
-    come from decide/reader.py and carry no replay command (re-reading needs a fresh capture)."""
+    come from decide/reader.py and carry no replay command (re-reading needs a fresh capture). `self_check`: the
+    judge self-check's record, kept beside the outcome; None leaves the review exactly as it was before it existed."""
     open_issues = [i for i in verified if i.verification.get("status") != "failed"]
     failed = [i for i in verified if i.verification.get("status") == "failed"]
     rows = [{"severity": i.severity["level"], "confidence": i.confidence["level"],
@@ -269,7 +279,7 @@ def assemble(base: ReleaseEval, head: ReleaseEval, contract: Contract, verified:
         d = issue_dict(i, stories, contract, None if reader is not None else review_path)
         d["other_rules"] = other_rules(i, head.results)
         issues.append(d)
-    return {
+    review = {
         "schema": "semaudit.review/1",
         "generated_at_sim": None,
         "release": {"base": base.release, "head": head.release},
@@ -279,7 +289,7 @@ def assemble(base: ReleaseEval, head: ReleaseEval, contract: Contract, verified:
         "rules": [{"id": r.id, "kind": r.kind, "text": r.text, "title": r.title} for r in contract.rules],
         "policy": {"recommendation": row.recommendation, "row": idx + 1, "rule_fired": row.text,
                    "fired_by": fired_by},
-        "outcome": outcome_of(row.recommendation, measured_d, approval),
+        "outcome": outcome_of(row.recommendation, measured_d, approval, self_check),
         "measurement": measured_d,
         "approval": approval,
         "issues": issues,
@@ -294,6 +304,10 @@ def assemble(base: ReleaseEval, head: ReleaseEval, contract: Contract, verified:
         "manifest": manifest,
         "written_at": datetime.utcnow().isoformat(timespec="seconds") + "Z",
     }
+    if self_check is not None:            # beside the outcome it may block; absent when it was not asked for
+        review = {k: v for k, v in review.items() if k != "written_at"} | {"self_check": self_check,
+                                                                             "written_at": review["written_at"]}
+    return review
 
 
 def write(review: dict, path: Path) -> Path:

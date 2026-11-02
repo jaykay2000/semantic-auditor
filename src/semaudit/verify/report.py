@@ -37,6 +37,20 @@ def _row_of(d: dict) -> dict:
             "personas": d["personas"], "delta": d["delta"], "memory": (d.get("memory") or {}).get("status")}
 
 
+def selfcheck_problem(sc: dict) -> str | None:
+    """A recorded self-check whose status or counts do not follow from its own per-case answers (re-scored by the
+    same code); None when they do. The answers themselves are the model's and are not re-asked offline."""
+    from semaudit.verify.selfcheck import score
+    cases = [{"id": c["id"], "expect": c["expect"]} for c in sc.get("cases") or []]
+    if not cases:
+        return "no per-case answers recorded"
+    redo = score(cases, {c["id"]: ({"flagged": c["got"] == "flag", "detail": c.get("detail", "")} if c.get("got")
+                                   else {"error": c.get("detail") or "no answer"}) for c in sc["cases"]})
+    keys = ("status", "cases_run", "planted", "caught", "correct_cases", "cleared", "answered_correctly", "failing")
+    bad = [k for k in keys if redo[k] != sc.get(k)]
+    return f"recorded {', '.join(bad)} do not follow from its per-case answers" if bad else None
+
+
 def _missing(items: list[str]) -> CannotVerify:
     return CannotVerify(f"{len(items)} pinned input(s) missing: " + "; ".join(items[:10])
                         + (f"; and {len(items) - 10} more" if len(items) > 10 else ""))
@@ -134,8 +148,12 @@ def verify_report(review_path: Path, *, root: Path | None = None, cache: Path | 
     if sorted(r["policy"].get("fired_by", [])) != fired:
         problems.append(f"policy: review says it fired on {sorted(r['policy'].get('fired_by', []))}, "
                         f"its issues give {fired}")
-    if outcome_of(row.recommendation, measured, r["approval"]) != r["outcome"]:
-        problems.append("outcome does not follow from the policy, the measurement and the recorded approval")
+    sc = r.get("self_check")
+    if sc and sc.get("status") in ("passed", "failed") and selfcheck_problem(sc):
+        problems.append(f"judge self-check: {selfcheck_problem(sc)}")
+    if outcome_of(row.recommendation, measured, r["approval"], sc) != r["outcome"]:
+        problems.append("outcome does not follow from the policy, the measurement, the recorded approval and the "
+                        "judge self-check")
     if missing_files:
         raise _missing(missing_files)
     return problems

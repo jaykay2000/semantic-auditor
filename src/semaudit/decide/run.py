@@ -23,13 +23,18 @@ from semaudit.verify.steps import verify
 
 def run_review(contract_dir: Path, base: str, head: str, *, run_id: str, runs_dir: Path, max_usd: float,
                reuse: bool = False, fresh: bool = False, models: bool = True, root: Path | None = None,
-               ablation: str | None = None, reader: bool = False, reader_chunk: int = 11) -> Path:
+               ablation: str | None = None, reader: bool = False, reader_chunk: int = 11,
+               self_check: bool | None = None) -> Path:
     """`ablation` (benchmark only, never a product mode): "no-exceptions" drops every rule's exceptions,
     "no-verifier" reports candidates without verification, "no-generators" replaces the code generators with a
     model-only candidate pass. The review is written beside the normal one, named for the ablation.
     `reader`: the model reads SRA's context (contract + every captured story) and names the issues; SRA checks
     each citation against the captures, groups and dates the findings (decide/reader.py). Written as
-    review-<base>-<head>.reader.json."""
+    review-<base>-<head>.reader.json.
+    `self_check`: after the review's own judging, send the judge a fixed set of known cases in calls of its own
+    (verify/selfcheck.py), on what is left of `max_usd`. A wrong answer, or a self-check that cannot run, blocks
+    Hold and Ship. False records that it was turned off. `semaudit review` turns it on by default; callers that
+    leave it None (the benchmark scripts) get the review exactly as before, with no self_check field."""
     recorded = mem.snapshot(contract_dir)
     contract = load_contract(contract_dir, memory=recorded["issues"])
     router = Router(root=root or Path.cwd(), max_usd=max_usd)
@@ -52,7 +57,8 @@ def run_review(contract_dir: Path, base: str, head: str, *, run_id: str, runs_di
             r.capture(head)
     if reader:
         return _reader_review(contract_dir, contract, recorded, router, run_dir, base, head, max_usd=max_usd,
-                              fresh=fresh, chunk=reader_chunk, runs_dir=runs_dir, run_id=run_id)
+                              fresh=fresh, chunk=reader_chunk, runs_dir=runs_dir, run_id=run_id,
+                              self_check=self_check, root=root)
     shared = {} if getattr(contract.app, "share_readings", False) else None
     b = evaluate_release(run_dir, base, contract, router, fresh=fresh, generator=generator, readings=shared)
     h = evaluate_release(run_dir, head, contract, router, fresh=fresh, generator=generator, readings=shared)
@@ -84,12 +90,24 @@ def run_review(contract_dir: Path, base: str, head: str, *, run_id: str, runs_di
         manifest["ablation_dropped"] = generator.dropped     # model proposals not tied to the story's events
     review = assemble(b, h, contract, head_issues, resolved, router.spent_usd,
                       approval=approval_state(contract_dir, contract), unconfirmed=unconfirmed,
-                      manifest=manifest, review_path=str(out), set_aside=applied.set_aside)
+                      manifest=manifest, review_path=str(out), set_aside=applied.set_aside,
+                      self_check=_self_check("rules", self_check, router, max_usd, root, run_id))
     return write(review, out)
 
 
+def _self_check(mode: str, on: bool | None, router: Router, max_usd: float, root: Path | None,
+                run_id: str) -> dict | None:
+    """The judge self-check's record, run on what the review left of its budget; None when it was not asked for."""
+    if on is None:
+        return None
+    from semaudit.verify import selfcheck
+    if not on:
+        return selfcheck.off()
+    return selfcheck.run(mode, root=root or Path.cwd(), max_usd=max_usd - router.spent_usd, tag=run_id)
+
+
 def _reader_review(contract_dir, contract, recorded, router, run_dir, base, head, *, max_usd, fresh, chunk,
-                   runs_dir, run_id) -> Path:
+                   runs_dir, run_id, self_check=None, root=None) -> Path:
     from semaudit.decide.reader import build_reader_issues, read_release, reader_delta
     router.tag = f"semaudit-reader:{base}-{head}:{run_id}"
     b, bf, bacct = read_release(run_dir, base, contract, router, chunk=chunk, fresh=fresh)
@@ -108,5 +126,6 @@ def _reader_review(contract_dir, contract, recorded, router, run_dir, base, head
     review = assemble(b, h, contract, head_issues, resolved, router.spent_usd,
                       approval=approval_state(contract_dir, contract), unconfirmed=unconfirmed,
                       manifest=manifest, review_path=str(out), set_aside=applied.set_aside,
-                      reader={"refused": head_refused + base_refused, "chunk": chunk, "base": bacct, "head": hacct})
+                      reader={"refused": head_refused + base_refused, "chunk": chunk, "base": bacct, "head": hacct},
+                      self_check=_self_check("reader", self_check, router, max_usd, root, run_id))
     return write(review, out)

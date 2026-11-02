@@ -90,4 +90,6 @@ def run(out: Path, manifest: Path = MANIFEST, echo=print, repo: Path | None = No
                  + (f"same bytes as the committed {item['expect']}" if same
                     else f"DIFFERS from the committed {item['expect']}"))
     echo("no model was called: nothing in this command creates a model router")
+    echo("judge self-check: not run (no key). It runs inside `semaudit review`, which needs a model key; the "
+         "recorded review above predates it, so its page says none is recorded")
     return 0 if not differ else 1
