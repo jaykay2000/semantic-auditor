@@ -1,0 +1,15 @@
+{
+ "review": "review-v6.0.0.beta2-v6.0.0.beta3.reader.json",
+ "controls": [
+  {
+   "issue": "R-v6.0.0.beta3-U1-line-amount-core-4f237b451a-ab6a0c63",
+   "event": "core.4f237b451a#8",
+   "screenshot": "captures/v6.0.0.beta3/ana__S-buy/v6.0.0.beta3.ana.S-buy.s09.c01.screenshot.png",
+   "real_quote": "$43.19",
+   "control_quote": "$39.99",
+   "source": "same_page",
+   "replaced": "$43.19",
+   "with": "$39.99"
+  }
+ ]
+}

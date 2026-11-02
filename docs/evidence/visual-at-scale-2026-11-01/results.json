@@ -1,0 +1,396 @@
+{
+ "model": "meta-models/muse-spark-open-1026 (Baseten, reasoning effort low)",
+ "seed": 1,
+ "apps": {
+  "northbound": {
+   "review": "semantic-auditor runs/e2e-2/review-2.3-2.4.json",
+   "issues": [
+    {
+     "issue": "I-2.4-P2-fare-lock-price-watch-conflict",
+     "verification_status": "verified",
+     "real": {
+      "result": "confirmed",
+      "basis": "verifier",
+      "event": "fl.banner.urgent",
+      "screenshot": "captures/2.4/kai__S-browse-imminent/2.4.kai.S-browse-imminent.s02.c01.screenshot.png",
+      "quote": "Departing soon: only 2 seats left at this fare. Book now, or lock it for 12 h for €9 total if your plans might change.",
+      "crop_box": [
+       0,
+       132,
+       931,
+       479
+      ],
+      "sent_sha256": "60032ea112fcf414100c8f8255774f08f506c9076f7f1119b919170fc3cb119f",
+      "crop": "I-2.4-P2-fare-lock-price-watch-conflict.png",
+      "reason": "the element shows the quoted value",
+      "reads": "Departing soon: only 2 seats left at this fare. Book now, or lock it for 12 h for €9 total if your plans might change.",
+      "model": "meta-models/muse-spark-open-1026",
+      "cost_usd": 0.00266025,
+      "cached": false
+     },
+     "control": {
+      "claimed": "Departing soon: only 1 seats left at this fare. Book now, or lock it for 12 h for €9 total if your plans might change.",
+      "replaced": "2",
+      "with": "1",
+      "source": "same_page",
+      "visual": {
+       "result": "contradicted",
+       "basis": "verifier",
+       "event": "fl.banner.urgent",
+       "screenshot": "captures/2.4/kai__S-browse-imminent/2.4.kai.S-browse-imminent.s02.c01.screenshot.png",
+       "quote": "Departing soon: only 1 seats left at this fare. Book now, or lock it for 12 h for €9 total if your plans might change.",
+       "crop_box": [
+        0,
+        132,
+        931,
+        479
+       ],
+       "sent_sha256": "60032ea112fcf414100c8f8255774f08f506c9076f7f1119b919170fc3cb119f",
+       "crop": "I-2.4-P2-fare-lock-price-watch-conflict.png",
+       "reason": "the element shows something else",
+       "reads": "Departing soon: only 2 seats left at this fare. Book now, or lock it for 12 h for €9 total if your plans might change.",
+       "model": "meta-models/muse-spark-open-1026",
+       "cost_usd": 0.00258375,
+       "cached": false
+      }
+     }
+    },
+    {
+     "issue": "I-2.4-U1-fare-lock-fl-banner-urgent",
+     "verification_status": "verified",
+     "real": {
+      "result": "confirmed",
+      "basis": "verifier",
+      "event": "fl.banner.urgent",
+      "screenshot": "captures/2.4/omar__S-browse-imminent/2.4.omar.S-browse-imminent.s02.c01.screenshot.png",
+      "quote": "Departing soon: only 2 seats left at this fare. Book now, or lock it for 12 h for €9 total if your plans might change.",
+      "crop_box": [
+       0,
+       132,
+       931,
+       479
+      ],
+      "sent_sha256": "4dd4417a741192ee742166b675d6e57751f5f8ac4cf5239ddb3268e5fb17bed2",
+      "crop": "I-2.4-U1-fare-lock-fl-banner-urgent.png",
+      "reason": "the element shows the quoted value",
+      "reads": "Departing soon: only 2 seats left at this fare. Book now, or lock it for 12 h for €9 total if your plans might change.",
+      "model": "meta-models/muse-spark-open-1026",
+      "cost_usd": 0.0021035,
+      "cached": false
+     },
+     "control": {
+      "claimed": "Departing soon: only 1 seats left at this fare. Book now, or lock it for 12 h for €9 total if your plans might change.",
+      "replaced": "2",
+      "with": "1",
+      "source": "same_page",
+      "visual": {
+       "result": "contradicted",
+       "basis": "verifier",
+       "event": "fl.banner.urgent",
+       "screenshot": "captures/2.4/omar__S-browse-imminent/2.4.omar.S-browse-imminent.s02.c01.screenshot.png",
+       "quote": "Departing soon: only 1 seats left at this fare. Book now, or lock it for 12 h for €9 total if your plans might change.",
+       "crop_box": [
+        0,
+        132,
+        931,
+        479
+       ],
+       "sent_sha256": "4dd4417a741192ee742166b675d6e57751f5f8ac4cf5239ddb3268e5fb17bed2",
+       "crop": "I-2.4-U1-fare-lock-fl-banner-urgent.png",
+       "reason": "the element shows something else",
+       "reads": "Departing soon: only 2 seats left at this fare. Book now, or lock it for 12 h for €9 total if your plans might change.",
+       "model": "meta-models/muse-spark-open-1026",
+       "cost_usd": 0.00220125,
+       "cached": false
+      }
+     }
+    },
+    {
+     "issue": "I-2.4-U2-fare-lock-fl-banner",
+     "verification_status": "verified",
+     "real": {
+      "result": "confirmed",
+      "basis": "verifier",
+      "event": "fl.banner",
+      "screenshot": "captures/2.4/sam_alex__S-lock-couple/2.4.sam_alex.S-lock-couple.s03.c01.screenshot.png",
+      "quote": "2 seats left at this fare. Lock it for 48 h for €9 total, for your whole booking.",
+      "crop_box": [
+       0,
+       136,
+       1036,
+       460
+      ],
+      "sent_sha256": "99df6e95f362fd01cc70157a3bb83143901f359a137f091a6a32c399528e580d",
+      "crop": "I-2.4-U2-fare-lock-fl-banner.png",
+      "reason": "the element shows the quoted value",
+      "reads": "2 seats left at this fare. Lock it for 48 h for €9 total, for your whole booking.",
+      "model": "meta-models/muse-spark-open-1026",
+      "cost_usd": 0.00135875,
+      "cached": false
+     },
+     "control": {
+      "claimed": "14 seats left at this fare. Lock it for 48 h for €9 total, for your whole booking.",
+      "replaced": "2",
+      "with": "14",
+      "source": "same_page",
+      "visual": {
+       "result": "contradicted",
+       "basis": "verifier",
+       "event": "fl.banner",
+       "screenshot": "captures/2.4/sam_alex__S-lock-couple/2.4.sam_alex.S-lock-couple.s03.c01.screenshot.png",
+       "quote": "14 seats left at this fare. Lock it for 48 h for €9 total, for your whole booking.",
+       "crop_box": [
+        0,
+        136,
+        1036,
+        460
+       ],
+       "sent_sha256": "99df6e95f362fd01cc70157a3bb83143901f359a137f091a6a32c399528e580d",
+       "crop": "I-2.4-U2-fare-lock-fl-banner.png",
+       "reason": "the element shows something else",
+       "reads": "2 seats left at this fare. Lock it for 48 h for €9 total, for your whole booking.",
+       "model": "meta-models/muse-spark-open-1026",
+       "cost_usd": 0.0017285,
+       "cached": false
+      }
+     }
+    },
+    {
+     "issue": "I-2.4-P1-fare-lock-fl-banner-urgent-a",
+     "verification_status": "verified",
+     "real": {
+      "result": "confirmed",
+      "basis": "verifier",
+      "event": "fl.banner.urgent",
+      "screenshot": "captures/2.4/hana__S-browse-imminent/2.4.hana.S-browse-imminent.s02.c01.screenshot.png",
+      "quote": "Departing soon: only 2 seats left at this fare. Book now, or lock it for 12 h for €9 total if your plans might change.",
+      "crop_box": [
+       0,
+       132,
+       931,
+       479
+      ],
+      "sent_sha256": "7460b25d5e4d17a9978e07a1f2c240a1e8e0861ffdb8dbd2476083b5fdda91a8",
+      "crop": "I-2.4-P1-fare-lock-fl-banner-urgent-a.png",
+      "reason": "the element shows the quoted value",
+      "reads": "Departing soon: only 2 seats left at this fare. Book now, or lock it for 12 h for €9 total if your plans might change.",
+      "model": "meta-models/muse-spark-open-1026",
+      "cost_usd": 0.00188675,
+      "cached": false
+     },
+     "control": {
+      "claimed": "Departing soon: only 1 seats left at this fare. Book now, or lock it for 12 h for €9 total if your plans might change.",
+      "replaced": "2",
+      "with": "1",
+      "source": "same_page",
+      "visual": {
+       "result": "contradicted",
+       "basis": "verifier",
+       "event": "fl.banner.urgent",
+       "screenshot": "captures/2.4/hana__S-browse-imminent/2.4.hana.S-browse-imminent.s02.c01.screenshot.png",
+       "quote": "Departing soon: only 1 seats left at this fare. Book now, or lock it for 12 h for €9 total if your plans might change.",
+       "crop_box": [
+        0,
+        132,
+        931,
+        479
+       ],
+       "sent_sha256": "7460b25d5e4d17a9978e07a1f2c240a1e8e0861ffdb8dbd2476083b5fdda91a8",
+       "crop": "I-2.4-P1-fare-lock-fl-banner-urgent-a.png",
+       "reason": "the element shows something else",
+       "reads": "Departing soon: only 2 seats left at this fare. Book now, or lock it for 12 h for €9 total if your plans might change.",
+       "model": "meta-models/muse-spark-open-1026",
+       "cost_usd": 0.0022395,
+       "cached": false
+      }
+     }
+    },
+    {
+     "issue": "I-2.4-P1-fare-lock-fl-banner-urgent-bare-c",
+     "verification_status": "verified",
+     "real": {
+      "result": "confirmed",
+      "basis": "verifier",
+      "event": "fl.banner.urgent_bare",
+      "screenshot": "captures/2.4/raj_x__S-browse-imminent/2.4.raj_x.S-browse-imminent.s02.c01.screenshot.png",
+      "quote": "Only 2 seats left. Book now.",
+      "crop_box": [
+       0,
+       138,
+       1058,
+       463
+      ],
+      "sent_sha256": "1043dab56d18f3263e918da634287e19be7c5466f476d2771539831c03718fea",
+      "crop": "I-2.4-P1-fare-lock-fl-banner-urgent-bare-c.png",
+      "reason": "the element shows the quoted value",
+      "reads": "Only 2 seats left. Book now.",
+      "model": "meta-models/muse-spark-open-1026",
+      "cost_usd": 0.00155175,
+      "cached": false
+     },
+     "control": {
+      "claimed": "Only 1 seats left. Book now.",
+      "replaced": "2",
+      "with": "1",
+      "source": "same_page",
+      "visual": {
+       "result": "contradicted",
+       "basis": "verifier",
+       "event": "fl.banner.urgent_bare",
+       "screenshot": "captures/2.4/raj_x__S-browse-imminent/2.4.raj_x.S-browse-imminent.s02.c01.screenshot.png",
+       "quote": "Only 1 seats left. Book now.",
+       "crop_box": [
+        0,
+        138,
+        1058,
+        463
+       ],
+       "sent_sha256": "1043dab56d18f3263e918da634287e19be7c5466f476d2771539831c03718fea",
+       "crop": "I-2.4-P1-fare-lock-fl-banner-urgent-bare-c.png",
+       "reason": "the element shows something else",
+       "reads": "Only 2 seats left. Book now.",
+       "model": "meta-models/muse-spark-open-1026",
+       "cost_usd": 0.0014965,
+       "cached": false
+      }
+     }
+    },
+    {
+     "issue": "I-2.4-P2-fare-lock-price-watch-unexplained-tradeoff",
+     "verification_status": "verified",
+     "real": {
+      "result": "confirmed",
+      "basis": "verifier",
+      "event": "fl.banner",
+      "screenshot": "captures/2.4/family__S-book-flexible/2.4.family.S-book-flexible.s04.c01.screenshot.png",
+      "quote": "9 seats left at this fare. Lock it for 48 h for €9 total, for your whole booking.",
+      "crop_box": [
+       0,
+       136,
+       1036,
+       460
+      ],
+      "sent_sha256": "0e1806a0331df8dbd0b4baa8037c15fc1e8eb9a562c3cfa341f93426df33f466",
+      "crop": "I-2.4-P2-fare-lock-price-watch-unexplained-tradeoff.png",
+      "reason": "the element shows the quoted value",
+      "reads": "9 seats left at this fare. Lock it for 48 h for €9 total, for your whole booking.",
+      "model": "meta-models/muse-spark-open-1026",
+      "cost_usd": 0.0021875,
+      "cached": false
+     },
+     "control": {
+      "claimed": "4 seats left at this fare. Lock it for 48 h for €9 total, for your whole booking.",
+      "replaced": "9",
+      "with": "4",
+      "source": "same_page",
+      "visual": {
+       "result": "contradicted",
+       "basis": "verifier",
+       "event": "fl.banner",
+       "screenshot": "captures/2.4/family__S-book-flexible/2.4.family.S-book-flexible.s04.c01.screenshot.png",
+       "quote": "4 seats left at this fare. Lock it for 48 h for €9 total, for your whole booking.",
+       "crop_box": [
+        0,
+        136,
+        1036,
+        460
+       ],
+       "sent_sha256": "0e1806a0331df8dbd0b4baa8037c15fc1e8eb9a562c3cfa341f93426df33f466",
+       "crop": "I-2.4-P2-fare-lock-price-watch-unexplained-tradeoff.png",
+       "reason": "the element shows something else",
+       "reads": "9 seats left at this fare. Lock it for 48 h for €9 total, for your whole booking.",
+       "model": "meta-models/muse-spark-open-1026",
+       "cost_usd": 0.00209825,
+       "cached": false
+      }
+     }
+    },
+    {
+     "issue": "I-2.4-U3-price-watch-pw-email-after",
+     "verification_status": "verified",
+     "real": {
+      "result": "unreadable",
+      "basis": "verifier",
+      "reason": "no cited event has a web capture"
+     },
+     "control": null
+    },
+    {
+     "issue": "I-2.4-U4-concierge-cg-regret",
+     "verification_status": "verified",
+     "real": {
+      "result": "unreadable",
+      "basis": "verifier",
+      "reason": "no cited event has a web capture"
+     },
+     "control": null
+    },
+    {
+     "issue": "I-2.4-P3-story",
+     "verification_status": "verified",
+     "real": {
+      "result": "unreadable",
+      "basis": "verifier",
+      "reason": "no cited event has a web capture"
+     },
+     "control": null
+    }
+   ]
+  },
+  "spree": {
+   "review": "spree-semaudit runs/spree-scale-2t/review-v6.0.0.beta2-v6.0.0.beta3.reader.json",
+   "issues": [
+    {
+     "issue": "R-v6.0.0.beta3-U1-line-amount-core-4f237b451a-ab6a0c63",
+     "verification_status": "unverified",
+     "real": {
+      "result": "confirmed",
+      "basis": "evidence_linked",
+      "event": "core.4f237b451a#8",
+      "screenshot": "captures/v6.0.0.beta3/ana__S-buy/v6.0.0.beta3.ana.S-buy.s09.c01.screenshot.png",
+      "quote": "$43.19",
+      "crop_box": [
+       144,
+       308,
+       828,
+       669
+      ],
+      "sent_sha256": "7ed89eef7c13681e05308beff3e1f58e3064ce146725f0f280651491c6cb439c",
+      "crop": "R-v6.0.0.beta3-U1-line-amount-core-4f237b451a-ab6a0c63.png",
+      "reason": "the element shows the quoted value",
+      "reads": "$43.19",
+      "model": "meta-models/muse-spark-open-1026",
+      "cost_usd": 0.001754,
+      "cached": false
+     },
+     "control": {
+      "claimed": "$39.99",
+      "replaced": "$43.19",
+      "with": "$39.99",
+      "source": "same_page",
+      "visual": {
+       "result": "contradicted",
+       "basis": "evidence_linked",
+       "event": "core.4f237b451a#8",
+       "screenshot": "captures/v6.0.0.beta3/ana__S-buy/v6.0.0.beta3.ana.S-buy.s09.c01.screenshot.png",
+       "quote": "$39.99",
+       "crop_box": [
+        144,
+        308,
+        828,
+        669
+       ],
+       "sent_sha256": "7ed89eef7c13681e05308beff3e1f58e3064ce146725f0f280651491c6cb439c",
+       "crop": "R-v6.0.0.beta3-U1-line-amount-core-4f237b451a-ab6a0c63.png",
+       "reason": "the element shows something else",
+       "reads": "$43.19",
+       "model": "meta-models/muse-spark-open-1026",
+       "cost_usd": 0.00142675,
+       "cached": false
+      }
+     }
+    }
+   ]
+  }
+ }
+}

@@ -1,0 +1,65 @@
+{
+ "review": "review-2.3-2.4.json",
+ "controls": [
+  {
+   "issue": "I-2.4-P2-fare-lock-price-watch-conflict",
+   "event": "fl.banner.urgent",
+   "screenshot": "captures/2.4/kai__S-browse-imminent/2.4.kai.S-browse-imminent.s02.c01.screenshot.png",
+   "real_quote": "Departing soon: only 2 seats left at this fare. Book now, or lock it for 12 h for €9 total if your plans might change.",
+   "control_quote": "Departing soon: only 1 seats left at this fare. Book now, or lock it for 12 h for €9 total if your plans might change.",
+   "source": "same_page",
+   "replaced": "2",
+   "with": "1"
+  },
+  {
+   "issue": "I-2.4-U1-fare-lock-fl-banner-urgent",
+   "event": "fl.banner.urgent",
+   "screenshot": "captures/2.4/omar__S-browse-imminent/2.4.omar.S-browse-imminent.s02.c01.screenshot.png",
+   "real_quote": "Departing soon: only 2 seats left at this fare. Book now, or lock it for 12 h for €9 total if your plans might change.",
+   "control_quote": "Departing soon: only 1 seats left at this fare. Book now, or lock it for 12 h for €9 total if your plans might change.",
+   "source": "same_page",
+   "replaced": "2",
+   "with": "1"
+  },
+  {
+   "issue": "I-2.4-U2-fare-lock-fl-banner",
+   "event": "fl.banner",
+   "screenshot": "captures/2.4/sam_alex__S-lock-couple/2.4.sam_alex.S-lock-couple.s03.c01.screenshot.png",
+   "real_quote": "2 seats left at this fare. Lock it for 48 h for €9 total, for your whole booking.",
+   "control_quote": "14 seats left at this fare. Lock it for 48 h for €9 total, for your whole booking.",
+   "source": "same_page",
+   "replaced": "2",
+   "with": "14"
+  },
+  {
+   "issue": "I-2.4-P1-fare-lock-fl-banner-urgent-a",
+   "event": "fl.banner.urgent",
+   "screenshot": "captures/2.4/hana__S-browse-imminent/2.4.hana.S-browse-imminent.s02.c01.screenshot.png",
+   "real_quote": "Departing soon: only 2 seats left at this fare. Book now, or lock it for 12 h for €9 total if your plans might change.",
+   "control_quote": "Departing soon: only 1 seats left at this fare. Book now, or lock it for 12 h for €9 total if your plans might change.",
+   "source": "same_page",
+   "replaced": "2",
+   "with": "1"
+  },
+  {
+   "issue": "I-2.4-P1-fare-lock-fl-banner-urgent-bare-c",
+   "event": "fl.banner.urgent_bare",
+   "screenshot": "captures/2.4/raj_x__S-browse-imminent/2.4.raj_x.S-browse-imminent.s02.c01.screenshot.png",
+   "real_quote": "Only 2 seats left. Book now.",
+   "control_quote": "Only 1 seats left. Book now.",
+   "source": "same_page",
+   "replaced": "2",
+   "with": "1"
+  },
+  {
+   "issue": "I-2.4-P2-fare-lock-price-watch-unexplained-tradeoff",
+   "event": "fl.banner",
+   "screenshot": "captures/2.4/family__S-book-flexible/2.4.family.S-book-flexible.s04.c01.screenshot.png",
+   "real_quote": "9 seats left at this fare. Lock it for 48 h for €9 total, for your whole booking.",
+   "control_quote": "4 seats left at this fare. Lock it for 48 h for €9 total, for your whole booking.",
+   "source": "same_page",
+   "replaced": "9",
+   "with": "4"
+  }
+ ]
+}

@@ -310,7 +310,12 @@ screenshot and says what the text says, and writes a copy of the review with `vi
 `unreadable`) and its `basis` on each issue it checked: `verifier` if the verifier confirmed the issue, `evidence_linked` if
 only its quote was matched to the capture. It never changes a
 verdict, a verification status, PASS, `fix_confirmed` or the outcome, and it does not find new issues or read emails or
-PDFs ([measured on the Spree tax line](docs/evidence/visual-confirm-spree-2026-11-01/README.md)).
+PDFs ([first measured on the Spree tax line](docs/evidence/visual-confirm-spree-2026-11-01/README.md)). On every
+issue in the Northbound 2.3 → 2.4 review and the Spree reader review that has a screenshot (7 issues), it confirmed
+7 of 7; with one figure in each claim changed to another figure from the same page (7 planted wrong values), it
+answered `contradicted` 7 of 7, for $0.027 in all
+([evidence](docs/evidence/visual-at-scale-2026-11-01/README.md)). That is 7 easy-to-read crops and one seed, not a
+rate.
 
 ## Add your app
 
