@@ -1,0 +1,19 @@
+current: preflight ok (Demo Store, no beta name)
+current: store reset after run: {'release': 'current', 'seconds': 19.8}
+candidate: preflight ok (Demo Store, no beta name)
+candidate: store reset after run: {'release': 'candidate', 'seconds': 14.3}
+C1-04 current: replay=failed assertion=not_measurable {} confidence=None evidence=unverified judged_by=meta-models/muse-spark-open-1026
+C1-04 candidate: replay=succeeded assertion=pass {'pass': 3} confidence=3/3 evidence=verified judged_by=meta-models/muse-spark-open-1026
+C1-04 current->candidate: not_confirmed (base replay failed: step 2 (open_product): TimeoutError: Page.goto: Timeout 60000ms exceeded.
+Call log:
+  - navigating to "http://127.0.0.1:52652/us/en/products/drip-coffee-maker", waiting until "load"
+; step 3 (add_to_cart): TimeoutError: Page.goto: Timeout 60000ms exceeded.
+Call log:
+  - navigating to "http://127.0.0)
+C1-04-v1 current: replay=succeeded assertion=fail {'pass': 1, 'fail': 2} confidence=2/3 evidence=verified judged_by=meta-models/muse-spark-open-1026
+C1-04-v1 candidate: replay=failed assertion=not_measurable {} confidence=None evidence=unverified judged_by=meta-models/muse-spark-open-1026
+C1-04-v1 current->candidate: not_confirmed (head replay failed: step 3 (add_to_cart): TimeoutError: Locator.click: Timeout 30000ms exceeded.
+Call log:
+  - waiting for get_by_role("button", name="Add to Cart")
+)
+{"tag": "saved:ic-stab-4", "fresh": true, "calls": 12, "cached": 0, "spent_usd": 0.154164, "if_fresh_usd": 0.154164, "by_role": {"check_judge": {"calls": 12, "cached": 0, "spent_usd": 0.154164, "if_fresh_usd": 0.154164, "prompt_tokens": 44512, "completion_tokens": 23182}}}

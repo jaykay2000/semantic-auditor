@@ -1,0 +1,14 @@
+current: preflight ok (Demo Store, no beta name)
+current: store reset after run: {'release': 'current', 'seconds': 38.8}
+candidate: preflight ok (Demo Store, no beta name)
+candidate: store reset after run: {'release': 'candidate', 'seconds': 23.4}
+C1-04 current: replay=succeeded assertion=fail {'fail': 3} confidence=3/3 evidence=verified judged_by=meta-models/muse-spark-open-1026
+C1-04 candidate: replay=succeeded assertion=pass {'pass': 3} confidence=3/3 evidence=verified judged_by=meta-models/muse-spark-open-1026
+C1-04 current->candidate: fix_confirmed (fails on the base, passes on the head with verified evidence)
+C1-04-v1 current: replay=failed assertion=not_measurable {} confidence=None evidence=unverified judged_by=meta-models/muse-spark-open-1026
+C1-04-v1 candidate: replay=failed assertion=not_measurable {} confidence=None evidence=unverified judged_by=meta-models/muse-spark-open-1026
+C1-04-v1 current->candidate: not_confirmed (base replay failed: step 8 (place_order): TimeoutError: Timeout 60000ms exceeded.
+=========================== logs ===========================
+waiting for navigation to "re.compile('/order-placed/')" until 'load'
+============================================================)
+{"tag": "saved:ic-stab-5", "fresh": true, "calls": 9, "cached": 0, "spent_usd": 0.108265, "if_fresh_usd": 0.108265, "by_role": {"check_judge": {"calls": 9, "cached": 0, "spent_usd": 0.108265, "if_fresh_usd": 0.108265, "prompt_tokens": 33552, "completion_tokens": 15606}}}

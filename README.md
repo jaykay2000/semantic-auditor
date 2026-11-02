@@ -168,6 +168,14 @@ All from [docs/evidence/imported-checks/README.md](docs/evidence/imported-checks
 - **Earlier runs, kept as they came out.** Run 2 did not pass: the newer release was `not_measurable` because 2 of 3
   readings ran to the reply-length cap. In Run 3, one reading wrongly passed the broken email and was outvoted 2 to 1;
   that is why agreement is its own status.
+- **Stability: 5 more runs from storage (2026-11-01, after the owner's approval).** The same `run-saved` against the
+  live local stores, nothing changed between runs: C1-04 `fix_confirmed` in 3 of 5 runs, the blender variant in 2
+  of 5. No run gave a wrong outcome: whenever the replay and the evidence held, it was FAIL on beta2 and PASS on
+  beta3. The 5 misses were 2 garbled record values (as in the owner's run: one of three readings still wrote junk
+  such as `')] }'` for a price after its re-asks, so its evidence was only partly verified) and 3 browser replays
+  that timed out on the local dev-mode storefront, which SRA records as not measurable. $1.65 for the 5 runs
+  ([evidence](docs/evidence/saved-check-stability-2026-11-01/README.md)). So the check gives the right answer when
+  it gives one, but it does not yet give one reliably.
 - **Cost** (Muse Spark Open on Baseten): about $0.05 per conversion; $0.035 to $0.087 per replay on the held-out set,
   before the two judging fixes. With them, Run 3c cost $0.54 all-in for 2 checks on 2 releases, about $0.14 per check
   per release, because garbled replies are asked again.
