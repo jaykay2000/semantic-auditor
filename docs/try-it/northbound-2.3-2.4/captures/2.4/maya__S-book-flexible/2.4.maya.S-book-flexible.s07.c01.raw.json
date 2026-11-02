@@ -1,0 +1,12 @@
+{
+  "message_id": "m000023",
+  "to": "maya@example.test",
+  "subject": "Price Watch: update for LIS to BER",
+  "sent_at": "2026-11-02T12:00:00+00:00",
+  "headers": {
+    "X-Feature": "price_watch",
+    "X-Message-Key": "pw.email.after"
+  },
+  "text": "Keep waiting to book. We'll tell you when prices drop.",
+  "html": "<html><body><p>Keep waiting to book. We'll tell you when prices drop.</p></body></html>"
+}

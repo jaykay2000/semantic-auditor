@@ -1,0 +1,12 @@
+{
+  "message_id": "m000005",
+  "to": "maya_r@example.test",
+  "subject": "Price Watch: forecast for LIS to BER",
+  "sent_at": "2026-11-02T10:01:00+00:00",
+  "headers": {
+    "X-Feature": "price_watch",
+    "X-Message-Key": "pw.email.forecast"
+  },
+  "text": "Prices on your dates are likely to drop over the next two weeks. We suggest waiting; we'll tell you when to book.",
+  "html": "<html><body><p>Prices on your dates are likely to drop over the next two weeks. We suggest waiting; we'll tell you when to book.</p></body></html>"
+}

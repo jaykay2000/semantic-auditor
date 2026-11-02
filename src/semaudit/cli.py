@@ -275,14 +275,18 @@ def serve_cmd(review: Path = typer.Option(..., "--review", exists=True, dir_okay
 
 
 @app.command("verify-report")
-def verify_report_cmd(review: Path = typer.Argument(..., exists=True, dir_okay=False)):
+def verify_report_cmd(review: Path = typer.Argument(..., exists=True, dir_okay=False),
+                      cache: Path = typer.Option(None, "--cache", exists=True, file_okay=False,
+                                                 help="folder of recorded model replies (default: model-cache/ "
+                                                      "beside the review, else .semaudit-cache/)")):
     """Check a review.json against the inputs its manifest pins, offline (model cache only, no spend).
 
-    Exit 0: the review is what its inputs produce; 1: it is not (each difference is listed); 2: cannot check.
+    Exit 0: the review is what its inputs produce; 1: it is not (each difference is listed); 2: cannot check
+    (including when a pinned input is missing: an episode, a cited capture file or a recorded model reply).
     """
     from .verify.report import CannotVerify, verify_report
     try:
-        problems = verify_report(review)
+        problems = verify_report(review, cache=cache)
     except CannotVerify as e:
         typer.echo(f"cannot verify: {e}", err=True)
         raise typer.Exit(2)

@@ -69,5 +69,5 @@ def test_demo_missing_manifest_is_an_error(tmp_path):
 
 def test_committed_inputs_carry_no_local_path():
     for f in (ROOT / "docs" / "try-it").rglob("*"):
-        if f.is_file():
+        if f.is_file() and f.suffix != ".png":
             assert not LOCAL_PATH.search(f.read_text(encoding="utf-8")), f

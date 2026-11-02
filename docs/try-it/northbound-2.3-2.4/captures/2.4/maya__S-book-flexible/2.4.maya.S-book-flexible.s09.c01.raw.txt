@@ -1,0 +1,4 @@
+concierge: Hi, I'm Concierge. Ask me about your booking, fares, refunds or Price Watch.
+concierge: You can still switch to a refundable fare for €30 until tomorrow 10:06.
+traveller: Did I get a good deal?
+concierge: You should have booked a refundable fare.

@@ -37,24 +37,47 @@ def _row_of(d: dict) -> dict:
             "personas": d["personas"], "delta": d["delta"], "memory": (d.get("memory") or {}).get("status")}
 
 
-def verify_report(review_path: Path, *, root: Path | None = None) -> list[str]:
+def _missing(items: list[str]) -> CannotVerify:
+    return CannotVerify(f"{len(items)} pinned input(s) missing: " + "; ".join(items[:10])
+                        + (f"; and {len(items) - 10} more" if len(items) > 10 else ""))
+
+
+def verify_report(review_path: Path, *, root: Path | None = None, cache: Path | None = None) -> list[str]:
+    """`root`: where the router writes its ledger (default: the current folder). `cache`: the folder of recorded
+    model replies; default a `model-cache` folder beside the review if there is one, else `<root>/.semaudit-cache`.
+    A relative run folder that holds no episodes is looked for beside the review (as the review page does).
+    A pinned input that is absent (an episode, a cited capture file, a recorded model reply) raises CannotVerify:
+    missing inputs cannot show that the review is wrong, only that it cannot be checked here."""
     r = json.loads(review_path.read_text())
     m = r.get("manifest")
     if not m:
         raise CannotVerify("no manifest in this review")
+    m = dict(m)
+    run_dir = Path(m["run_dir"])
+    if not run_dir.is_absolute() and not (run_dir / "episodes").is_dir():
+        run_dir = review_path.parent
+    m["run_dir"] = str(run_dir)
     memory = (m.get("memory") or {}).get("issues", [])
     contract = load_contract(Path(m["contract"]["dir"]), memory=memory)
-    problems = mf.contract_problems(m, contract) + mf.episode_problems(m) + mf.memory_problems(m)
+    episodes = mf.episode_problems(m)
+    gone = [p for p in episodes if p.endswith(" missing")]
+    if gone:
+        raise _missing(gone)
+    problems = mf.contract_problems(m, contract) + episodes + mf.memory_problems(m)
     if problems:
         return problems
-    run_dir = Path(m["run_dir"])
     base, head = r["release"]["base"], r["release"]["head"]
     router = Router(root=root or Path.cwd(), offline=True)
+    beside = review_path.parent / "model-cache"
+    if cache is not None or beside.is_dir():
+        router.cache_dir = cache if cache is not None else beside
     try:
         shared = {} if getattr(contract.app, "share_readings", False) else None   # exactly as the review did
         b = evaluate_release(run_dir, base, contract, router, readings=shared)
         h = evaluate_release(run_dir, head, contract, router, readings=shared)
     except ModelError as e:
+        if str(e).startswith("offline: no cached answer"):
+            raise _missing([f"recorded model reply ({e}) not in {router.cache_dir}"]) from e
         raise CannotVerify(f"cannot re-derive offline: {e}") from e
 
     from semaudit.report.review import measurement
@@ -78,6 +101,7 @@ def verify_report(review_path: Path, *, root: Path | None = None) -> list[str]:
     for iid in sorted(set(recorded) - set(derived)):
         problems.append(f"{iid}: in the review but not re-derived from the episodes")
     stories = {p: s for p, (s, _) in h.results.items()}
+    missing_files: list[str] = []
     reduced = one_family(router) if m["verifier"]["models"] else False
     for iid in sorted(set(recorded) & set(derived)):
         d, i = recorded[iid], derived[iid]
@@ -90,7 +114,11 @@ def verify_report(review_path: Path, *, root: Path | None = None) -> list[str]:
             problems.append(f"{iid}: confidence does not follow from its recorded basis")
         ev = step_evidence(i, stories, h.episodes, run_dir)
         if ev["result"] != "pass":
-            problems.append(f"{iid}: evidence does not resolve: {ev['detail']}")
+            gone = [x for x in ev["detail"] if x.endswith(" missing") and ": artifact " in x]
+            if gone:
+                missing_files += [f"{iid}: {x}" for x in gone]
+            if len(gone) < len(ev["detail"]):
+                problems.append(f"{iid}: evidence does not resolve: {ev['detail']}")
     for name, now, then in (("resolved", resolved, r["resolved"]), ("unconfirmed", unconfirmed, r["unconfirmed"])):
         mark = lambda xs: sorted((x.id, (x.memory or {}).get("status")) for x in xs)          # noqa: E731
         if mark(now) != sorted((x["id"], (x.get("memory") or {}).get("status")) for x in then):
@@ -108,4 +136,6 @@ def verify_report(review_path: Path, *, root: Path | None = None) -> list[str]:
                         f"its issues give {fired}")
     if outcome_of(row.recommendation, measured, r["approval"]) != r["outcome"]:
         problems.append("outcome does not follow from the policy, the measurement and the recorded approval")
+    if missing_files:
+        raise _missing(missing_files)
     return problems

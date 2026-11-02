@@ -1,0 +1,710 @@
+{
+  "release": "2.4",
+  "persona": "sam_alex",
+  "scenario": "S-lock-couple",
+  "seed": 0,
+  "app_build": "northbound@2.4",
+  "started_wall": "2026-10-27T06:28:06.293102+00:00",
+  "day0": "2026-11-02T00:00:00Z",
+  "clock_measured": true,
+  "not_measured": [],
+  "initial_state": {
+    "booking": {
+      "status": "ok",
+      "endpoint": "/api/oracle/booking?traveller=sam_alex",
+      "values": {
+        "status": "not_booked",
+        "fare_type": null,
+        "departure_at": "2026-12-14T08:00:00+00:00",
+        "within_change_window": false,
+        "charges": [],
+        "total_cents": 0
+      },
+      "error": null
+    },
+    "inventory": {
+      "status": "ok",
+      "endpoint": "/api/oracle/inventory?fare=LIS-BER-NR",
+      "values": {
+        "seats_left": 2
+      },
+      "error": null
+    },
+    "forecast": {
+      "status": "ok",
+      "endpoint": "/api/oracle/forecast?route=LIS-BER",
+      "values": {
+        "drop": true,
+        "window_days": 14
+      },
+      "error": null
+    },
+    "room_inventory": {
+      "status": "not_applicable",
+      "endpoint": null,
+      "values": {},
+      "error": "needs hotel, which this persona does not have"
+    }
+  },
+  "steps": [
+    {
+      "seq": 1,
+      "at": "2026-11-02T10:00:00Z",
+      "do": "search",
+      "params": {
+        "route": "LIS-BER"
+      },
+      "when_offered": false,
+      "status": "done",
+      "error": null,
+      "clock": {
+        "sent": {
+          "set": "2026-11-02T10:00:00+00:00"
+        },
+        "answer": {
+          "now": "2026-11-02T10:00:00+00:00",
+          "jobs_run": []
+        }
+      },
+      "captures": [
+        {
+          "id": "2.4.sam_alex.S-lock-couple.s01.c01",
+          "kind": "web",
+          "surface": "search_results",
+          "at": "2026-11-02T10:00:00Z",
+          "url": "/search?origin=LIS&destination=BER",
+          "phase": "step",
+          "status": "captured",
+          "error": null,
+          "files": {
+            "dom": "captures/2.4/sam_alex__S-lock-couple/2.4.sam_alex.S-lock-couple.s01.c01.dom.html",
+            "screenshot": "captures/2.4/sam_alex__S-lock-couple/2.4.sam_alex.S-lock-couple.s01.c01.screenshot.png"
+          },
+          "sha256": {
+            "dom": "efbca09830f0fb6aa118211ad73a47b7e844f47a5251b4438b23a86a8af54801",
+            "screenshot": "5cb7e3aa63b802f4ef5e7e10796db6ce062c1234c421d4511b748ec3368db326"
+          },
+          "meta": {},
+          "elements": [
+            {
+              "locator": {
+                "kind": "css",
+                "css": "div:nth-of-type(1) > div:nth-of-type(1)",
+                "span": [
+                  0,
+                  59
+                ]
+              },
+              "text": "2 fares from Lisbon (LIS) to Berlin (BER) for 2 travellers.",
+              "attrs": {
+                "class": "msg msg-page",
+                "data-feature": "core",
+                "data-message-key": "core.results",
+                "data-shown-at": "2026-11-02T10:00:00+00:00",
+                "data-component": "flight",
+                "data-channel": "page"
+              },
+              "bbox": {
+                "x": 277.0,
+                "y": 188.8,
+                "width": 726.0,
+                "height": 23.19
+              }
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "css": "div:nth-of-type(2) > div:nth-of-type(1)",
+                "span": [
+                  0,
+                  68
+                ]
+              },
+              "text": "Non-refundable fare: €306 for 2 travellers, taxes and fees included.",
+              "attrs": {
+                "class": "msg msg-page",
+                "data-feature": "core",
+                "data-message-key": "core.results.fare",
+                "data-shown-at": "2026-11-02T10:00:00+00:00",
+                "data-component": "flight",
+                "data-channel": "page"
+              },
+              "bbox": {
+                "x": 277.0,
+                "y": 254.53,
+                "width": 623.88,
+                "height": 23.19
+              }
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "css": "div:nth-of-type(3) > div:nth-of-type(1)",
+                "span": [
+                  0,
+                  64
+                ]
+              },
+              "text": "Refundable fare: €426 for 2 travellers, taxes and fees included.",
+              "attrs": {
+                "class": "msg msg-page",
+                "data-feature": "core",
+                "data-message-key": "core.results.fare",
+                "data-shown-at": "2026-11-02T10:00:00+00:00",
+                "data-component": "flight",
+                "data-channel": "page"
+              },
+              "bbox": {
+                "x": 277.0,
+                "y": 326.83,
+                "width": 623.88,
+                "height": 23.19
+              }
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "css": "div:nth-of-type(4) > div:nth-of-type(1)",
+                "span": [
+                  0,
+                  113
+                ]
+              },
+              "text": "Prices on your dates are likely to drop over the next two weeks. We suggest waiting; we'll tell you when to book.",
+              "attrs": {
+                "class": "msg msg-card",
+                "data-feature": "price_watch",
+                "data-message-key": "pw.card",
+                "data-shown-at": "2026-11-02T10:00:00+00:00",
+                "data-component": "flight",
+                "data-channel": "card"
+              },
+              "bbox": {
+                "x": 277.0,
+                "y": 392.58,
+                "width": 726.0,
+                "height": 46.38
+              }
+            }
+          ]
+        }
+      ],
+      "state": {
+        "booking": {
+          "status": "ok",
+          "endpoint": "/api/oracle/booking?traveller=sam_alex",
+          "values": {
+            "status": "not_booked",
+            "fare_type": null,
+            "departure_at": "2026-12-14T08:00:00+00:00",
+            "within_change_window": false,
+            "charges": [],
+            "total_cents": 0
+          },
+          "error": null
+        },
+        "inventory": {
+          "status": "ok",
+          "endpoint": "/api/oracle/inventory?fare=LIS-BER-NR",
+          "values": {
+            "seats_left": 2
+          },
+          "error": null
+        },
+        "forecast": {
+          "status": "ok",
+          "endpoint": "/api/oracle/forecast?route=LIS-BER",
+          "values": {
+            "drop": true,
+            "window_days": 14
+          },
+          "error": null
+        },
+        "room_inventory": {
+          "status": "not_applicable",
+          "endpoint": null,
+          "values": {},
+          "error": "needs hotel, which this persona does not have"
+        }
+      }
+    },
+    {
+      "seq": 2,
+      "at": "2026-11-02T10:01:00Z",
+      "do": "check_inbox",
+      "params": {},
+      "when_offered": false,
+      "status": "done",
+      "error": null,
+      "clock": {
+        "sent": {
+          "set": "2026-11-02T10:01:00+00:00"
+        },
+        "answer": {
+          "now": "2026-11-02T10:01:00+00:00",
+          "jobs_run": [
+            {
+              "id": "j00001",
+              "due": "2026-11-02T10:01:00+00:00",
+              "feature": "price_watch",
+              "kind": "forecast_email",
+              "traveller": "sam_alex"
+            }
+          ]
+        }
+      },
+      "captures": [
+        {
+          "id": "2.4.sam_alex.S-lock-couple.s02.c01",
+          "kind": "email",
+          "surface": "inbox",
+          "at": "2026-11-02T10:01:00Z",
+          "url": null,
+          "phase": "step",
+          "status": "captured",
+          "error": null,
+          "files": {
+            "raw": "captures/2.4/sam_alex__S-lock-couple/2.4.sam_alex.S-lock-couple.s02.c01.raw.json"
+          },
+          "sha256": {
+            "raw": "85016780c916a354d714700288c8eee25b7a007f9b23d10f59d9ccf7c669d9d3"
+          },
+          "meta": {
+            "sink_file": "m000005.json"
+          },
+          "elements": [
+            {
+              "locator": {
+                "kind": "message_id",
+                "message_id": "m000005",
+                "part": "text",
+                "span": [
+                  0,
+                  113
+                ]
+              },
+              "text": "Prices on your dates are likely to drop over the next two weeks. We suggest waiting; we'll tell you when to book.",
+              "attrs": {
+                "X-Feature": "price_watch",
+                "X-Message-Key": "pw.email.forecast",
+                "message_id": "m000005",
+                "to": "sam_alex@example.test",
+                "subject": "Price Watch: forecast for LIS to BER",
+                "sent_at": "2026-11-02T10:01:00+00:00"
+              },
+              "bbox": null
+            }
+          ]
+        }
+      ],
+      "state": {
+        "booking": {
+          "status": "ok",
+          "endpoint": "/api/oracle/booking?traveller=sam_alex",
+          "values": {
+            "status": "not_booked",
+            "fare_type": null,
+            "departure_at": "2026-12-14T08:00:00+00:00",
+            "within_change_window": false,
+            "charges": [],
+            "total_cents": 0
+          },
+          "error": null
+        },
+        "inventory": {
+          "status": "ok",
+          "endpoint": "/api/oracle/inventory?fare=LIS-BER-NR",
+          "values": {
+            "seats_left": 2
+          },
+          "error": null
+        },
+        "forecast": {
+          "status": "ok",
+          "endpoint": "/api/oracle/forecast?route=LIS-BER",
+          "values": {
+            "drop": true,
+            "window_days": 14
+          },
+          "error": null
+        },
+        "room_inventory": {
+          "status": "not_applicable",
+          "endpoint": null,
+          "values": {},
+          "error": "needs hotel, which this persona does not have"
+        }
+      }
+    },
+    {
+      "seq": 3,
+      "at": "2026-11-02T10:03:00Z",
+      "do": "open_fare",
+      "params": {
+        "pick": "cheapest"
+      },
+      "when_offered": false,
+      "status": "done",
+      "error": null,
+      "clock": {
+        "sent": {
+          "set": "2026-11-02T10:03:00+00:00"
+        },
+        "answer": {
+          "now": "2026-11-02T10:03:00+00:00",
+          "jobs_run": []
+        }
+      },
+      "captures": [
+        {
+          "id": "2.4.sam_alex.S-lock-couple.s03.c01",
+          "kind": "web",
+          "surface": "fare_detail",
+          "at": "2026-11-02T10:03:00Z",
+          "url": "/fare/LIS-BER-NR",
+          "phase": "step",
+          "status": "captured",
+          "error": null,
+          "files": {
+            "dom": "captures/2.4/sam_alex__S-lock-couple/2.4.sam_alex.S-lock-couple.s03.c01.dom.html",
+            "screenshot": "captures/2.4/sam_alex__S-lock-couple/2.4.sam_alex.S-lock-couple.s03.c01.screenshot.png"
+          },
+          "sha256": {
+            "dom": "d920e938937278c83d6867365ce9e803c4efc2e25b9acb46330742636b4a7c2b",
+            "screenshot": "932c686ef9878ae997aac572c34d5f10ef02d56f661af88d0d617f96bb195a83"
+          },
+          "meta": {},
+          "elements": [
+            {
+              "locator": {
+                "kind": "css",
+                "css": "div:nth-of-type(1) > div:nth-of-type(1)",
+                "span": [
+                  0,
+                  104
+                ]
+              },
+              "text": "Non-refundable fare: €306 for 2 travellers, taxes and fees included. Departs Mon 14 Dec 2026, 08:00 UTC.",
+              "attrs": {
+                "class": "msg msg-page",
+                "data-feature": "core",
+                "data-message-key": "core.fare.summary",
+                "data-shown-at": "2026-11-02T10:03:00+00:00",
+                "data-component": "flight",
+                "data-channel": "page"
+              },
+              "bbox": {
+                "x": 277.0,
+                "y": 140.8,
+                "width": 550.47,
+                "height": 46.38
+              }
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "css": "div:nth-of-type(2) > div:nth-of-type(1)",
+                "span": [
+                  0,
+                  102
+                ]
+              },
+              "text": "Non-refundable. After you book, you can switch to a refundable fare for €30 during the first 24 hours.",
+              "attrs": {
+                "class": "msg msg-page",
+                "data-feature": "core",
+                "data-message-key": "core.fare.policy.non_refundable",
+                "data-shown-at": "2026-11-02T10:03:00+00:00",
+                "data-component": "flight",
+                "data-channel": "page"
+              },
+              "bbox": {
+                "x": 277.0,
+                "y": 223.17,
+                "width": 726.0,
+                "height": 23.19
+              }
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "css": "div:nth-of-type(3) > div:nth-of-type(1)",
+                "span": [
+                  0,
+                  81
+                ]
+              },
+              "text": "2 seats left at this fare. Lock it for 48 h for €9 total, for your whole booking.",
+              "attrs": {
+                "class": "msg msg-banner",
+                "data-feature": "fare_lock",
+                "data-message-key": "fl.banner",
+                "data-shown-at": "2026-11-02T10:03:00+00:00",
+                "data-component": "flight",
+                "data-channel": "banner"
+              },
+              "bbox": {
+                "x": 277.0,
+                "y": 286.77,
+                "width": 598.73,
+                "height": 23.19
+              }
+            }
+          ]
+        }
+      ],
+      "state": {
+        "booking": {
+          "status": "ok",
+          "endpoint": "/api/oracle/booking?traveller=sam_alex",
+          "values": {
+            "status": "not_booked",
+            "fare_type": null,
+            "departure_at": "2026-12-14T08:00:00+00:00",
+            "within_change_window": false,
+            "charges": [],
+            "total_cents": 0
+          },
+          "error": null
+        },
+        "inventory": {
+          "status": "ok",
+          "endpoint": "/api/oracle/inventory?fare=LIS-BER-NR",
+          "values": {
+            "seats_left": 2
+          },
+          "error": null
+        },
+        "forecast": {
+          "status": "ok",
+          "endpoint": "/api/oracle/forecast?route=LIS-BER",
+          "values": {
+            "drop": true,
+            "window_days": 14
+          },
+          "error": null
+        },
+        "room_inventory": {
+          "status": "not_applicable",
+          "endpoint": null,
+          "values": {},
+          "error": "needs hotel, which this persona does not have"
+        }
+      }
+    },
+    {
+      "seq": 4,
+      "at": "2026-11-02T10:04:00Z",
+      "do": "buy_lock",
+      "params": {},
+      "when_offered": true,
+      "status": "done",
+      "error": null,
+      "clock": {
+        "sent": {
+          "set": "2026-11-02T10:04:00+00:00"
+        },
+        "answer": {
+          "now": "2026-11-02T10:04:00+00:00",
+          "jobs_run": []
+        }
+      },
+      "captures": [
+        {
+          "id": "2.4.sam_alex.S-lock-couple.s04.c01",
+          "kind": "web",
+          "surface": "checkout",
+          "at": "2026-11-02T10:04:00Z",
+          "url": "/checkout/LIS-BER-NR",
+          "phase": "step",
+          "status": "captured",
+          "error": null,
+          "files": {
+            "dom": "captures/2.4/sam_alex__S-lock-couple/2.4.sam_alex.S-lock-couple.s04.c01.dom.html",
+            "screenshot": "captures/2.4/sam_alex__S-lock-couple/2.4.sam_alex.S-lock-couple.s04.c01.screenshot.png"
+          },
+          "sha256": {
+            "dom": "5c335f95b20229a3b00f5a69a1f82acd6bb4f173aef28f296bc79e7673196ad2",
+            "screenshot": "5d178d9a8813e58ce53d5faa84851e995c3b06f03931bf0a913344175883e6ff"
+          },
+          "meta": {},
+          "elements": [
+            {
+              "locator": {
+                "kind": "css",
+                "css": "div:nth-of-type(1) > div:nth-of-type(1)",
+                "span": [
+                  0,
+                  29
+                ]
+              },
+              "text": "Non-refundable fare x 2: €258",
+              "attrs": {
+                "class": "msg msg-page",
+                "data-feature": "core",
+                "data-message-key": "core.checkout.fare",
+                "data-shown-at": "2026-11-02T10:04:00+00:00",
+                "data-component": "flight",
+                "data-channel": "page"
+              },
+              "bbox": {
+                "x": 277.0,
+                "y": 140.8,
+                "width": 726.0,
+                "height": 23.19
+              }
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "css": "div:nth-of-type(2) > div:nth-of-type(1)",
+                "span": [
+                  0,
+                  19
+                ]
+              },
+              "text": "Taxes and fees: €48",
+              "attrs": {
+                "class": "msg msg-page",
+                "data-feature": "core",
+                "data-message-key": "core.checkout.taxes",
+                "data-shown-at": "2026-11-02T10:04:00+00:00",
+                "data-component": "flight",
+                "data-channel": "page"
+              },
+              "bbox": {
+                "x": 277.0,
+                "y": 199.98,
+                "width": 726.0,
+                "height": 23.19
+              }
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "css": "div:nth-of-type(3) > div:nth-of-type(1)",
+                "span": [
+                  0,
+                  21
+                ]
+              },
+              "text": "Fare Lock (48 h): €18",
+              "attrs": {
+                "class": "msg msg-page",
+                "data-feature": "fare_lock",
+                "data-message-key": "fl.checkout.lock",
+                "data-shown-at": "2026-11-02T10:04:00+00:00",
+                "data-component": "flight",
+                "data-channel": "page"
+              },
+              "bbox": {
+                "x": 277.0,
+                "y": 259.17,
+                "width": 726.0,
+                "height": 23.19
+              }
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "css": "div:nth-of-type(4) > div:nth-of-type(1)",
+                "span": [
+                  0,
+                  24
+                ]
+              },
+              "text": "Total to pay today: €306",
+              "attrs": {
+                "class": "msg msg-page",
+                "data-feature": "core",
+                "data-message-key": "core.checkout.total",
+                "data-shown-at": "2026-11-02T10:04:00+00:00",
+                "data-component": "flight",
+                "data-channel": "page"
+              },
+              "bbox": {
+                "x": 277.0,
+                "y": 318.36,
+                "width": 726.0,
+                "height": 23.19
+              }
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "css": "div:nth-of-type(5) > div:nth-of-type(1)",
+                "span": [
+                  0,
+                  102
+                ]
+              },
+              "text": "Non-refundable. After you book, you can switch to a refundable fare for €30 during the first 24 hours.",
+              "attrs": {
+                "class": "msg msg-page",
+                "data-feature": "core",
+                "data-message-key": "core.fare.policy.non_refundable",
+                "data-shown-at": "2026-11-02T10:04:00+00:00",
+                "data-component": "flight",
+                "data-channel": "page"
+              },
+              "bbox": {
+                "x": 277.0,
+                "y": 377.55,
+                "width": 726.0,
+                "height": 23.19
+              }
+            }
+          ]
+        }
+      ],
+      "state": {
+        "booking": {
+          "status": "ok",
+          "endpoint": "/api/oracle/booking?traveller=sam_alex",
+          "values": {
+            "status": "not_booked",
+            "fare_type": null,
+            "departure_at": "2026-12-14T08:00:00+00:00",
+            "within_change_window": false,
+            "charges": [
+              {
+                "charge_id": "lock000009-c1",
+                "what": "fare_lock",
+                "label": "Fare Lock (48 h)",
+                "amount_cents": 1800,
+                "currency": "EUR",
+                "transaction": "txn-lock000009",
+                "quote_id": "q-LIS-BER-NR-2"
+              }
+            ],
+            "total_cents": 1800
+          },
+          "error": null
+        },
+        "inventory": {
+          "status": "ok",
+          "endpoint": "/api/oracle/inventory?fare=LIS-BER-NR",
+          "values": {
+            "seats_left": 2
+          },
+          "error": null
+        },
+        "forecast": {
+          "status": "ok",
+          "endpoint": "/api/oracle/forecast?route=LIS-BER",
+          "values": {
+            "drop": true,
+            "window_days": 14
+          },
+          "error": null
+        },
+        "room_inventory": {
+          "status": "not_applicable",
+          "endpoint": null,
+          "values": {},
+          "error": "needs hotel, which this persona does not have"
+        }
+      }
+    }
+  ]
+}

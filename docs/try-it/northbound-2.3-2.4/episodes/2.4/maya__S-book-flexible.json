@@ -1,0 +1,1592 @@
+{
+  "release": "2.4",
+  "persona": "maya",
+  "scenario": "S-book-flexible",
+  "seed": 0,
+  "app_build": "northbound@2.4",
+  "started_wall": "2026-10-27T06:28:02.842355+00:00",
+  "day0": "2026-11-02T00:00:00Z",
+  "clock_measured": true,
+  "not_measured": [],
+  "initial_state": {
+    "booking": {
+      "status": "ok",
+      "endpoint": "/api/oracle/booking?traveller=maya",
+      "values": {
+        "status": "not_booked",
+        "fare_type": null,
+        "departure_at": "2026-12-14T08:00:00+00:00",
+        "within_change_window": false,
+        "charges": [],
+        "total_cents": 0
+      },
+      "error": null
+    },
+    "inventory": {
+      "status": "ok",
+      "endpoint": "/api/oracle/inventory?fare=LIS-BER-NR",
+      "values": {
+        "seats_left": 2
+      },
+      "error": null
+    },
+    "forecast": {
+      "status": "ok",
+      "endpoint": "/api/oracle/forecast?route=LIS-BER",
+      "values": {
+        "drop": true,
+        "window_days": 14
+      },
+      "error": null
+    },
+    "room_inventory": {
+      "status": "not_applicable",
+      "endpoint": null,
+      "values": {},
+      "error": "needs hotel, which this persona does not have"
+    }
+  },
+  "steps": [
+    {
+      "seq": 1,
+      "at": "2026-11-02T10:00:00Z",
+      "do": "search",
+      "params": {
+        "route": "LIS-BER"
+      },
+      "when_offered": false,
+      "status": "done",
+      "error": null,
+      "clock": {
+        "sent": {
+          "set": "2026-11-02T10:00:00+00:00"
+        },
+        "answer": {
+          "now": "2026-11-02T10:00:00+00:00",
+          "jobs_run": []
+        }
+      },
+      "captures": [
+        {
+          "id": "2.4.maya.S-book-flexible.s01.c01",
+          "kind": "web",
+          "surface": "search_results",
+          "at": "2026-11-02T10:00:00Z",
+          "url": "/search?origin=LIS&destination=BER",
+          "phase": "step",
+          "status": "captured",
+          "error": null,
+          "files": {
+            "dom": "captures/2.4/maya__S-book-flexible/2.4.maya.S-book-flexible.s01.c01.dom.html",
+            "screenshot": "captures/2.4/maya__S-book-flexible/2.4.maya.S-book-flexible.s01.c01.screenshot.png"
+          },
+          "sha256": {
+            "dom": "1183bd2de5b5c9a46b31770bb3d19a234250469143603c50d2fb080fe7c369d9",
+            "screenshot": "87ad397e041f2c26c6bb6e8667d63a21b00e51e40ed2e28038fb9d1f5dc33f55"
+          },
+          "meta": {},
+          "elements": [
+            {
+              "locator": {
+                "kind": "css",
+                "css": "div:nth-of-type(1) > div:nth-of-type(1)",
+                "span": [
+                  0,
+                  58
+                ]
+              },
+              "text": "2 fares from Lisbon (LIS) to Berlin (BER) for 1 traveller.",
+              "attrs": {
+                "class": "msg msg-page",
+                "data-feature": "core",
+                "data-message-key": "core.results",
+                "data-shown-at": "2026-11-02T10:00:00+00:00",
+                "data-component": "flight",
+                "data-channel": "page"
+              },
+              "bbox": {
+                "x": 277.0,
+                "y": 188.8,
+                "width": 726.0,
+                "height": 23.19
+              }
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "css": "div:nth-of-type(2) > div:nth-of-type(1)",
+                "span": [
+                  0,
+                  67
+                ]
+              },
+              "text": "Non-refundable fare: €153 for 1 traveller, taxes and fees included.",
+              "attrs": {
+                "class": "msg msg-page",
+                "data-feature": "core",
+                "data-message-key": "core.results.fare",
+                "data-shown-at": "2026-11-02T10:00:00+00:00",
+                "data-component": "flight",
+                "data-channel": "page"
+              },
+              "bbox": {
+                "x": 277.0,
+                "y": 254.53,
+                "width": 623.88,
+                "height": 23.19
+              }
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "css": "div:nth-of-type(3) > div:nth-of-type(1)",
+                "span": [
+                  0,
+                  63
+                ]
+              },
+              "text": "Refundable fare: €213 for 1 traveller, taxes and fees included.",
+              "attrs": {
+                "class": "msg msg-page",
+                "data-feature": "core",
+                "data-message-key": "core.results.fare",
+                "data-shown-at": "2026-11-02T10:00:00+00:00",
+                "data-component": "flight",
+                "data-channel": "page"
+              },
+              "bbox": {
+                "x": 277.0,
+                "y": 326.83,
+                "width": 623.88,
+                "height": 23.19
+              }
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "css": "div:nth-of-type(4) > div:nth-of-type(1)",
+                "span": [
+                  0,
+                  113
+                ]
+              },
+              "text": "Prices on your dates are likely to drop over the next two weeks. We suggest waiting; we'll tell you when to book.",
+              "attrs": {
+                "class": "msg msg-card",
+                "data-feature": "price_watch",
+                "data-message-key": "pw.card",
+                "data-shown-at": "2026-11-02T10:00:00+00:00",
+                "data-component": "flight",
+                "data-channel": "card"
+              },
+              "bbox": {
+                "x": 277.0,
+                "y": 392.58,
+                "width": 726.0,
+                "height": 46.38
+              }
+            }
+          ]
+        }
+      ],
+      "state": {
+        "booking": {
+          "status": "ok",
+          "endpoint": "/api/oracle/booking?traveller=maya",
+          "values": {
+            "status": "not_booked",
+            "fare_type": null,
+            "departure_at": "2026-12-14T08:00:00+00:00",
+            "within_change_window": false,
+            "charges": [],
+            "total_cents": 0
+          },
+          "error": null
+        },
+        "inventory": {
+          "status": "ok",
+          "endpoint": "/api/oracle/inventory?fare=LIS-BER-NR",
+          "values": {
+            "seats_left": 2
+          },
+          "error": null
+        },
+        "forecast": {
+          "status": "ok",
+          "endpoint": "/api/oracle/forecast?route=LIS-BER",
+          "values": {
+            "drop": true,
+            "window_days": 14
+          },
+          "error": null
+        },
+        "room_inventory": {
+          "status": "not_applicable",
+          "endpoint": null,
+          "values": {},
+          "error": "needs hotel, which this persona does not have"
+        }
+      }
+    },
+    {
+      "seq": 2,
+      "at": "2026-11-02T10:00:30Z",
+      "do": "opt_in_price_watch",
+      "params": {},
+      "when_offered": true,
+      "status": "skipped_not_offered",
+      "error": null,
+      "clock": {
+        "sent": {
+          "set": "2026-11-02T10:00:30+00:00"
+        },
+        "answer": {
+          "now": "2026-11-02T10:00:30+00:00",
+          "jobs_run": []
+        }
+      },
+      "captures": [],
+      "state": {
+        "booking": {
+          "status": "ok",
+          "endpoint": "/api/oracle/booking?traveller=maya",
+          "values": {
+            "status": "not_booked",
+            "fare_type": null,
+            "departure_at": "2026-12-14T08:00:00+00:00",
+            "within_change_window": false,
+            "charges": [],
+            "total_cents": 0
+          },
+          "error": null
+        },
+        "inventory": {
+          "status": "ok",
+          "endpoint": "/api/oracle/inventory?fare=LIS-BER-NR",
+          "values": {
+            "seats_left": 2
+          },
+          "error": null
+        },
+        "forecast": {
+          "status": "ok",
+          "endpoint": "/api/oracle/forecast?route=LIS-BER",
+          "values": {
+            "drop": true,
+            "window_days": 14
+          },
+          "error": null
+        },
+        "room_inventory": {
+          "status": "not_applicable",
+          "endpoint": null,
+          "values": {},
+          "error": "needs hotel, which this persona does not have"
+        }
+      }
+    },
+    {
+      "seq": 3,
+      "at": "2026-11-02T10:01:00Z",
+      "do": "check_inbox",
+      "params": {},
+      "when_offered": false,
+      "status": "done",
+      "error": null,
+      "clock": {
+        "sent": {
+          "set": "2026-11-02T10:01:00+00:00"
+        },
+        "answer": {
+          "now": "2026-11-02T10:01:00+00:00",
+          "jobs_run": [
+            {
+              "id": "j00001",
+              "due": "2026-11-02T10:01:00+00:00",
+              "feature": "price_watch",
+              "kind": "forecast_email",
+              "traveller": "maya"
+            }
+          ]
+        }
+      },
+      "captures": [
+        {
+          "id": "2.4.maya.S-book-flexible.s03.c01",
+          "kind": "email",
+          "surface": "inbox",
+          "at": "2026-11-02T10:01:00Z",
+          "url": null,
+          "phase": "step",
+          "status": "captured",
+          "error": null,
+          "files": {
+            "raw": "captures/2.4/maya__S-book-flexible/2.4.maya.S-book-flexible.s03.c01.raw.json"
+          },
+          "sha256": {
+            "raw": "5ec70ed46cad46fd702fd64ea2de8037a9b2589c176ba1ec14a2dccebac0fee9"
+          },
+          "meta": {
+            "sink_file": "m000005.json"
+          },
+          "elements": [
+            {
+              "locator": {
+                "kind": "message_id",
+                "message_id": "m000005",
+                "part": "text",
+                "span": [
+                  0,
+                  113
+                ]
+              },
+              "text": "Prices on your dates are likely to drop over the next two weeks. We suggest waiting; we'll tell you when to book.",
+              "attrs": {
+                "X-Feature": "price_watch",
+                "X-Message-Key": "pw.email.forecast",
+                "message_id": "m000005",
+                "to": "maya@example.test",
+                "subject": "Price Watch: forecast for LIS to BER",
+                "sent_at": "2026-11-02T10:01:00+00:00"
+              },
+              "bbox": null
+            }
+          ]
+        }
+      ],
+      "state": {
+        "booking": {
+          "status": "ok",
+          "endpoint": "/api/oracle/booking?traveller=maya",
+          "values": {
+            "status": "not_booked",
+            "fare_type": null,
+            "departure_at": "2026-12-14T08:00:00+00:00",
+            "within_change_window": false,
+            "charges": [],
+            "total_cents": 0
+          },
+          "error": null
+        },
+        "inventory": {
+          "status": "ok",
+          "endpoint": "/api/oracle/inventory?fare=LIS-BER-NR",
+          "values": {
+            "seats_left": 2
+          },
+          "error": null
+        },
+        "forecast": {
+          "status": "ok",
+          "endpoint": "/api/oracle/forecast?route=LIS-BER",
+          "values": {
+            "drop": true,
+            "window_days": 14
+          },
+          "error": null
+        },
+        "room_inventory": {
+          "status": "not_applicable",
+          "endpoint": null,
+          "values": {},
+          "error": "needs hotel, which this persona does not have"
+        }
+      }
+    },
+    {
+      "seq": 4,
+      "at": "2026-11-02T10:03:00Z",
+      "do": "open_fare",
+      "params": {
+        "pick": "cheapest"
+      },
+      "when_offered": false,
+      "status": "done",
+      "error": null,
+      "clock": {
+        "sent": {
+          "set": "2026-11-02T10:03:00+00:00"
+        },
+        "answer": {
+          "now": "2026-11-02T10:03:00+00:00",
+          "jobs_run": []
+        }
+      },
+      "captures": [
+        {
+          "id": "2.4.maya.S-book-flexible.s04.c01",
+          "kind": "web",
+          "surface": "fare_detail",
+          "at": "2026-11-02T10:03:00Z",
+          "url": "/fare/LIS-BER-NR",
+          "phase": "step",
+          "status": "captured",
+          "error": null,
+          "files": {
+            "dom": "captures/2.4/maya__S-book-flexible/2.4.maya.S-book-flexible.s04.c01.dom.html",
+            "screenshot": "captures/2.4/maya__S-book-flexible/2.4.maya.S-book-flexible.s04.c01.screenshot.png"
+          },
+          "sha256": {
+            "dom": "36dbaab7a78e201a45b8e3ac3aafaee54fee2b2791d8874e8893dd31a94d7b3d",
+            "screenshot": "178d2ae14b9125506efe456692773824c7109886ea532ec2f43408876210b115"
+          },
+          "meta": {},
+          "elements": [
+            {
+              "locator": {
+                "kind": "css",
+                "css": "div:nth-of-type(1) > div:nth-of-type(1)",
+                "span": [
+                  0,
+                  103
+                ]
+              },
+              "text": "Non-refundable fare: €153 for 1 traveller, taxes and fees included. Departs Mon 14 Dec 2026, 08:00 UTC.",
+              "attrs": {
+                "class": "msg msg-page",
+                "data-feature": "core",
+                "data-message-key": "core.fare.summary",
+                "data-shown-at": "2026-11-02T10:03:00+00:00",
+                "data-component": "flight",
+                "data-channel": "page"
+              },
+              "bbox": {
+                "x": 277.0,
+                "y": 140.8,
+                "width": 550.47,
+                "height": 46.38
+              }
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "css": "div:nth-of-type(2) > div:nth-of-type(1)",
+                "span": [
+                  0,
+                  102
+                ]
+              },
+              "text": "Non-refundable. After you book, you can switch to a refundable fare for €30 during the first 24 hours.",
+              "attrs": {
+                "class": "msg msg-page",
+                "data-feature": "core",
+                "data-message-key": "core.fare.policy.non_refundable",
+                "data-shown-at": "2026-11-02T10:03:00+00:00",
+                "data-component": "flight",
+                "data-channel": "page"
+              },
+              "bbox": {
+                "x": 277.0,
+                "y": 223.17,
+                "width": 726.0,
+                "height": 23.19
+              }
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "css": "div:nth-of-type(3) > div:nth-of-type(1)",
+                "span": [
+                  0,
+                  81
+                ]
+              },
+              "text": "2 seats left at this fare. Lock it for 48 h for €9 total, for your whole booking.",
+              "attrs": {
+                "class": "msg msg-banner",
+                "data-feature": "fare_lock",
+                "data-message-key": "fl.banner",
+                "data-shown-at": "2026-11-02T10:03:00+00:00",
+                "data-component": "flight",
+                "data-channel": "banner"
+              },
+              "bbox": {
+                "x": 277.0,
+                "y": 286.77,
+                "width": 598.73,
+                "height": 23.19
+              }
+            }
+          ]
+        }
+      ],
+      "state": {
+        "booking": {
+          "status": "ok",
+          "endpoint": "/api/oracle/booking?traveller=maya",
+          "values": {
+            "status": "not_booked",
+            "fare_type": null,
+            "departure_at": "2026-12-14T08:00:00+00:00",
+            "within_change_window": false,
+            "charges": [],
+            "total_cents": 0
+          },
+          "error": null
+        },
+        "inventory": {
+          "status": "ok",
+          "endpoint": "/api/oracle/inventory?fare=LIS-BER-NR",
+          "values": {
+            "seats_left": 2
+          },
+          "error": null
+        },
+        "forecast": {
+          "status": "ok",
+          "endpoint": "/api/oracle/forecast?route=LIS-BER",
+          "values": {
+            "drop": true,
+            "window_days": 14
+          },
+          "error": null
+        },
+        "room_inventory": {
+          "status": "not_applicable",
+          "endpoint": null,
+          "values": {},
+          "error": "needs hotel, which this persona does not have"
+        }
+      }
+    },
+    {
+      "seq": 5,
+      "at": "2026-11-02T10:06:00Z",
+      "do": "book",
+      "params": {
+        "fare_type": "non_refundable"
+      },
+      "when_offered": false,
+      "status": "done",
+      "error": null,
+      "clock": {
+        "sent": {
+          "set": "2026-11-02T10:06:00+00:00"
+        },
+        "answer": {
+          "now": "2026-11-02T10:06:00+00:00",
+          "jobs_run": []
+        }
+      },
+      "captures": [
+        {
+          "id": "2.4.maya.S-book-flexible.s05.c01",
+          "kind": "web",
+          "surface": "checkout",
+          "at": "2026-11-02T10:06:00Z",
+          "url": "/checkout/LIS-BER-NR",
+          "phase": "step",
+          "status": "captured",
+          "error": null,
+          "files": {
+            "dom": "captures/2.4/maya__S-book-flexible/2.4.maya.S-book-flexible.s05.c01.dom.html",
+            "screenshot": "captures/2.4/maya__S-book-flexible/2.4.maya.S-book-flexible.s05.c01.screenshot.png"
+          },
+          "sha256": {
+            "dom": "d610a4e4dc26d7554b9359f20cb58b294c4aac3f6e9b276b4e9f018b56b24fe1",
+            "screenshot": "8a94fe0ebff614f7a04de34513950fa60780832255e34c8e98197e85be2675fe"
+          },
+          "meta": {},
+          "elements": [
+            {
+              "locator": {
+                "kind": "css",
+                "css": "div:nth-of-type(1) > div:nth-of-type(1)",
+                "span": [
+                  0,
+                  29
+                ]
+              },
+              "text": "Non-refundable fare x 1: €129",
+              "attrs": {
+                "class": "msg msg-page",
+                "data-feature": "core",
+                "data-message-key": "core.checkout.fare",
+                "data-shown-at": "2026-11-02T10:06:00+00:00",
+                "data-component": "flight",
+                "data-channel": "page"
+              },
+              "bbox": {
+                "x": 277.0,
+                "y": 140.8,
+                "width": 726.0,
+                "height": 23.19
+              }
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "css": "div:nth-of-type(2) > div:nth-of-type(1)",
+                "span": [
+                  0,
+                  19
+                ]
+              },
+              "text": "Taxes and fees: €24",
+              "attrs": {
+                "class": "msg msg-page",
+                "data-feature": "core",
+                "data-message-key": "core.checkout.taxes",
+                "data-shown-at": "2026-11-02T10:06:00+00:00",
+                "data-component": "flight",
+                "data-channel": "page"
+              },
+              "bbox": {
+                "x": 277.0,
+                "y": 199.98,
+                "width": 726.0,
+                "height": 23.19
+              }
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "css": "div:nth-of-type(3) > div:nth-of-type(1)",
+                "span": [
+                  0,
+                  24
+                ]
+              },
+              "text": "Total to pay today: €153",
+              "attrs": {
+                "class": "msg msg-page",
+                "data-feature": "core",
+                "data-message-key": "core.checkout.total",
+                "data-shown-at": "2026-11-02T10:06:00+00:00",
+                "data-component": "flight",
+                "data-channel": "page"
+              },
+              "bbox": {
+                "x": 277.0,
+                "y": 259.17,
+                "width": 726.0,
+                "height": 23.19
+              }
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "css": "div:nth-of-type(4) > div:nth-of-type(1)",
+                "span": [
+                  0,
+                  102
+                ]
+              },
+              "text": "Non-refundable. After you book, you can switch to a refundable fare for €30 during the first 24 hours.",
+              "attrs": {
+                "class": "msg msg-page",
+                "data-feature": "core",
+                "data-message-key": "core.fare.policy.non_refundable",
+                "data-shown-at": "2026-11-02T10:06:00+00:00",
+                "data-component": "flight",
+                "data-channel": "page"
+              },
+              "bbox": {
+                "x": 277.0,
+                "y": 318.36,
+                "width": 726.0,
+                "height": 23.19
+              }
+            }
+          ]
+        },
+        {
+          "id": "2.4.maya.S-book-flexible.s05.c02",
+          "kind": "web",
+          "surface": "confirmation",
+          "at": "2026-11-02T10:06:00Z",
+          "url": "/booking/NB0001",
+          "phase": "step",
+          "status": "captured",
+          "error": null,
+          "files": {
+            "dom": "captures/2.4/maya__S-book-flexible/2.4.maya.S-book-flexible.s05.c02.dom.html",
+            "screenshot": "captures/2.4/maya__S-book-flexible/2.4.maya.S-book-flexible.s05.c02.screenshot.png"
+          },
+          "sha256": {
+            "dom": "23c08319cdb717f747be1d0a6da7daa0205c5c85c57165c4b1636e1d4cee2c3f",
+            "screenshot": "9e17a59274b9ee2e0023067b933047f0ee2421765f67249ba596731018dd12e2"
+          },
+          "meta": {},
+          "elements": [
+            {
+              "locator": {
+                "kind": "css",
+                "css": "div:nth-of-type(1) > div:nth-of-type(1)",
+                "span": [
+                  0,
+                  97
+                ]
+              },
+              "text": "Booked. Your booking NB0001 from Lisbon (LIS) to Berlin (BER) departs Mon 14 Dec 2026, 08:00 UTC.",
+              "attrs": {
+                "class": "msg msg-page",
+                "data-feature": "core",
+                "data-message-key": "core.confirmed",
+                "data-shown-at": "2026-11-02T10:06:00+00:00",
+                "data-component": "flight",
+                "data-channel": "page"
+              },
+              "bbox": {
+                "x": 277.0,
+                "y": 140.8,
+                "width": 726.0,
+                "height": 46.38
+              }
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "css": "div:nth-of-type(2) > div:nth-of-type(1)",
+                "span": [
+                  0,
+                  118
+                ]
+              },
+              "text": "Fare type: non-refundable. Switching to a refundable fare costs €30 and is available until Tue 03 Nov 2026, 10:06 UTC.",
+              "attrs": {
+                "class": "msg msg-page",
+                "data-feature": "core",
+                "data-message-key": "core.confirmed.fare_window",
+                "data-shown-at": "2026-11-02T10:06:00+00:00",
+                "data-component": "flight",
+                "data-channel": "page"
+              },
+              "bbox": {
+                "x": 277.0,
+                "y": 223.17,
+                "width": 527.13,
+                "height": 46.38
+              }
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "css": "div:nth-of-type(3) > div:nth-of-type(1)",
+                "span": [
+                  0,
+                  29
+                ]
+              },
+              "text": "Non-refundable fare x 1: €129",
+              "attrs": {
+                "class": "msg msg-page",
+                "data-feature": "core",
+                "data-message-key": "core.confirmed.charge",
+                "data-shown-at": "2026-11-02T10:06:00+00:00",
+                "data-component": "flight",
+                "data-channel": "page"
+              },
+              "bbox": {
+                "x": 277.0,
+                "y": 370.16,
+                "width": 726.0,
+                "height": 23.19
+              }
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "css": "div:nth-of-type(4) > div:nth-of-type(1)",
+                "span": [
+                  0,
+                  19
+                ]
+              },
+              "text": "Taxes and fees: €24",
+              "attrs": {
+                "class": "msg msg-page",
+                "data-feature": "core",
+                "data-message-key": "core.confirmed.charge",
+                "data-shown-at": "2026-11-02T10:06:00+00:00",
+                "data-component": "flight",
+                "data-channel": "page"
+              },
+              "bbox": {
+                "x": 277.0,
+                "y": 429.34,
+                "width": 726.0,
+                "height": 23.19
+              }
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "css": "div:nth-of-type(5) > div:nth-of-type(1)",
+                "span": [
+                  0,
+                  19
+                ]
+              },
+              "text": "Total charged: €153",
+              "attrs": {
+                "class": "msg msg-page",
+                "data-feature": "core",
+                "data-message-key": "core.confirmed.total",
+                "data-shown-at": "2026-11-02T10:06:00+00:00",
+                "data-component": "flight",
+                "data-channel": "page"
+              },
+              "bbox": {
+                "x": 277.0,
+                "y": 488.53,
+                "width": 726.0,
+                "height": 23.19
+              }
+            }
+          ]
+        },
+        {
+          "id": "2.4.maya.S-book-flexible.s05.c03",
+          "kind": "email",
+          "surface": "inbox",
+          "at": "2026-11-02T10:06:00Z",
+          "url": null,
+          "phase": "step",
+          "status": "captured",
+          "error": null,
+          "files": {
+            "raw": "captures/2.4/maya__S-book-flexible/2.4.maya.S-book-flexible.s05.c03.raw.json"
+          },
+          "sha256": {
+            "raw": "c4df3ccf06f749c83dc62d9ef0c17873673c7b5aa67b2cffe7c62983817e542b"
+          },
+          "meta": {
+            "sink_file": "m000013.json"
+          },
+          "elements": [
+            {
+              "locator": {
+                "kind": "message_id",
+                "message_id": "m000013",
+                "part": "text",
+                "span": [
+                  0,
+                  118
+                ]
+              },
+              "text": "Booked. Your booking NB0001 from Lisbon (LIS) to Berlin (BER) departs Mon 14 Dec 2026, 08:00 UTC. Total charged: €153.",
+              "attrs": {
+                "X-Feature": "core",
+                "X-Message-Key": "core.email.confirmation",
+                "message_id": "m000013",
+                "to": "maya@example.test",
+                "subject": "Booking confirmed: NB0001",
+                "sent_at": "2026-11-02T10:06:00+00:00"
+              },
+              "bbox": null
+            }
+          ]
+        }
+      ],
+      "state": {
+        "booking": {
+          "status": "ok",
+          "endpoint": "/api/oracle/booking?traveller=maya",
+          "values": {
+            "status": "booked",
+            "fare_type": "non_refundable",
+            "departure_at": "2026-12-14T08:00:00+00:00",
+            "within_change_window": true,
+            "charges": [
+              {
+                "charge_id": "NB0001-c1",
+                "what": "fare",
+                "label": "Non-refundable fare x 1",
+                "amount_cents": 12900,
+                "currency": "EUR",
+                "transaction": "txn-NB0001",
+                "quote_id": "q-LIS-BER-NR-1"
+              },
+              {
+                "charge_id": "NB0001-c2",
+                "what": "taxes_and_fees",
+                "label": "Taxes and fees",
+                "amount_cents": 2400,
+                "currency": "EUR",
+                "transaction": "txn-NB0001",
+                "quote_id": "q-LIS-BER-NR-1"
+              }
+            ],
+            "total_cents": 15300
+          },
+          "error": null
+        },
+        "inventory": {
+          "status": "ok",
+          "endpoint": "/api/oracle/inventory?fare=LIS-BER-NR",
+          "values": {
+            "seats_left": 1
+          },
+          "error": null
+        },
+        "forecast": {
+          "status": "ok",
+          "endpoint": "/api/oracle/forecast?route=LIS-BER",
+          "values": {
+            "drop": true,
+            "window_days": 14
+          },
+          "error": null
+        },
+        "room_inventory": {
+          "status": "not_applicable",
+          "endpoint": null,
+          "values": {},
+          "error": "needs hotel, which this persona does not have"
+        }
+      }
+    },
+    {
+      "seq": 6,
+      "at": "2026-11-02T10:07:00Z",
+      "do": "view_itinerary",
+      "params": {},
+      "when_offered": false,
+      "status": "done",
+      "error": null,
+      "clock": {
+        "sent": {
+          "set": "2026-11-02T10:07:00+00:00"
+        },
+        "answer": {
+          "now": "2026-11-02T10:07:00+00:00",
+          "jobs_run": []
+        }
+      },
+      "captures": [
+        {
+          "id": "2.4.maya.S-book-flexible.s06.c01",
+          "kind": "pdf",
+          "surface": "itinerary",
+          "at": "2026-11-02T10:07:00Z",
+          "url": "/booking/NB0001/itinerary.pdf",
+          "phase": "step",
+          "status": "captured",
+          "error": null,
+          "files": {
+            "pdf": "captures/2.4/maya__S-book-flexible/2.4.maya.S-book-flexible.s06.c01.pdf.pdf"
+          },
+          "sha256": {
+            "pdf": "365ec237654b3d58621fabb68a42ac056cbaf2b02da929da65f0c8a484b46313"
+          },
+          "meta": {
+            "filename": "NB0001-itinerary.pdf",
+            "Keywords": "core.pdf.itinerary, core.pdf.charge, core.pdf.total",
+            "Subject": "core",
+            "Title": "Northbound itinerary",
+            "pages": 1
+          },
+          "elements": [
+            {
+              "locator": {
+                "kind": "pdf_page",
+                "page": 1,
+                "span": [
+                  0,
+                  10
+                ]
+              },
+              "text": "Northbound",
+              "attrs": {},
+              "bbox": {
+                "x": 31.18,
+                "y": 37.93,
+                "width": 95.15,
+                "height": 16.0
+              }
+            },
+            {
+              "locator": {
+                "kind": "pdf_page",
+                "page": 1,
+                "span": [
+                  11,
+                  103
+                ]
+              },
+              "text": "Itinerary. Booked: NB0001. Lisbon (LIS) to Berlin (BER), departs Mon 14 Dec 2026, 08:00 UTC.",
+              "attrs": {},
+              "bbox": {
+                "x": 31.18,
+                "y": 67.18,
+                "width": 532.92,
+                "height": 11.0
+              }
+            },
+            {
+              "locator": {
+                "kind": "pdf_page",
+                "page": 1,
+                "span": [
+                  104,
+                  130
+                ]
+              },
+              "text": "Fare: Non-refundable fare.",
+              "attrs": {},
+              "bbox": {
+                "x": 31.18,
+                "y": 87.03,
+                "width": 146.0,
+                "height": 11.0
+              }
+            },
+            {
+              "locator": {
+                "kind": "pdf_page",
+                "page": 1,
+                "span": [
+                  131,
+                  160
+                ]
+              },
+              "text": "Non-refundable fare x 1: €129",
+              "attrs": {},
+              "bbox": {
+                "x": 31.18,
+                "y": 109.7,
+                "width": 166.64,
+                "height": 11.0
+              }
+            },
+            {
+              "locator": {
+                "kind": "pdf_page",
+                "page": 1,
+                "span": [
+                  161,
+                  180
+                ]
+              },
+              "text": "Taxes and fees: €24",
+              "attrs": {},
+              "bbox": {
+                "x": 31.18,
+                "y": 132.38,
+                "width": 111.5,
+                "height": 11.0
+              }
+            },
+            {
+              "locator": {
+                "kind": "pdf_page",
+                "page": 1,
+                "span": [
+                  181,
+                  200
+                ]
+              },
+              "text": "Total charged: €153",
+              "attrs": {},
+              "bbox": {
+                "x": 31.18,
+                "y": 155.06,
+                "width": 111.28,
+                "height": 11.0
+              }
+            }
+          ]
+        }
+      ],
+      "state": {
+        "booking": {
+          "status": "ok",
+          "endpoint": "/api/oracle/booking?traveller=maya",
+          "values": {
+            "status": "booked",
+            "fare_type": "non_refundable",
+            "departure_at": "2026-12-14T08:00:00+00:00",
+            "within_change_window": true,
+            "charges": [
+              {
+                "charge_id": "NB0001-c1",
+                "what": "fare",
+                "label": "Non-refundable fare x 1",
+                "amount_cents": 12900,
+                "currency": "EUR",
+                "transaction": "txn-NB0001",
+                "quote_id": "q-LIS-BER-NR-1"
+              },
+              {
+                "charge_id": "NB0001-c2",
+                "what": "taxes_and_fees",
+                "label": "Taxes and fees",
+                "amount_cents": 2400,
+                "currency": "EUR",
+                "transaction": "txn-NB0001",
+                "quote_id": "q-LIS-BER-NR-1"
+              }
+            ],
+            "total_cents": 15300
+          },
+          "error": null
+        },
+        "inventory": {
+          "status": "ok",
+          "endpoint": "/api/oracle/inventory?fare=LIS-BER-NR",
+          "values": {
+            "seats_left": 1
+          },
+          "error": null
+        },
+        "forecast": {
+          "status": "ok",
+          "endpoint": "/api/oracle/forecast?route=LIS-BER",
+          "values": {
+            "drop": true,
+            "window_days": 14
+          },
+          "error": null
+        },
+        "room_inventory": {
+          "status": "not_applicable",
+          "endpoint": null,
+          "values": {},
+          "error": "needs hotel, which this persona does not have"
+        }
+      }
+    },
+    {
+      "seq": 7,
+      "at": "2026-11-02T12:00:00Z",
+      "do": "check_inbox",
+      "params": {},
+      "when_offered": false,
+      "status": "done",
+      "error": null,
+      "clock": {
+        "sent": {
+          "set": "2026-11-02T12:00:00+00:00"
+        },
+        "answer": {
+          "now": "2026-11-02T12:00:00+00:00",
+          "jobs_run": [
+            {
+              "id": "j00002",
+              "due": "2026-11-02T12:00:00+00:00",
+              "feature": "price_watch",
+              "kind": "followup_email",
+              "traveller": "maya"
+            }
+          ]
+        }
+      },
+      "captures": [
+        {
+          "id": "2.4.maya.S-book-flexible.s07.c01",
+          "kind": "email",
+          "surface": "inbox",
+          "at": "2026-11-02T12:00:00Z",
+          "url": null,
+          "phase": "step",
+          "status": "captured",
+          "error": null,
+          "files": {
+            "raw": "captures/2.4/maya__S-book-flexible/2.4.maya.S-book-flexible.s07.c01.raw.json"
+          },
+          "sha256": {
+            "raw": "b1fb7e7ba0a24f05c2c35f7de82a065ea2b98a19f4788c52c31fef5e0e0538ae"
+          },
+          "meta": {
+            "sink_file": "m000023.json"
+          },
+          "elements": [
+            {
+              "locator": {
+                "kind": "message_id",
+                "message_id": "m000023",
+                "part": "text",
+                "span": [
+                  0,
+                  54
+                ]
+              },
+              "text": "Keep waiting to book. We'll tell you when prices drop.",
+              "attrs": {
+                "X-Feature": "price_watch",
+                "X-Message-Key": "pw.email.after",
+                "message_id": "m000023",
+                "to": "maya@example.test",
+                "subject": "Price Watch: update for LIS to BER",
+                "sent_at": "2026-11-02T12:00:00+00:00"
+              },
+              "bbox": null
+            }
+          ]
+        }
+      ],
+      "state": {
+        "booking": {
+          "status": "ok",
+          "endpoint": "/api/oracle/booking?traveller=maya",
+          "values": {
+            "status": "booked",
+            "fare_type": "non_refundable",
+            "departure_at": "2026-12-14T08:00:00+00:00",
+            "within_change_window": true,
+            "charges": [
+              {
+                "charge_id": "NB0001-c1",
+                "what": "fare",
+                "label": "Non-refundable fare x 1",
+                "amount_cents": 12900,
+                "currency": "EUR",
+                "transaction": "txn-NB0001",
+                "quote_id": "q-LIS-BER-NR-1"
+              },
+              {
+                "charge_id": "NB0001-c2",
+                "what": "taxes_and_fees",
+                "label": "Taxes and fees",
+                "amount_cents": 2400,
+                "currency": "EUR",
+                "transaction": "txn-NB0001",
+                "quote_id": "q-LIS-BER-NR-1"
+              }
+            ],
+            "total_cents": 15300
+          },
+          "error": null
+        },
+        "inventory": {
+          "status": "ok",
+          "endpoint": "/api/oracle/inventory?fare=LIS-BER-NR",
+          "values": {
+            "seats_left": 1
+          },
+          "error": null
+        },
+        "forecast": {
+          "status": "ok",
+          "endpoint": "/api/oracle/forecast?route=LIS-BER",
+          "values": {
+            "drop": true,
+            "window_days": 14
+          },
+          "error": null
+        },
+        "room_inventory": {
+          "status": "not_applicable",
+          "endpoint": null,
+          "values": {},
+          "error": "needs hotel, which this persona does not have"
+        }
+      }
+    },
+    {
+      "seq": 8,
+      "at": "2026-11-02T18:00:00Z",
+      "do": "check_device",
+      "params": {},
+      "when_offered": false,
+      "status": "done",
+      "error": null,
+      "clock": {
+        "sent": {
+          "set": "2026-11-02T18:00:00+00:00"
+        },
+        "answer": {
+          "now": "2026-11-02T18:00:00+00:00",
+          "jobs_run": [
+            {
+              "id": "j00004",
+              "due": "2026-11-02T13:00:00+00:00",
+              "feature": "concierge",
+              "kind": "upgrade_tip",
+              "traveller": "maya"
+            },
+            {
+              "id": "j00003",
+              "due": "2026-11-02T18:00:00+00:00",
+              "feature": "price_watch",
+              "kind": "moving_push",
+              "traveller": "maya"
+            }
+          ]
+        }
+      },
+      "captures": [
+        {
+          "id": "2.4.maya.S-book-flexible.s08.c01",
+          "kind": "push",
+          "surface": "device",
+          "at": "2026-11-02T18:00:00Z",
+          "url": null,
+          "phase": "step",
+          "status": "captured",
+          "error": null,
+          "files": {
+            "raw": "captures/2.4/maya__S-book-flexible/2.4.maya.S-book-flexible.s08.c01.raw.json"
+          },
+          "sha256": {
+            "raw": "4cfd4f552a44dac51e77b27277fd440843c90d5d72a133c0427cb02231b96041"
+          },
+          "meta": {
+            "sink_file": "m000025.json"
+          },
+          "elements": [
+            {
+              "locator": {
+                "kind": "notification_id",
+                "notification_id": "m000025",
+                "field": "text",
+                "span": [
+                  0,
+                  29
+                ]
+              },
+              "text": "Prices on LIS→BER are moving.",
+              "attrs": {
+                "X-Feature": "price_watch",
+                "X-Message-Key": "pw.push.moving",
+                "message_id": "m000025",
+                "to": "maya",
+                "title": "Price Watch",
+                "sent_at": "2026-11-02T18:00:00+00:00"
+              },
+              "bbox": null
+            }
+          ]
+        }
+      ],
+      "state": {
+        "booking": {
+          "status": "ok",
+          "endpoint": "/api/oracle/booking?traveller=maya",
+          "values": {
+            "status": "booked",
+            "fare_type": "non_refundable",
+            "departure_at": "2026-12-14T08:00:00+00:00",
+            "within_change_window": true,
+            "charges": [
+              {
+                "charge_id": "NB0001-c1",
+                "what": "fare",
+                "label": "Non-refundable fare x 1",
+                "amount_cents": 12900,
+                "currency": "EUR",
+                "transaction": "txn-NB0001",
+                "quote_id": "q-LIS-BER-NR-1"
+              },
+              {
+                "charge_id": "NB0001-c2",
+                "what": "taxes_and_fees",
+                "label": "Taxes and fees",
+                "amount_cents": 2400,
+                "currency": "EUR",
+                "transaction": "txn-NB0001",
+                "quote_id": "q-LIS-BER-NR-1"
+              }
+            ],
+            "total_cents": 15300
+          },
+          "error": null
+        },
+        "inventory": {
+          "status": "ok",
+          "endpoint": "/api/oracle/inventory?fare=LIS-BER-NR",
+          "values": {
+            "seats_left": 1
+          },
+          "error": null
+        },
+        "forecast": {
+          "status": "ok",
+          "endpoint": "/api/oracle/forecast?route=LIS-BER",
+          "values": {
+            "drop": true,
+            "window_days": 14
+          },
+          "error": null
+        },
+        "room_inventory": {
+          "status": "not_applicable",
+          "endpoint": null,
+          "values": {},
+          "error": "needs hotel, which this persona does not have"
+        }
+      }
+    },
+    {
+      "seq": 9,
+      "at": "2026-11-04T09:02:00Z",
+      "do": "ask_concierge",
+      "params": {
+        "question": "Did I get a good deal?"
+      },
+      "when_offered": false,
+      "status": "done",
+      "error": null,
+      "clock": {
+        "sent": {
+          "set": "2026-11-04T09:02:00+00:00"
+        },
+        "answer": {
+          "now": "2026-11-04T09:02:00+00:00",
+          "jobs_run": []
+        }
+      },
+      "captures": [
+        {
+          "id": "2.4.maya.S-book-flexible.s09.c01",
+          "kind": "chat",
+          "surface": "chat",
+          "at": "2026-11-04T09:02:00Z",
+          "url": "/concierge",
+          "phase": "step",
+          "status": "captured",
+          "error": null,
+          "files": {
+            "dom": "captures/2.4/maya__S-book-flexible/2.4.maya.S-book-flexible.s09.c01.dom.html",
+            "screenshot": "captures/2.4/maya__S-book-flexible/2.4.maya.S-book-flexible.s09.c01.screenshot.png",
+            "raw": "captures/2.4/maya__S-book-flexible/2.4.maya.S-book-flexible.s09.c01.raw.txt"
+          },
+          "sha256": {
+            "dom": "9bbdd54698989222c6d36f6367add2696cf3af516c0fa6e5f60c3593c593991c",
+            "screenshot": "723724c681c424e831f4f1b3364e0695eb9af2eaef09e8a622ff94a72e728439",
+            "raw": "a53154b980d67c7e8a977005d8e7c78f92796fffe615122c6a6f03caac6b7a8b"
+          },
+          "meta": {},
+          "elements": [
+            {
+              "locator": {
+                "kind": "chat_turn",
+                "turn": 0,
+                "span": [
+                  0,
+                  76
+                ]
+              },
+              "text": "Hi, I'm Concierge. Ask me about your booking, fares, refunds or Price Watch.",
+              "attrs": {
+                "who": "concierge",
+                "class": "msg msg-chat",
+                "data-feature": "concierge",
+                "data-message-key": "cg.greeting",
+                "data-shown-at": "2026-11-04T09:02:00+00:00",
+                "data-component": "flight",
+                "data-channel": "chat"
+              },
+              "bbox": null
+            },
+            {
+              "locator": {
+                "kind": "chat_turn",
+                "turn": 1,
+                "span": [
+                  0,
+                  71
+                ]
+              },
+              "text": "You can still switch to a refundable fare for €30 until tomorrow 10:06.",
+              "attrs": {
+                "who": "concierge",
+                "class": "msg msg-chat",
+                "data-feature": "concierge",
+                "data-message-key": "cg.upgrade",
+                "data-shown-at": "2026-11-02T13:00:00+00:00",
+                "data-component": "flight",
+                "data-channel": "chat"
+              },
+              "bbox": null
+            },
+            {
+              "locator": {
+                "kind": "chat_turn",
+                "turn": 2,
+                "span": [
+                  0,
+                  22
+                ]
+              },
+              "text": "Did I get a good deal?",
+              "attrs": {
+                "who": "traveller"
+              },
+              "bbox": null
+            },
+            {
+              "locator": {
+                "kind": "chat_turn",
+                "turn": 3,
+                "span": [
+                  0,
+                  41
+                ]
+              },
+              "text": "You should have booked a refundable fare.",
+              "attrs": {
+                "who": "concierge",
+                "class": "msg msg-chat",
+                "data-feature": "concierge",
+                "data-message-key": "cg.regret",
+                "data-shown-at": "2026-11-04T09:02:00+00:00",
+                "data-component": "flight",
+                "data-channel": "chat"
+              },
+              "bbox": null
+            }
+          ]
+        }
+      ],
+      "state": {
+        "booking": {
+          "status": "ok",
+          "endpoint": "/api/oracle/booking?traveller=maya",
+          "values": {
+            "status": "booked",
+            "fare_type": "non_refundable",
+            "departure_at": "2026-12-14T08:00:00+00:00",
+            "within_change_window": false,
+            "charges": [
+              {
+                "charge_id": "NB0001-c1",
+                "what": "fare",
+                "label": "Non-refundable fare x 1",
+                "amount_cents": 12900,
+                "currency": "EUR",
+                "transaction": "txn-NB0001",
+                "quote_id": "q-LIS-BER-NR-1"
+              },
+              {
+                "charge_id": "NB0001-c2",
+                "what": "taxes_and_fees",
+                "label": "Taxes and fees",
+                "amount_cents": 2400,
+                "currency": "EUR",
+                "transaction": "txn-NB0001",
+                "quote_id": "q-LIS-BER-NR-1"
+              }
+            ],
+            "total_cents": 15300
+          },
+          "error": null
+        },
+        "inventory": {
+          "status": "ok",
+          "endpoint": "/api/oracle/inventory?fare=LIS-BER-NR",
+          "values": {
+            "seats_left": 1
+          },
+          "error": null
+        },
+        "forecast": {
+          "status": "ok",
+          "endpoint": "/api/oracle/forecast?route=LIS-BER",
+          "values": {
+            "drop": true,
+            "window_days": 14
+          },
+          "error": null
+        },
+        "room_inventory": {
+          "status": "not_applicable",
+          "endpoint": null,
+          "values": {},
+          "error": "needs hotel, which this persona does not have"
+        }
+      }
+    }
+  ]
+}

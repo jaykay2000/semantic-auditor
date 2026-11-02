@@ -1,0 +1,693 @@
+{
+  "release": "2.4",
+  "persona": "lena",
+  "scenario": "S-ask-before-booking",
+  "seed": 0,
+  "app_build": "northbound@2.4",
+  "started_wall": "2026-10-27T06:28:03.965639+00:00",
+  "day0": "2026-11-02T00:00:00Z",
+  "clock_measured": true,
+  "not_measured": [],
+  "initial_state": {
+    "booking": {
+      "status": "ok",
+      "endpoint": "/api/oracle/booking?traveller=lena",
+      "values": {
+        "status": "not_booked",
+        "fare_type": null,
+        "departure_at": "2026-12-14T08:00:00+00:00",
+        "within_change_window": false,
+        "charges": [],
+        "total_cents": 0
+      },
+      "error": null
+    },
+    "inventory": {
+      "status": "ok",
+      "endpoint": "/api/oracle/inventory?fare=LIS-BER-NR",
+      "values": {
+        "seats_left": 2
+      },
+      "error": null
+    },
+    "forecast": {
+      "status": "ok",
+      "endpoint": "/api/oracle/forecast?route=LIS-BER",
+      "values": {
+        "drop": true,
+        "window_days": 14
+      },
+      "error": null
+    },
+    "room_inventory": {
+      "status": "not_applicable",
+      "endpoint": null,
+      "values": {},
+      "error": "needs hotel, which this persona does not have"
+    }
+  },
+  "steps": [
+    {
+      "seq": 1,
+      "at": "2026-11-02T10:00:00Z",
+      "do": "search",
+      "params": {
+        "route": "LIS-BER"
+      },
+      "when_offered": false,
+      "status": "done",
+      "error": null,
+      "clock": {
+        "sent": {
+          "set": "2026-11-02T10:00:00+00:00"
+        },
+        "answer": {
+          "now": "2026-11-02T10:00:00+00:00",
+          "jobs_run": []
+        }
+      },
+      "captures": [
+        {
+          "id": "2.4.lena.S-ask-before-booking.s01.c01",
+          "kind": "web",
+          "surface": "search_results",
+          "at": "2026-11-02T10:00:00Z",
+          "url": "/search?origin=LIS&destination=BER",
+          "phase": "step",
+          "status": "captured",
+          "error": null,
+          "files": {
+            "dom": "captures/2.4/lena__S-ask-before-booking/2.4.lena.S-ask-before-booking.s01.c01.dom.html",
+            "screenshot": "captures/2.4/lena__S-ask-before-booking/2.4.lena.S-ask-before-booking.s01.c01.screenshot.png"
+          },
+          "sha256": {
+            "dom": "1afeebab0f2b61507855dc61ac0572ae3c13cf8b4e27e024ee038dab2c1926e9",
+            "screenshot": "c506f936d92c7c996fb24e6fab352fa967b880d287afe564263e827558de9f34"
+          },
+          "meta": {},
+          "elements": [
+            {
+              "locator": {
+                "kind": "css",
+                "css": "div:nth-of-type(1) > div:nth-of-type(1)",
+                "span": [
+                  0,
+                  58
+                ]
+              },
+              "text": "2 fares from Lisbon (LIS) to Berlin (BER) for 1 traveller.",
+              "attrs": {
+                "class": "msg msg-page",
+                "data-feature": "core",
+                "data-message-key": "core.results",
+                "data-shown-at": "2026-11-02T10:00:00+00:00",
+                "data-component": "flight",
+                "data-channel": "page"
+              },
+              "bbox": {
+                "x": 277.0,
+                "y": 188.8,
+                "width": 726.0,
+                "height": 23.19
+              }
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "css": "div:nth-of-type(2) > div:nth-of-type(1)",
+                "span": [
+                  0,
+                  67
+                ]
+              },
+              "text": "Non-refundable fare: €153 for 1 traveller, taxes and fees included.",
+              "attrs": {
+                "class": "msg msg-page",
+                "data-feature": "core",
+                "data-message-key": "core.results.fare",
+                "data-shown-at": "2026-11-02T10:00:00+00:00",
+                "data-component": "flight",
+                "data-channel": "page"
+              },
+              "bbox": {
+                "x": 277.0,
+                "y": 254.53,
+                "width": 623.88,
+                "height": 23.19
+              }
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "css": "div:nth-of-type(3) > div:nth-of-type(1)",
+                "span": [
+                  0,
+                  63
+                ]
+              },
+              "text": "Refundable fare: €213 for 1 traveller, taxes and fees included.",
+              "attrs": {
+                "class": "msg msg-page",
+                "data-feature": "core",
+                "data-message-key": "core.results.fare",
+                "data-shown-at": "2026-11-02T10:00:00+00:00",
+                "data-component": "flight",
+                "data-channel": "page"
+              },
+              "bbox": {
+                "x": 277.0,
+                "y": 326.83,
+                "width": 623.88,
+                "height": 23.19
+              }
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "css": "div:nth-of-type(4) > div:nth-of-type(1)",
+                "span": [
+                  0,
+                  113
+                ]
+              },
+              "text": "Prices on your dates are likely to drop over the next two weeks. We suggest waiting; we'll tell you when to book.",
+              "attrs": {
+                "class": "msg msg-card",
+                "data-feature": "price_watch",
+                "data-message-key": "pw.card",
+                "data-shown-at": "2026-11-02T10:00:00+00:00",
+                "data-component": "flight",
+                "data-channel": "card"
+              },
+              "bbox": {
+                "x": 277.0,
+                "y": 392.58,
+                "width": 726.0,
+                "height": 46.38
+              }
+            }
+          ]
+        }
+      ],
+      "state": {
+        "booking": {
+          "status": "ok",
+          "endpoint": "/api/oracle/booking?traveller=lena",
+          "values": {
+            "status": "not_booked",
+            "fare_type": null,
+            "departure_at": "2026-12-14T08:00:00+00:00",
+            "within_change_window": false,
+            "charges": [],
+            "total_cents": 0
+          },
+          "error": null
+        },
+        "inventory": {
+          "status": "ok",
+          "endpoint": "/api/oracle/inventory?fare=LIS-BER-NR",
+          "values": {
+            "seats_left": 2
+          },
+          "error": null
+        },
+        "forecast": {
+          "status": "ok",
+          "endpoint": "/api/oracle/forecast?route=LIS-BER",
+          "values": {
+            "drop": true,
+            "window_days": 14
+          },
+          "error": null
+        },
+        "room_inventory": {
+          "status": "not_applicable",
+          "endpoint": null,
+          "values": {},
+          "error": "needs hotel, which this persona does not have"
+        }
+      }
+    },
+    {
+      "seq": 2,
+      "at": "2026-11-02T10:01:00Z",
+      "do": "check_inbox",
+      "params": {},
+      "when_offered": false,
+      "status": "done",
+      "error": null,
+      "clock": {
+        "sent": {
+          "set": "2026-11-02T10:01:00+00:00"
+        },
+        "answer": {
+          "now": "2026-11-02T10:01:00+00:00",
+          "jobs_run": [
+            {
+              "id": "j00001",
+              "due": "2026-11-02T10:01:00+00:00",
+              "feature": "price_watch",
+              "kind": "forecast_email",
+              "traveller": "lena"
+            }
+          ]
+        }
+      },
+      "captures": [
+        {
+          "id": "2.4.lena.S-ask-before-booking.s02.c01",
+          "kind": "email",
+          "surface": "inbox",
+          "at": "2026-11-02T10:01:00Z",
+          "url": null,
+          "phase": "step",
+          "status": "captured",
+          "error": null,
+          "files": {
+            "raw": "captures/2.4/lena__S-ask-before-booking/2.4.lena.S-ask-before-booking.s02.c01.raw.json"
+          },
+          "sha256": {
+            "raw": "b15e26dd271cf209043411bd177ae35c0554a27b9fd3364679ecf3d03d96c40d"
+          },
+          "meta": {
+            "sink_file": "m000005.json"
+          },
+          "elements": [
+            {
+              "locator": {
+                "kind": "message_id",
+                "message_id": "m000005",
+                "part": "text",
+                "span": [
+                  0,
+                  113
+                ]
+              },
+              "text": "Prices on your dates are likely to drop over the next two weeks. We suggest waiting; we'll tell you when to book.",
+              "attrs": {
+                "X-Feature": "price_watch",
+                "X-Message-Key": "pw.email.forecast",
+                "message_id": "m000005",
+                "to": "lena@example.test",
+                "subject": "Price Watch: forecast for LIS to BER",
+                "sent_at": "2026-11-02T10:01:00+00:00"
+              },
+              "bbox": null
+            }
+          ]
+        }
+      ],
+      "state": {
+        "booking": {
+          "status": "ok",
+          "endpoint": "/api/oracle/booking?traveller=lena",
+          "values": {
+            "status": "not_booked",
+            "fare_type": null,
+            "departure_at": "2026-12-14T08:00:00+00:00",
+            "within_change_window": false,
+            "charges": [],
+            "total_cents": 0
+          },
+          "error": null
+        },
+        "inventory": {
+          "status": "ok",
+          "endpoint": "/api/oracle/inventory?fare=LIS-BER-NR",
+          "values": {
+            "seats_left": 2
+          },
+          "error": null
+        },
+        "forecast": {
+          "status": "ok",
+          "endpoint": "/api/oracle/forecast?route=LIS-BER",
+          "values": {
+            "drop": true,
+            "window_days": 14
+          },
+          "error": null
+        },
+        "room_inventory": {
+          "status": "not_applicable",
+          "endpoint": null,
+          "values": {},
+          "error": "needs hotel, which this persona does not have"
+        }
+      }
+    },
+    {
+      "seq": 3,
+      "at": "2026-11-02T10:03:00Z",
+      "do": "open_fare",
+      "params": {
+        "pick": "cheapest"
+      },
+      "when_offered": false,
+      "status": "done",
+      "error": null,
+      "clock": {
+        "sent": {
+          "set": "2026-11-02T10:03:00+00:00"
+        },
+        "answer": {
+          "now": "2026-11-02T10:03:00+00:00",
+          "jobs_run": []
+        }
+      },
+      "captures": [
+        {
+          "id": "2.4.lena.S-ask-before-booking.s03.c01",
+          "kind": "web",
+          "surface": "fare_detail",
+          "at": "2026-11-02T10:03:00Z",
+          "url": "/fare/LIS-BER-NR",
+          "phase": "step",
+          "status": "captured",
+          "error": null,
+          "files": {
+            "dom": "captures/2.4/lena__S-ask-before-booking/2.4.lena.S-ask-before-booking.s03.c01.dom.html",
+            "screenshot": "captures/2.4/lena__S-ask-before-booking/2.4.lena.S-ask-before-booking.s03.c01.screenshot.png"
+          },
+          "sha256": {
+            "dom": "4e3a2abfaad77a116aeb64c3a1fa6faf13d5d1cd697c7d30e852a84eddd233f0",
+            "screenshot": "1db2e2a2c76a0acd287ada66677fb80c63d07b4eb1569acd7c9979551219d26f"
+          },
+          "meta": {},
+          "elements": [
+            {
+              "locator": {
+                "kind": "css",
+                "css": "div:nth-of-type(1) > div:nth-of-type(1)",
+                "span": [
+                  0,
+                  103
+                ]
+              },
+              "text": "Non-refundable fare: €153 for 1 traveller, taxes and fees included. Departs Mon 14 Dec 2026, 08:00 UTC.",
+              "attrs": {
+                "class": "msg msg-page",
+                "data-feature": "core",
+                "data-message-key": "core.fare.summary",
+                "data-shown-at": "2026-11-02T10:03:00+00:00",
+                "data-component": "flight",
+                "data-channel": "page"
+              },
+              "bbox": {
+                "x": 277.0,
+                "y": 140.8,
+                "width": 550.47,
+                "height": 46.38
+              }
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "css": "div:nth-of-type(2) > div:nth-of-type(1)",
+                "span": [
+                  0,
+                  102
+                ]
+              },
+              "text": "Non-refundable. After you book, you can switch to a refundable fare for €30 during the first 24 hours.",
+              "attrs": {
+                "class": "msg msg-page",
+                "data-feature": "core",
+                "data-message-key": "core.fare.policy.non_refundable",
+                "data-shown-at": "2026-11-02T10:03:00+00:00",
+                "data-component": "flight",
+                "data-channel": "page"
+              },
+              "bbox": {
+                "x": 277.0,
+                "y": 223.17,
+                "width": 726.0,
+                "height": 23.19
+              }
+            },
+            {
+              "locator": {
+                "kind": "css",
+                "css": "div:nth-of-type(3) > div:nth-of-type(1)",
+                "span": [
+                  0,
+                  81
+                ]
+              },
+              "text": "2 seats left at this fare. Lock it for 48 h for €9 total, for your whole booking.",
+              "attrs": {
+                "class": "msg msg-banner",
+                "data-feature": "fare_lock",
+                "data-message-key": "fl.banner",
+                "data-shown-at": "2026-11-02T10:03:00+00:00",
+                "data-component": "flight",
+                "data-channel": "banner"
+              },
+              "bbox": {
+                "x": 277.0,
+                "y": 286.77,
+                "width": 598.73,
+                "height": 23.19
+              }
+            }
+          ]
+        }
+      ],
+      "state": {
+        "booking": {
+          "status": "ok",
+          "endpoint": "/api/oracle/booking?traveller=lena",
+          "values": {
+            "status": "not_booked",
+            "fare_type": null,
+            "departure_at": "2026-12-14T08:00:00+00:00",
+            "within_change_window": false,
+            "charges": [],
+            "total_cents": 0
+          },
+          "error": null
+        },
+        "inventory": {
+          "status": "ok",
+          "endpoint": "/api/oracle/inventory?fare=LIS-BER-NR",
+          "values": {
+            "seats_left": 2
+          },
+          "error": null
+        },
+        "forecast": {
+          "status": "ok",
+          "endpoint": "/api/oracle/forecast?route=LIS-BER",
+          "values": {
+            "drop": true,
+            "window_days": 14
+          },
+          "error": null
+        },
+        "room_inventory": {
+          "status": "not_applicable",
+          "endpoint": null,
+          "values": {},
+          "error": "needs hotel, which this persona does not have"
+        }
+      }
+    },
+    {
+      "seq": 4,
+      "at": "2026-11-02T10:04:00Z",
+      "do": "ask_concierge",
+      "params": {
+        "question": "Book now or wait?"
+      },
+      "when_offered": false,
+      "status": "done",
+      "error": null,
+      "clock": {
+        "sent": {
+          "set": "2026-11-02T10:04:00+00:00"
+        },
+        "answer": {
+          "now": "2026-11-02T10:04:00+00:00",
+          "jobs_run": []
+        }
+      },
+      "captures": [
+        {
+          "id": "2.4.lena.S-ask-before-booking.s04.c01",
+          "kind": "chat",
+          "surface": "chat",
+          "at": "2026-11-02T10:04:00Z",
+          "url": "/concierge",
+          "phase": "step",
+          "status": "captured",
+          "error": null,
+          "files": {
+            "dom": "captures/2.4/lena__S-ask-before-booking/2.4.lena.S-ask-before-booking.s04.c01.dom.html",
+            "screenshot": "captures/2.4/lena__S-ask-before-booking/2.4.lena.S-ask-before-booking.s04.c01.screenshot.png",
+            "raw": "captures/2.4/lena__S-ask-before-booking/2.4.lena.S-ask-before-booking.s04.c01.raw.txt"
+          },
+          "sha256": {
+            "dom": "e6ef04c907c059a10b94de8a8bf644c69caf020597e43934b4fa02bb7bcb32f4",
+            "screenshot": "b5924e8f0cc2c3e6ffd9082138b10c226b5defe120390bece67840f786c64ef8",
+            "raw": "878be37c07ab94c9cee2cd467016265efaac3a1f5deb5dcdbe32fb9b8c307163"
+          },
+          "meta": {},
+          "elements": [
+            {
+              "locator": {
+                "kind": "chat_turn",
+                "turn": 0,
+                "span": [
+                  0,
+                  76
+                ]
+              },
+              "text": "Hi, I'm Concierge. Ask me about your booking, fares, refunds or Price Watch.",
+              "attrs": {
+                "who": "concierge",
+                "class": "msg msg-chat",
+                "data-feature": "concierge",
+                "data-message-key": "cg.greeting",
+                "data-shown-at": "2026-11-02T10:04:00+00:00",
+                "data-component": "flight",
+                "data-channel": "chat"
+              },
+              "bbox": null
+            },
+            {
+              "locator": {
+                "kind": "chat_turn",
+                "turn": 1,
+                "span": [
+                  0,
+                  17
+                ]
+              },
+              "text": "Book now or wait?",
+              "attrs": {
+                "who": "traveller"
+              },
+              "bbox": null
+            },
+            {
+              "locator": {
+                "kind": "chat_turn",
+                "turn": 2,
+                "span": [
+                  0,
+                  157
+                ]
+              },
+              "text": "Prices on your dates are likely to drop, but this fare has 2 seats left. If you can move your dates, wait for the alert; if not, locking protects this price.",
+              "attrs": {
+                "who": "concierge",
+                "class": "msg msg-chat",
+                "data-feature": "concierge",
+                "data-message-key": "cg.reconcile",
+                "data-shown-at": "2026-11-02T10:04:00+00:00",
+                "data-component": "flight",
+                "data-channel": "chat"
+              },
+              "bbox": null
+            }
+          ]
+        }
+      ],
+      "state": {
+        "booking": {
+          "status": "ok",
+          "endpoint": "/api/oracle/booking?traveller=lena",
+          "values": {
+            "status": "not_booked",
+            "fare_type": null,
+            "departure_at": "2026-12-14T08:00:00+00:00",
+            "within_change_window": false,
+            "charges": [],
+            "total_cents": 0
+          },
+          "error": null
+        },
+        "inventory": {
+          "status": "ok",
+          "endpoint": "/api/oracle/inventory?fare=LIS-BER-NR",
+          "values": {
+            "seats_left": 2
+          },
+          "error": null
+        },
+        "forecast": {
+          "status": "ok",
+          "endpoint": "/api/oracle/forecast?route=LIS-BER",
+          "values": {
+            "drop": true,
+            "window_days": 14
+          },
+          "error": null
+        },
+        "room_inventory": {
+          "status": "not_applicable",
+          "endpoint": null,
+          "values": {},
+          "error": "needs hotel, which this persona does not have"
+        }
+      }
+    },
+    {
+      "seq": 5,
+      "at": "2026-11-02T10:06:00Z",
+      "do": "leave",
+      "params": {},
+      "when_offered": false,
+      "status": "done",
+      "error": null,
+      "clock": {
+        "sent": {
+          "set": "2026-11-02T10:06:00+00:00"
+        },
+        "answer": {
+          "now": "2026-11-02T10:06:00+00:00",
+          "jobs_run": []
+        }
+      },
+      "captures": [],
+      "state": {
+        "booking": {
+          "status": "ok",
+          "endpoint": "/api/oracle/booking?traveller=lena",
+          "values": {
+            "status": "not_booked",
+            "fare_type": null,
+            "departure_at": "2026-12-14T08:00:00+00:00",
+            "within_change_window": false,
+            "charges": [],
+            "total_cents": 0
+          },
+          "error": null
+        },
+        "inventory": {
+          "status": "ok",
+          "endpoint": "/api/oracle/inventory?fare=LIS-BER-NR",
+          "values": {
+            "seats_left": 2
+          },
+          "error": null
+        },
+        "forecast": {
+          "status": "ok",
+          "endpoint": "/api/oracle/forecast?route=LIS-BER",
+          "values": {
+            "drop": true,
+            "window_days": 14
+          },
+          "error": null
+        },
+        "room_inventory": {
+          "status": "not_applicable",
+          "endpoint": null,
+          "values": {},
+          "error": "needs hotel, which this persona does not have"
+        }
+      }
+    }
+  ]
+}
