@@ -1,13 +1,14 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><title>m9 beat 4, part 1: an agent's discovery becomes an approved check</title>
 <link rel="stylesheet" href="slides.css"><link rel="stylesheet" href="motion.css"><link rel="stylesheet" href="v9.css">
-<!-- Beat 4 v9, part 1 (1:07-1:31.5, 24.5 s). Replaces m8-b4-0 (the Venn, cut: it had no numbers) and m8-b4-1.
-     Second owner review: "SRA keeps each one." and the gate are back; the statement card leaves before the finding
-     arrives (no ghosting); "Muse Spark Open drafts" wraps on two lines, not four. Voice-over ([cue] = CUES entry):
-       [st] Coding agents find bugs too, but each run finds [diff] different ones. [keep] SRA keeps each one.
+<!-- Beat 4 v10, part 1 (22.18 s), timed to the recorded voice (publish-audit/voice/word-times-v10.json, b4a).
+     The statement card leaves before the finding arrives (no ghosting). Voice-over ([cue] = CUES entry):
+       [st] Coding agents find bugs too, but each run finds [diff] different ones. [keep] SRA can keep them.
        [find] An agent reported an order email whose numbers [nums] didn't add up. [muse] Muse Spark Open drafted a
-       shopper [journey] journey and a [rule] rule: the breakdown must add up to the total. [gate] A gate refuses
-       drafts that drop or invent an action. [appr] I approved it.
+       shopper [journey] journey and a [rule] rule: the breakdown must equal the total. [gate] A gate refuses
+       drafts that drop or invent a step. [appr] I approved it.
+     "SRA can keep them", not v9's "keeps each one": 6 of 57 held-out findings fully converted, so SRA does not keep
+     every one. The card says it the same way.
      The gate line is the converter's deterministic gate as README "How a finding becomes a check" and HACKATHON.md
      describe it ("no dropped instruction, no invented action"). It is NOT "every step is in the agent's words": step 1
      (open_home) is a prerequisite the text leaves unsaid, and the gate allows that. Gate rounds from beat4.json
@@ -48,33 +49,33 @@
 .ap{display:flex;flex-direction:column;justify-content:center;gap:4px;padding:14px 26px;border-radius:20px;background:var(--goodbg);border:3px solid #9FD3B6}
 .ap b{font:800 29px var(--disp);color:var(--good);white-space:nowrap}
 .ap span{font:500 22px var(--sans);color:var(--ink2)}
-</style></head><body data-duration="24.5">
+</style></head><body data-duration="22.18">
 <div id="hd"></div>
 <div class="strip fade" data-cue="find"><span>A bug Spree had already fixed (PR #14725): the proof case for a saved check</span></div>
 <div class="stage" style="top:170px">
   <div class="grid" id="grid"></div>
 </div>
-<div class="st only-out" data-outcue="find+-0.6">
+<div class="st only-out" data-outcue="find+-0.4">
   <div class="a in" data-cue="st">Coding agents find bugs too.</div>
-  <div class="b in" data-cue="diff+-1.2">Each run finds different ones.</div>
-  <div class="a in" data-cue="keep" style="color:var(--accent)">SRA keeps each one.</div>
+  <div class="b in" data-cue="diff+-0.8">Each run finds different ones.</div>
+  <div class="a in" data-cue="keep" style="color:var(--accent)">SRA can keep them.</div>
 </div>
 <div class="src9 fade" data-cue="find"><b>Source:</b> run ic-owner-rec-1, saved results; check C1-04 as loaded by the run</div>
 <script>
-// THE cue table (2.4 words/s from 0.3 s). Re-time here only.
-const CUES = {st: 0.3, diff: 4.05, keep: 4.88, find: 6.55, nums: 9.88, muse: 11.13, journey: 13.63, rule: 14.88,
-  gate: 18.63, appr: 22.8};
+// THE cue table: the second each word starts in the recorded take (word-times-v10.json, b4a). Re-time here only.
+const CUES = {st: 0.3, diff: 3.39, keep: 5.04, find: 6.73, nums: 9.03, muse: 10.88, journey: 12.81, rule: 13.29,
+  gate: 17.13, appr: 20.44};
 </script>
 <script src="_v9.inc.js"></script>
 <script>
 const D = window.DATA.beat4;
 document.getElementById('hd').innerHTML = v9Head({app: 'spree', note: 'a real open-source store', model: 'Muse Spark Open · open weights'});
-const DT = .3, rowAt = n => `journey+${((n - 1) * DT).toFixed(2)}`;
+const DT = .2, rowAt = n => `journey+${((n - 1) * DT).toFixed(2)}`;
 const claim = esc(D.finding.claim).replace(/summary doesn(&#39;|')t add up/, m => `<span class="hl9" data-cue="nums">${m}</span>`);
 const chips = D.finding.reproduce.map(c => `<span data-oncue="${rowAt(Math.min(...c.steps))}">${esc(c.text)}</span>`).join('');
 const rows = D.journey.map(s => `<tr class="in" data-cue="${rowAt(s.n)}" style="--dy:8px"><td class="n">${s.n}</td><td class="v">${esc(s.verb)}</td>
   <td>${s.words ? '“' + esc(s.words) + '”' : '<em>a step the text leaves unsaid</em>'}</td></tr>`).join('');
-const stmt = esc(D.rule.statement).replace('arithmetically consistent with its total', '<span class="hl9" data-cue="rule+0.8">$&</span>');
+const stmt = esc(D.rule.statement).replace('arithmetically consistent with its total', '<span class="hl9" data-cue="rule+1.7">$&</span>');
 document.getElementById('grid').innerHTML = `
   <div class="card9 find in" data-cue="find">
     <div class="k9">An AI agent's finding, as written</div>

@@ -30,9 +30,9 @@ STILLS = ROOT / 'scenes'
 DATA_DIR = ROOT / 'scenes-data'
 BUILD = ROOT / '.motion-build'
 FPS = 30
-# Extra stills cut from a clip at a given second (name -> (clip, seconds)). The v9 thumbnail is beat 1 at 12.4 s:
+# Extra stills cut from a clip at a given second (name -> (clip, seconds)). The thumbnail is beat 1 at 11.6 s (v10 timing):
 # both wrong figures beside the 354 passed checks, before "Neither was right" strikes them.
-EXTRA_STILLS = {'m9-thumbnail': ('m9-b1-hook', 12.4)}
+EXTRA_STILLS = {'m9-thumbnail': ('m9-b1-hook', 11.6)}
 
 
 def ffmpeg():

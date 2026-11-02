@@ -118,7 +118,7 @@ python3 slides-src/shoot_v8.py --github    # re-capture the page shots (the --gi
 python3 slides-src/render_motion.py m8     # every v8 clip + still
 ```
 
-## v9 clips (script `docs/13-demo-script-v9.md`, 2026-11-01)
+## v9 clips, timed to the v10 voice-over (script `docs/13-demo-script-v9.md`, lines `publish-audit/voice/RECORDING-SHEET.md`, 2026-11-01)
 
 The owner's review of v8, applied: the owner speaks in first person; one thesis (since the second review: "SRA turns
 discoveries into checks your next release has to pass", no "every") by 0:25 and again at the close; one persistent header on every beat (SRA badge · an
@@ -131,19 +131,19 @@ which records each source's sha256 and refuses on any mismatch), `beat4.json`, `
 
 | Clip | Beat · slot | Length | Source |
 |---|---|---|---|
-| `m9-b1-hook` | 1 · 0:00–0:19 | 19 s | Finablo's freedom card (v706) → the v706 gate record (354 OK · 0 FAIL) → the two limits this user saw → $35,750 → dark frame "Tests check the code. They don't read what your users read." |
-| `m9-b2-what-sra-does` | 2 · 0:19–0:44.5 | 25.5 s | dark reveal + thesis → test users, v706 → v707 and the pages they walk → Muse Spark's three jobs (read, with the opt-in "can check the screenshot"; judge; draft) → SRA's four release categories, labelled as the review page labels them (New · Resolved · Pre-existing · Unconfirmed). One `CUES` table |
-| `m9-b3-spree` | 3 · 0:44.5–1:07 | 22.5 s | Ana's order page from the review's own capture, rings from its bounding boxes; $43.19 ≠ $39.99, 25 of 67 shoppers; **visual confirmation**: the crop `semaudit visual` sent Muse Spark Open, which read $43.19 (confirmed; the control claiming $39.99 on the same crop, contradicted; `docs/evidence/visual-confirm-spree-2026-11-01`); the five amounts; issue 283, PR 289 merged |
-| `m9-b4-1-discovery-to-check` | 4 · 1:07–1:31.5 | 24.5 s | "SRA keeps each one" → the agent's finding → journey (9 verbs) → rule U3 → the gate (nothing dropped or invented; 2 problems, redrafted → passed) → approved by Jayant Kumar; labelled "a bug Spree had already fixed (PR #14725)". One `CUES` table |
-| `m9-b4-2-fail-pass-reload` | 4 · 1:31.5–1:41.5 | 10 s | dark: FAIL (beta2) / PASS (beta3) with each email's own sum, then the stored files reloaded and hashed, nothing imported, fix confirmed |
-| `m9-b5-intent` | 5 · 1:41.5–2:04.5 | 23 s | "No test assertion can express this rule", P2, Maya and Lena side by side (same offers, in sans), Flagged / Cleared |
-| `m9-b6-your-app` | 6 · 2:04.5–2:23 | 18.5 s | Brightdesk 1.0's own pricing and checkout pages (t3 captures), the agent's 49-line adapter and its 4 verbs, its endpoint, open weights, rule B1 with the broken prices, HOLD / SHIP, $0.13 |
-| `m9-b7-finablo` | 7 · 2:23–2:37.5 | 14.5 s | the 8 steps that state the limit: v706 red ($24,500 at 1, $32,500 at 7), v707 green ($35,750 at all 8); then SRA's own review of v707 → v731 (24 releases apart): 3 fixes confirmed by code history, 1 regression flagged, owner-confirmed on a test persona (`docs/evidence/finablo-fresh-releases-2026-11-01/counts.json`). One `CUES` table |
-| `m9-b8-close` | 8 · 2:37.5–2:52 | 14.5 s | who it is for (finance · health · commerce), the live sample review in a browser frame with a slow push-in onto its "Unexplained tradeoff" card, the thesis |
-| `m9-b8-end-card` | end card · 2:52–2:57 | 5 s | thesis, repo URL, live sample URL, run commands, built during the hackathon, owner's name, the models (Muse Spark 1.3 · 1.2 on the Meta Model API; Muse Spark Open, open weights) |
+| `m9-b1-hook` | 1 · 0:00–0:17.7 | 17.71 s | Finablo's freedom card (v706) → the v706 gate record (354 OK · 0 FAIL) → the two limits this user saw → $35,750 → dark frame "Tests check the code. They don't read what users read." One `CUES` table |
+| `m9-b2-what-sra-does` | 2 · 0:17.7–0:40.9 | 23.19 s | dark reveal + thesis → test users, v706 → v707 and the pages they walk → Muse Spark's three jobs (read, with the opt-in "can check the screenshot"; judge; draft: the voice no longer names the chip or the third job, so they land on "get" and just after "rules") → SRA's four release categories, labelled as the review page labels them (New · Resolved · Pre-existing · Unconfirmed). One `CUES` table |
+| `m9-b3-spree` | 3 · 0:40.9–1:02.5 | 21.62 s | Ana's order page from the review's own capture, rings from its bounding boxes; $43.19 ≠ $39.99, 25 of 67 shoppers; **visual confirmation**: the crop `semaudit visual` sent Muse Spark Open, which read $43.19 (confirmed; the control claiming $39.99 on the same crop, contradicted; `docs/evidence/visual-confirm-spree-2026-11-01`); the five amounts; issue 283, PR 289 merged. One `CUES` table |
+| `m9-b4-1-discovery-to-check` | 4 · 1:02.5–1:24.7 | 22.18 s | "SRA can keep them" → the agent's finding → journey (9 verbs) → rule U3 → the gate (nothing dropped or invented; 2 problems, redrafted → passed) → approved by Jayant Kumar; labelled "a bug Spree had already fixed (PR #14725)". One `CUES` table |
+| `m9-b4-2-fail-pass-reload` | 4 · 1:24.7–1:33.5 | 8.76 s | dark: FAIL (beta2) / PASS (beta3) with each email's own sum, then the stored files reloaded and hashed, nothing imported, fix confirmed. One `CUES` table |
+| `m9-b5-intent` | 5 · 1:33.5–1:54.8 | 21.3 s | "No test assertion can express this rule", P2, Maya and Lena side by side (both offers, in sans), Flagged / Cleared |
+| `m9-b6-your-app` | 6 · 1:54.8–2:15.8 | 21.01 s | Brightdesk 1.0's own pricing and checkout pages (t3 captures), the agent's 49-line adapter and its 4 verbs, its endpoint, open weights, rule B1 with the broken prices, HOLD / SHIP, $0.13 |
+| `m9-b7-finablo` | 7 · 2:15.8–2:30.6 | 14.78 s | the 8 steps that state the limit: v706 red ($24,500 at 1, $32,500 at 7), v707 green ($35,750 at all 8); then SRA's own review of v707 → v731 (24 releases apart): 3 fixes found (confirmed by code history), 1 regression found (owner-confirmed, on a test persona) (`docs/evidence/finablo-fresh-releases-2026-11-01/counts.json`). One `CUES` table |
+| `m9-b8-close` | 8 · 2:30.6–2:49.2 | 18.64 s | who it is for (finance · health · commerce), the live sample review in a browser frame with a slow push-in onto its "Unexplained tradeoff" card, the thesis. One `CUES` table |
+| `m9-b8-end-card` | end card · 2:49.2–2:54.2 | 5 s | thesis, repo URL, live sample URL, run commands, built during the hackathon, owner's name, the models (Muse Spark 1.3 · 1.2 on the Meta Model API; Muse Spark Open, open weights) |
 
-Also: `scenes/m9-thumbnail.png` (beat 1 at 12.4 s, an extra still written by `render_motion.py`) and the sound-cue
-sheet `SOUND-CUES-v9.md`.
+Also: `scenes/m9-thumbnail.png` (beat 1 at 11.6 s, an extra still written by `render_motion.py`) and the sound-cue
+sheet `SOUND-CUES-v10.md` (v10 timing; `SOUND-CUES-v9.md` is the superseded v9 one). Total 174.2 s.
 
 ```bash
 python3 slides-src/extract_brightdesk.py          # beat 6 data (adds the adapter and the broken prices in v9)
@@ -154,5 +154,6 @@ python3 slides-src/shoot_v9.py                    # img/v9/sample-review.png, fr
 python3 slides-src/render_motion.py m9            # every v9 clip + still + the thumbnail
 ```
 
-Re-timing to the recorded voice: beats 2, 4a, 5, 6 and 7 each keep one `CUES` table (seconds per spoken word); edit the
-table, re-render the clip. `slides-src/_v9.inc.js::applyCues` turns `data-cue="name"` into the element's start time.
+Re-timing to the recorded voice: every beat except the end card keeps one `CUES` table, the second each word starts in
+the recorded take (`publish-audit/voice/word-times-v10.json`); edit the table, re-render the clip. `tests/test_demo_v9.py`
+checks each clip's length against the recording and that its last cue is spoken a second before it ends. `slides-src/_v9.inc.js::applyCues` turns `data-cue="name"` into the element's start time.

@@ -1,12 +1,12 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><title>m9 beat 5: a rule no test assertion can express (Northbound)</title>
 <link rel="stylesheet" href="slides.css"><link rel="stylesheet" href="motion.css"><link rel="stylesheet" href="v9.css">
-<!-- Beat 5 v9 (1:41-2:04, 23 s). Second owner review: re-timed to the words (Lena's line now arrives with "Lena",
-     Cleared with "clears"); one cue table. Voice-over ([cue] = CUES entry):
+<!-- Beat 5 v10 (21.30 s), timed to the recorded voice (publish-audit/voice/word-times-v10.json, b5): Lena's line
+     arrives with "Lena", Cleared with "clears". Voice-over ([cue] = CUES entry):
        [head] No test assertion can express this rule: [rule] when two features advise on the same decision,
-       [key] explain the tradeoff. [maya] Maya is told [email] prices will likely drop, so wait. [two] Two minutes
-       later: [lock] lock this fare for nine euros. [lena] Lena gets the same two offers, [plus] plus a line explaining
-       the choice. SRA [flags] flags Maya and [clears] clears Lena.
+       [key] explain the tradeoff. [maya] Maya is told [email] prices will drop, so wait. [two] Two minutes later:
+       [lock] lock this fare for nine euros. [lena] Lena gets both, [plus] plus a line explaining the choice. SRA
+       [flags] flags Maya and [clears] clears Lena.
      Maya and Lena side by side (owner review). Every message is the text the review recorded, set in sans (it is what
      the traveller read, not a machine artifact); times and verdicts are the review's. Data: window.DATA.v9.northbound
      (extract_v9.py, from runs/e2e-2/review-2.3-2.4.json and examples/northbound/contract/principles.yaml). The line
@@ -29,7 +29,7 @@
 .vd .verdict{font-size:36px;padding:6px 20px}
 .vd span{font:500 25px var(--sans);color:var(--ink2)}
 .none{font:500 24px var(--sans);color:var(--ink3)}
-</style></head><body data-duration="23">
+</style></head><body data-duration="21.3">
 <div id="hd"></div>
 <div class="stage" style="top:118px;bottom:56px">
   <div class="lead in" data-cue="head">No test assertion can express this rule.</div>
@@ -38,9 +38,9 @@
 </div>
 <div class="src9 fade" style="--at:.3"><b>Source:</b> SRA release review, Northbound 2.3 → 2.4 (a fictional travel app I built to test SRA) · rule P2, examples/northbound/contract</div>
 <script>
-// THE cue table (2.4 words/s from 0.3 s). Re-time here only.
-const CUES = {head: 0.3, rule: 3.22, key: 6.55, maya: 7.8, email: 9.05, two: 11.55, lock: 12.8, lena: 15.3, plus: 17.8,
-  flags: 20.72, clears: 21.97};
+// THE cue table: the second each word starts in the recorded take (word-times-v10.json, b5). Re-time here only.
+const CUES = {head: 0.29, rule: 3.03, key: 4.97, maya: 7.51, email: 8.11, two: 10.86, lock: 11.45, lena: 14.35,
+  plus: 15.88, flags: 18.57, clears: 19.59};
 </script>
 <script src="_v9.inc.js"></script>
 <script>
@@ -51,7 +51,7 @@ document.getElementById('rule').innerHTML = '“' + esc(N.rule.text).replace(N.r
 const FEAT = {price_watch: 'Price Watch', fare_lock: 'Fare Lock', concierge: 'Concierge'};
 const msg = (m, cue, cls = '') => `<div class="msg ${cls} in" data-cue="${cue}"><span class="m">${m.at} · ${FEAT[m.feature]} ${m.channel}</span><span class="x">${esc(m.text)}</span></div>`;
 const col = (p, last) => `<div class="col">
-  <div class="who in" data-cue="maya">${p.name}<span>${p === N.maya ? 'flexible dates, books at 10:06' : 'the same trip and the same offers'}</span></div>
+  <div class="who in" data-cue="maya">${p.name}<span>${p === N.maya ? 'flexible dates, books at 10:06' : 'the same trip, both offers'}</span></div>
   ${msg(p.offers[0], 'email')}${msg(p.offers[1], 'lock')}${last}</div>`;
 document.getElementById('two').innerHTML =
   col(N.maya, `<div class="vd"><span class="verdict bad pop" data-cue="flags">Flagged</span><span class="fade" data-cue="flags+0.3">unexplained tradeoff</span></div>`) +

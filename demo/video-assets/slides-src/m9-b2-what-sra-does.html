@@ -1,18 +1,19 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><title>m9 beat 2 what SRA does</title>
 <link rel="stylesheet" href="slides.css"><link rel="stylesheet" href="motion.css"><link rel="stylesheet" href="v9.css">
-<!-- Beat 2 v9 (0:19-0:44.5, 25.5 s). Second owner review: the thesis without "every"; the long sentence split;
-     the four tiles carry the live review page's own labels (release_story.html: New / Resolved / Pre-existing /
-     Unconfirmed, with its sub-lines "introduced by", "fixed in", "in both releases", "cannot tell"); the voice may
-     still say "already there / can't tell". Voice-over (each cue = the CUES entry named in brackets):
-       [name] Semantic Release Auditor does. [thesis] It turns [hl] discoveries into checks your next release has to
+<!-- Beat 2 v10 (23.19 s), timed to the recorded voice (publish-audit/voice/word-times-v10.json, b2). The four tiles
+     carry the live review page's own labels (release_story.html: New / Resolved / Pre-existing / Unconfirmed, with its
+     sub-lines "introduced by", "fixed in", "in both releases", "cannot tell"); the voice says "already there / can't
+     tell". Voice-over ([cue] = CUES entry):
+       [name] Semantic Release Auditor does. [thesis] It turns discoveries into [hl] checks your next release has to
        pass. [users] Test users walk two [rels] releases. [muse] Muse Spark [read] reads every page and email they
-       get, and [shot] can check the screenshot. It [judge] judges them against the app's own records and [rules] your
-       rules, and [draft] drafts new checks. [sort] SRA sorts each issue: [new] new, [fixed] fixed, [pre] already
-       there, or [unc] can't tell.
-     "can check the screenshot" is the opt-in `semaudit visual` (commit 10e6ee3): for a flagged issue it sends the
-     model the screenshot crop around the flagged value. Said with "can"; it never changes a verdict; no claim that
-     pages are read as images. Cue times: 2.4 words a second from 0.3 s; re-time by editing CUES only. -->
+       [get] get, and [judge] judges them against the app's records and [rules] your rules. [sort] SRA sorts each issue:
+       [new] new, [fixed] fixed, [pre] already there, or [unc] can't tell.
+     v10 dropped two v9 phrases, "and can check the screenshot" and "and drafts new checks". Both frames stay, as
+     the job card's own detail, each re-anchored to the end of the clause before it: the opt-in chip lands on "get"
+     and job 3 just after "rules". The chip is the opt-in `semaudit visual` (commit 10e6ee3): for a flagged issue it
+     sends the model the screenshot crop around the flagged value. Said with "can"; it never changes a verdict; no claim
+     that pages are read as images. Job 3 is what beat 4a shows (Muse Spark Open drafting a check). -->
 <style>
 .rev{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:30px}
 .rev .nm{font:820 112px/1 var(--disp);letter-spacing:-.04em}
@@ -44,7 +45,7 @@
 .cats span{font:700 31px var(--sans);padding:10px 20px;border-radius:14px;background:#2A2D35;border:2px solid #4A4E58}
 .cats .nw{color:#FFB4AA}.cats .fx{color:#9FE0BC}.cats .pr{color:#F5D08A}.cats .ct{color:#C9C2F2;border-style:dashed}
 .cats small{display:block;font:500 22px var(--sans);color:#B9BCC4;margin-top:2px}
-</style></head><body data-duration="25.5">
+</style></head><body data-duration="23.19">
 <div id="hd"></div>
 <div class="stage">
   <div class="flow">
@@ -59,9 +60,9 @@
     <div class="card9 box9 muse in" data-cue="muse">
       <span class="t">Muse Spark's three jobs</span>
       <div class="job in" data-cue="read"><span class="n">1</span><div><b>Read</b><span>every page and email your users get</span></div></div>
-      <div class="opt pop" data-cue="shot">+ can check the screenshot · opt-in</div>
-      <div class="job in" data-cue="judge"><span class="n">2</span><div><b>Judge</b><span>against the app's own records and <span class="r">your rules</span></span></div></div>
-      <div class="job in" data-cue="draft"><span class="n">3</span><div><b>Draft</b><span>new checks from findings</span></div></div>
+      <div class="opt pop" data-cue="get+0.2">+ can check the screenshot · opt-in</div>
+      <div class="job in" data-cue="judge"><span class="n">2</span><div><b>Judge</b><span>against the app's records and <span class="r">your rules</span></span></div></div>
+      <div class="job in" data-cue="rules+0.7"><span class="n">3</span><div><b>Draft</b><span>new checks from findings</span></div></div>
     </div>
     <div class="ar fade" data-cue="sort">→</div>
     <div class="card9 box9 out in" data-cue="sort">
@@ -77,12 +78,12 @@
 </div>
 <div class="dark9 only-out" data-outcue="users"><div class="stage rev">
   <div class="nm in" data-cue="name">Semantic Release Auditor</div>
-  <div class="th in" data-cue="thesis">SRA turns discoveries into <span class="hl9" data-cue="hl+1.2">checks your next release has to pass.</span></div>
+  <div class="th in" data-cue="thesis">SRA turns discoveries into <span class="hl9" data-cue="hl">checks your next release has to pass.</span></div>
 </div></div>
 <script>
-// THE cue table: seconds into this clip at which each word is spoken (2.4 words/s from 0.3 s). Re-time here only.
-const CUES = {name: 0.3, thesis: 1.97, hl: 2.8, users: 6.55, rels: 8.22, muse: 8.63, read: 9.47, shot: 12.8,
-  judge: 14.88, rules: 18.22, draft: 19.47, sort: 20.72, new: 22.38, fixed: 22.8, pre: 23.22, unc: 24.47};
+// THE cue table: the second each word starts in the recorded take (word-times-v10.json, b2). Re-time here only.
+const CUES = {name: 0.31, thesis: 2.96, hl: 4.19, users: 7.29, rels: 8.37, muse: 9.77, read: 10.23, get: 11.91,
+  judge: 12.95, rules: 15.39, sort: 16.97, new: 19.13, fixed: 19.86, pre: 20.57, unc: 21.43};
 </script>
 <script src="_v9.inc.js"></script>
 <script>

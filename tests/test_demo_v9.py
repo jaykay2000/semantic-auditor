@@ -227,15 +227,23 @@ def test_beat4b_shows_no_base_or_head():
 
 def test_beat4a_gate_line_is_the_gate_s_documented_behaviour():
     src = re.sub(r"\s+", " ", (SLIDES / "m9-b4-1-discovery-to-check.html").read_text())
-    assert "A gate refuses drafts that drop or invent an action." in src
+    assert "A gate refuses drafts that drop or invent a step." in src
     assert "Gate: nothing dropped or invented" in src
     readme = (ROOT / "README.md").read_text()
     assert "no instruction is\n  dropped silently" in readme or "no instruction is dropped" in readme.replace("\n  ", " ")
     assert "every action in the text is carried out by a step" in readme
 
 
+CUED = ("m9-b1-hook", "m9-b2-what-sra-does", "m9-b3-spree", "m9-b4-1-discovery-to-check", "m9-b4-2-fail-pass-reload",
+        "m9-b5-intent", "m9-b6-your-app", "m9-b7-finablo", "m9-b8-close")
+# clip lengths of the recorded voice-over (publish-audit/voice/word-times-v10.json: 0.15 s + take + 0.6 s)
+CLIP_LENGTH = {"m9-b1-hook": 17.71, "m9-b2-what-sra-does": 23.19, "m9-b3-spree": 21.62, "m9-b4-1-discovery-to-check": 22.18,
+               "m9-b4-2-fail-pass-reload": 8.76, "m9-b5-intent": 21.3, "m9-b6-your-app": 21.01, "m9-b7-finablo": 14.78,
+               "m9-b8-close": 18.64, "m9-b8-end-card": 5}
+
+
 def test_cue_tables_define_every_cue_they_use():
-    for name in ("m9-b2-what-sra-does", "m9-b4-1-discovery-to-check", "m9-b5-intent", "m9-b6-your-app"):
+    for name in CUED:
         src = (SLIDES / f"{name}.html").read_text()
         table = re.search(r"const CUES = \{(.*?)\};", src, re.S).group(1)
         keys = set(re.findall(r"(\w+):\s*[\d.]+", table))
@@ -245,6 +253,27 @@ def test_cue_tables_define_every_cue_they_use():
         assert times == sorted(times), name                                     # cues run in spoken order
 
 
+def test_clips_run_the_recorded_voice_s_length():
+    for name, length in CLIP_LENGTH.items():
+        src = (SLIDES / f"{name}.html").read_text()
+        assert float(re.search(r'data-duration="([\d.]+)"', src).group(1)) == length, name
+    assert abs(sum(CLIP_LENGTH.values()) - 174.2) < .02          # 174.2 s as recorded; the rounded lengths sum to 174.19
+    for name in CUED:                                    # the last cue is spoken at least a second before the clip ends
+        table = re.search(r"const CUES = \{(.*?)\};", (SLIDES / f"{name}.html").read_text(), re.S).group(1)
+        assert max(float(t) for t in re.findall(r"\w+:\s*([\d.]+)", table)) <= CLIP_LENGTH[name] - 1, name
+
+
+def test_frames_say_what_the_v10_voice_says():
+    vis = {n: re.sub(r"\s+", " ", _visible(SLIDES / f"{n}.html")) for n in CUED}
+    assert "what users read." in vis["m9-b1-hook"] and "your users" not in vis["m9-b1-hook"]
+    assert "the app's records" in vis["m9-b2-what-sra-does"] and "own records" not in vis["m9-b2-what-sra-does"]
+    assert "SRA can keep them." in vis["m9-b4-1-discovery-to-check"] and "each one" not in vis["m9-b4-1-discovery-to-check"]
+    assert "both offers" in vis["m9-b5-intent"] and "same offers" not in vis["m9-b5-intent"]
+    assert "'an app built by" in vis["m9-b6-your-app"] and "small app" not in vis["m9-b6-your-app"]
+    assert "fixes found" in vis["m9-b7-finablo"] and "regression found" in vis["m9-b7-finablo"]
+    assert "regression flagged" not in vis["m9-b7-finablo"]
+
+
 def test_beat7_fresh_review_strip_is_the_committed_record():
     f = V9["finablo_fresh"]
     rec = ROOT / f["source"]
@@ -252,12 +281,12 @@ def test_beat7_fresh_review_strip_is_the_committed_record():
     d = json.loads(rec.read_text())
     readme = (rec.parent / "README.md").read_text()
     assert json.loads(re.search(r"```json\n(.*?)\n```", readme, re.S).group(1)) == d     # one record, two copies agree
-    # what the voice-over says: "Twenty-four releases later, SRA confirmed three fixes and flagged a regression"
+    # what the voice-over says: "Twenty-four releases later, SRA found three fixes and a regression I confirmed"
     assert (d["releases_apart"], d["fixes_reported"], d["fixes_confirmed"], d["regressions_confirmed"]) == (24, 3, 3, 1)
     assert d["base"] == "v707" and d["base_sha"] == json.loads((ASSETS / "scenes-data/finablo.json").read_text())["trees"]["v707"]
     src = _visible(SLIDES / "m9-b7-finablo.html")
     assert "Twenty-four releases later, SRA" in re.sub(r"\s+", " ", (SLIDES / "m9-b7-finablo.html").read_text())
     assert "blind" not in src.lower()                                   # the regression came from a target persona
-    fixes = re.search(r"fixes confirmed<small>([^<]*)</small>", src).group(1)
+    fixes = re.search(r"fixes found<small>([^<]*)</small>", src).group(1)
     assert "owner" not in fixes and "code history" in fixes             # the fixes were not owner-reviewed
     assert "owner-confirmed, on a test persona" in src

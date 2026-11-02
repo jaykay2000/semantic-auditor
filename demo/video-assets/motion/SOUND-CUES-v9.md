@@ -1,4 +1,4 @@
-# Sound cues for the v9 cut (2026-11-01, second owner review + beat 7's v707 → v731 line: 2:57.0)
+# Sound cues for the v9 cut — SUPERSEDED by SOUND-CUES-v10.md (the recorded voice-over). Kept for the record.
 
 The clips are silent. These are the moments worth a short sound, at **cut time** (the v9 timeline in
 `docs/13-demo-script-v9.md`: beats placed back to back from 0:00) and at **clip time** (seconds into that clip), so

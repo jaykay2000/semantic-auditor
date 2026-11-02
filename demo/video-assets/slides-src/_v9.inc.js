@@ -20,9 +20,11 @@ window.toggles = () => onSeek(t => document.querySelectorAll('[data-on]').forEac
 // [data-oncue] element gets its data-on the same way. Visuals start LEAD seconds before the word, so they have
 // landed when it is heard. To re-time to a recorded voice, edit the table only.
 window.LEAD = 0.25;
+// cueAt(CUES, "judge+0.4") -> the clip second that spec names (word time - LEAD + offset), for times set from script.
+window.cueAt = (CUES, spec) => { const [k, dt] = spec.split('+'); if (!(k in CUES)) throw new Error('no cue ' + k);
+  return Math.max(0, CUES[k] - LEAD + (parseFloat(dt) || 0)); };
 window.applyCues = CUES => {
-  const at = spec => { const [k, dt] = spec.split('+'); if (!(k in CUES)) throw new Error('no cue ' + k);
-    return Math.max(0, CUES[k] - LEAD + (parseFloat(dt) || 0)); };
+  const at = spec => cueAt(CUES, spec);
   document.querySelectorAll('[data-cue]').forEach(el => el.style.setProperty('--at', at(el.dataset.cue)));
   document.querySelectorAll('[data-oncue]').forEach(el => { el.dataset.on = at(el.dataset.oncue); });
   document.querySelectorAll('[data-outcue]').forEach(el => el.style.setProperty('--out', at(el.dataset.outcue)));
