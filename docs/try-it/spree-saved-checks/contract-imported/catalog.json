@@ -1,0 +1,354 @@
+[
+ {
+  "slug": "2-slice-toaster",
+  "name": "2-Slice Toaster",
+  "options": [
+   "Matte Black",
+   "White",
+   "Stainless Steel"
+  ],
+  "price_usd": 39.99
+ },
+ {
+  "slug": "4-slice-toaster",
+  "name": "4-Slice Toaster",
+  "options": [
+   "Matte Black",
+   "White",
+   "Stainless Steel"
+  ],
+  "price_usd": 64.99
+ },
+ {
+  "slug": "air-purifier-compact",
+  "name": "Air Purifier Compact",
+  "options": [
+   "Matte Black",
+   "White"
+  ],
+  "price_usd": 149.99
+ },
+ {
+  "slug": "air-purifier-pro",
+  "name": "Air Purifier Pro",
+  "options": [
+   "Matte Black",
+   "White"
+  ],
+  "price_usd": 549.99
+ },
+ {
+  "slug": "air-purifier-tower",
+  "name": "Air Purifier Tower",
+  "options": [
+   "Matte Black",
+   "White",
+   "Steel Grey"
+  ],
+  "price_usd": 349.99
+ },
+ {
+  "slug": "automatic-espresso-machine",
+  "name": "Automatic Espresso Machine",
+  "options": [
+   "Matte Black",
+   "Silver",
+   "White"
+  ],
+  "price_usd": 879.99
+ },
+ {
+  "slug": "bagless-upright-vacuum",
+  "name": "Bagless Upright Vacuum",
+  "options": [
+   "Black and Blue",
+   "Black and Red"
+  ],
+  "price_usd": 150.0
+ },
+ {
+  "slug": "beard-trimmer-3000",
+  "name": "Beard Trimmer 3000",
+  "options": [
+   "Matte Black",
+   "Dark Grey"
+  ],
+  "price_usd": 49.99
+ },
+ {
+  "slug": "beard-trimmer-7000",
+  "name": "Beard Trimmer 7000",
+  "options": [
+   "Matte Black",
+   "Silver",
+   "Gunmetal"
+  ],
+  "price_usd": 119.99
+ },
+ {
+  "slug": "ceramic-hair-straightener",
+  "name": "Ceramic Hair Straightener",
+  "options": [
+   "Matte Black",
+   "White",
+   "Rose Gold"
+  ],
+  "price_usd": 79.99
+ },
+ {
+  "slug": "cordless-stick-vacuum-18v",
+  "name": "Cordless Stick Vacuum 18V",
+  "options": [
+   "White",
+   "Steel Grey"
+  ],
+  "price_usd": 249.99
+ },
+ {
+  "slug": "cordless-stick-vacuum-25v",
+  "name": "Cordless Stick Vacuum 25V",
+  "options": [
+   "White",
+   "Blue and White",
+   "Graphite"
+  ],
+  "price_usd": 449.99
+ },
+ {
+  "slug": "digital-air-fryer-4l",
+  "name": "Digital Air Fryer 4.2L",
+  "options": [
+   "Matte Black",
+   "White"
+  ],
+  "price_usd": 119.99
+ },
+ {
+  "slug": "digital-air-fryer-6l",
+  "name": "Digital Air Fryer 6.2L",
+  "options": [
+   "Matte Black",
+   "Silver",
+   "White"
+  ],
+  "price_usd": 179.99
+ },
+ {
+  "slug": "drip-coffee-maker",
+  "name": "Drip Coffee Maker 1.5L",
+  "options": [
+   "Matte Black",
+   "White",
+   "Steel Grey"
+  ],
+  "price_usd": 89.99
+ },
+ {
+  "slug": "dual-basket-air-fryer",
+  "name": "Dual Basket Air Fryer 8L",
+  "options": [
+   "Matte Black",
+   "Stainless Steel"
+  ],
+  "price_usd": 249.99
+ },
+ {
+  "slug": "electric-kettle-1-7l",
+  "name": "Electric Kettle 1.7L",
+  "options": [
+   "Matte Black",
+   "White",
+   "Stainless Steel"
+  ],
+  "price_usd": 44.99
+ },
+ {
+  "slug": "food-processor-3l",
+  "name": "Food Processor 3.0L",
+  "options": [
+   "White",
+   "Stainless Steel"
+  ],
+  "price_usd": 149.99
+ },
+ {
+  "slug": "handheld-garment-steamer",
+  "name": "Handheld Garment Steamer",
+  "options": [
+   "Matte Black",
+   "White"
+  ],
+  "price_usd": 49.99
+ },
+ {
+  "slug": "high-speed-blender",
+  "name": "High Speed Blender 2.0L",
+  "options": [
+   "Matte Black",
+   "White",
+   "Stainless Steel"
+  ],
+  "price_usd": 199.99
+ },
+ {
+  "slug": "ionic-hair-dryer",
+  "name": "Ionic Hair Dryer 2000W",
+  "options": [
+   "Matte Black",
+   "White",
+   "Rose Gold"
+  ],
+  "price_usd": 69.99
+ },
+ {
+  "slug": "multigroom-kit",
+  "name": "Multigroom Kit 10-in-1",
+  "options": [
+   "Matte Black",
+   "Steel Grey"
+  ],
+  "price_usd": 79.99
+ },
+ {
+  "slug": "pedestal-fan",
+  "name": "Pedestal Fan 40cm",
+  "options": [
+   "Matte Black",
+   "White"
+  ],
+  "price_usd": 59.99
+ },
+ {
+  "slug": "personal-blender",
+  "name": "Personal Blender 600ml",
+  "options": [
+   "White",
+   "Steel Grey",
+   "Mint"
+  ],
+  "price_usd": 49.99
+ },
+ {
+  "slug": "professional-garment-steamer",
+  "name": "Professional Garment Steamer",
+  "options": [
+   "Matte Black",
+   "White and Grey"
+  ],
+  "price_usd": 100.0
+ },
+ {
+  "slug": "robot-vacuum",
+  "name": "Robot Vacuum",
+  "options": [
+   "Matte Black",
+   "White"
+  ],
+  "price_usd": 349.99
+ },
+ {
+  "slug": "robot-vacuum-pro",
+  "name": "Robot Vacuum Pro",
+  "options": [
+   "Matte Black",
+   "White"
+  ],
+  "price_usd": 599.99
+ },
+ {
+  "slug": "rotary-shaver-5000",
+  "name": "Rotary Shaver 5000",
+  "options": [
+   "Matte Black",
+   "Dark Blue"
+  ],
+  "price_usd": 129.99
+ },
+ {
+  "slug": "rotary-shaver-9000",
+  "name": "Rotary Shaver 9000",
+  "options": [
+   "Matte Black",
+   "Chrome"
+  ],
+  "price_usd": 299.99
+ },
+ {
+  "slug": "semi-automatic-espresso-machine",
+  "name": "Semi-Automatic Espresso Machine",
+  "options": [
+   "Matte Black",
+   "Stainless Steel"
+  ],
+  "price_usd": 549.99
+ },
+ {
+  "slug": "smart-humidifier-4l",
+  "name": "Smart Humidifier 4.0L",
+  "options": [
+   "White",
+   "Steel Grey"
+  ],
+  "price_usd": 129.99
+ },
+ {
+  "slug": "steam-generator-iron",
+  "name": "Steam Generator Iron",
+  "options": [
+   "Blue and White",
+   "Purple and White"
+  ],
+  "price_usd": 249.99
+ },
+ {
+  "slug": "steam-iron",
+  "name": "Steam Iron 2400W",
+  "options": [
+   "Blue and White",
+   "Grey and White"
+  ],
+  "price_usd": 59.99
+ },
+ {
+  "slug": "temperature-control-kettle",
+  "name": "Temperature Control Kettle 1.7L",
+  "options": [
+   "Matte Black",
+   "Stainless Steel"
+  ],
+  "price_usd": 79.99
+ },
+ {
+  "slug": "the-spree-commerce-handbook",
+  "name": "The Spree Commerce Handbook",
+  "options": [],
+  "price_usd": 19.99
+ },
+ {
+  "slug": "tower-fan",
+  "name": "Tower Fan 100cm",
+  "options": [
+   "Matte Black",
+   "White"
+  ],
+  "price_usd": 89.99
+ },
+ {
+  "slug": "travel-hair-dryer",
+  "name": "Compact Travel Hair Dryer",
+  "options": [
+   "Matte Black",
+   "Pink"
+  ],
+  "price_usd": 34.99
+ },
+ {
+  "slug": "ultrasonic-humidifier-2l",
+  "name": "Ultrasonic Humidifier 2.0L",
+  "options": [
+   "Matte Black",
+   "White"
+  ],
+  "price_usd": 69.99
+ }
+]

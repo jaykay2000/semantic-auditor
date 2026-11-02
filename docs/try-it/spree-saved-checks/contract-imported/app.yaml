@@ -1,0 +1,25 @@
+name: Demo Store
+fictional: false
+data: synthetic
+base_url: http://127.0.0.1
+releases:
+- current
+- candidate
+- next
+network: local_only
+hooks:
+  reset: POST /_semaudit/reset
+launch:
+  cwd: ..
+  cmd:
+  - '{python}'
+  - launch_spree.py
+  - serve
+  - '{release}'
+  - '{port}'
+  - '{scratch}'
+  sink_root: '{scratch}/sink'
+  health: /_semaudit/health
+  startup_timeout: 1500
+  per_episode: false
+adapter: ../adapter.py

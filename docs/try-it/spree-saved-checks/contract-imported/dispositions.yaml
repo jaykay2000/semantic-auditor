@@ -1,0 +1,553 @@
+# Owner decisions on issues and releases. Written by `semaudit decide`, `semaudit decide-release` or
+# `semaudit serve`. Each is pinned to the review it was made on; see semaudit/decide/memory.py.
+issues: []
+releases: []
+checks:
+- kind: check_outcome
+  check: C1-01
+  check_digest: 5f26d292ad50517a
+  run: ic-held-r1
+  base: current
+  head: candidate
+  status: still_open
+  why: fails on both releases
+  base_assertion: fail
+  head_assertion: fail
+  decision: null
+  decision_applies: false
+- kind: check_outcome
+  check: C1-01
+  check_digest: 5f26d292ad50517a
+  run: ic-held-r2
+  base: current
+  head: candidate
+  status: still_open
+  why: fails on both releases
+  base_assertion: fail
+  head_assertion: fail
+  decision: null
+  decision_applies: false
+- kind: check_outcome
+  check: C1-01
+  check_digest: 5f26d292ad50517a
+  run: ic-held-r3
+  base: current
+  head: candidate
+  status: still_open
+  why: fails on both releases
+  base_assertion: fail
+  head_assertion: fail
+  decision: null
+  decision_applies: false
+- kind: check_outcome
+  check: C1-01
+  check_digest: 5f26d292ad50517a
+  run: ic-held-r1
+  base: candidate
+  head: next
+  status: still_open
+  why: fails on both releases
+  base_assertion: fail
+  head_assertion: fail
+  decision: null
+  decision_applies: false
+- kind: check_outcome
+  check: C1-01
+  check_digest: 5f26d292ad50517a
+  run: ic-held-r2
+  base: candidate
+  head: next
+  status: still_open
+  why: fails on both releases
+  base_assertion: fail
+  head_assertion: fail
+  decision: null
+  decision_applies: false
+- kind: check_outcome
+  check: C1-01
+  check_digest: 5f26d292ad50517a
+  run: ic-held-r3
+  base: candidate
+  head: next
+  status: still_open
+  why: fails on both releases
+  base_assertion: fail
+  head_assertion: fail
+  decision: null
+  decision_applies: false
+- kind: check_outcome
+  check: C1-04
+  check_digest: f0cb1dc9ee14fc8f
+  run: ic-held-r1
+  base: current
+  head: candidate
+  status: not_confirmed
+  why: head passes but its evidence is partially_verified
+  base_assertion: fail
+  head_assertion: pass
+  decision: null
+  decision_applies: false
+- kind: check_outcome
+  check: C1-04
+  check_digest: f0cb1dc9ee14fc8f
+  run: ic-held-r2
+  base: current
+  head: candidate
+  status: fix_confirmed
+  why: fails on the base, passes on the head with verified evidence
+  base_assertion: fail
+  head_assertion: pass
+  decision: null
+  decision_applies: false
+- kind: check_outcome
+  check: C1-04
+  check_digest: f0cb1dc9ee14fc8f
+  run: ic-held-r3
+  base: current
+  head: candidate
+  status: not_confirmed
+  why: head passes but its evidence is partially_verified
+  base_assertion: fail
+  head_assertion: pass
+  decision: null
+  decision_applies: false
+- kind: check_outcome
+  check: C1-04
+  check_digest: f0cb1dc9ee14fc8f
+  run: ic-held-r1
+  base: candidate
+  head: next
+  status: not_reproduced
+  why: 'passes on both releases: the finding''s condition did not reproduce on the
+    base'
+  base_assertion: pass
+  head_assertion: pass
+  decision: null
+  decision_applies: false
+- kind: check_outcome
+  check: C1-04
+  check_digest: f0cb1dc9ee14fc8f
+  run: ic-held-r2
+  base: candidate
+  head: next
+  status: not_reproduced
+  why: 'passes on both releases: the finding''s condition did not reproduce on the
+    base'
+  base_assertion: pass
+  head_assertion: pass
+  decision: null
+  decision_applies: false
+- kind: check_outcome
+  check: C1-04
+  check_digest: f0cb1dc9ee14fc8f
+  run: ic-held-r3
+  base: candidate
+  head: next
+  status: not_confirmed
+  why: head assertion not measurable ()
+  base_assertion: pass
+  head_assertion: not_measurable
+  decision: null
+  decision_applies: false
+- kind: check_outcome
+  check: C2-02
+  check_digest: f29fec310dd4b1df
+  run: ic-held-r1
+  base: current
+  head: candidate
+  status: still_open
+  why: fails on both releases
+  base_assertion: fail
+  head_assertion: fail
+  decision: null
+  decision_applies: false
+- kind: check_outcome
+  check: C2-02
+  check_digest: f29fec310dd4b1df
+  run: ic-held-r2
+  base: current
+  head: candidate
+  status: still_open
+  why: fails on both releases
+  base_assertion: fail
+  head_assertion: fail
+  decision: null
+  decision_applies: false
+- kind: check_outcome
+  check: C2-02
+  check_digest: f29fec310dd4b1df
+  run: ic-held-r3
+  base: current
+  head: candidate
+  status: still_open
+  why: fails on both releases
+  base_assertion: fail
+  head_assertion: fail
+  decision: null
+  decision_applies: false
+- kind: check_outcome
+  check: C2-02
+  check_digest: f29fec310dd4b1df
+  run: ic-held-r1
+  base: candidate
+  head: next
+  status: still_open
+  why: fails on both releases
+  base_assertion: fail
+  head_assertion: fail
+  decision: null
+  decision_applies: false
+- kind: check_outcome
+  check: C2-02
+  check_digest: f29fec310dd4b1df
+  run: ic-held-r2
+  base: candidate
+  head: next
+  status: still_open
+  why: fails on both releases
+  base_assertion: fail
+  head_assertion: fail
+  decision: null
+  decision_applies: false
+- kind: check_outcome
+  check: C2-02
+  check_digest: f29fec310dd4b1df
+  run: ic-held-r3
+  base: candidate
+  head: next
+  status: still_open
+  why: fails on both releases
+  base_assertion: fail
+  head_assertion: fail
+  decision: null
+  decision_applies: false
+- kind: check_outcome
+  check: X2-00
+  check_digest: 1c01ff3bc00e6c2a
+  run: ic-held-r1
+  base: current
+  head: candidate
+  status: still_open
+  why: fails on both releases
+  base_assertion: fail
+  head_assertion: fail
+  decision: null
+  decision_applies: false
+- kind: check_outcome
+  check: X2-00
+  check_digest: 1c01ff3bc00e6c2a
+  run: ic-held-r2
+  base: current
+  head: candidate
+  status: still_open
+  why: fails on both releases
+  base_assertion: fail
+  head_assertion: fail
+  decision: null
+  decision_applies: false
+- kind: check_outcome
+  check: X2-00
+  check_digest: 1c01ff3bc00e6c2a
+  run: ic-held-r3
+  base: current
+  head: candidate
+  status: still_open
+  why: fails on both releases
+  base_assertion: fail
+  head_assertion: fail
+  decision: null
+  decision_applies: false
+- kind: check_outcome
+  check: X2-00
+  check_digest: 1c01ff3bc00e6c2a
+  run: ic-held-r1
+  base: candidate
+  head: next
+  status: still_open
+  why: fails on both releases
+  base_assertion: fail
+  head_assertion: fail
+  decision: null
+  decision_applies: false
+- kind: check_outcome
+  check: X2-00
+  check_digest: 1c01ff3bc00e6c2a
+  run: ic-held-r2
+  base: candidate
+  head: next
+  status: still_open
+  why: fails on both releases
+  base_assertion: fail
+  head_assertion: fail
+  decision: null
+  decision_applies: false
+- kind: check_outcome
+  check: X2-00
+  check_digest: 1c01ff3bc00e6c2a
+  run: ic-held-r3
+  base: candidate
+  head: next
+  status: still_open
+  why: fails on both releases
+  base_assertion: fail
+  head_assertion: fail
+  decision: null
+  decision_applies: false
+- kind: check_outcome
+  check: M3-00
+  check_digest: d349145616224837
+  run: ic-held-r1
+  base: current
+  head: candidate
+  status: still_open
+  why: fails on both releases
+  base_assertion: fail
+  head_assertion: fail
+  decision: null
+  decision_applies: false
+- kind: check_outcome
+  check: M3-00
+  check_digest: d349145616224837
+  run: ic-held-r2
+  base: current
+  head: candidate
+  status: still_open
+  why: fails on both releases
+  base_assertion: fail
+  head_assertion: fail
+  decision: null
+  decision_applies: false
+- kind: check_outcome
+  check: M3-00
+  check_digest: d349145616224837
+  run: ic-held-r3
+  base: current
+  head: candidate
+  status: still_open
+  why: fails on both releases
+  base_assertion: fail
+  head_assertion: fail
+  decision: null
+  decision_applies: false
+- kind: check_outcome
+  check: M3-00
+  check_digest: d349145616224837
+  run: ic-held-r1
+  base: candidate
+  head: next
+  status: still_open
+  why: fails on both releases
+  base_assertion: fail
+  head_assertion: fail
+  decision: null
+  decision_applies: false
+- kind: check_outcome
+  check: M3-00
+  check_digest: d349145616224837
+  run: ic-held-r2
+  base: candidate
+  head: next
+  status: still_open
+  why: fails on both releases
+  base_assertion: fail
+  head_assertion: fail
+  decision: null
+  decision_applies: false
+- kind: check_outcome
+  check: M3-00
+  check_digest: d349145616224837
+  run: ic-held-r3
+  base: candidate
+  head: next
+  status: still_open
+  why: fails on both releases
+  base_assertion: fail
+  head_assertion: fail
+  decision: null
+  decision_applies: false
+- kind: check_outcome
+  check: M3-02
+  check_digest: 93b37621502f2b96
+  run: ic-held-r1
+  base: current
+  head: candidate
+  status: not_reproduced
+  why: 'passes on both releases: the finding''s condition did not reproduce on the
+    base'
+  base_assertion: pass
+  head_assertion: pass
+  decision: null
+  decision_applies: false
+- kind: check_outcome
+  check: M3-02
+  check_digest: 93b37621502f2b96
+  run: ic-held-r2
+  base: current
+  head: candidate
+  status: not_reproduced
+  why: 'passes on both releases: the finding''s condition did not reproduce on the
+    base'
+  base_assertion: pass
+  head_assertion: pass
+  decision: null
+  decision_applies: false
+- kind: check_outcome
+  check: M3-02
+  check_digest: 93b37621502f2b96
+  run: ic-held-r3
+  base: current
+  head: candidate
+  status: not_reproduced
+  why: 'passes on both releases: the finding''s condition did not reproduce on the
+    base'
+  base_assertion: pass
+  head_assertion: pass
+  decision: null
+  decision_applies: false
+- kind: check_outcome
+  check: M3-02
+  check_digest: 93b37621502f2b96
+  run: ic-held-r1
+  base: candidate
+  head: next
+  status: not_reproduced
+  why: 'passes on both releases: the finding''s condition did not reproduce on the
+    base'
+  base_assertion: pass
+  head_assertion: pass
+  decision: null
+  decision_applies: false
+- kind: check_outcome
+  check: M3-02
+  check_digest: 93b37621502f2b96
+  run: ic-held-r2
+  base: candidate
+  head: next
+  status: not_reproduced
+  why: 'passes on both releases: the finding''s condition did not reproduce on the
+    base'
+  base_assertion: pass
+  head_assertion: pass
+  decision: null
+  decision_applies: false
+- kind: check_outcome
+  check: M3-02
+  check_digest: 93b37621502f2b96
+  run: ic-held-r3
+  base: candidate
+  head: next
+  status: not_reproduced
+  why: 'passes on both releases: the finding''s condition did not reproduce on the
+    base'
+  base_assertion: pass
+  head_assertion: pass
+  decision: null
+  decision_applies: false
+- kind: check_outcome
+  check: C1-04
+  check_digest: f0cb1dc9ee14fc8f
+  run: ic-accept-run2
+  base: current
+  head: candidate
+  status: not_confirmed
+  why: head assertion not measurable ()
+  base_assertion: fail
+  head_assertion: not_measurable
+  decision: null
+  decision_applies: false
+- kind: check_outcome
+  check: C1-04
+  check_digest: f0cb1dc9ee14fc8f
+  run: ic-accept-run3
+  base: current
+  head: candidate
+  status: fix_confirmed
+  why: fails on the base, passes on the head with verified evidence
+  base_assertion: fail
+  head_assertion: pass
+  decision: null
+  decision_applies: false
+- kind: check_outcome
+  check: C1-04-v1
+  check_digest: 30f3f436e3fa99a5
+  run: ic-accept-run4
+  base: current
+  head: candidate
+  status: fix_confirmed
+  why: fails on the base, passes on the head with verified evidence
+  base_assertion: fail
+  head_assertion: pass
+  decision: null
+  decision_applies: false
+- kind: check_outcome
+  check: C1-04
+  check_digest: f0cb1dc9ee14fc8f
+  run: ic-accept-run3b
+  base: current
+  head: candidate
+  status: not_confirmed
+  why: head passes but its evidence is partially_verified
+  base_assertion: fail
+  head_assertion: pass
+  decision: null
+  decision_applies: false
+- kind: check_outcome
+  check: C1-04-v1
+  check_digest: 30f3f436e3fa99a5
+  run: ic-accept-run3b
+  base: current
+  head: candidate
+  status: not_confirmed
+  why: head passes but its evidence is partially_verified
+  base_assertion: fail
+  head_assertion: pass
+  decision: null
+  decision_applies: false
+- kind: check_outcome
+  check: C1-04
+  check_digest: f0cb1dc9ee14fc8f
+  run: ic-accept-run3c
+  base: current
+  head: candidate
+  status: fix_confirmed
+  why: fails on the base, passes on the head with verified evidence
+  base_assertion: fail
+  head_assertion: pass
+  decision: null
+  decision_applies: false
+- kind: check_outcome
+  check: C1-04-v1
+  check_digest: 30f3f436e3fa99a5
+  run: ic-accept-run3c
+  base: current
+  head: candidate
+  status: fix_confirmed
+  why: fails on the base, passes on the head with verified evidence
+  base_assertion: fail
+  head_assertion: pass
+  decision: null
+  decision_applies: false
+- kind: check_outcome
+  check: C1-04
+  check_digest: f0cb1dc9ee14fc8f
+  run: ic-owner-rec-1
+  base: current
+  head: candidate
+  status: fix_confirmed
+  why: fails on the base, passes on the head with verified evidence
+  base_assertion: fail
+  head_assertion: pass
+  decision: null
+  decision_applies: false
+- kind: check_outcome
+  check: C1-04-v1
+  check_digest: 30f3f436e3fa99a5
+  run: ic-owner-rec-1
+  base: current
+  head: candidate
+  status: not_confirmed
+  why: head assertion not measurable (pass without verified evidence (partially_verified))
+  base_assertion: fail
+  head_assertion: not_measurable
+  decision: null
+  decision_applies: false

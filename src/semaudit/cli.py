@@ -293,6 +293,22 @@ def verify_report_cmd(review: Path = typer.Argument(..., exists=True, dir_okay=F
     raise typer.Exit(0 if not problems else 1)
 
 
+@app.command("demo")
+def demo_cmd(out: Path = typer.Option(Path("runs/demo"), "--out", help="where the rebuilt pages go")):
+    """Try it with no model key, no browser and no network: rebuild a release review page and a saved-check card
+    from committed inputs (docs/try-it/demo.json) and compare each with its committed copy.
+
+    Exit 0: rebuilt, and each equals the committed file; 1: one differs; 2: could not run.
+    """
+    from .demo import DemoError, run
+    try:
+        code = run(out, echo=typer.echo)
+    except (DemoError, OSError, ValueError, KeyError) as e:
+        typer.echo(f"cannot run the demo: {e}", err=True)
+        raise typer.Exit(2)
+    raise typer.Exit(code)
+
+
 @app.command("visual")
 def visual_cmd(review: Path = typer.Argument(..., exists=True, dir_okay=False),
                out: Path = typer.Option(..., "--out", help="the copy of the review with `visual` added (a new file)"),

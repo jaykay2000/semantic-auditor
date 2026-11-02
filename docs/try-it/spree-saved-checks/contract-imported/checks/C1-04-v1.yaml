@@ -1,0 +1,170 @@
+id: C1-04-v1
+source:
+  ref: C1#04
+  trial: C1
+  heading: F5 — Email (current) shows delivery as $0.00 AND a -$15.00 promotion; summary
+    doesn't add up
+  claim: Email (current) shows delivery as $0.00 AND a -$15.00 promotion; summary
+    doesn't add up
+  where: 'confirmation email #R1004 (current), shopper b1.cur@example.test (Ben Beta,
+    Buffalo NY 14201), 2 × Drip Coffee Maker, Express, FREESHIP. Both text and HTML
+    parts.'
+  shown: '(text part): "Subtotal: $179.98 / Promotion: Promotion (Free Shipping) -$15.00
+    / Shipping: Express $0.00 / Tax: $14.40 / Order Total: $194.38". HTML part: "Shipping
+    Express $0.00".'
+  should_be: 'Shipping Express $15.00 (record delivery_total 15.00, fulfillment cost
+    15.00, discount -15.00) — as checkout, order page and admin show. As shown, 179.98
+    − 15.00 + 0.00 + 14.40 = 179.38 ≠ 194.38: the free-shipping discount is counted
+    twice.'
+  reproduce: '2 × Drip Coffee Maker → NY address → Express → apply FREESHIP → Check
+    → place order → read email. How checked: message read via API; compared to record
+    /order/current/R1004 and to the candidate''s email for the identical order (candidate
+    R1004 shows "Shipping: Express $15.00").'
+  rule: R3 (component counted twice), R2 (email ≠ order page/admin "Shipping $15.00").
+  sha256: 56fe83f330017d8f
+clauses:
+- text: '2 × Drip Coffee Maker → '
+  kind: action
+  steps:
+  - 1
+  - 2
+  sets: []
+  unmapped: null
+- text: 'NY address → '
+  kind: action
+  steps:
+  - 3
+  sets: []
+  unmapped: null
+- text: 'Express → '
+  kind: action
+  steps:
+  - 4
+  sets: []
+  unmapped: null
+- text: 'apply FREESHIP → '
+  kind: action
+  steps:
+  - 5
+  sets: []
+  unmapped: null
+- text: 'Check → '
+  kind: action
+  steps:
+  - 6
+  sets: []
+  unmapped: null
+- text: 'place order → '
+  kind: action
+  steps:
+  - 7
+  sets: []
+  unmapped: null
+- text: 'read email. '
+  kind: action
+  steps:
+  - 8
+  sets: []
+  unmapped: null
+- text: 'How checked: message read via API; compared to record /order/current/R1004
+    and to the candidate''s email for the identical order (candidate R1004 shows "Shipping:
+    Express $15.00").'
+  kind: observation
+  steps: []
+  sets: []
+  unmapped: null
+persona:
+  id: ic_c1-04-v1
+  name: ic_c1-04-v1
+  role: imported
+  context:
+    component: order
+    name: Ben Beta
+    country: US
+    delivery_method: Express
+    payment_method: Check
+    promo_code: FREESHIP
+    exchange_to: null
+    state: NY
+    city: Buffalo
+    zip: '14201'
+    items:
+    - personal-blender||3
+    email: ic-c1-04-v1@example.test
+scenario:
+  id: IC-C1-04-v1
+  description: 'hand variant of C1-04: same steps and invariant, different basket'
+  day0: '2026-11-02T00:00:00+00:00'
+  personas:
+  - ic_c1-04-v1
+  steps:
+  - at: D0 10:00
+    do: open_home
+    params: {}
+  - at: D0 10:01
+    do: open_product
+    params:
+      for_each: items
+  - at: D0 10:02
+    do: add_to_cart
+    params:
+      for_each: items
+  - at: D0 10:03
+    do: enter_address
+    params:
+      from_persona:
+      - name
+      - email
+      - country
+      - state
+      - city
+      - zip
+  - at: D0 10:04
+    do: choose_delivery
+    params:
+      from_persona: delivery_method
+  - at: D0 10:05
+    do: apply_promo_code
+    params:
+      from_persona: promo_code
+  - at: D0 10:06
+    do: choose_payment
+    params:
+      from_persona: payment_method
+  - at: D0 10:07
+    do: place_order
+    params: {}
+  - at: D0 10:08
+    do: read_order_email
+    params: {}
+invariant:
+  rule: U3
+  surface: order_email_text
+  statement: the itemised summary shown in the order confirmation email is arithmetically
+    consistent with its total, with each component counted exactly once, and each
+    amount matches the order record
+conversion:
+  status: converted
+  reasons: []
+  gaps: []
+  unmapped: []
+  alternatives: []
+  defaulted:
+  - component
+  - country
+  - exchange_to
+  - payment_method
+  implied_steps:
+  - open_home
+  gate_rounds: 2
+  gate_errors:
+  - - step 2 (add_to_cart) carries out no clause and is not a declared prerequisite
+    - step 3 (enter_address) carries out no clause and is not a declared prerequisite
+  - []
+  model: meta-models/muse-spark-open-1026
+  cost_usd: 0.055921
+converter:
+  sra_commit: b6d672b
+  prompt_sha: 128b9f7b9ac3e616
+  variant_of: C1-04
+  changed_by_hand: persona items (personal-blender x3); persona id and email

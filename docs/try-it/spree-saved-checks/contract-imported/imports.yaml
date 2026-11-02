@@ -1,0 +1,112 @@
+# Import vocabulary for turning an exploratory agent's finding into an SRA check on this store (see
+# semaudit/imported/). The verbs are the adapter's (../adapter.py); the converter may use only these.
+verbs:
+  open_home: open the storefront home page
+  open_product: open each product page of the persona's items and pick the item's option
+  add_to_cart: add each of the persona's items to the cart at its quantity (set on the product page before adding)
+  open_cart: open the cart page
+  apply_promo_code: enter the persona's discount code in the checkout order summary and apply it (goes to checkout first if needed)
+  remove_promo_code: remove the applied discount code on checkout
+  enter_address: go to checkout, type the persona's email and shipping address (US only) and save it; delivery rates then load
+  choose_delivery: select the persona's delivery method on checkout (Standard or Express)
+  choose_payment: select the persona's payment method on checkout (Check)
+  place_order: tick the terms box and press Place Order; lands on the order-placed page
+  read_order_page: load the order-placed page again
+  read_order_email: read the order confirmation email sent to the persona (HTML and text parts)
+  open_admin_order: sign in to the admin dashboard as the store operator and open the order's page (view only)
+  exchange_item: as the store operator, ship the order, then exchange its first unit for the persona's exchange_to item (slug|option)
+  open_packing_slip: from the admin order page, print the packing slip of the newest fulfillment
+verb_args:
+  open_product: {for_each: items}
+  add_to_cart: {for_each: items}
+  apply_promo_code: {from_persona: promo_code}
+  enter_address: {from_persona: [name, email, country, state, city, zip]}
+  choose_delivery: {from_persona: delivery_method}
+  choose_payment: {from_persona: payment_method}
+  exchange_item: {from_persona: exchange_to}
+implied_ok: [open_home, open_product, open_cart, choose_delivery, choose_payment]
+read_verbs:           # verbs that only read, and the surfaces each lands on
+  read_order_page: [storefront_order_page]
+  read_order_email: [order_email_html, order_email_text]
+  open_admin_order: [admin_order]
+prerequisites:        # what the storefront needs before each verb (the adapter's own flow)
+  open_product: [open_home]
+  add_to_cart: [open_home]
+  enter_address: [add_to_cart]
+  choose_delivery: [enter_address]
+  choose_payment: [enter_address, choose_delivery]
+  place_order: [enter_address, choose_delivery, choose_payment]
+  read_order_page: [place_order]
+  read_order_email: [place_order]
+  open_admin_order: [place_order]
+  exchange_item: [place_order]
+  open_packing_slip: [exchange_item, open_admin_order]
+verb_cues:            # words a clause must contain for a step to cite it as carrying out that verb
+  open_home: 'home|storefront|/us/en\b|site'
+  open_product: 'product|\bopen\b|page|{catalog}'
+  add_to_cart: '\badd|cart|\bbuy|basket|×|\bx ?\d|\bqty\b|quantity|{catalog}'
+  open_cart: '\bcart\b'
+  apply_promo_code: 'code|promo|coupon|discount|FREESHIP'
+  remove_promo_code: 'remov|delete|clear|without (the )?code'
+  enter_address: 'address|ship(ping)? to|checkout|\bzip\b|\b[A-Z]{2}\b|New York|California|Texas|Florida'
+  choose_delivery: 'deliver|shipping|\bship\b|express|standard|method'
+  choose_payment: '\bpay|payment|\bcheck\b'
+  place_order: 'place|order|submit|purchase|\bbuy\b|\bpay\b'
+  read_order_page: 'order page|order-placed|confirmation page|\border\b|reload|refresh'
+  read_order_email: 'e-?mail|mail'
+  open_admin_order: 'admin|dashboard|operator|back ?office'
+  exchange_item: 'exchang|swap|replace'
+  open_packing_slip: 'packing|slip'
+list_fields:
+  items:
+    pattern: '^(?P<slug>[a-z0-9-]+)\|(?P<option>[^|]*)\|(?P<qty>[1-9][0-9]*)$'
+    catalog: catalog.json
+    key_group: slug
+    key_attr: slug
+    member_group: option
+    members_attr: options
+    show_attrs: [name, price_usd]
+material_fields: [items, state, promo_code, delivery_method, payment_method, exchange_to]
+persona_defaults:
+  component: order
+  name: Imported Shopper
+  country: US
+  delivery_method: Standard
+  payment_method: Check
+  promo_code: null
+  exchange_to: null
+place_field: state
+place_defaults:
+  NY: {city: New York, zip: '10001'}
+  CA: {city: Los Angeles, zip: '90001'}
+  TX: {city: Austin, zip: '78701'}
+  FL: {city: Miami, zip: '33101'}
+  IL: {city: Chicago, zip: '60601'}
+  WA: {city: Seattle, zip: '98101'}
+  NJ: {city: Newark, zip: '07102'}
+  MA: {city: Boston, zip: '02108'}
+  PA: {city: Philadelphia, zip: '19103'}
+  OR: {city: Portland, zip: '97201'}
+unique_fields:
+  email: 'ic-{id}@example.test'
+rule_aliases: {R1: U1, R2: U2, R3: U3, R4: U4, R5: U5, R6: U6, R7: U7, R8: U8, R9: U9, R10: P1, R11: L1}
+action_words:
+  - '\bsign(ed|s|ing)? ?in\b'
+  - '\blog(ged|s|ging)? ?in\b'
+  - '\baccount\b'
+  - '\bfulfil'
+  - '\bmark(ed)? (as )?(shipped|paid|delivered)'
+  - '\brefund'
+  - '\breturn(ed|s)? (the|an?|it)\b'
+  - '\bcancel'
+  - '\bexchang'
+  - '\b(increase|decrease|change|edit)(d|s)? (the )?(qty|quantity|cart|address)'
+  - 'qty \+'
+  - '\b(remove|add|apply|place|choose|select|enter)(d|s|ed)? (?!up\b)'
+day0: '2026-11-02T00:00:00+00:00'
+step_note_fails:      # adapter notes that mean the app did not do what the scenario needs
+  - 'did not accept'
+  - 'no email to the shopper'
+  - 'no code field'
+  - 'no applied code'
+  - 'still showed Loading'

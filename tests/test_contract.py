@@ -14,7 +14,14 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from semaudit.contract.approve import approve, items, load_approvals, status_of  # noqa: E402
 from semaudit.contract.review import render  # noqa: E402
-from semaudit.contract.schema import CONFIDENCE, SEVERITY, VERIFICATION, ReleasePolicy, load_contract, resolve_time  # noqa: E402
+from semaudit.contract.schema import (  # noqa: E402
+    CONFIDENCE,
+    SEVERITY,
+    VERIFICATION,
+    ReleasePolicy,
+    load_contract,
+    resolve_time,
+)
 from semaudit.contract.validate import policy_coverage, validate  # noqa: E402
 from semaudit.story.model import Event, Story  # noqa: E402
 

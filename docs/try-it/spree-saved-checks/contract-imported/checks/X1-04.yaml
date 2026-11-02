@@ -1,0 +1,174 @@
+id: X1-04
+source:
+  ref: X1#04
+  trial: X1
+  heading: Store Pickup orders provide no pickup address or instructions (no rule;
+    present in both)
+  claim: 'Checkout offers `Store Pickup $0.00` and allows the order to be placed,
+    but neither the order page nor confirmation email tells the shopper where or how
+    to collect it. The order page instead labels the shopper''s home address as `Shipping
+    Address`, which can suggest delivery even though Store Pickup was chosen. The
+    record confirms the pickup stock location has no address, phone, readiness time,
+    or pickup instructions and has `pickup_point_data: null`.'
+  where: Current order page `http://127.0.0.1:4030/us/en/order-placed/cart_C9SrJgpzQ4`,
+    shopper `current-california-store-pickup-q1@example.test`, order `R1006`; candidate
+    order page `http://127.0.0.1:4031/us/en/order-placed/cart_98FqgRua4h`, shopper
+    `candidate-california-store-pickup-q1@example.test`, order `R1006`. Both email
+    alternatives
+  shown: 'Both say `Shipping Method` / `Store Pickup` / `$0.00`, then `Shipping Address`
+    / `Alex Audit` / `123 Test Street` / `Los Angeles, CA 90012` with no pickup location
+    or instructions. Both email alternatives only say `Shipping: Store Pickup $0.00`
+    and likewise give no collection details.'
+  should_be: A pickup option should identify the pickup location and provide the information
+    needed to collect the order (or it should not be offered until that information
+    is configured). No rule directly requires pickup instructions, but the current
+    confirmation is materially misleading and unusable for a pickup shopper.
+  reproduce: Add the White Personal Blender; proceed with a California address; select
+    Store Pickup; place with Check; inspect the order page and confirmation email
+    for a collection address or instructions.
+  rule: no rule
+  sha256: e455cbb9f52d2a8f
+clauses:
+- text: 'Add '
+  kind: action
+  steps:
+  - 0
+  - 1
+  sets: []
+  unmapped: null
+- text: the White Personal Blender;
+  kind: context
+  steps: []
+  sets:
+  - items
+  unmapped: null
+- text: ' proceed with a California address;'
+  kind: action
+  steps:
+  - 2
+  sets: []
+  unmapped: null
+- text: ' select Store Pickup;'
+  kind: action
+  steps: []
+  sets: []
+  unmapped:
+    reason: no_verb
+    missing_verb: select_store_pickup
+    why: harness has no verb for Store Pickup delivery method; delivery_method only
+      allows Standard/Express
+- text: ' place with Check;'
+  kind: action
+  steps:
+  - 3
+  - 4
+  sets: []
+  unmapped: null
+- text: ' inspect the order page and confirmation email for a collection address or
+    instructions.'
+  kind: observation
+  steps: []
+  sets: []
+  unmapped: null
+persona:
+  id: ic_x1-04
+  name: Imported Shopper
+  role: imported
+  context:
+    component: order
+    name: Imported Shopper
+    country: US
+    delivery_method: Standard
+    payment_method: Check
+    promo_code: null
+    exchange_to: null
+    state: CA
+    city: Los Angeles
+    zip: '90012'
+    items:
+    - personal-blender|White|1
+    email: ic-x1-04@example.test
+scenario:
+  id: IC-X1-04
+  description: imported check X1-04
+  day0: '2026-11-02T00:00:00+00:00'
+  personas:
+  - ic_x1-04
+  steps:
+  - at: D0 10:00
+    do: open_home
+    params: {}
+  - at: D0 10:01
+    do: open_product
+    params:
+      for_each: items
+  - at: D0 10:02
+    do: add_to_cart
+    params:
+      for_each: items
+  - at: D0 10:03
+    do: enter_address
+    params:
+      from_persona:
+      - name
+      - email
+      - country
+      - state
+      - city
+      - zip
+  - at: D0 10:04
+    do: choose_delivery
+    params:
+      from_persona: delivery_method
+  - at: D0 10:05
+    do: choose_payment
+    params:
+      from_persona: payment_method
+  - at: D0 10:06
+    do: place_order
+    params: {}
+  - at: D0 10:07
+    do: read_order_page
+    params: {}
+invariant:
+  rule: U9
+  surface: storefront_order_page
+  statement: 'the order page correctly reflects the record''s delivery method and
+    address labeling: when the record''s fulfillment is store pickup the page does
+    not label the shopper''s home address as a shipping address and the delivery method,
+    location and collection details shown match the order record'
+conversion:
+  status: adapter_gap
+  reasons:
+  - 'needs verb ''select_store_pickup'': '' select Store Pickup;'''
+  gaps:
+  - select_store_pickup
+  unmapped:
+  - ' select Store Pickup;'
+  alternatives: []
+  defaulted:
+  - component
+  - country
+  - delivery_method
+  - exchange_to
+  - name
+  - payment_method
+  - promo_code
+  implied_steps:
+  - open_home
+  - choose_delivery
+  - read_order_page
+  gate_rounds: 2
+  gate_errors:
+  - - step 2 (enter_address) cites clause 2 (' proceed with '), whose words do not
+      describe enter_address; an action no verb does is an unmapped clause, not another
+      verb
+    - step 7 (read_order_email) carries out no clause and is not a declared prerequisite
+      or a read verb reaching the invariant's surface
+    - invariant rule '' is not a contract rule
+  - []
+  model: meta-models/muse-spark-open-1026
+  cost_usd: 0.066893
+converter:
+  sra_commit: b6d672b
+  prompt_sha: 128b9f7b9ac3e616

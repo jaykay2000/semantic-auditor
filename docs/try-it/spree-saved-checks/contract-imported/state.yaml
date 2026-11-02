@@ -1,0 +1,26 @@
+- id: cart_contents
+  initial: empty
+  set_by:
+    add_to_cart: +item
+- id: promo
+  initial: none
+  set_by:
+    apply_promo_code: '{code}'
+    remove_promo_code: none
+- id: address
+  initial: none
+  set_by:
+    enter_address: '{state}'
+- id: delivery
+  initial: none
+  set_by:
+    enter_address: cheapest_default
+    choose_delivery: '{method}'
+- id: payment
+  initial: none
+  set_by:
+    choose_payment: '{method}'
+- id: order
+  initial: not_placed
+  set_by:
+    place_order: placed

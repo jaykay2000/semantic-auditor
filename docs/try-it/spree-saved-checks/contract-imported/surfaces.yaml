@@ -1,0 +1,77 @@
+# Harness plumbing; ids, reached_by and features are the blind contract's.
+- id: storefront_home
+  kind: web
+  locator: css
+  component: order
+  reached_by: open_home
+  sections: &id001
+  - match: body
+    feature: core
+  - match: '#checkout-section-shipping'
+    feature: delivery
+  - match: div:has(> form input[aria-label='Gift card or discount code'])
+    feature: promotions
+- id: storefront_product
+  kind: web
+  locator: css
+  component: order
+  reached_by: open_product
+  sections: *id001
+- id: storefront_cart
+  kind: web
+  locator: css
+  component: order
+  reached_by: open_cart
+  sections: *id001
+- id: storefront_checkout.address
+  kind: web
+  locator: css
+  component: order
+  reached_by: enter_address
+  sections: *id001
+- id: storefront_checkout.delivery
+  kind: web
+  locator: css
+  component: order
+  reached_by: enter_address
+  sections: *id001
+- id: storefront_checkout.payment
+  kind: web
+  locator: css
+  component: order
+  reached_by: choose_delivery
+  sections: *id001
+- id: storefront_checkout.review
+  kind: web
+  locator: css
+  component: order
+  reached_by: choose_payment
+  sections: *id001
+- id: storefront_order_page
+  kind: web
+  locator: css
+  component: order
+  reached_by: place_order
+  sections: *id001
+- id: order_email_html
+  kind: email
+  locator: message_id
+  component: order
+  reached_by: read_order_email
+  sink: order_email_html
+  timed: false
+- id: order_email_text
+  kind: email
+  locator: message_id
+  component: order
+  reached_by: read_order_email
+  sink: order_email_text
+  timed: false
+- id: admin_order
+  kind: web
+  locator: css
+  component: order
+  reached_by: open_admin_order
+  sections:
+  - match: body
+    feature: admin

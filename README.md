@@ -8,6 +8,28 @@ The Python package is `semaudit`; the short name is SRA. It was built during the
 (Oct 26 – Nov 4, 2026). The reusable checks are a **prototype**: tested on one open-source store, with the limits
 listed [below](#limits).
 
+## Try it in 2 minutes (no key)
+
+No model key, no Docker, no browser download, no network after the install. Python 3.12:
+
+```bash
+git clone https://github.com/jaykay2000/semantic-auditor && cd semantic-auditor
+python3.12 -m venv .venv && .venv/bin/pip install -e .
+.venv/bin/semaudit demo
+```
+
+It rebuilds two pages from files committed in this repo and prints where they went (`runs/demo/` by default):
+
+1. the release review page for Northbound 2.3 → 2.4 (a fictional travel app with synthetic travellers), the same
+   page that is [hosted](docs/sample-review/index.html);
+2. the saved-check cards from the owner's run of the two approved Spree checks (`ic-owner-rec-1`, 2026-11-01).
+
+Each rebuilt file is compared byte for byte with its committed copy, and the command says so. It makes no model
+call: it only re-renders recorded results, and its test runs it with every model call and network connection made to
+fail ([tests/test_demo.py](tests/test_demo.py)). The inputs are listed in
+[docs/try-it/demo.json](docs/try-it/demo.json). Running a new review or a saved check needs a model key and the app
+(see [Capture](#capture) and [Reproduce the Spree demo](#reproduce-the-spree-demo)).
+
 ## The loop
 
 ```

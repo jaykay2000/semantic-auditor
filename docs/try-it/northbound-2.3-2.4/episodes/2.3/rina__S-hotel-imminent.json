@@ -1,0 +1,104 @@
+{
+  "release": "2.3",
+  "persona": "rina",
+  "scenario": "S-hotel-imminent",
+  "seed": 0,
+  "app_build": "northbound@2.3",
+  "started_wall": "2026-10-27T06:28:02.122077+00:00",
+  "day0": "2026-11-02T00:00:00Z",
+  "clock_measured": true,
+  "not_measured": [],
+  "initial_state": {
+    "booking": {
+      "status": "ok",
+      "endpoint": "/api/oracle/booking?traveller=rina",
+      "values": {
+        "status": "not_booked",
+        "fare_type": null,
+        "departure_at": "2026-11-03T16:00:00+00:00",
+        "within_change_window": false,
+        "charges": [],
+        "total_cents": 0
+      },
+      "error": null
+    },
+    "inventory": {
+      "status": "not_applicable",
+      "endpoint": null,
+      "values": {},
+      "error": "needs fare, which this persona does not have"
+    },
+    "forecast": {
+      "status": "not_applicable",
+      "endpoint": null,
+      "values": {},
+      "error": "needs route, which this persona does not have"
+    },
+    "room_inventory": {
+      "status": "ok",
+      "endpoint": "/api/oracle/inventory?hotel=LIS-H1",
+      "values": {
+        "rooms_left": 1
+      },
+      "error": null
+    }
+  },
+  "steps": [
+    {
+      "seq": 1,
+      "at": "2026-11-02T10:00:00Z",
+      "do": "open_hotel",
+      "params": {
+        "hotel": "LIS-H1"
+      },
+      "when_offered": true,
+      "status": "skipped_not_offered",
+      "error": null,
+      "clock": {
+        "sent": {
+          "set": "2026-11-02T10:00:00+00:00"
+        },
+        "answer": {
+          "now": "2026-11-02T10:00:00+00:00",
+          "jobs_run": []
+        }
+      },
+      "captures": [],
+      "state": {
+        "booking": {
+          "status": "ok",
+          "endpoint": "/api/oracle/booking?traveller=rina",
+          "values": {
+            "status": "not_booked",
+            "fare_type": null,
+            "departure_at": "2026-11-03T16:00:00+00:00",
+            "within_change_window": false,
+            "charges": [],
+            "total_cents": 0
+          },
+          "error": null
+        },
+        "inventory": {
+          "status": "not_applicable",
+          "endpoint": null,
+          "values": {},
+          "error": "needs fare, which this persona does not have"
+        },
+        "forecast": {
+          "status": "not_applicable",
+          "endpoint": null,
+          "values": {},
+          "error": "needs route, which this persona does not have"
+        },
+        "room_inventory": {
+          "status": "ok",
+          "endpoint": "/api/oracle/inventory?hotel=LIS-H1",
+          "values": {
+            "rooms_left": 1
+          },
+          "error": null
+        }
+      }
+    }
+  ]
+}

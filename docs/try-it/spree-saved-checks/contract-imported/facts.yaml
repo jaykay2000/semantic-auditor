@@ -1,0 +1,131 @@
+- id: unit_price
+  unit: USD
+  sources: []
+  key:
+  - field: line
+    describe: 'the order line the figure belongs to: product name and option text as shown (rubric: line-level claims record
+      their line)'
+- id: compare_at_price
+  unit: USD
+  sources: []
+  key:
+  - field: line
+    describe: 'the order line the figure belongs to: product name and option text as shown (rubric: line-level claims record
+      their line)'
+- id: line_quantity
+  unit: count
+  sources: []
+  key:
+  - field: line
+    describe: 'the order line the figure belongs to: product name and option text as shown (rubric: line-level claims record
+      their line)'
+- id: line_amount
+  unit: USD
+  sources: []
+  key:
+  - field: line
+    describe: 'the order line the figure belongs to: product name and option text as shown (rubric: line-level claims record
+      their line)'
+- id: total_quantity
+  unit: count
+  sources:
+  - oracle: order
+    field: total_quantity
+- id: item_total
+  unit: USD
+  sources:
+  - oracle: order
+    field: item_total
+- id: discount_total
+  unit: USD
+  sources:
+  - oracle: order
+    field: discount_total
+- id: discount_line
+  unit: USD
+  sources: []
+  key:
+  - field: discount
+    describe: the discount's name or code as shown
+- id: delivery_total
+  unit: USD
+  sources:
+  - oracle: order
+    field: delivery_total
+- id: delivery_rate_offered
+  unit: USD
+  sources: []
+  key:
+  - field: delivery_method
+    describe: the delivery method the price is for, as shown
+- id: fee_total
+  unit: USD
+  sources:
+  - oracle: order
+    field: fee_total
+- id: tax_total
+  unit: USD
+  sources:
+  - oracle: order
+    field: tax_total
+- id: order_total
+  unit: USD
+  sources:
+  - oracle: order
+    field: total
+- id: amount_due
+  unit: USD
+  sources:
+  - oracle: order
+    field: amount_due
+- id: payment_amount
+  unit: USD
+  sources: []
+- id: order_number
+  unit: text
+  sources:
+  - oracle: order
+    field: number
+- id: shopper_email
+  unit: text
+  sources:
+  - oracle: order
+    field: email
+- id: ship_to
+  unit: text
+  sources: []
+- id: item_name
+  unit: text
+  sources: []
+  key:
+  - field: line
+    describe: 'the order line the figure belongs to: product name and option text as shown (rubric: line-level claims record
+      their line)'
+- id: item_options
+  unit: text
+  sources: []
+  key:
+  - field: line
+    describe: 'the order line the figure belongs to: product name and option text as shown (rubric: line-level claims record
+      their line)'
+- id: delivery_method_name
+  unit: text
+  sources: []
+- id: payment_method_name
+  unit: text
+  sources: []
+- id: applied_code
+  unit: text
+  sources:
+  - oracle: order
+    field: coupon_code
+- id: payment_status
+  unit: enum
+  sources:
+  - oracle: order
+    field: payment_status
+- id: fulfillment_status
+  unit: enum
+  sources:
+  - oracle: order
+    field: fulfillment_status

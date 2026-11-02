@@ -1,0 +1,310 @@
+# Converted from the blind draft (not owner-approved). See CONVERSION.md.
+- id: U1
+  title: Figure differs from the order record
+  kind: universal
+  severity: major
+  text: 'Every figure we show a shopper about their order matches what the order actually records: item prices, quantities,
+    line amounts, subtotal, discounts, delivery, fees, tax, total and amount due, on every surface, once the figure can be
+    known.'
+  check:
+    claims:
+    - unit_price
+    - compare_at_price
+    - line_quantity
+    - line_amount
+    - total_quantity
+    - item_total
+    - discount_total
+    - discount_line
+    - delivery_total
+    - delivery_rate_offered
+    - fee_total
+    - tax_total
+    - order_total
+    - amount_due
+    - payment_amount
+    must: match_oracle
+    oracle: order
+    when: claim.valid_in
+- id: U2
+  title: Same figure, different value
+  kind: universal
+  severity: major
+  text: 'Within one pricing state, a figure reads the same wherever and whenever we show it: on the cart, each checkout step,
+    the order page, both parts of the confirmation email and the admin order page. What the shopper saw on the review step
+    is what the order page, the email and the admin show after they place the order.'
+  check:
+    claims:
+    - unit_price
+    - line_quantity
+    - line_amount
+    - total_quantity
+    - item_total
+    - discount_total
+    - discount_line
+    - delivery_total
+    - fee_total
+    - tax_total
+    - order_total
+    - amount_due
+    - delivery_method_name
+    - applied_code
+    must: agree_across_surfaces
+    same:
+    - persona
+    - pricing_state
+    presentations_equivalent: true
+- id: U3
+  title: Summary does not add up
+  kind: universal
+  severity: major
+  text: 'Every itemised summary we show is consistent with its own total: each line amount is its unit price times its quantity,
+    the line amounts add up to the subtotal, and subtotal + delivery + fees + tax - discounts equals the total shown, with
+    every component counted exactly once.'
+  check:
+    must: sums_to_own_total
+    within: capture
+    identities:
+    - line_amount == unit_price * line_quantity
+    - sum(line_amount) == item_total
+    - item_total + delivery_total + fee_total + tax_total - |discount_total| == order_total
+    absent_component: zero
+    tolerance_cents: 0
+- id: U4
+  title: Order record does not add up
+  kind: universal
+  severity: critical
+  text: 'The order record itself is internally consistent, because it is what the shopper is charged: its total is its items
+    plus delivery, fees and added tax, less its discounts; its subtotal is the sum of its line prices; its discount total
+    is the sum of the discounts on its lines and deliveries; its amount due is the total less gift cards and store credit;
+    and its payments cover exactly the amount due.'
+  check:
+    must: oracle_arithmetic
+    oracle: order
+    identities:
+    - total == item_total + delivery_total + fee_total + additional_tax_total + discount_total
+    - item_total == sum(items[].price * items[].quantity)
+    - discount_total == sum(items[].discount_total) + sum(fulfillments[].discount_total)
+    - tax_total == additional_tax_total + included_tax_total
+    - additional_tax_total == sum(items[].additional_tax_total) + sum(fulfillments[].additional_tax_total)
+    - delivery_total == sum(fulfillments[].cost)
+    - amount_due == total - gift_card_total - store_credit_total
+    - sum(payments[].amount where status not in [failed, void, invalid]) == amount_due
+    - included_tax_total == 0 and market_tax_inclusive == false
+    tolerance_cents: 0
+- id: U5
+  title: Tax not at the store's rate
+  kind: universal
+  severity: major
+  text: 'Sales tax is charged only where the store has a rate, at that rate, on what the shopper actually pays for: 8% of
+    each taxed item''s price after its discounts for an order shipping to New York, and no tax for any other state. Tax on
+    delivery, if the store taxes delivery, is 8% of the delivery charge after its discount.'
+  check:
+    must: rate_applied
+    oracle:
+    - order
+    - store_config
+    context_field: state
+    identities:
+      NY:
+      - items[].additional_tax_total == round_half_up(0.08 * (items[].price * items[].quantity + items[].discount_total),
+        2)   for each taxed line
+      - fulfillments[].additional_tax_total in [0, round_half_up(0.08 * (fulfillments[].cost + fulfillments[].discount_total),
+        2)]
+      other:
+      - tax_total == 0
+    unknowns:
+    - which tax categories the NY rate covers
+    - whether delivery is taxed
+    - rounding per line or per order
+- id: U6
+  title: Promotion does not do what it says
+  kind: universal
+  severity: major
+  text: A promotion gives exactly what it says, and nothing is given without it. With FREESHIP accepted, the shopper pays
+    nothing for delivery, whichever domestic method they chose, and item prices are untouched. Without a code, or after the
+    code is removed, there is no discount at all. A surface that says a code is applied, or that delivery is free, is telling
+    the truth.
+  check:
+    must: match_store_config
+    oracle:
+    - order
+    - store_config
+    state_field: promo
+    identities:
+      code_FREESHIP:
+      - coupon_code == FREESHIP
+      - delivery_total + sum(fulfillments[].discount_total) == 0
+      - sum(items[].discount_total) == 0
+      - discounts[] has one entry with code FREESHIP
+      no_code_or_removed:
+      - discount_total == 0
+      - coupon_code is empty
+    claims:
+    - applied_code
+    - discount_line
+    judged:
+      claim_kind: free_delivery_statement
+      must: consistent_with_oracle
+- id: U7
+  title: Delivery charged is not the delivery chosen
+  kind: universal
+  severity: major
+  text: The delivery method on the order and on every surface is the one the shopper chose, every option is offered at the
+    price the store set for it, and the delivery charged is the price of the option chosen.
+  check:
+    must: match_store_config
+    oracle:
+    - order
+    - store_config
+    context_field: delivery_method
+    identities:
+    - fulfillments[].delivery_method.name == persona.delivery_method
+    - fulfillments[].delivery_rates[selected].name == persona.delivery_method
+    - fulfillments[].cost == fulfillments[].delivery_rates[selected].cost
+    - fulfillments[].delivery_rates[name].cost == store_config.delivery_methods[name]   for each offered rate
+    - fulfillments[].cost == store_config.delivery_methods[persona.delivery_method]   for each fulfillment
+    claims:
+    - delivery_rate_offered
+    - delivery_method_name
+- id: U8
+  title: A charge the shopper is not shown
+  kind: universal
+  severity: major
+  text: 'Every part of what the shopper pays is shown to them before they pay and on their confirmation: on the review step,
+    the order page and the confirmation email, the summary shows the subtotal, each nonzero discount, delivery, each nonzero
+    fee, tax and the total.'
+  check:
+    must: present_when_nonzero
+    surfaces:
+    - storefront_checkout.review
+    - storefront_order_page
+    - order_email_html
+    - order_email_text
+    components:
+    - item_total
+    - discount_total
+    - delivery_total
+    - fee_total
+    - tax_total
+    - order_total
+    always:
+    - item_total
+    - delivery_total
+    - order_total
+- id: U9
+  title: Order details do not match
+  kind: universal
+  severity: minor
+  text: 'The order details we confirm are the shopper''s own: the order number, email, delivery address, items and their options,
+    delivery method, payment method and code agree across the order page, both email parts and the admin, match the order
+    record, and match what the shopper entered. Status words match the order''s real status.'
+  check:
+    claims:
+    - order_number
+    - shopper_email
+    - ship_to
+    - item_name
+    - item_options
+    - delivery_method_name
+    - payment_method_name
+    - applied_code
+    - payment_status
+    - fulfillment_status
+    must: match_oracle
+    oracle: order
+- id: U9.agree
+  title: Order details do not match
+  kind: universal
+  severity: minor
+  text: 'The order details we confirm are the shopper''s own: the order number, email, delivery address, items and their options,
+    delivery method, payment method and code agree across the order page, both email parts and the admin, match the order
+    record, and match what the shopper entered. Status words match the order''s real status.'
+  check:
+    claims:
+    - order_number
+    - shopper_email
+    - ship_to
+    - item_name
+    - item_options
+    - delivery_method_name
+    - payment_method_name
+    - applied_code
+    - payment_status
+    - fulfillment_status
+    must: agree_across_surfaces
+    oracle: order
+- id: U9.persona
+  title: Order details do not match
+  kind: universal
+  severity: minor
+  text: 'The order details we confirm are the shopper''s own: the order number, email, delivery address, items and their options,
+    delivery method, payment method and code agree across the order page, both email parts and the admin, match the order
+    record, and match what the shopper entered. Status words match the order''s real status.'
+  check:
+    claims:
+    - order_number
+    - shopper_email
+    - ship_to
+    - item_name
+    - item_options
+    - delivery_method_name
+    - payment_method_name
+    - applied_code
+    - payment_status
+    - fulfillment_status
+    must: match_persona
+    oracle: order
+- id: P1
+  title: Partial total not labelled as partial
+  kind: conditional
+  severity: major
+  text: A figure presented as the total is what the shopper will pay. Before the address and delivery are known, tax and delivery
+    cannot be known yet, so a summary may show a total without them, but only if it says what is not yet included.
+  applies_to:
+    claims:
+    - order_total
+    where: claim.value != oracle.total in final_pricing_state
+  exceptions:
+  - id: P1-E1
+    conditions:
+    - id: a
+      kind: data
+      test: state_unset
+      params:
+        state:
+        - address
+        - delivery
+        any: true
+    - id: b
+      kind: data
+      test: summary_adds_up
+      params:
+        rule: U3
+    - id: c
+      kind: judged
+      field: labels_missing_components
+    scope:
+      features:
+      - core
+      surfaces:
+      - storefront_cart
+      - storefront_checkout.address
+      - storefront_checkout.delivery
+    approved:
+      by: pending_owner_review
+- id: L1
+  title: Confirmation email missing or duplicated
+  kind: load
+  severity: minor
+  text: Each placed order sends the shopper exactly one order confirmation email, carrying the items, totals, addresses and
+    delivery method.
+  count:
+    channels:
+    - email
+    topics:
+    - order_confirmation
+    per: order
+    min: 1
+    max: 1
+    window_hours: 1

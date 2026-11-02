@@ -1,0 +1,56 @@
+noun: shopper
+component_from: component
+context:
+- id: component
+  type: enum
+  values:
+  - order
+  default: order
+- id: name
+  type: str
+  required: true
+- id: email
+  type: str
+  required: true
+- id: country
+  type: enum
+  values:
+  - US
+  default: US
+- id: state
+  type: str
+  required: true
+  show: ships to {v}
+- id: city
+  type: str
+  required: true
+- id: zip
+  type: str
+  required: true
+- id: items
+  type: list
+  required: true
+  show: '{n} line(s), {qty} unit(s)'
+- id: promo_code
+  type: str
+  default: null
+  show:
+    'null': no code
+    '*': code {v}
+- id: delivery_method
+  type: enum
+  values:
+  - Standard
+  - Express
+  required: true
+- id: payment_method
+  type: enum
+  values:
+  - Check
+  default: Check
+- id: exchange_to
+  type: str
+  default: null
+  show:
+    'null': no exchange
+    '*': exchanges for {v}

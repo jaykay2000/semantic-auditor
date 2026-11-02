@@ -1,0 +1,9 @@
+# Owner approvals, pinned to content hashes. Written by `semaudit contract approve` or the review page.
+check:C1-04:
+  hash: f0cb1dc9ee14fc8f
+  by: Jayant Kumar
+  date: '2026-11-01'
+check:C1-04-v1:
+  hash: 30f3f436e3fa99a5
+  by: Jayant Kumar
+  date: '2026-11-01'

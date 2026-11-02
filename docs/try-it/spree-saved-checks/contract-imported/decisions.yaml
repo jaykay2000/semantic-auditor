@@ -1,0 +1,22 @@
+# The choices a Spree checkout guides, their actions, and when each action is possible. No pair of actions is
+# incompatible: the store gives no competing advice in the docs. These feed U3-style actionability only through
+# preconditions (an option offered must be one the shopper can still take). Owner to confirm (QUESTIONS Q12).
+- id: delivery_method
+  actions: [choose_standard, choose_express]       # domestic methods for a US address (APP.md L26)
+  incompatible: []
+  tradeoffs:
+    - {pair: [choose_standard, choose_express], material: "Express costs $15 against Standard's $5 (APP.md L26); with FREESHIP both are free"}
+  decided_by: [choose_delivery]
+  preconditions: {"*": {address: set, order: not_placed}}   # no fulfillments before an address (carts.md L232)
+- id: promo_code
+  actions: [apply_code, remove_code]
+  incompatible: []
+  decided_by: [apply_promo_code, remove_promo_code]
+  preconditions:
+    apply_code: {cart_contents: not_empty, order: not_placed}   # codes apply before completion (carts.md L262)
+    remove_code: {promo: set, order: not_placed}
+- id: payment_method
+  actions: [pay_by_check]                           # Credit Card is not usable offline (APP.md L28)
+  incompatible: []
+  decided_by: [choose_payment]
+  preconditions: {"*": {delivery: set, order: not_placed}}

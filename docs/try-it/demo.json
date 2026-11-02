@@ -1,0 +1,24 @@
+{
+ "reviews": [
+  {
+   "name": "release-review-northbound-2.3-2.4",
+   "what": "1. Release review page: Northbound 2.3 -> 2.4 (policy says hold; provisional), the page at docs/sample-review/",
+   "review": "docs/try-it/northbound-2.3-2.4/review-2.3-2.4.json",
+   "run_files": ["docs/try-it/northbound-2.3-2.4/episodes"],
+   "captures": "docs/sample-review/captures",
+   "expect": "docs/sample-review/index.html"
+  }
+ ],
+ "cards": [
+  {
+   "name": "saved-checks-spree-owner-run",
+   "what": "2. Saved-check cards: the owner's run from storage (ic-owner-rec-1), Spree beta2 -> beta3",
+   "saved": "docs/evidence/imported-checks/acceptance/run-owner-2026-11-01-saved-checks.json",
+   "contract": "docs/try-it/spree-saved-checks/contract-imported",
+   "also": ["X1-04"],
+   "title": "Owner-approved run (ic-owner-rec-1, 2026-11-01): saved checks from storage, beta2 → beta3",
+   "label": "initial prototype, one finding (two baskets)",
+   "expect": "docs/evidence/imported-checks/acceptance/cards-run-owner-2026-11-01.html"
+  }
+ ]
+}

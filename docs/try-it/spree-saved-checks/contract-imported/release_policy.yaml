@@ -1,0 +1,18 @@
+# Evaluated top to bottom; the first row that fires wins. The last row is a catch-all, so the policy is exhaustive
+# by construction. Severity is each rule's own level (principles.yaml); how many test personas an issue reaches is
+# shown but never raises it. Issues whose verification failed are not open. Taken unchanged from the auditor's
+# default policy as used in the Northbound example; owner to confirm (QUESTIONS Q12).
+source: {kind: default, file: format/northbound-contract/release_policy.yaml, at: "rows"}
+rows:
+  - recommendation: hold
+    text: "an open issue is critical, verified, with confidence at least medium"
+    any_issue: [{severity: [critical], verification: [verified], confidence_at_least: medium}]
+  - recommendation: needs_owner_review
+    text: "an open issue is critical, or an open issue is not verified"
+    any_issue: [{severity: [critical]}, {verification_not: [verified]}]
+  - recommendation: ship
+    text: "no open issues"
+    no_open_issues: true
+  - recommendation: ship_with_notes
+    text: "open issues exist; all are verified and non-critical"
+    otherwise: true

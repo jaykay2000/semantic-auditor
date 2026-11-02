@@ -1,0 +1,34 @@
+# What on a surface says a figure, and which part of Spree it belongs to. The docs give no data-feature attributes,
+# so attribution is by the region of the rendered text (QUESTIONS Q6). Releases: both builds have all of these.
+- id: core
+  name: Cart, checkout and order summary
+  core: true
+  release_introduced: older
+  attribution: {region: [order summary, line items, totals]}
+  topic: order
+  default_lifetime_hours: {page: 2, email: 168}
+- id: promotions
+  name: Promotions and coupon codes (FREESHIP)
+  release_introduced: older
+  attribution: {region: [discount line, promo code field, applied code]}
+  topic: order
+- id: delivery
+  name: Delivery methods and rates
+  release_introduced: older
+  attribution: {region: [delivery options, delivery line, delivery method name]}
+  topic: order
+- id: tax
+  name: Sales tax (NY 8%, harness-added)
+  release_introduced: older
+  attribution: {region: [tax line]}
+  topic: order
+- id: order_confirmation_email
+  name: Order confirmation email
+  release_introduced: older
+  attribution: {surface: [order_email_html, order_email_text]}
+  topic: order
+- id: admin
+  name: Admin order page
+  release_introduced: older
+  attribution: {surface: [admin_order]}
+  topic: order
