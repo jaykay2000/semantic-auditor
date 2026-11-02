@@ -1,5 +1,11 @@
 # Saved-check stability: 5 more runs of C1-04 and C1-04-v1 from storage (2026-11-01)
 
+**Batch 2 (same day, after restarting the two storefront dev servers): 8 of 10 check runs `fix_confirmed`, 0 replay
+timeouts, 2 garbled record values, no wrong outcome, $2.755. See [batch-2/README.md](batch-2/README.md).** Both
+batches together: 13 of 20 check runs confirmed the fix, none gave a wrong outcome; the 7 misses are 4 garbled record
+values and 3 replay timeouts (all 3 in batch 1, on dev servers that had slowed down after nearly 2 days). This page
+below is batch 1.
+
 **Result: C1-04 `fix_confirmed` in 3 of 5 runs, C1-04-v1 in 2 of 5. All-in cost $1.646.** Of the 5 check runs that
 did not confirm a fix, 2 failed in the judging (one judgment wrote a garbled record value even after its re-asks, so
 its evidence was only partly verified) and 3 failed in the browser replay (a page load or click timed out on the

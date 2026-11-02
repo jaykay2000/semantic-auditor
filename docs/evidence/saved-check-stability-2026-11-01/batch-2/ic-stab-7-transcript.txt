@@ -1,0 +1,11 @@
+current: preflight ok (Demo Store, no beta name)
+current: store reset after run: {'release': 'current', 'seconds': 6.8}
+candidate: preflight ok (Demo Store, no beta name)
+candidate: store reset after run: {'release': 'candidate', 'seconds': 5.7}
+C1-04 current: replay=succeeded assertion=fail {'fail': 2, 'pass': 1} confidence=2/3 evidence=verified judged_by=meta-models/muse-spark-open-1026
+C1-04 candidate: replay=succeeded assertion=not_measurable {'pass': 3} confidence=3/3 evidence=partially_verified judged_by=meta-models/muse-spark-open-1026
+C1-04 current->candidate: not_confirmed (head assertion not measurable (pass without verified evidence (partially_verified)))
+C1-04-v1 current: replay=succeeded assertion=fail {'fail': 3} confidence=3/3 evidence=verified judged_by=meta-models/muse-spark-open-1026
+C1-04-v1 candidate: replay=succeeded assertion=not_measurable {'pass': 3} confidence=3/3 evidence=partially_verified judged_by=meta-models/muse-spark-open-1026
+C1-04-v1 current->candidate: not_confirmed (head assertion not measurable (pass without verified evidence (partially_verified)))
+{"tag": "saved:ic-stab-7", "fresh": true, "calls": 27, "cached": 0, "spent_usd": 0.325485, "if_fresh_usd": 0.325485, "by_role": {"check_judge": {"calls": 27, "cached": 0, "spent_usd": 0.325485, "if_fresh_usd": 0.325485, "prompt_tokens": 100258, "completion_tokens": 47097}}}

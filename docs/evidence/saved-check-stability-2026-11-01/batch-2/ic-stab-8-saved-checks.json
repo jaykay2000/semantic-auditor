@@ -1,0 +1,1472 @@
+{
+ "run": "ic-stab-8",
+ "at": "2026-11-02T03:12:01+00:00",
+ "base": "current",
+ "head": "candidate",
+ "loaded_from_storage": {
+  "approvals.yaml": "b95ca35159dbcb55",
+  "dispositions.yaml": "174022f22be2f7b4",
+  "checks/C1-04.yaml": "d3408fbc3d2146e2",
+  "checks/C1-04-v1.yaml": "df192ed9b46a8907"
+ },
+ "refused": [],
+ "checks": [
+  {
+   "id": "C1-04",
+   "approved_digest": "f0cb1dc9ee14fc8f",
+   "digest": "f0cb1dc9ee14fc8f",
+   "approved_by": "Jayant Kumar",
+   "results": {
+    "current": {
+     "check": "C1-04",
+     "check_digest": "f0cb1dc9ee14fc8f",
+     "approved": true,
+     "models": {
+      "conversion": "meta-models/muse-spark-open-1026",
+      "judging": "meta-models/muse-spark-open-1026"
+     },
+     "release": "current",
+     "episode": "current/ic_c1-04/IC-C1-04",
+     "replay": {
+      "status": "succeeded",
+      "reasons": [],
+      "notes": [],
+      "surface_messages": 1
+     },
+     "assertion": {
+      "outcome": "fail",
+      "votes": {
+       "fail": 3
+      }
+     },
+     "semantic_confidence": {
+      "level": "high",
+      "agreement": "3/3",
+      "judgments": 3
+     },
+     "evidence": {
+      "status": "verified",
+      "per_judgment": [
+       "verified",
+       "verified",
+       "verified"
+      ]
+     },
+     "judgments": [
+      {
+       "outcome": "fail",
+       "why": "Email item line is correct (2*89.99=179.98) and subtotal matches, but summary arithmetic fails when counting displayed components exactly once. Displayed: Subtotal 179.98 + Promotion -15.00 + Shipping 0.00 + Tax 14.40 = 179.38, not the displayed Order Total 194.38 (diff 15.00). Record shows delivery cost 15.00 discounted by -15.00 to net 0.00, total = 179.98+15.00-15.00+14.40=194.38. Email shows net Shipping $0.00 yet also subtracts Promotion -$15.00, so either shipping is understated vs record cost $15.00 or discount is double-counted; the shown figures do not reconcile to the shown total.",
+       "cited": [
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "DRIP-COFFEE-MAKER-BLACK Drip Coffee Maker 1.5L Color: Matte Black (2) @ $89.99 = $179.98"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Subtotal: $179.98"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Promotion: Promotion (Free Shipping) -$15.00"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Shipping: Express $0.00"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Tax: $14.40"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Order Total: $194.38"
+        }
+       ],
+       "record": [
+        {
+         "field": "order.item_total",
+         "value": "179.98"
+        },
+        {
+         "field": "order.discount_total",
+         "value": "-15.0"
+        },
+        {
+         "field": "order.delivery_total",
+         "value": "15.0"
+        },
+        {
+         "field": "order.tax_total",
+         "value": "14.4"
+        },
+        {
+         "field": "order.total",
+         "value": "194.38"
+        },
+        {
+         "field": "fulfillments[0].cost",
+         "value": "15.0"
+        },
+        {
+         "field": "fulfillments[0].discount_total",
+         "value": "-15.0"
+        },
+        {
+         "field": "fulfillments[0].total",
+         "value": "0.0"
+        }
+       ],
+       "seed": 2001,
+       "model": "meta-models/muse-spark-open-1026",
+       "cached": false,
+       "cost_usd": 0.01343625,
+       "runaway_retries": 0,
+       "runaway_cost_usd": 0.0,
+       "malformed_reasks": 1,
+       "malformed_discarded": [
+        {
+         "seed": 1,
+         "outcome": "fail",
+         "malformed": [
+          "order.item_total: '><path>order.item_total</path><value>179'",
+          "order.discount_total: '><path>order.discount_total</path><value'",
+          "order.delivery_total: '><path>order.delivery_total</path><value'",
+          "order.tax_total: '><path>order.tax_total</path><value>14.4'",
+          "order.total: '><path>order.total</path><value>194.38</'",
+          "order.items[0].price: '><path>order.items[0].price</path><value'",
+          "order.items[0].quantity: '><path>order.items[0].quantity</path><va'",
+          "fulfillments[0].cost: '><path>order.fulfillments[0].cost</path>'",
+          "fulfillments[0].discount_total: '><path>order.fulfillments[0].discount_to'",
+          "fulfillments[0].total: '><path>order.fulfillments[0].total</path'"
+         ],
+         "cost_usd": 0.0132195
+        }
+       ],
+       "evidence": {
+        "status": "verified",
+        "quotes_ok": 6,
+        "quotes_bare": [],
+        "quotes_refused": [],
+        "record_ok": [
+         "order.item_total = 179.98",
+         "order.discount_total = -15.0",
+         "order.delivery_total = 15.0",
+         "order.tax_total = 14.4",
+         "order.total = 194.38",
+         "fulfillments[0].cost = 15.0",
+         "fulfillments[0].discount_total = -15.0",
+         "fulfillments[0].total = 0.0"
+        ],
+        "record_refused": []
+       }
+      },
+      {
+       "outcome": "fail",
+       "why": "Email sum check: line 2 x $89.99 = $179.98 matches Subtotal $179.98. Email arithmetic: Subtotal $179.98 + Shipping $0.00 + Tax $14.40 + Promotion -$15.00 = $179.38. Shown Order Total $194.38. 179.38 != 194.38, difference $15.00. Record shows gross delivery cost $15.00 with offsetting discount -$15.00 (net shipping $0.00) and total $194.38 = 179.98+15.00-15.00+14.40, so email counts discount once but shows net shipping $0.00 instead of gross $15.00, breaking 'each component counted exactly once' and arithmetic consistency.",
+       "cited": [
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "DRIP-COFFEE-MAKER-BLACK Drip Coffee Maker 1.5L Color: Matte Black (2) @ $89.99 = $179.98"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Subtotal: $179.98"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Promotion: Promotion (Free Shipping) -$15.00"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Shipping: Express $0.00"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Tax: $14.40"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Order Total: $194.38"
+        }
+       ],
+       "record": [
+        {
+         "field": "order.items[0].price",
+         "value": "89.99"
+        },
+        {
+         "field": "order.items[0].quantity",
+         "value": " 2"
+        },
+        {
+         "field": "order.item_total",
+         "value": "179.98"
+        },
+        {
+         "field": "order.discount_total",
+         "value": "-15.0"
+        },
+        {
+         "field": "order.delivery_total",
+         "value": "15.0"
+        },
+        {
+         "field": "order.tax_total",
+         "value": "14.4"
+        },
+        {
+         "field": "order.total",
+         "value": "194.38"
+        },
+        {
+         "field": "fulfillments[0].cost",
+         "value": "15.0"
+        },
+        {
+         "field": "fulfillments[0].total",
+         "value": "0.0"
+        },
+        {
+         "field": "fulfillments[0].discount_total",
+         "value": "-15.0"
+        }
+       ],
+       "seed": 2,
+       "model": "meta-models/muse-spark-open-1026",
+       "cached": false,
+       "cost_usd": 0.014384,
+       "runaway_retries": 0,
+       "runaway_cost_usd": 0.0,
+       "malformed_reasks": 0,
+       "malformed_discarded": [],
+       "evidence": {
+        "status": "verified",
+        "quotes_ok": 6,
+        "quotes_bare": [],
+        "quotes_refused": [],
+        "record_ok": [
+         "order.items[0].price = 89.99",
+         "order.items[0].quantity =  2",
+         "order.item_total = 179.98",
+         "order.discount_total = -15.0",
+         "order.delivery_total = 15.0",
+         "order.tax_total = 14.4",
+         "order.total = 194.38",
+         "fulfillments[0].cost = 15.0",
+         "fulfillments[0].total = 0.0",
+         "fulfillments[0].discount_total = -15.0"
+        ],
+        "record_refused": []
+       }
+      },
+      {
+       "outcome": "fail",
+       "why": "Email shows line (2) @ $89.99 = $179.98 => 2*89.99=179.98 correct and Subtotal $179.98 matches sum. However arithmetic fails when every displayed component counted exactly once: Subtotal $179.98 + Shipping $0.00 + Tax $14.40 - Promotion $15.00 = 179.38, but Order Total shown is $194.38 (difference $15.00). To reach shown total must ignore Promotion line (179.98+0+14.40=194.38) meaning Promotion is double-counted against the net shipping, violating \"counted exactly once\". Record confirms gross delivery $15.00 discounted by -$15.00 to net $0.00 for total $194.38, but email displays net shipping as $0.00 while also listing the discount separately.",
+       "cited": [
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "DRIP-COFFEE-MAKER-BLACK Drip Coffee Maker 1.5L Color: Matte Black (2) @ $89.99 = $179.98"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Subtotal: $179.98"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Promotion: Promotion (Free Shipping) -$15.00"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Shipping: Express $0.00"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Tax: $14.40"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Order Total: $194.38"
+        }
+       ],
+       "record": [
+        {
+         "field": "order.item_total",
+         "value": "179.98"
+        },
+        {
+         "field": "order.discount_total",
+         "value": "-15.0"
+        },
+        {
+         "field": "order.delivery_total",
+         "value": "15.0"
+        },
+        {
+         "field": "order.tax_total",
+         "value": "14.4"
+        },
+        {
+         "field": "order.total",
+         "value": "194.38"
+        },
+        {
+         "field": "fulfillments[0].cost",
+         "value": "15.0"
+        },
+        {
+         "field": "fulfillments[0].total",
+         "value": "0.0"
+        },
+        {
+         "field": "fulfillments[0].discount_total",
+         "value": "-15.0"
+        },
+        {
+         "field": "items[0].price",
+         "value": "89.99"
+        },
+        {
+         "field": "items[0].quantity",
+         "value": "2"
+        }
+       ],
+       "seed": 2003,
+       "model": "meta-models/muse-spark-open-1026",
+       "cached": false,
+       "cost_usd": 0.01464325,
+       "runaway_retries": 0,
+       "runaway_cost_usd": 0.0,
+       "malformed_reasks": 1,
+       "malformed_discarded": [
+        {
+         "seed": 3,
+         "outcome": "fail",
+         "malformed": [
+          "order.item_total: '179.98\\r\\n  Promotion: Promotion (Free Shi'",
+          "order.item_total: '179.98\\r\\n  Promotion: Promotion (Free Shi'",
+          "order.item_total: '179.98\\r\\n  Promotion: Promotion (Free Shi'",
+          "order.item_total: '179.98\\r\\n  Promotion: Promotion (Free Shi'",
+          "order.item_total: '179.98\\r\\n  Promotion: Promotion (Free Shi'",
+          "order.item_total: '179.98\\r\\n  Promotion: Promotion (Free Shi'",
+          "order.item_total: '179.98\\r\\n  Promotion: Promotion (Free Shi'",
+          "order.item_total: '179.98\\r\\n  Promotion: Promotion (Free Shi'",
+          "order.item_total: '179.98\\r\\n  Promotion: Promotion (Free Shi'"
+         ],
+         "cost_usd": 0.01503
+        }
+       ],
+       "evidence": {
+        "status": "verified",
+        "quotes_ok": 6,
+        "quotes_bare": [],
+        "quotes_refused": [],
+        "record_ok": [
+         "order.item_total = 179.98",
+         "order.discount_total = -15.0",
+         "order.delivery_total = 15.0",
+         "order.tax_total = 14.4",
+         "order.total = 194.38",
+         "fulfillments[0].cost = 15.0",
+         "fulfillments[0].total = 0.0",
+         "fulfillments[0].discount_total = -15.0",
+         "items[0].price = 89.99",
+         "items[0].quantity = 2"
+        ],
+        "record_refused": []
+       }
+      }
+     ],
+     "payload_sha256": "ac77e7fb8e6422f0",
+     "runaway_retries": 0,
+     "malformed_reasks": 2,
+     "cost_usd": 0.070713
+    },
+    "candidate": {
+     "check": "C1-04",
+     "check_digest": "f0cb1dc9ee14fc8f",
+     "approved": true,
+     "models": {
+      "conversion": "meta-models/muse-spark-open-1026",
+      "judging": "meta-models/muse-spark-open-1026"
+     },
+     "release": "candidate",
+     "episode": "candidate/ic_c1-04/IC-C1-04",
+     "replay": {
+      "status": "succeeded",
+      "reasons": [],
+      "notes": [],
+      "surface_messages": 1
+     },
+     "assertion": {
+      "outcome": "pass",
+      "votes": {
+       "pass": 3
+      }
+     },
+     "semantic_confidence": {
+      "level": "high",
+      "agreement": "3/3",
+      "judgments": 3
+     },
+     "evidence": {
+      "status": "verified",
+      "per_judgment": [
+       "verified",
+       "verified",
+       "verified"
+      ]
+     },
+     "judgments": [
+      {
+       "outcome": "pass",
+       "why": "Line amount 2\u00d789.99=179.98 matches Subtotal 179.98. Summary arithmetic: 179.98 (subtotal) +15.00 (shipping) -15.00 (promotion) +14.40 (tax) =194.38 which equals Order Total 194.38. All components match the order record.",
+       "cited": [
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "DRIP-COFFEE-MAKER-BLACK Drip Coffee Maker 1.5L Color: Matte Black (2) @ $89.99 = $179.98"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Subtotal: $179.98"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Promotion: Promotion (Free Shipping) -$15.00"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Shipping: Express $15.00"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Tax: $14.40"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Order Total: $194.38"
+        }
+       ],
+       "record": [
+        {
+         "field": "order.items[0].quantity",
+         "value": "2"
+        },
+        {
+         "field": "order.items[0].price",
+         "value": "89.99"
+        },
+        {
+         "field": "order.item_total",
+         "value": "179.98"
+        },
+        {
+         "field": "order.discount_total",
+         "value": "-15.0"
+        },
+        {
+         "field": "order.delivery_total",
+         "value": "15.0"
+        },
+        {
+         "field": "order.tax_total",
+         "value": "14.4"
+        },
+        {
+         "field": "order.total",
+         "value": "194.38"
+        }
+       ],
+       "seed": 1,
+       "model": "meta-models/muse-spark-open-1026",
+       "cached": false,
+       "cost_usd": 0.00987475,
+       "runaway_retries": 0,
+       "runaway_cost_usd": 0.0,
+       "malformed_reasks": 0,
+       "malformed_discarded": [],
+       "evidence": {
+        "status": "verified",
+        "quotes_ok": 6,
+        "quotes_bare": [],
+        "quotes_refused": [],
+        "record_ok": [
+         "order.items[0].quantity = 2",
+         "order.items[0].price = 89.99",
+         "order.item_total = 179.98",
+         "order.discount_total = -15.0",
+         "order.delivery_total = 15.0",
+         "order.tax_total = 14.4",
+         "order.total = 194.38"
+        ],
+        "record_refused": []
+       }
+      },
+      {
+       "outcome": "pass",
+       "why": "Line 2*89.99=179.98 matches subtotal 179.98. Total = 179.98(subtotal)+15.00(shipping)+0(fees)+14.40(tax)-15.00(discount)=194.38 which equals Order Total shown, and all amounts match record.",
+       "cited": [
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "DRIP-COFFEE-MAKER-BLACK Drip Coffee Maker 1.5L Color: Matte Black (2) @ $89.99 = $179.98"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Subtotal: $179.98"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Promotion: Promotion (Free Shipping) -$15.00"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Shipping: Express $15.00"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Tax: $14.40"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Order Total: $194.38"
+        }
+       ],
+       "record": [
+        {
+         "field": "order.item_total",
+         "value": "179.98"
+        },
+        {
+         "field": "order.discount_total",
+         "value": "-15.0"
+        },
+        {
+         "field": "order.delivery_total",
+         "value": "15.0"
+        },
+        {
+         "field": "order.fee_total",
+         "value": "0.0"
+        },
+        {
+         "field": "order.tax_total",
+         "value": "14.4"
+        },
+        {
+         "field": "order.total",
+         "value": "194.38"
+        },
+        {
+         "field": "order.items[0].price",
+         "value": "89.99"
+        },
+        {
+         "field": "order.items[0].quantity",
+         "value": "2"
+        }
+       ],
+       "seed": 2004,
+       "model": "meta-models/muse-spark-open-1026",
+       "cached": false,
+       "cost_usd": 0.0101425,
+       "runaway_retries": 3,
+       "runaway_cost_usd": 0.09048,
+       "malformed_reasks": 3,
+       "malformed_discarded": [
+        {
+         "seed": 2,
+         "outcome": "pass",
+         "malformed": [
+          "order.discount_total: ' -  15'"
+         ],
+         "cost_usd": 0.03866625
+        },
+        {
+         "seed": 2002,
+         "outcome": "pass",
+         "malformed": [
+          "order.item_total: '***_total\" \"***_total\"'",
+          "total: '***_total\" \"***_total\"'",
+          "items[0].price: '***_total\"'",
+          "order.items[0].quantity: '***_total\"'",
+          "order.discount_total: '***_total\"'",
+          "order.delivery_total: '***_total\"'",
+          "order.tax_total: '***_total\"'",
+          "order.fee_total: '***_total\"'"
+         ],
+         "cost_usd": 0.039681999999999995
+        },
+        {
+         "seed": 2003,
+         "outcome": "pass",
+         "malformed": [
+          "order.items[0].price: ', \"value\": 89.99'",
+          "order.items[0].quantity: ', \"value\": 2'",
+          "order.item_total: ', \"value\": 179.98'",
+          "order.discount_total: ', \"value\": -15'",
+          "order.delivery_total: ', \"value\": 15'",
+          "order.tax_total: ', \"value\": 14.4'",
+          "order.total: ', \"value\": 194.38'"
+         ],
+         "cost_usd": 0.03907425
+        }
+       ],
+       "evidence": {
+        "status": "verified",
+        "quotes_ok": 6,
+        "quotes_bare": [],
+        "quotes_refused": [],
+        "record_ok": [
+         "order.item_total = 179.98",
+         "order.discount_total = -15.0",
+         "order.delivery_total = 15.0",
+         "order.fee_total = 0.0",
+         "order.tax_total = 14.4",
+         "order.total = 194.38",
+         "order.items[0].price = 89.99",
+         "order.items[0].quantity = 2"
+        ],
+        "record_refused": []
+       }
+      },
+      {
+       "outcome": "pass",
+       "why": "Email line: 89.99*2=179.98 matches displayed $179.98; subtotal $179.98 matches sum of lines (179.98). Total recomputed: 179.98 (subtotal) +15.00 (shipping) +14.40 (tax) -15.00 (promotion discount) = 194.38 which equals displayed Order Total $194.38. All components counted once and match order record values.",
+       "cited": [
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Drip Coffee Maker 1.5L Color: Matte Black (2) @ $89.99 = $179.98"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Subtotal: $179.98"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Promotion: Promotion (Free Shipping) -$15.00"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Shipping: Express $15.00"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Tax: $14.40"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Order Total: $194.38"
+        }
+       ],
+       "record": [
+        {
+         "field": "order.item_total",
+         "value": ": 179.98"
+        },
+        {
+         "field": "order.items[0].price",
+         "value": ": 89.99"
+        },
+        {
+         "field": "order.items[0].quantity",
+         "value": ": 2"
+        },
+        {
+         "field": "order.discount_total",
+         "value": ": -15.0"
+        },
+        {
+         "field": "order.delivery_total",
+         "value": ": 15.0"
+        },
+        {
+         "field": "order.tax_total",
+         "value": ": 14.4"
+        },
+        {
+         "field": "order.total",
+         "value": ": 194.38"
+        },
+        {
+         "field": "order.fee_total",
+         "value": ": 0.0"
+        }
+       ],
+       "seed": 3,
+       "model": "meta-models/muse-spark-open-1026",
+       "cached": false,
+       "cost_usd": 0.00855725,
+       "runaway_retries": 0,
+       "runaway_cost_usd": 0.0,
+       "malformed_reasks": 0,
+       "malformed_discarded": [],
+       "evidence": {
+        "status": "verified",
+        "quotes_ok": 6,
+        "quotes_bare": [],
+        "quotes_refused": [],
+        "record_ok": [
+         "order.item_total = : 179.98",
+         "order.items[0].price = : 89.99",
+         "order.items[0].quantity = : 2",
+         "order.discount_total = : -15.0",
+         "order.delivery_total = : 15.0",
+         "order.tax_total = : 14.4",
+         "order.total = : 194.38",
+         "order.fee_total = : 0.0"
+        ],
+        "record_refused": []
+       }
+      }
+     ],
+     "payload_sha256": "650e823ce44c26b4",
+     "runaway_retries": 3,
+     "malformed_reasks": 3,
+     "cost_usd": 0.236477
+    }
+   },
+   "memory": {
+    "kind": "check_outcome",
+    "check": "C1-04",
+    "check_digest": "f0cb1dc9ee14fc8f",
+    "run": "ic-stab-8",
+    "base": "current",
+    "head": "candidate",
+    "status": "fix_confirmed",
+    "why": "fails on the base, passes on the head with verified evidence",
+    "base_assertion": "fail",
+    "head_assertion": "pass",
+    "decision": null,
+    "decision_applies": false
+   }
+  },
+  {
+   "id": "C1-04-v1",
+   "approved_digest": "30f3f436e3fa99a5",
+   "digest": "30f3f436e3fa99a5",
+   "approved_by": "Jayant Kumar",
+   "results": {
+    "current": {
+     "check": "C1-04-v1",
+     "check_digest": "30f3f436e3fa99a5",
+     "approved": true,
+     "models": {
+      "conversion": "meta-models/muse-spark-open-1026",
+      "judging": "meta-models/muse-spark-open-1026"
+     },
+     "release": "current",
+     "episode": "current/ic_c1-04-v1/IC-C1-04-v1",
+     "replay": {
+      "status": "succeeded",
+      "reasons": [],
+      "notes": [],
+      "surface_messages": 1
+     },
+     "assertion": {
+      "outcome": "fail",
+      "votes": {
+       "fail": 3
+      }
+     },
+     "semantic_confidence": {
+      "level": "high",
+      "agreement": "3/3",
+      "judgments": 3
+     },
+     "evidence": {
+      "status": "verified",
+      "per_judgment": [
+       "verified",
+       "verified",
+       "verified"
+      ]
+     },
+     "judgments": [
+      {
+       "outcome": "fail",
+       "why": "Email shows Subtotal $149.97, Shipping $0.00, Tax $12.00, Promotion -$15.00 and Total $161.97. Arithmetic with every component counted once: 149.97 + 0.00 + 12.00 - 15.00 = 146.97, not 161.97 (difference $15.00). The record has delivery_total $15.00 (gross cost $15.00, discount -$15.00, net total $0.00) and discount_total -$15.00, so correct total is 149.97 + 15.00 + 12.00 - 15.00 = 161.97. The email displays the net shipping ($0.00) while also deducting the free-shipping promotion, under-counting delivery by $15.00 and breaking subtotal+delivery+tax-discounts=total and the match to the order record.",
+       "cited": [
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "PERSONAL-BLENDER-WHITE Personal Blender 600ml Color: White (3) @ $49.99 = $149.97"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Subtotal: $149.97"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Promotion: Promotion (Free Shipping) -$15.00"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Shipping: Express $0.00"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Tax: $12.00"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Order Total: $161.97"
+        }
+       ],
+       "record": [
+        {
+         "field": "order.total",
+         "value": "161.97"
+        },
+        {
+         "field": "order.item_total",
+         "value": "149.97"
+        },
+        {
+         "field": "order.delivery_total",
+         "value": "15.0"
+        },
+        {
+         "field": "order.discount_total",
+         "value": "-15.0"
+        },
+        {
+         "field": "order.tax_total",
+         "value": "12.0"
+        },
+        {
+         "field": "order.items[0].price",
+         "value": "49.99"
+        },
+        {
+         "field": "order.items[0].quantity",
+         "value": "3"
+        },
+        {
+         "field": "fulfillments[0].cost",
+         "value": "15.0"
+        },
+        {
+         "field": "fulfillments[0].total",
+         "value": "0.0"
+        },
+        {
+         "field": "fulfillments[0].discount_total",
+         "value": "-15.0"
+        }
+       ],
+       "seed": 1,
+       "model": "meta-models/muse-spark-open-1026",
+       "cached": false,
+       "cost_usd": 0.01245775,
+       "runaway_retries": 0,
+       "runaway_cost_usd": 0.0,
+       "malformed_reasks": 0,
+       "malformed_discarded": [],
+       "evidence": {
+        "status": "verified",
+        "quotes_ok": 6,
+        "quotes_bare": [],
+        "quotes_refused": [],
+        "record_ok": [
+         "order.total = 161.97",
+         "order.item_total = 149.97",
+         "order.delivery_total = 15.0",
+         "order.discount_total = -15.0",
+         "order.tax_total = 12.0",
+         "order.items[0].price = 49.99",
+         "order.items[0].quantity = 3",
+         "fulfillments[0].cost = 15.0",
+         "fulfillments[0].total = 0.0",
+         "fulfillments[0].discount_total = -15.0"
+        ],
+        "record_refused": []
+       }
+      },
+      {
+       "outcome": "fail",
+       "why": "Email shows Subtotal $149.97 (149.97) = 3x$49.99, correctly, Tax $12.00 and Shipping $0.00 and Promotion -$15.00 with total $161.97. Summing as displayed: 149.97 + 0.00 (shipping) + 12.00 (tax) + (-15.00) (promotion) = 146.97 != 161.97 total shown. Record net is 149.97 + 15.00 delivery + 12.00 tax + (-15.00) discount = 161.97, so email double-counts discount by showing net shipping 0 while also listing promotion -15, or omits the $15 delivery cost from total arithmetic. Amount mismatch vs record delivery_total.",
+       "cited": [
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "PERSONAL-BLENDER-WHITE Personal Blender 600ml Color: White (3) @ $49.99 = $149.97"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Subtotal: $149.97"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Promotion: Promotion (Free Shipping) -$15.00"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Shipping: Express $0.00"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Tax: $12.00"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Order Total: $161.97"
+        }
+       ],
+       "record": [
+        {
+         "field": "order.item_total",
+         "value": "149.97"
+        },
+        {
+         "field": "order.delivery_total",
+         "value": "15.0"
+        },
+        {
+         "field": "order.discount_total",
+         "value": "-15.0"
+        },
+        {
+         "field": "order.tax_total",
+         "value": "12.0"
+        },
+        {
+         "field": "order.total",
+         "value": "161.97"
+        },
+        {
+         "field": "fulfillments[0].cost",
+         "value": "15.0"
+        },
+        {
+         "field": "fulfillments[0].total",
+         "value": "0.0"
+        },
+        {
+         "field": "fulfillments[0].discount_total",
+         "value": "-15.0"
+        },
+        {
+         "field": "discounts[0].amount",
+         "value": "-15.0"
+        },
+        {
+         "field": "order.items[0].price",
+         "value": "49.99"
+        },
+        {
+         "field": "order.items[0].quantity",
+         "value": "3"
+        }
+       ],
+       "seed": 2,
+       "model": "meta-models/muse-spark-open-1026",
+       "cached": false,
+       "cost_usd": 0.01424275,
+       "runaway_retries": 0,
+       "runaway_cost_usd": 0.0,
+       "malformed_reasks": 0,
+       "malformed_discarded": [],
+       "evidence": {
+        "status": "verified",
+        "quotes_ok": 6,
+        "quotes_bare": [],
+        "quotes_refused": [],
+        "record_ok": [
+         "order.item_total = 149.97",
+         "order.delivery_total = 15.0",
+         "order.discount_total = -15.0",
+         "order.tax_total = 12.0",
+         "order.total = 161.97",
+         "fulfillments[0].cost = 15.0",
+         "fulfillments[0].total = 0.0",
+         "fulfillments[0].discount_total = -15.0",
+         "discounts[0].amount = -15.0",
+         "order.items[0].price = 49.99",
+         "order.items[0].quantity = 3"
+        ],
+        "record_refused": []
+       }
+      },
+      {
+       "outcome": "fail",
+       "why": "Line amount correct: 3 * 49.99 = 149.97 matches Subtotal 149.97. But summing displayed components as listed: 149.97 (subtotal) + (-15.00) (promotion) + 0.00 (shipping) + 12.00 (tax) = 146.97, which does not equal Order Total 161.97. Correct total from components if counted once is 149.97 + 0.00 + 12.00 = 161.97, so the email double-counts the free-shipping discount by listing both Promotion -$15 and Shipping $0.00 (net). Shipping $0.00 also does not match gross delivery_total 15.00 in record (net total is 0.00 after discount).",
+       "cited": [
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "PERSONAL-BLENDER-WHITE Personal Blender 600ml Color: White (3) @ $49.99 = $149.97"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Subtotal: $149.97"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Promotion: Promotion (Free Shipping) -$15.00"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Shipping: Express $0.00"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Tax: $12.00"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Order Total: $161.97"
+        }
+       ],
+       "record": [
+        {
+         "field": "order.items[0].price",
+         "value": "49.99"
+        },
+        {
+         "field": "order.items[0].quantity",
+         "value": "3"
+        },
+        {
+         "field": "order.item_total",
+         "value": "149.97"
+        },
+        {
+         "field": "order.discount_total",
+         "value": "-15.0"
+        },
+        {
+         "field": "order.delivery_total",
+         "value": "15.0"
+        },
+        {
+         "field": "order.fulfillments[0].cost",
+         "value": "15.0"
+        },
+        {
+         "field": "order.fulfillments[0].total",
+         "value": "0.0"
+        },
+        {
+         "field": "order.fulfillments[0].discount_total",
+         "value": "-15.0"
+        },
+        {
+         "field": "order.tax_total",
+         "value": "12.0"
+        },
+        {
+         "field": "order.total",
+         "value": "161.97"
+        },
+        {
+         "field": "order.discounts[0].amount",
+         "value": "-15.0"
+        }
+       ],
+       "seed": 3,
+       "model": "meta-models/muse-spark-open-1026",
+       "cached": false,
+       "cost_usd": 0.013567,
+       "runaway_retries": 0,
+       "runaway_cost_usd": 0.0,
+       "malformed_reasks": 0,
+       "malformed_discarded": [],
+       "evidence": {
+        "status": "verified",
+        "quotes_ok": 6,
+        "quotes_bare": [],
+        "quotes_refused": [],
+        "record_ok": [
+         "order.items[0].price = 49.99",
+         "order.items[0].quantity = 3",
+         "order.item_total = 149.97",
+         "order.discount_total = -15.0",
+         "order.delivery_total = 15.0",
+         "order.fulfillments[0].cost = 15.0",
+         "order.fulfillments[0].total = 0.0",
+         "order.fulfillments[0].discount_total = -15.0",
+         "order.tax_total = 12.0",
+         "order.total = 161.97",
+         "order.discounts[0].amount = -15.0"
+        ],
+        "record_refused": []
+       }
+      }
+     ],
+     "payload_sha256": "61c1811e7a8847b1",
+     "runaway_retries": 0,
+     "malformed_reasks": 0,
+     "cost_usd": 0.040267
+    },
+    "candidate": {
+     "check": "C1-04-v1",
+     "check_digest": "30f3f436e3fa99a5",
+     "approved": true,
+     "models": {
+      "conversion": "meta-models/muse-spark-open-1026",
+      "judging": "meta-models/muse-spark-open-1026"
+     },
+     "release": "candidate",
+     "episode": "candidate/ic_c1-04-v1/IC-C1-04-v1",
+     "replay": {
+      "status": "succeeded",
+      "reasons": [],
+      "notes": [],
+      "surface_messages": 1
+     },
+     "assertion": {
+      "outcome": "pass",
+      "votes": {
+       "pass": 3
+      }
+     },
+     "semantic_confidence": {
+      "level": "high",
+      "agreement": "3/3",
+      "judgments": 3
+     },
+     "evidence": {
+      "status": "verified",
+      "per_judgment": [
+       "verified",
+       "verified",
+       "verified"
+      ]
+     },
+     "judgments": [
+      {
+       "outcome": "pass",
+       "why": "Email shows line 3\u00d7$49.99=$149.97, Subtotal $149.97, Promotion -$15.00, Shipping $15.00, Tax $12.00, Total $161.97. Check: 3*49.99=149.97 matches line and subtotal; 149.97+15.00+12.00-15.00=161.97 matches total. All amounts match record: item_total 149.97, delivery_total 15.0, discount_total -15.0, tax_total 12.0, total 161.97, items[0].price 49.99 qty 3.",
+       "cited": [
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "PERSONAL-BLENDER-WHITE Personal Blender 600ml Color: White (3) @ $49.99 = $149.97"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Subtotal: $149.97"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Promotion: Promotion (Free Shipping) -$15.00"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Shipping: Express $15.00"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Tax: $12.00"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Order Total: $161.97"
+        }
+       ],
+       "record": [
+        {
+         "field": "order.item_total",
+         "value": "149.97"
+        },
+        {
+         "field": "order.discount_total",
+         "value": "-15.0"
+        },
+        {
+         "field": "order.delivery_total",
+         "value": "15.0"
+        },
+        {
+         "field": "order.tax_total",
+         "value": "12.0"
+        },
+        {
+         "field": "order.total",
+         "value": "161.97"
+        },
+        {
+         "field": "order.items[0].price",
+         "value": "49.99"
+        },
+        {
+         "field": "order.items[0].quantity",
+         "value": "3"
+        },
+        {
+         "field": "order.items[0].total",
+         "value": "161.97"
+        },
+        {
+         "field": "order.discounts[0].amount",
+         "value": "-15.0"
+        },
+        {
+         "field": "order.fulfillments[0].cost",
+         "value": "15.0"
+        }
+       ],
+       "seed": 1,
+       "model": "meta-models/muse-spark-open-1026",
+       "cached": false,
+       "cost_usd": 0.008963,
+       "runaway_retries": 0,
+       "runaway_cost_usd": 0.0,
+       "malformed_reasks": 0,
+       "malformed_discarded": [],
+       "evidence": {
+        "status": "verified",
+        "quotes_ok": 6,
+        "quotes_bare": [],
+        "quotes_refused": [],
+        "record_ok": [
+         "order.item_total = 149.97",
+         "order.discount_total = -15.0",
+         "order.delivery_total = 15.0",
+         "order.tax_total = 12.0",
+         "order.total = 161.97",
+         "order.items[0].price = 49.99",
+         "order.items[0].quantity = 3",
+         "order.items[0].total = 161.97",
+         "order.discounts[0].amount = -15.0",
+         "order.fulfillments[0].cost = 15.0"
+        ],
+        "record_refused": []
+       }
+      },
+      {
+       "outcome": "pass",
+       "why": "Email shows one line: 3 x $49.99 = $149.97 which equals 149.97 and reconciles to Subtotal $149.97. Total check: 149.97 (subtotal) + 15.00 (shipping) -15.00 (promotion discount) + 12.00 (tax) = 161.97 which matches displayed Order Total $161.97. Each amount matches the order record with no double-counting.",
+       "cited": [
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "PERSONAL-BLENDER-WHITE Personal Blender 600ml Color: White (3) @ $49.99 = $149.97"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Subtotal: $149.97"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Promotion: Promotion (Free Shipping) -$15.00"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Shipping: Express $15.00"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Tax: $12.00"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Order Total: $161.97"
+        }
+       ],
+       "record": [
+        {
+         "field": "order.items[0].price",
+         "value": "49.99"
+        },
+        {
+         "field": "order.items[0].quantity",
+         "value": "3\n"
+        },
+        {
+         "field": "order.item_total",
+         "value": "149.97\n"
+        },
+        {
+         "field": "order.discount_total",
+         "value": "-15.0\n"
+        },
+        {
+         "field": "order.delivery_total",
+         "value": "15.0\n"
+        },
+        {
+         "field": "order.tax_total",
+         "value": "12.0\n"
+        },
+        {
+         "field": "order.total",
+         "value": "161.97\n"
+        },
+        {
+         "field": "order.discounts[0].amount",
+         "value": "-15.0\n"
+        },
+        {
+         "field": "order.fulfillments[0].cost",
+         "value": "15.0\n"
+        }
+       ],
+       "seed": 2,
+       "model": "meta-models/muse-spark-open-1026",
+       "cached": false,
+       "cost_usd": 0.009796,
+       "runaway_retries": 0,
+       "runaway_cost_usd": 0.0,
+       "malformed_reasks": 0,
+       "malformed_discarded": [],
+       "evidence": {
+        "status": "verified",
+        "quotes_ok": 6,
+        "quotes_bare": [],
+        "quotes_refused": [],
+        "record_ok": [
+         "order.items[0].price = 49.99",
+         "order.items[0].quantity = 3\n",
+         "order.item_total = 149.97\n",
+         "order.discount_total = -15.0\n",
+         "order.delivery_total = 15.0\n",
+         "order.tax_total = 12.0\n",
+         "order.total = 161.97\n",
+         "order.discounts[0].amount = -15.0\n",
+         "order.fulfillments[0].cost = 15.0\n"
+        ],
+        "record_refused": []
+       }
+      },
+      {
+       "outcome": "pass",
+       "why": "Line amount: 3 * $49.99 = $149.97 matches line total $149.97; line totals sum to Subtotal $149.97. Total arithmetic: $149.97 (subtotal) + $15.00 (shipping) - $15.00 (promotion discount) + $12.00 (tax) = $161.97 which equals Order Total $161.97. All components counted once and match record values.",
+       "cited": [
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "PERSONAL-BLENDER-WHITE Personal Blender 600ml Color: White (3) @ $49.99 = $149.97"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Subtotal: $149.97"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Promotion: Promotion (Free Shipping) -$15.00"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Shipping: Express $15.00"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Tax: $12.00"
+        },
+        {
+         "event_id": "order_email_order_confirmation#2",
+         "quote": "Order Total: $161.97"
+        }
+       ],
+       "record": [
+        {
+         "field": "order.item_total",
+         "value": "149.97"
+        },
+        {
+         "field": "order.discount_total",
+         "value": "-15.0"
+        },
+        {
+         "field": "order.delivery_total",
+         "value": "15.0"
+        },
+        {
+         "field": "order.tax_total",
+         "value": "12.0"
+        },
+        {
+         "field": "order.total",
+         "value": "161.97"
+        },
+        {
+         "field": "order.items[0].price",
+         "value": "49.99"
+        },
+        {
+         "field": "order.items[0].quantity",
+         "value": "3"
+        },
+        {
+         "field": "order.items[0].pre_tax_amount",
+         "value": "149.97"
+        },
+        {
+         "field": "order.discounts[0].amount",
+         "value": "-15.0"
+        },
+        {
+         "field": "order.fulfillments[0].cost",
+         "value": "15.0"
+        },
+        {
+         "field": "order.fee_total",
+         "value": "0.0"
+        }
+       ],
+       "seed": 2003,
+       "model": "meta-models/muse-spark-open-1026",
+       "cached": false,
+       "cost_usd": 0.012006,
+       "runaway_retries": 0,
+       "runaway_cost_usd": 0.0,
+       "malformed_reasks": 1,
+       "malformed_discarded": [
+        {
+         "seed": 3,
+         "outcome": "pass",
+         "malformed": [
+          "order.item_total: '>< 149.97'",
+          "order.items[0].price: '>< 49.99'",
+          "order.items[0].quantity: '>< 3'",
+          "order.items[0].pre_tax_amount: '>< 149.97'",
+          "order.discount_total: '>< -15.0'",
+          "order.delivery_total: '>< 15.0'",
+          "order.tax_total: '>< 12.0'",
+          "order.fee_total: '>< 0.0'",
+          "order.total: '>< 161.97'",
+          "order.discounts[0].amount: '>< -15.0'",
+          "order.fulfillments[0].cost: '>< 15.0'"
+         ],
+         "cost_usd": 0.07107250000000001
+        }
+       ],
+       "evidence": {
+        "status": "verified",
+        "quotes_ok": 6,
+        "quotes_bare": [],
+        "quotes_refused": [],
+        "record_ok": [
+         "order.item_total = 149.97",
+         "order.discount_total = -15.0",
+         "order.delivery_total = 15.0",
+         "order.tax_total = 12.0",
+         "order.total = 161.97",
+         "order.items[0].price = 49.99",
+         "order.items[0].quantity = 3",
+         "order.items[0].pre_tax_amount = 149.97",
+         "order.discounts[0].amount = -15.0",
+         "order.fulfillments[0].cost = 15.0",
+         "order.fee_total = 0.0"
+        ],
+        "record_refused": []
+       }
+      }
+     ],
+     "payload_sha256": "3b7bc129cfe082fa",
+     "runaway_retries": 0,
+     "malformed_reasks": 1,
+     "cost_usd": 0.101838
+    }
+   },
+   "memory": {
+    "kind": "check_outcome",
+    "check": "C1-04-v1",
+    "check_digest": "30f3f436e3fa99a5",
+    "run": "ic-stab-8",
+    "base": "current",
+    "head": "candidate",
+    "status": "fix_confirmed",
+    "why": "fails on the base, passes on the head with verified evidence",
+    "base_assertion": "fail",
+    "head_assertion": "pass",
+    "decision": null,
+    "decision_applies": false
+   }
+  }
+ ]
+}

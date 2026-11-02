@@ -1,0 +1,11 @@
+current: preflight ok (Demo Store, no beta name)
+current: store reset after run: {'release': 'current', 'seconds': 7.0}
+candidate: preflight ok (Demo Store, no beta name)
+candidate: store reset after run: {'release': 'candidate', 'seconds': 6.8}
+C1-04 current: replay=succeeded assertion=fail {'fail': 3} confidence=3/3 evidence=verified judged_by=meta-models/muse-spark-open-1026
+C1-04 candidate: replay=succeeded assertion=pass {'pass': 3} confidence=3/3 evidence=verified judged_by=meta-models/muse-spark-open-1026
+C1-04 current->candidate: fix_confirmed (fails on the base, passes on the head with verified evidence)
+C1-04-v1 current: replay=succeeded assertion=fail {'fail': 3} confidence=3/3 evidence=verified judged_by=meta-models/muse-spark-open-1026
+C1-04-v1 candidate: replay=succeeded assertion=pass {'pass': 3} confidence=3/3 evidence=verified judged_by=meta-models/muse-spark-open-1026
+C1-04-v1 current->candidate: fix_confirmed (fails on the base, passes on the head with verified evidence)
+{"tag": "saved:ic-stab-10", "fresh": true, "calls": 25, "cached": 0, "spent_usd": 0.298869, "if_fresh_usd": 0.298869, "by_role": {"check_judge": {"calls": 25, "cached": 0, "spent_usd": 0.298869, "if_fresh_usd": 0.298869, "prompt_tokens": 92888, "completion_tokens": 43002}}}

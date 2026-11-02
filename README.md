@@ -173,14 +173,16 @@ All from [docs/evidence/imported-checks/README.md](docs/evidence/imported-checks
 - **Earlier runs, kept as they came out.** Run 2 did not pass: the newer release was `not_measurable` because 2 of 3
   readings ran to the reply-length cap. In Run 3, one reading wrongly passed the broken email and was outvoted 2 to 1;
   that is why agreement is its own status.
-- **Stability: 5 more runs from storage (2026-11-01, after the owner's approval).** The same `run-saved` against the
-  live local stores, nothing changed between runs: C1-04 `fix_confirmed` in 3 of 5 runs, the blender variant in 2
-  of 5. No run gave a wrong outcome: whenever the replay and the evidence held, it was FAIL on beta2 and PASS on
-  beta3. The 5 misses were 2 garbled record values (as in the owner's run: one of three readings still wrote junk
-  such as `')] }'` for a price after its re-asks, so its evidence was only partly verified) and 3 browser replays
-  that timed out on the local dev-mode storefront, which SRA records as not measurable. $1.65 for the 5 runs
+- **Stability: 10 more runs from storage (2026-11-01, after the owner's approval), in two batches of 5.** The same
+  `run-saved` against the live local stores, nothing changed between runs. No run gave a wrong outcome: whenever the
+  replay and the evidence held, it was FAIL on beta2 and PASS on beta3. Batch 1: C1-04 `fix_confirmed` in 3 of 5
+  runs, the blender variant in 2 of 5; the misses were 2 garbled record values and 3 browser replays that timed out
+  on dev-mode storefronts that had slowed down after nearly two days. Batch 2, after restarting the two storefronts:
+  8 of 10 check runs confirmed, every replay finished, and both misses were garbled record values (one of three
+  readings still wrote junk such as `'$179.98 converted to 179.98 copied as 179.98'` for the item total after its re-asks,
+  so its evidence was only partly verified). Together 13 of 20; $4.40 for the 10 runs
   ([evidence](docs/evidence/saved-check-stability-2026-11-01/README.md)). So the check gives the right answer when
-  it gives one, but it does not yet give one reliably.
+  it gives one, and about 1 run in 5 still ends without one because of garbled record values.
 - **Cost** (Muse Spark Open on Baseten): about $0.05 per conversion; $0.035 to $0.087 per replay on the held-out set,
   before the two judging fixes. With them, Run 3c cost $0.54 all-in for 2 checks on 2 releases, about $0.14 per check
   per release, because garbled replies are asked again.
@@ -338,6 +340,13 @@ current content. Otherwise the recommendation is `provisional` (exit 1) or `not_
 release review page says why. In `review --reader` mode (used for the Spree and Finablo reviews in the demo) the
 model reads every rule and every captured story and names the issues, and SRA checks each citation against the
 captures ([docs/03-architecture.md](docs/03-architecture.md)).
+
+**On a real app, Finablo v707 → v731 (24 release numbers apart, reader mode, 2026-11-01).** SRA reported 3 fixes,
+all real per the code history. It flagged 2 new issues that the owner confirmed: 1 regression, bisected to v708, and
+1 small one, both on target personas (written earlier to reproduce a known bug), not blind ones. It raised 2
+pre-existing issues (the owner: 1 real, 1 unsure). Limits: each reading alone missed items the other caught, and
+reworded copy gave 1 false "new" label and left 4 fixed items unconfirmed until checked by hand. $6.26 for both
+runs ([counts and verdicts only](docs/evidence/finablo-fresh-releases-2026-11-01/README.md)).
 
 **Visual confirmation (opt-in, off by default).** `semaudit visual <review.json> --out <copy.json> --max-usd 0.10` asks
 a model that reads images (`[roles.vision]` in `semaudit.toml`) whether each issue's flagged value is visible on its

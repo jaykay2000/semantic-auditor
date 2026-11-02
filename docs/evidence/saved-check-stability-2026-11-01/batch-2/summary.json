@@ -1,0 +1,363 @@
+{
+ "runs": [
+  {
+   "run": "ic-stab-10",
+   "at": "2026-11-02T03:26:59+00:00",
+   "cost_usd": 0.479722,
+   "loaded_from_storage": {
+    "approvals.yaml": "b95ca35159dbcb55",
+    "dispositions.yaml": "174022f22be2f7b4",
+    "checks/C1-04.yaml": "d3408fbc3d2146e2",
+    "checks/C1-04-v1.yaml": "df192ed9b46a8907"
+   }
+  },
+  {
+   "run": "ic-stab-6",
+   "at": "2026-11-02T02:55:22+00:00",
+   "cost_usd": 0.645587,
+   "loaded_from_storage": {
+    "approvals.yaml": "b95ca35159dbcb55",
+    "dispositions.yaml": "174022f22be2f7b4",
+    "checks/C1-04.yaml": "d3408fbc3d2146e2",
+    "checks/C1-04-v1.yaml": "df192ed9b46a8907"
+   }
+  },
+  {
+   "run": "ic-stab-7",
+   "at": "2026-11-02T03:03:20+00:00",
+   "cost_usd": 0.626874,
+   "loaded_from_storage": {
+    "approvals.yaml": "b95ca35159dbcb55",
+    "dispositions.yaml": "174022f22be2f7b4",
+    "checks/C1-04.yaml": "d3408fbc3d2146e2",
+    "checks/C1-04-v1.yaml": "df192ed9b46a8907"
+   }
+  },
+  {
+   "run": "ic-stab-8",
+   "at": "2026-11-02T03:12:01+00:00",
+   "cost_usd": 0.449295,
+   "loaded_from_storage": {
+    "approvals.yaml": "b95ca35159dbcb55",
+    "dispositions.yaml": "174022f22be2f7b4",
+    "checks/C1-04.yaml": "d3408fbc3d2146e2",
+    "checks/C1-04-v1.yaml": "df192ed9b46a8907"
+   }
+  },
+  {
+   "run": "ic-stab-9",
+   "at": "2026-11-02T03:19:17+00:00",
+   "cost_usd": 0.553448,
+   "loaded_from_storage": {
+    "approvals.yaml": "b95ca35159dbcb55",
+    "dispositions.yaml": "174022f22be2f7b4",
+    "checks/C1-04.yaml": "d3408fbc3d2146e2",
+    "checks/C1-04-v1.yaml": "df192ed9b46a8907"
+   }
+  }
+ ],
+ "total_cost_usd": 2.754926,
+ "rows": [
+  {
+   "run": "ic-stab-10",
+   "check": "C1-04",
+   "outcome": "fix_confirmed",
+   "why": "fails on the base, passes on the head with verified evidence",
+   "current": {
+    "assertion": "fail",
+    "votes": {
+     "fail": 3
+    },
+    "agreement": "3/3",
+    "evidence": "verified",
+    "replay": "succeeded",
+    "malformed_reasks": 5,
+    "runaway_retries": 0,
+    "cost_usd": 0.106708
+   },
+   "candidate": {
+    "assertion": "pass",
+    "votes": {
+     "pass": 3
+    },
+    "agreement": "3/3",
+    "evidence": "verified",
+    "replay": "succeeded",
+    "malformed_reasks": 3,
+    "runaway_retries": 2,
+    "cost_usd": 0.153715
+   }
+  },
+  {
+   "run": "ic-stab-10",
+   "check": "C1-04-v1",
+   "outcome": "fix_confirmed",
+   "why": "fails on the base, passes on the head with verified evidence",
+   "current": {
+    "assertion": "fail",
+    "votes": {
+     "fail": 3
+    },
+    "agreement": "3/3",
+    "evidence": "verified",
+    "replay": "succeeded",
+    "malformed_reasks": 4,
+    "runaway_retries": 0,
+    "cost_usd": 0.121027
+   },
+   "candidate": {
+    "assertion": "pass",
+    "votes": {
+     "pass": 3
+    },
+    "agreement": "3/3",
+    "evidence": "verified",
+    "replay": "succeeded",
+    "malformed_reasks": 1,
+    "runaway_retries": 1,
+    "cost_usd": 0.098272
+   }
+  },
+  {
+   "run": "ic-stab-6",
+   "check": "C1-04",
+   "outcome": "fix_confirmed",
+   "why": "fails on the base, passes on the head with verified evidence",
+   "current": {
+    "assertion": "fail",
+    "votes": {
+     "fail": 3
+    },
+    "agreement": "3/3",
+    "evidence": "verified",
+    "replay": "succeeded",
+    "malformed_reasks": 0,
+    "runaway_retries": 2,
+    "cost_usd": 0.106796
+   },
+   "candidate": {
+    "assertion": "pass",
+    "votes": {
+     "pass": 3
+    },
+    "agreement": "3/3",
+    "evidence": "verified",
+    "replay": "succeeded",
+    "malformed_reasks": 5,
+    "runaway_retries": 2,
+    "cost_usd": 0.234601
+   }
+  },
+  {
+   "run": "ic-stab-6",
+   "check": "C1-04-v1",
+   "outcome": "fix_confirmed",
+   "why": "fails on the base, passes on the head with verified evidence",
+   "current": {
+    "assertion": "fail",
+    "votes": {
+     "fail": 3
+    },
+    "agreement": "3/3",
+    "evidence": "verified",
+    "replay": "succeeded",
+    "malformed_reasks": 3,
+    "runaway_retries": 0,
+    "cost_usd": 0.110711
+   },
+   "candidate": {
+    "assertion": "pass",
+    "votes": {
+     "pass": 3
+    },
+    "agreement": "3/3",
+    "evidence": "verified",
+    "replay": "succeeded",
+    "malformed_reasks": 4,
+    "runaway_retries": 0,
+    "cost_usd": 0.193479
+   }
+  },
+  {
+   "run": "ic-stab-7",
+   "check": "C1-04",
+   "outcome": "not_confirmed",
+   "why": "head assertion not measurable (pass without verified evidence (partially_verified))",
+   "current": {
+    "assertion": "fail",
+    "votes": {
+     "fail": 2,
+     "pass": 1
+    },
+    "agreement": "2/3",
+    "evidence": "verified",
+    "replay": "succeeded",
+    "malformed_reasks": 3,
+    "runaway_retries": 1,
+    "cost_usd": 0.20943
+   },
+   "candidate": {
+    "assertion": "not_measurable",
+    "votes": {
+     "pass": 3
+    },
+    "agreement": "3/3",
+    "evidence": "partially_verified",
+    "replay": "succeeded",
+    "malformed_reasks": 4,
+    "runaway_retries": 0,
+    "cost_usd": 0.072553
+   }
+  },
+  {
+   "run": "ic-stab-7",
+   "check": "C1-04-v1",
+   "outcome": "not_confirmed",
+   "why": "head assertion not measurable (pass without verified evidence (partially_verified))",
+   "current": {
+    "assertion": "fail",
+    "votes": {
+     "fail": 3
+    },
+    "agreement": "3/3",
+    "evidence": "verified",
+    "replay": "succeeded",
+    "malformed_reasks": 5,
+    "runaway_retries": 1,
+    "cost_usd": 0.252574
+   },
+   "candidate": {
+    "assertion": "not_measurable",
+    "votes": {
+     "pass": 3
+    },
+    "agreement": "3/3",
+    "evidence": "partially_verified",
+    "replay": "succeeded",
+    "malformed_reasks": 3,
+    "runaway_retries": 0,
+    "cost_usd": 0.092317
+   }
+  },
+  {
+   "run": "ic-stab-8",
+   "check": "C1-04",
+   "outcome": "fix_confirmed",
+   "why": "fails on the base, passes on the head with verified evidence",
+   "current": {
+    "assertion": "fail",
+    "votes": {
+     "fail": 3
+    },
+    "agreement": "3/3",
+    "evidence": "verified",
+    "replay": "succeeded",
+    "malformed_reasks": 2,
+    "runaway_retries": 0,
+    "cost_usd": 0.070713
+   },
+   "candidate": {
+    "assertion": "pass",
+    "votes": {
+     "pass": 3
+    },
+    "agreement": "3/3",
+    "evidence": "verified",
+    "replay": "succeeded",
+    "malformed_reasks": 3,
+    "runaway_retries": 3,
+    "cost_usd": 0.236477
+   }
+  },
+  {
+   "run": "ic-stab-8",
+   "check": "C1-04-v1",
+   "outcome": "fix_confirmed",
+   "why": "fails on the base, passes on the head with verified evidence",
+   "current": {
+    "assertion": "fail",
+    "votes": {
+     "fail": 3
+    },
+    "agreement": "3/3",
+    "evidence": "verified",
+    "replay": "succeeded",
+    "malformed_reasks": 0,
+    "runaway_retries": 0,
+    "cost_usd": 0.040267
+   },
+   "candidate": {
+    "assertion": "pass",
+    "votes": {
+     "pass": 3
+    },
+    "agreement": "3/3",
+    "evidence": "verified",
+    "replay": "succeeded",
+    "malformed_reasks": 1,
+    "runaway_retries": 0,
+    "cost_usd": 0.101838
+   }
+  },
+  {
+   "run": "ic-stab-9",
+   "check": "C1-04",
+   "outcome": "fix_confirmed",
+   "why": "fails on the base, passes on the head with verified evidence",
+   "current": {
+    "assertion": "fail",
+    "votes": {
+     "fail": 3
+    },
+    "agreement": "3/3",
+    "evidence": "verified",
+    "replay": "succeeded",
+    "malformed_reasks": 0,
+    "runaway_retries": 3,
+    "cost_usd": 0.132961
+   },
+   "candidate": {
+    "assertion": "pass",
+    "votes": {
+     "pass": 3
+    },
+    "agreement": "3/3",
+    "evidence": "verified",
+    "replay": "succeeded",
+    "malformed_reasks": 3,
+    "runaway_retries": 6,
+    "cost_usd": 0.271869
+   }
+  },
+  {
+   "run": "ic-stab-9",
+   "check": "C1-04-v1",
+   "outcome": "fix_confirmed",
+   "why": "fails on the base, passes on the head with verified evidence",
+   "current": {
+    "assertion": "fail",
+    "votes": {
+     "fail": 3
+    },
+    "agreement": "3/3",
+    "evidence": "verified",
+    "replay": "succeeded",
+    "malformed_reasks": 1,
+    "runaway_retries": 0,
+    "cost_usd": 0.085753
+   },
+   "candidate": {
+    "assertion": "pass",
+    "votes": {
+     "pass": 3
+    },
+    "agreement": "3/3",
+    "evidence": "verified",
+    "replay": "succeeded",
+    "malformed_reasks": 0,
+    "runaway_retries": 1,
+    "cost_usd": 0.062865
+   }
+  }
+ ]
+}

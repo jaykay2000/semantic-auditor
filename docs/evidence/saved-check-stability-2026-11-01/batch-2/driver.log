@@ -1,0 +1,15 @@
+=== ic-stab-6 start 2026-11-02T02:52:03Z cap 0.8
+=== ic-stab-6 exit 0 end 2026-11-02T03:00:15Z
+batch cost after ic-stab-6: 0.6456
+=== ic-stab-7 start 2026-11-02T03:00:15Z cap 0.8
+=== ic-stab-7 exit 0 end 2026-11-02T03:08:58Z
+batch cost after ic-stab-7: 1.2725
+=== ic-stab-8 start 2026-11-02T03:08:58Z cap 0.8
+=== stopped by hand after ic-stab-8 (batch cap): driver killed before run 9; dispositions restored 2026-11-02T03:15:39Z
+=== ic-stab-9 start 2026-11-02T03:16:13Z cap 0.8
+=== ic-stab-9 exit 0 end 2026-11-02T03:23:51Z
+batch cost after ic-stab-9: 2.2752
+=== ic-stab-10 start 2026-11-02T03:23:51Z cap 0.8
+=== ic-stab-10 exit 0 end 2026-11-02T03:31:23Z
+batch cost after ic-stab-10: 2.7549
+=== done 2026-11-02T03:31:23Z
