@@ -1,14 +1,12 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><title>m9 beat 5: a rule no test assertion can express (Northbound)</title>
 <link rel="stylesheet" href="slides.css"><link rel="stylesheet" href="motion.css"><link rel="stylesheet" href="v9.css">
-<!-- Beat 5 v9 (1:39-2:02.5, 23.5 s). Voice-over, cue = clip seconds:
-       0.3  "No test assertion can express this rule:"
-       3.2  "when two features advise on the same decision, explain the tradeoff."   rule P2, key phrase lit at 6.5
-       7.8  "Maya is told prices will likely drop, so wait."                         10:01 email, both columns
-      11.6  "Two minutes later: lock this fare for nine euros."                      10:03 banner, both columns
-      15.3  "Lena gets the same two offers, plus a line explaining the choice."      10:04 concierge, Lena only
-      20.3  "SRA flags Maya and clears Lena."                                         FLAGGED 20.7 · CLEARED 22.0
-     ("In my test travel app," was cut to fund beat 3's visual moment; the header chip says it.)
+<!-- Beat 5 v9 (1:41-2:04, 23 s). Second owner review: re-timed to the words (Lena's line now arrives with "Lena",
+     Cleared with "clears"); one cue table. Voice-over ([cue] = CUES entry):
+       [head] No test assertion can express this rule: [rule] when two features advise on the same decision,
+       [key] explain the tradeoff. [maya] Maya is told [email] prices will likely drop, so wait. [two] Two minutes
+       later: [lock] lock this fare for nine euros. [lena] Lena gets the same two offers, [plus] plus a line explaining
+       the choice. SRA [flags] flags Maya and [clears] clears Lena.
      Maya and Lena side by side (owner review). Every message is the text the review recorded, set in sans (it is what
      the traveller read, not a machine artifact); times and verdicts are the review's. Data: window.DATA.v9.northbound
      (extract_v9.py, from runs/e2e-2/review-2.3-2.4.json and examples/northbound/contract/principles.yaml). The line
@@ -26,33 +24,42 @@
 .msg .m{font:650 22px var(--sans);letter-spacing:.04em;text-transform:uppercase;color:var(--ink3)}
 .msg .x{font:500 25px/1.3 var(--sans);color:var(--ink)}
 .msg.ex{border-color:#9FD3B6;background:#F4FBF7}
+.msg.ex.on{box-shadow:0 0 0 6px rgba(18,107,66,.16)}
 .vd{display:flex;align-items:center;gap:16px;margin-top:6px}
 .vd .verdict{font-size:36px;padding:6px 20px}
 .vd span{font:500 25px var(--sans);color:var(--ink2)}
 .none{font:500 24px var(--sans);color:var(--ink3)}
-</style></head><body data-duration="23.5">
+</style></head><body data-duration="23">
 <div id="hd"></div>
 <div class="stage" style="top:118px;bottom:56px">
-  <div class="lead in" style="--at:.3">No test assertion can express this rule.</div>
-  <div class="rule9 rl in" style="--at:3.2"><span class="k9">The owner's rule · P2</span><span class="t" id="rule"></span></div>
+  <div class="lead in" data-cue="head">No test assertion can express this rule.</div>
+  <div class="rule9 rl in" data-cue="rule"><span class="k9">The owner's rule · P2</span><span class="t" id="rule"></span></div>
   <div class="two" id="two"></div>
 </div>
 <div class="src9 fade" style="--at:.3"><b>Source:</b> SRA release review, Northbound 2.3 → 2.4 (a fictional travel app I built to test SRA) · rule P2, examples/northbound/contract</div>
+<script>
+// THE cue table (2.4 words/s from 0.3 s). Re-time here only.
+const CUES = {head: 0.3, rule: 3.22, key: 6.55, maya: 7.8, email: 9.05, two: 11.55, lock: 12.8, lena: 15.3, plus: 17.8,
+  flags: 20.72, clears: 21.97};
+</script>
 <script src="_v9.inc.js"></script>
 <script>
 const N = window.DATA.v9.northbound;
 const M = N.models, model = [...new Set(Object.values(M))].sort().reverse().map(m => m.replace('muse-spark-', '')).join(' · ');
 document.getElementById('hd').innerHTML = v9Head({app: 'northbound', note: 'my test travel app (fictional)', model: `Muse Spark ${model} · Meta API`});
-document.getElementById('rule').innerHTML = '“' + esc(N.rule.text).replace(N.rule.key_phrase, `<span class="hl9" style="--at:6.5">$&</span>`) + '”';
+document.getElementById('rule').innerHTML = '“' + esc(N.rule.text).replace(N.rule.key_phrase, `<span class="hl9" data-cue="key">$&</span>`) + '”';
 const FEAT = {price_watch: 'Price Watch', fare_lock: 'Fare Lock', concierge: 'Concierge'};
-const msg = (m, at, cls = '') => `<div class="msg ${cls} in" style="--at:${at}"><span class="m">${m.at} · ${FEAT[m.feature]} ${m.channel}</span><span class="x">${esc(m.text)}</span></div>`;
+const msg = (m, cue, cls = '') => `<div class="msg ${cls} in" data-cue="${cue}"><span class="m">${m.at} · ${FEAT[m.feature]} ${m.channel}</span><span class="x">${esc(m.text)}</span></div>`;
 const col = (p, last) => `<div class="col">
-  <div class="who in" style="--at:7.4">${p.name}<span>${p === N.maya ? 'flexible dates, books at 10:06' : 'the same trip and the same offers'}</span></div>
-  ${msg(p.offers[0], 8.6)}${msg(p.offers[1], 12.2)}${last}</div>`;
+  <div class="who in" data-cue="maya">${p.name}<span>${p === N.maya ? 'flexible dates, books at 10:06' : 'the same trip and the same offers'}</span></div>
+  ${msg(p.offers[0], 'email')}${msg(p.offers[1], 'lock')}${last}</div>`;
 document.getElementById('two').innerHTML =
-  col(N.maya, `<div class="vd"><span class="verdict bad pop" style="--at:20.8">Flagged</span><span class="fade" style="--at:21.1">unexplained tradeoff</span></div>`) +
-  col(N.lena, msg(N.lena.explains, 17.6, 'ex') + `<div class="vd"><span class="verdict good pop" style="--at:22">Cleared</span><span class="fade" style="--at:22.3">tradeoff explained, with no “explain” and no “tradeoff”</span></div>`);
+  col(N.maya, `<div class="vd"><span class="verdict bad pop" data-cue="flags">Flagged</span><span class="fade" data-cue="flags+0.3">unexplained tradeoff</span></div>`) +
+  col(N.lena, msg(N.lena.explains, 'lena', 'ex') + `<div class="vd"><span class="verdict good pop" data-cue="clears">Cleared</span><span class="fade" data-cue="clears+0.3">tradeoff explained, with no “explain” and no “tradeoff”</span></div>`);
 if (N.key_words_in_lena_message.length) throw new Error('Lena shares words with the rule');
+document.querySelector('.msg.ex').dataset.oncue = 'plus';   // the explaining line glows on "plus a line"
+applyCues(CUES);
 </script>
 <script src="motion.js"></script>
+<script>toggles();</script>
 </body></html>

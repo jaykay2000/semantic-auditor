@@ -1,24 +1,26 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><title>m9 beat 4, part 1: an agent's discovery becomes an approved check</title>
 <link rel="stylesheet" href="slides.css"><link rel="stylesheet" href="motion.css"><link rel="stylesheet" href="v9.css">
-<!-- Beat 4 v9, part 1 (1:06.5-1:25, 18.5 s). Replaces m8-b4-0 (the Venn, cut: it had no numbers) and m8-b4-1.
-     Voice-over, cue = clip seconds:
-       0.3  "Coding agents find bugs too, but each run finds different ones."    statement card
-       4.9  "An agent reported an order email whose numbers didn't add up."     the finding, in the agent's words
-       9.5  "Muse Spark Open drafted a shopper journey and a rule:"             journey rows, the agent's phrases light up
-      13.3  "the breakdown must add up to the total."                            the rule (amber)
-      16.6  "I approved it."                                                     the approval record, verbatim
-     Data: window.DATA.beat4 (extract_beat4.py, run ic-owner-rec-1, approved by the owner under his own name).
-     "Each run finds different ones" rests on two runs of one agent on Spree overlapping in part
-     (scenes-data/overlap.json); no numbers are shown, as in v8. The strip under the header says this is a bug Spree
-     had already fixed (PR #14725), so it is not confused with beat 3's upstream fix. -->
+<!-- Beat 4 v9, part 1 (1:07-1:31.5, 24.5 s). Replaces m8-b4-0 (the Venn, cut: it had no numbers) and m8-b4-1.
+     Second owner review: "SRA keeps each one." and the gate are back; the statement card leaves before the finding
+     arrives (no ghosting); "Muse Spark Open drafts" wraps on two lines, not four. Voice-over ([cue] = CUES entry):
+       [st] Coding agents find bugs too, but each run finds [diff] different ones. [keep] SRA keeps each one.
+       [find] An agent reported an order email whose numbers [nums] didn't add up. [muse] Muse Spark Open drafted a
+       shopper [journey] journey and a [rule] rule: the breakdown must add up to the total. [gate] A gate refuses
+       drafts that drop or invent an action. [appr] I approved it.
+     The gate line is the converter's deterministic gate as README "How a finding becomes a check" and HACKATHON.md
+     describe it ("no dropped instruction, no invented action"). It is NOT "every step is in the agent's words": step 1
+     (open_home) is a prerequisite the text leaves unsaid, and the gate allows that. Gate rounds from beat4.json
+     (conversion.gate_problems_per_round). Data: window.DATA.beat4 (run ic-owner-rec-1, approved by the owner under
+     his own name). "Each run finds different ones": two runs of one agent on Spree overlap in part
+     (scenes-data/overlap.json); no numbers shown. The strip says this is a bug Spree had already fixed (PR #14725). -->
 <style>
 .st{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;text-align:center;z-index:3;background:var(--bg)}
 .st .a{font:800 92px/1.05 var(--disp);letter-spacing:-.04em}
 .st .b{font:700 64px/1.1 var(--disp);letter-spacing:-.03em;color:var(--ink2)}
 .strip{position:absolute;left:96px;right:96px;top:118px;display:flex;align-items:center;gap:14px;font:650 26px var(--sans);color:var(--ink2)}
 .strip span{padding:6px 18px;border-radius:999px;background:var(--sunk);border:2px solid var(--line)}
-.grid{display:grid;grid-template-columns:600px 110px 1fr;align-items:start;margin-top:40px}
+.grid{display:grid;grid-template-columns:600px 220px 1fr;align-items:start;margin-top:40px}
 .find{padding:30px 32px;display:flex;flex-direction:column;gap:18px}
 .find .claim{font:650 36px/1.3 var(--disp);letter-spacing:-.012em}
 .find .claim .hl9{--hlc:var(--badbg);color:var(--bad)}
@@ -27,11 +29,11 @@
 .repro span.on{background:var(--accentbg);border-color:var(--accentln);color:var(--accent)}
 .mid{display:flex;flex-direction:column;align-items:center;gap:8px;padding-top:120px}
 .mid .ar{font:600 64px var(--disp);color:var(--accent);line-height:1}
-.mid .who{font:700 24px/1.2 var(--sans);color:var(--accent);text-align:center}
+.mid .who{font:700 25px/1.2 var(--sans);color:var(--accent);text-align:center;white-space:nowrap}
 .rc{display:flex;flex-direction:column;gap:18px}
 .jr{padding:20px 28px}
 .jr table{width:100%;border-collapse:collapse}
-.jr td{padding:3px 0;font:500 25px/1.25 var(--sans);border-top:1.5px solid var(--line2);color:var(--ink2)}
+.jr td{padding:1px 0;font:500 25px/1.15 var(--sans);border-top:1.5px solid var(--line2);color:var(--ink2)}
 .jr tr:first-child td{border-top:none}
 .jr td.n{width:40px;color:var(--ink3);font:600 22px var(--mono)}
 .jr td.v{width:330px;font:600 25px var(--mono);color:var(--ink)}
@@ -39,45 +41,59 @@
 .rl{padding:20px 28px;display:flex;flex-direction:column;gap:6px}
 .rl .t{font:750 32px/1.2 var(--disp);letter-spacing:-.015em}
 .rl .s{font:500 26px/1.35 var(--sans)}
-.ap{display:flex;align-items:center;gap:22px;padding:18px 28px;border-radius:20px;background:var(--goodbg);border:3px solid #9FD3B6}
-.ap b{font:800 36px var(--disp);color:var(--good)}
-.ap span{font:500 24px var(--sans);color:var(--ink2)}
-</style></head><body data-duration="18.5">
+.rc{min-width:0}
+.foot{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:stretch}
+.gt{padding:14px 24px;display:flex;flex-direction:column;gap:2px;border-radius:20px;background:var(--accentbg);border:2px solid var(--accentln)}
+.gt b{font:750 27px/1.15 var(--disp);color:var(--accent)}.gt span{font:500 24px var(--sans);color:var(--ink2)}
+.ap{display:flex;flex-direction:column;justify-content:center;gap:4px;padding:14px 26px;border-radius:20px;background:var(--goodbg);border:3px solid #9FD3B6}
+.ap b{font:800 29px var(--disp);color:var(--good);white-space:nowrap}
+.ap span{font:500 22px var(--sans);color:var(--ink2)}
+</style></head><body data-duration="24.5">
 <div id="hd"></div>
-<div class="strip fade" style="--at:4.9"><span>A bug Spree had already fixed (PR #14725): the proof case for a saved check</span></div>
+<div class="strip fade" data-cue="find"><span>A bug Spree had already fixed (PR #14725): the proof case for a saved check</span></div>
 <div class="stage" style="top:170px">
   <div class="grid" id="grid"></div>
 </div>
-<div class="st only-out" style="--out:4.8">
-  <div class="a in" style="--at:.3">Coding agents find bugs too.</div>
-  <div class="b in" style="--at:2.4">Each run finds different ones.</div>
+<div class="st only-out" data-outcue="find+-0.6">
+  <div class="a in" data-cue="st">Coding agents find bugs too.</div>
+  <div class="b in" data-cue="diff+-1.2">Each run finds different ones.</div>
+  <div class="a in" data-cue="keep" style="color:var(--accent)">SRA keeps each one.</div>
 </div>
-<div class="src9 fade" style="--at:5"><b>Source:</b> run ic-owner-rec-1, saved results; check C1-04 as loaded by the run</div>
+<div class="src9 fade" data-cue="find"><b>Source:</b> run ic-owner-rec-1, saved results; check C1-04 as loaded by the run</div>
+<script>
+// THE cue table (2.4 words/s from 0.3 s). Re-time here only.
+const CUES = {st: 0.3, diff: 4.05, keep: 4.88, find: 6.55, nums: 9.88, muse: 11.13, journey: 13.63, rule: 14.88,
+  gate: 18.63, appr: 22.8};
+</script>
 <script src="_v9.inc.js"></script>
 <script>
 const D = window.DATA.beat4;
 document.getElementById('hd').innerHTML = v9Head({app: 'spree', note: 'a real open-source store', model: 'Muse Spark Open · open weights'});
-const ROW0 = 10.0, DT = .32, rowAt = n => ROW0 + (n - 1) * DT;
-const claim = esc(D.finding.claim).replace(/summary doesn(&#39;|')t add up/, m => `<span class="hl9" style="--at:7.6">${m}</span>`);
-const chips = D.finding.reproduce.map(c => `<span data-on="${rowAt(Math.min(...c.steps))}">${esc(c.text)}</span>`).join('');
-const rows = D.journey.map(s => `<tr class="in" style="--at:${rowAt(s.n)};--dy:8px"><td class="n">${s.n}</td><td class="v">${esc(s.verb)}</td>
+const DT = .3, rowAt = n => `journey+${((n - 1) * DT).toFixed(2)}`;
+const claim = esc(D.finding.claim).replace(/summary doesn(&#39;|')t add up/, m => `<span class="hl9" data-cue="nums">${m}</span>`);
+const chips = D.finding.reproduce.map(c => `<span data-oncue="${rowAt(Math.min(...c.steps))}">${esc(c.text)}</span>`).join('');
+const rows = D.journey.map(s => `<tr class="in" data-cue="${rowAt(s.n)}" style="--dy:8px"><td class="n">${s.n}</td><td class="v">${esc(s.verb)}</td>
   <td>${s.words ? '“' + esc(s.words) + '”' : '<em>a step the text leaves unsaid</em>'}</td></tr>`).join('');
-const stmt = esc(D.rule.statement).replace('arithmetically consistent with its total', '<span class="hl9" style="--at:13.6">$&</span>');
+const stmt = esc(D.rule.statement).replace('arithmetically consistent with its total', '<span class="hl9" data-cue="rule+0.8">$&</span>');
 document.getElementById('grid').innerHTML = `
-  <div class="card9 find in" style="--at:4.9">
+  <div class="card9 find in" data-cue="find">
     <div class="k9">An AI agent's finding, as written</div>
     <div class="claim">“${claim}”</div>
     <div class="k9">Its steps to reproduce</div>
     <div class="repro">${chips}</div>
   </div>
-  <div class="mid in" style="--at:9.5"><span class="ar">→</span><span class="who">Muse Spark<br>Open drafts</span></div>
+  <div class="mid in" data-cue="muse"><span class="ar">→</span><span class="who">Muse Spark Open<br>drafts</span></div>
   <div class="rc">
-    <div class="card9 jr in" style="--at:9.6"><div class="k9" style="margin-bottom:8px">The shopper journey · ${D.journey.length} steps, in the store driver's own verbs</div><table>${rows}</table></div>
-    <div class="rule9 rl in" style="--at:13.3"><span class="k9">The rule it keeps</span>
+    <div class="card9 jr in" data-cue="muse+0.2"><div class="k9" style="margin-bottom:8px">Shopper journey · ${D.journey.length} steps, the driver's own verbs</div><table>${rows}</table></div>
+    <div class="rule9 rl in" data-cue="rule"><span class="k9">The rule it keeps</span>
       <span class="t">${esc(D.rule.id)} · ${esc(D.rule.title)}</span><span class="s">“${stmt}”</span></div>
-    <div class="ap pop" style="--at:16.7"><b>✓ Approved by ${esc(D.approved_by)}</b><span>pinned to digest <span class="mono9">${esc(D.digest)}</span></span></div>
+    <div class="foot"><div class="gt in" data-cue="gate"><b>Gate: nothing dropped or invented</b>
+      <span>${D.conversion.gate_problems_per_round.map((n, i) => n ? `${n} problems, redrafted` : 'passed').join(' → ')}</span></div>
+    <div class="ap pop" data-cue="appr"><b>✓ Approved by ${esc(D.approved_by)}</b><span>pinned to digest <span class="mono9">${esc(D.digest)}</span></span></div></div>
   </div>`;
 if (!D.owner_reviewed) throw new Error('beat 4 needs the owner-approved run');
+if (D.conversion.status !== 'converted' || D.conversion.gate_problems_per_round.at(-1) !== 0) throw new Error('gate data');
+applyCues(CUES);
 </script>
 <script src="motion.js"></script>
 <script>toggles();</script>

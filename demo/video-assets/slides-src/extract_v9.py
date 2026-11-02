@@ -10,6 +10,7 @@ Read-only on every source. Writes:
       finablo-freedom-v706.png   the report's "Your freedom" card, v706, the beat-1 test user (61)
       spree-order-page.png       Ana's order-placed page, Spree v6.0.0.beta3 (the page the review cites)
       visual-crop.png            the crop semaudit visual sent to the model (a copy of the committed evidence file)
+      brightdesk-pricing.png, brightdesk-checkout.png   Brightdesk 1.0's pricing and checkout pages (t3 captures)
 
 Refuses to write when a value the frames rely on is not what the source says:
   beat 1  the v706 gate record must say "354 OK", "0 FAIL" and the gate's own "All checks passed" line
@@ -20,6 +21,9 @@ Refuses to write when a value the frames rely on is not what the source says:
           screenshot, must quote the line amount the page shows, must read it back and be "confirmed"; the control on
           the same crop (claim changed to the subtotal) must be "contradicted"; the committed crop must be the image
           that was sent (its sha256)
+  beat 6  Brightdesk's broken release: the pricing and checkout captures must carry their probe texts and the prices
+          the committed record reports for those pages (scenes-data/brightdesk.json), and their DOM must pass the
+          demo hygiene patterns (no local path, no agent or non-Meta model name)
   beat 5  Maya must be flagged under P2, Lena cleared under P2, both shown the same two offers, and Lena's
           explaining message must share no word with the rule's key phrase ("explain the material tradeoffs")
   beat 7  on v706 no capture states $35,750; on v707 every step that states a limit states $35,750 and only that
@@ -48,6 +52,10 @@ SPREE = pathlib.Path(os.environ.get('SPREE_HARNESS_DIR', SRC / 'spree-semaudit')
 GATE = SRA / 'demo' / 'evidence' / 'finablo-gate-v706' / 'README.md'
 NB_REVIEW = SRA / 'runs' / 'e2e-2' / 'review-2.3-2.4.json'
 VISUAL = SRA / 'docs' / 'evidence' / 'visual-confirm-spree-2026-11-01'   # semaudit visual, one issue + one control
+# Brightdesk (beat 6's opening): the broken release 1.0's own pages, as the t3 review captured them
+BD_CAPTURES = pathlib.Path(os.environ.get('NEWUSER_RUNS', SRC / 'sra-newuser-test' / 'work' / 'runs')) / 't3' / 'captures' / '1.0'
+BD_PAGES = {'pricing': ('s01', ('Pricing', 'Pro costs', 'Choose Pro')), 'checkout': ('s02', ('Checkout', 'Pro plan:', 'Subscribe'))}
+BD_BOX = (0, 0, 560, 215)                    # page px (1x): the page's heading, price line and button; nothing else
 NB_RULES = SRA / 'examples' / 'northbound' / 'contract' / 'principles.yaml'
 
 # Finablo: the beat-1 user (wide-run-3k, target_61, S-R1, v706) and the beat-7 limit check (f73-limit-check)
@@ -192,6 +200,28 @@ def spree(errors):
             'stars': {'count': 15805, 'read': '2026-11-01', 'how': 'gh api repos/spree/spree (stargazers_count)'}}
 
 
+def brightdesk_pages(errors):
+    sys.path.insert(0, str(SRA / 'tests'))
+    from test_demo_assets_clean import LOCAL_PATH, NAMES
+    prices = json.loads((ASSETS / 'scenes-data' / 'brightdesk.json').read_text())['prices_broken']
+    out = {}
+    for name, (step, probes) in BD_PAGES.items():
+        stem = f'1.0.ana.S-subscribe-pro.{step}.c01'
+        shot, dom = (BD_CAPTURES / 'ana__S-subscribe-pro' / f'{stem}.{kind}' for kind in ('screenshot.png', 'dom.html'))
+        text = re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', ' ', re.sub(r'(?s)<(style|script).*?</\1>', '', dom.read_text())))
+        missing = [p for p in probes + (prices[name] + ' per month',) if p not in text]
+        if missing:
+            errors.append(f'brightdesk {name} ({step}): missing {missing}')
+        if LOCAL_PATH.search(text) or NAMES.search(text):
+            errors.append(f'brightdesk {name} ({step}): fails the hygiene patterns')
+        IMG.mkdir(parents=True, exist_ok=True)
+        Image.open(shot).crop(BD_BOX).save(IMG / f'brightdesk-{name}.png')
+        out[name] = {'source': f't3/captures/1.0/ana__S-subscribe-pro/{shot.name}', 'sha256': sha256(shot),
+                     'dom_sha256': sha256(dom), 'box': list(BD_BOX), 'crop': f'img/v9/brightdesk-{name}.png',
+                     'price': prices[name], 'text': text.strip()}
+    return out
+
+
 def visual(errors, sp):
     v = json.loads((VISUAL / 'visual.json').read_text())
     c = json.loads((VISUAL / 'control.json').read_text())
@@ -262,6 +292,7 @@ def main():
             'gate': gate(errors), 'finablo': finablo(errors), 'spree': spree(errors), 'northbound': northbound(errors)}
     if data['spree']:
         data['visual'] = visual(errors, data['spree'])
+    data['brightdesk_pages'] = brightdesk_pages(errors)
     if errors:
         sys.exit('refusing to write:\n  ' + '\n  '.join(errors))
     OUT.write_text(json.dumps(data, indent=1, ensure_ascii=False) + '\n')

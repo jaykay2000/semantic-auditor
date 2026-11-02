@@ -1,22 +1,18 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><title>m9 beat 2 what SRA does</title>
 <link rel="stylesheet" href="slides.css"><link rel="stylesheet" href="motion.css"><link rel="stylesheet" href="v9.css">
-<!-- Beat 2 v9 (0:19.5-0:48, 28.5 s). Voice-over, cue = clip seconds:
-       0.3  "Semantic Release Auditor does."                                       dark frame: the name
-       2.0  "It turns every discovery into a check your next release has to pass." the thesis (by 0:27)
-       7.4  "Test users walk two releases."                                        two releases, the pages they walk
-       9.5  "Muse Spark reads every page and email your users get,"                job 1
-      13.6  "can check a screenshot to confirm what they see,"                    job 1's opt-in chip
-      17.4  "judges them against the app's own records and your rules,"           job 2 (rules in amber)
-      22.0  "and drafts new checks."                                               job 3
-      23.2  "SRA sorts each issue: new, fixed, already there, or can't tell."      the four release categories
-     Wording (orchestrator, 2026-11-01): the model reads the text of every page and email. "can check a screenshot"
-     is the opt-in `semaudit visual` (commit 10e6ee3): for a flagged issue it sends the model the screenshot crop
-     around the flagged value and asks whether that value is what the user sees. Said with "can" because it is
-     opt-in; it never changes a verdict. No claim that pages are read as images.
-     The example releases and pages are Finablo's v706/v707 journey (f73-limit-check: guest report, Copy for your AI,
-     sign-up, signed-in report, welcome email PDF, dashboard). The four categories are the review page's own
-     (release_story.html: introduced by / fixed in / in both releases / cannot tell). -->
+<!-- Beat 2 v9 (0:19-0:44.5, 25.5 s). Second owner review: the thesis without "every"; the long sentence split;
+     the four tiles carry the live review page's own labels (release_story.html: New / Resolved / Pre-existing /
+     Unconfirmed, with its sub-lines "introduced by", "fixed in", "in both releases", "cannot tell"); the voice may
+     still say "already there / can't tell". Voice-over (each cue = the CUES entry named in brackets):
+       [name] Semantic Release Auditor does. [thesis] It turns [hl] discoveries into checks your next release has to
+       pass. [users] Test users walk two [rels] releases. [muse] Muse Spark [read] reads every page and email they
+       get, and [shot] can check the screenshot. It [judge] judges them against the app's own records and [rules] your
+       rules, and [draft] drafts new checks. [sort] SRA sorts each issue: [new] new, [fixed] fixed, [pre] already
+       there, or [unc] can't tell.
+     "can check the screenshot" is the opt-in `semaudit visual` (commit 10e6ee3): for a flagged issue it sends the
+     model the screenshot crop around the flagged value. Said with "can"; it never changes a verdict; no claim that
+     pages are read as images. Cue times: 2.4 words a second from 0.3 s; re-time by editing CUES only. -->
 <style>
 .rev{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:30px}
 .rev .nm{font:820 112px/1 var(--disp);letter-spacing:-.04em}
@@ -48,47 +44,53 @@
 .cats span{font:700 31px var(--sans);padding:10px 20px;border-radius:14px;background:#2A2D35;border:2px solid #4A4E58}
 .cats .nw{color:#FFB4AA}.cats .fx{color:#9FE0BC}.cats .pr{color:#F5D08A}.cats .ct{color:#C9C2F2;border-style:dashed}
 .cats small{display:block;font:500 22px var(--sans);color:#B9BCC4;margin-top:2px}
-</style></head><body data-duration="28.5">
+</style></head><body data-duration="25.5">
 <div id="hd"></div>
 <div class="stage">
   <div class="flow">
-    <div class="card9 box9 in" style="--at:7.6">
+    <div class="card9 box9 in" data-cue="users">
       <span class="t">Test users walk two releases</span>
-      <div class="users"><span class="pop" style="--at:7.9">A</span><span class="pop" style="--at:8.1">B</span><span class="pop" style="--at:8.3">C</span><span class="pop" style="--at:8.5">D</span><span class="pop" style="--at:8.7">…</span></div>
-      <div class="rels"><span class="pop" style="--at:8.6">v706</span><i>→</i><span class="pop" style="--at:9.0">v707</span></div>
+      <div class="users"><span class="pop" data-cue="users+0.3">A</span><span class="pop" data-cue="users+0.5">B</span><span class="pop" data-cue="users+0.7">C</span><span class="pop" data-cue="users+0.9">D</span><span class="pop" data-cue="users+1.1">…</span></div>
+      <div class="rels"><span class="pop" data-cue="rels">v706</span><i>→</i><span class="pop" data-cue="rels+0.3">v707</span></div>
       <div class="pages" id="pages"></div>
-      <span class="ex fade" style="--at:9.4">Example: Finablo's own journey</span>
+      <span class="ex fade" data-cue="muse">Example: Finablo's own journey</span>
     </div>
-    <div class="ar fade" style="--at:9.5">→</div>
-    <div class="card9 box9 muse in" style="--at:9.5">
+    <div class="ar fade" data-cue="muse">→</div>
+    <div class="card9 box9 muse in" data-cue="muse">
       <span class="t">Muse Spark's three jobs</span>
-      <div class="job in" style="--at:10.3"><span class="n">1</span><div><b>Read</b><span>every page and email your users get</span></div></div>
-      <div class="opt pop" style="--at:13.6">+ can check a screenshot, to confirm what users see · opt-in</div>
-      <div class="job in" style="--at:17.4"><span class="n">2</span><div><b>Judge</b><span>against the app's own records and <span class="r">your rules</span></span></div></div>
-      <div class="job in" style="--at:22.0"><span class="n">3</span><div><b>Draft</b><span>new checks from findings</span></div></div>
+      <div class="job in" data-cue="read"><span class="n">1</span><div><b>Read</b><span>every page and email your users get</span></div></div>
+      <div class="opt pop" data-cue="shot">+ can check the screenshot · opt-in</div>
+      <div class="job in" data-cue="judge"><span class="n">2</span><div><b>Judge</b><span>against the app's own records and <span class="r">your rules</span></span></div></div>
+      <div class="job in" data-cue="draft"><span class="n">3</span><div><b>Draft</b><span>new checks from findings</span></div></div>
     </div>
-    <div class="ar fade" style="--at:23.2">→</div>
-    <div class="card9 box9 out in" style="--at:23.2">
+    <div class="ar fade" data-cue="sort">→</div>
+    <div class="card9 box9 out in" data-cue="sort">
       <span class="t">SRA sorts each issue</span>
       <div class="cats">
-        <span class="nw pop" style="--at:24.9">New<small>introduced by this release</small></span>
-        <span class="fx pop" style="--at:25.3">Fixed<small>fixed in this release</small></span>
-        <span class="pr pop" style="--at:25.7">Already there<small>in both releases</small></span>
-        <span class="ct pop" style="--at:27.0">Can't tell<small>whether it was fixed</small></span>
+        <span class="nw pop" data-cue="new">New<small>introduced by v707</small></span>
+        <span class="fx pop" data-cue="fixed">Resolved<small>fixed in v707</small></span>
+        <span class="pr pop" data-cue="pre">Pre-existing<small>in both releases</small></span>
+        <span class="ct pop" data-cue="unc">Unconfirmed<small>cannot tell</small></span>
       </div>
     </div>
   </div>
 </div>
-<div class="dark9 only-out" style="--out:7.3"><div class="stage rev">
-  <div class="nm in" style="--at:.3">Semantic Release Auditor</div>
-  <div class="th in" style="--at:2.0">turns every discovery into <span class="hl9" style="--at:4.6">a check your next release has to pass.</span></div>
+<div class="dark9 only-out" data-outcue="users"><div class="stage rev">
+  <div class="nm in" data-cue="name">Semantic Release Auditor</div>
+  <div class="th in" data-cue="thesis">SRA turns discoveries into <span class="hl9" data-cue="hl+1.2">checks your next release has to pass.</span></div>
 </div></div>
+<script>
+// THE cue table: seconds into this clip at which each word is spoken (2.4 words/s from 0.3 s). Re-time here only.
+const CUES = {name: 0.3, thesis: 1.97, hl: 2.8, users: 6.55, rels: 8.22, muse: 8.63, read: 9.47, shot: 12.8,
+  judge: 14.88, rules: 18.22, draft: 19.47, sort: 20.72, new: 22.38, fixed: 22.8, pre: 23.22, unc: 24.47};
+</script>
 <script src="_v9.inc.js"></script>
 <script>
 document.getElementById('hd').innerHTML = v9Head({model: 'Muse Spark · Meta'});
 const P = ['Report', 'Copy for your AI', 'Sign-up', 'Signed-in report', 'Welcome email PDF', 'Dashboard'];
-document.getElementById('pages').innerHTML = P.map((p, i) => `<span class="pop" style="--at:${8.8 + i * .12}">${p}</span>`).join('');
+document.getElementById('pages').innerHTML = P.map((p, i) => `<span class="pop" data-cue="rels+${(0.5 + i * .12).toFixed(2)}">${p}</span>`).join('');
+applyCues(CUES);
 </script>
 <script src="motion.js"></script>
-<script>onSeek(t => document.body.classList.toggle('dark', t < 7.3));</script>
+<script>onSeek(t => document.body.classList.toggle('dark', t < CUES.users - LEAD));</script>
 </body></html>

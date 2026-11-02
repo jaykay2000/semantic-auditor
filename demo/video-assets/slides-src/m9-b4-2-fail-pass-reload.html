@@ -7,7 +7,8 @@
        2.6  "and passes on the next."                        PASS at 3.4      (sound cue: PASS)
        5.3  "A fresh review reloads it from storage:"        the stored files, hashed, nothing imported
        7.9  "fix confirmed."                                  at 8.2
-     Data: window.DATA.beat4 (run ic-owner-rec-1): each release's email lines as the judges cited them, their plain sum
+     The memory's reason is shown with "base / head" said as "old release / new one" (second owner review); the
+     words are otherwise the run's. Data: window.DATA.beat4 (run ic-owner-rec-1): each release's email lines as the judges cited them, their plain sum
      (checked by extract_beat4.py), the files the run loaded with their hashes, and the memory's verdict. -->
 <style>
 body{background:#0E1014;color:#fff}
@@ -61,7 +62,7 @@ document.getElementById('root').innerHTML = `
   <div class="reload">
     <div class="term in" style="--at:5.4"><div class="k">A fresh review · run ${esc(R.id)} · loaded from storage, hashed</div>${files}
       <span class="none fade" style="--at:7.2">nothing imported</span></div>
-    <div class="fx pop" style="--at:8.2"><b>✓ fix confirmed</b><span>${esc(D.memory.why)}</span></div>
+    <div class="fx pop" style="--at:8.2"><b>✓ fix confirmed</b><span>${esc(D.memory.why.replace(/\bthe base\b/, 'the old release').replace(/\bthe head\b/, 'the new one'))}</span></div>
   </div>`;
 if (D.base.assertion !== 'fail' || D.head.assertion !== 'pass' || D.memory.status !== 'fix_confirmed') throw new Error('beat 4 data');
 </script>

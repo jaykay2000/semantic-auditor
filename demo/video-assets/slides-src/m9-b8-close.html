@@ -1,10 +1,11 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><title>m9 beat 8 close: who it is for, the live sample review, the thesis</title>
 <link rel="stylesheet" href="slides.css"><link rel="stylesheet" href="motion.css"><link rel="stylesheet" href="v9.css">
-<!-- Beat 8 v9 (2:35.5-2:51, 15.5 s). Voice-over, cue = clip seconds:
+<!-- Beat 8 v9 (2:40.5-2:55, 14.5 s). Second owner review: the thesis without "every"; a slow push-in onto the
+     sample page's "Unexplained tradeoff" card (Maya's issue from beat 5). Voice-over, cue = clip seconds:
        0.3  "I built SRA for teams where what users read matters: finance, health, commerce."   chips 3.4 / 4.1 / 4.8
        5.7  "Coding agents now ship faster than anyone writes tests."
-       9.5  "With SRA, every discovery becomes a check your next release has to pass."           the thesis, dark band
+       9.5  "SRA turns discoveries into checks your next release has to pass."                   the thesis, dark band
      One real page instead of v8's three thumbnails (owner review): the sample release review, Northbound 2.3 -> 2.4,
      shot from docs/sample-review/ (demo/build_sample_review.py; slides-src/shoot_v9.py), in a browser frame carrying
      the URL GitHub Pages will serve it from (window.DATA.close.sample_url). It is live only once the owner has turned
@@ -24,17 +25,17 @@
 .band .t{font:800 66px/1.12 var(--disp);letter-spacing:-.035em;color:#fff;text-align:center;max-width:1600px}
 .band .t .hl9{--hlc:#3651D4}
 .agents{font:600 30px var(--sans);color:var(--ink2);margin-top:22px}
-</style></head><body data-duration="15.5">
+</style></head><body data-duration="14.5">
 <div id="hd"></div>
 <div class="stage" style="justify-content:flex-start;top:132px">
   <div class="for"><span class="k9 fade" style="--at:.3">Built for teams where what users read matters</span>
     <span class="c pop" style="--at:3.4">Finance</span><span class="c pop" style="--at:4.1">Health</span><span class="c pop" style="--at:4.8">Commerce</span></div>
   <div class="br in" style="--at:.6">
     <div class="bar9"><i></i><i></i><i></i><div class="url" id="url"></div></div>
-    <div class="vp"><img class="push" style="--pd:15s;--ps:1.07;--po:40% 20%" src="img/v9/sample-review.png" alt="the sample release review"></div>
+    <div class="vp" data-crop><img class="push" style="--pat:1;--pd:13.5s;--ps:1.6;--po:1035px 450px" src="img/v9/sample-review.png" alt="the sample release review"></div>
   </div>
 </div>
-<div class="band in" style="--at:9.3;--dy:60px"><div class="t">With SRA, every discovery becomes <span class="hl9" style="--at:11.2">a check your next release has to pass.</span></div></div>
+<div class="band in" style="--at:9.3;--dy:60px"><div class="t">SRA turns discoveries into <span class="hl9" style="--at:11.0">checks your next release has to pass.</span></div></div>
 <div class="src9 fade" style="--at:.3;z-index:5;color:#6E737D"><b>The live sample:</b> SRA's release review of Northbound 2.3 → 2.4, a fictional travel app with synthetic travellers</div>
 <script src="_v9.inc.js"></script>
 <script>

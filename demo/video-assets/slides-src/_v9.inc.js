@@ -15,3 +15,15 @@ window.counters = () => onSeek(t => document.querySelectorAll('[data-count]').fo
 // .when-on: toggles class "on" at data-on seconds (for highlight states CSS cannot time on its own)
 window.toggles = () => onSeek(t => document.querySelectorAll('[data-on]').forEach(el =>
   el.classList.toggle('on', t >= +el.dataset.on && !(el.dataset.off && t >= +el.dataset.off))));
+// Cue tables (v9 second review): each clip keeps ONE table, CUES = {name: seconds into the clip}, the moment its
+// word is spoken. Elements name a cue instead of a time: data-cue="judge" (or "judge+0.4" for an offset); a
+// [data-oncue] element gets its data-on the same way. Visuals start LEAD seconds before the word, so they have
+// landed when it is heard. To re-time to a recorded voice, edit the table only.
+window.LEAD = 0.25;
+window.applyCues = CUES => {
+  const at = spec => { const [k, dt] = spec.split('+'); if (!(k in CUES)) throw new Error('no cue ' + k);
+    return Math.max(0, CUES[k] - LEAD + (parseFloat(dt) || 0)); };
+  document.querySelectorAll('[data-cue]').forEach(el => el.style.setProperty('--at', at(el.dataset.cue)));
+  document.querySelectorAll('[data-oncue]').forEach(el => { el.dataset.on = at(el.dataset.oncue); });
+  document.querySelectorAll('[data-outcue]').forEach(el => el.style.setProperty('--out', at(el.dataset.outcue)));
+};

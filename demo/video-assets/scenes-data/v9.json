@@ -313,5 +313,35 @@
   },
   "opt_in": true,
   "changes_verdict": false
+ },
+ "brightdesk_pages": {
+  "pricing": {
+   "source": "t3/captures/1.0/ana__S-subscribe-pro/1.0.ana.S-subscribe-pro.s01.c01.screenshot.png",
+   "sha256": "8605be4c8f5b27acc225c7a0f8e0254db26901c03491bd9734a87afa725a456c",
+   "dom_sha256": "6c028ba940e5e1234f442664f28ba45ccad8eb6a0c2c4764b767c0be82b8eb4c",
+   "box": [
+    0,
+    0,
+    560,
+    215
+   ],
+   "crop": "img/v9/brightdesk-pricing.png",
+   "price": "$12",
+   "text": "Pricing Pricing Pricing Pro Pro costs $12 per month, billed monthly. Cancel anytime. Choose Pro"
+  },
+  "checkout": {
+   "source": "t3/captures/1.0/ana__S-subscribe-pro/1.0.ana.S-subscribe-pro.s02.c01.screenshot.png",
+   "sha256": "1207ab5799f96053181b1a16f3c88e684056a9422c50eb21ee6444fe543a1030",
+   "dom_sha256": "a4f1696cac9ad8bb1dbccd46ba8bc1bdd9fb33aff1626931bc3cee6d05831b21",
+   "box": [
+    0,
+    0,
+    560,
+    215
+   ],
+   "crop": "img/v9/brightdesk-checkout.png",
+   "price": "$15",
+   "text": "Checkout Pricing Checkout Pro plan: $15 per month. You will be charged $15 today. Subscribe"
+  }
  }
 }

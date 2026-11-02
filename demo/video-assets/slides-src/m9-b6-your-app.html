@@ -1,22 +1,18 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><title>m9 beat 6: your app, your endpoint (Brightdesk)</title>
 <link rel="stylesheet" href="slides.css"><link rel="stylesheet" href="motion.css"><link rel="stylesheet" href="v9.css">
-<!-- Beat 6 v9 (2:02.5-2:22.5, 20 s). Voice-over, cue = clip seconds:
-       0.3  "A fresh AI agent, given only SRA's docs, built a small app,"
-       5.3  "wrote a forty-nine-line adapter,"                                 the adapter: 49 lines, its 4 verbs
-       7.4  "and pointed SRA at its own Muse Spark Open endpoint."            the model id it configured
-      11.1  "Open weights: it can run on yours."
-      14.5  "The broken release: hold."                                        HOLD at 15.3   (sound cue: HOLD)
-      16.5  "The fixed one: ship."                                             SHIP at 17.0   (sound cue: SHIP)
-      17.4  "Thirteen cents, start to finish."                                 $0.13 at 17.7
-     ("And you don't need my apps." was cut to fund beat 3's visual moment.)
-     Every number is window.DATA.brightdesk (extract_brightdesk.py, from the committed record
-     demo/evidence/newuser-brightdesk-2026-11-01/; tests/test_demo_brightdesk_evidence.py and tests/test_demo_v9.py keep
-     frame, data and record in step). The prices are the hold review's own issue text, with units: the page crops'
-     "15 shown · true 12" and "verified 5/5 · confidence medium" are gone (owner review). "Given only SRA's docs" is the
-     orchestrator's account of that session. No duration is claimed. The cost is the whole session (15 billed calls);
-     it is the only cost on screen in v9. The endpoint was hosted (Baseten), so "it can run on yours" is said as what
-     open weights allow, not as something shown. -->
+<!-- Beat 6 v9 (2:14-2:32.5, 18.5 s). Second owner review: "working from SRA's docs" (the evidence does not show what
+     the agent read, so not "given only"); the opening shows Brightdesk itself instead of an empty frame; "start to
+     finish" cut from the voice. Voice-over ([cue] = CUES entry):
+       [agent] A fresh AI agent, working from SRA's docs, [built] built a small app, [adapter] wrote a forty-nine-line
+       adapter, and [pointed] pointed SRA at its own Muse Spark Open endpoint. [ow] Open weights: it can run on yours.
+       [broken] The broken release: [hold] hold. The fixed one: [ship] ship. [cost] Thirteen cents.
+     The opening pages: Brightdesk 1.0's pricing and checkout pages as the t3 review captured them
+     (window.DATA.v9.brightdesk_pages; extract_v9.py refuses unless each DOM carries its probe texts and the price the
+     committed record reports, and passes the demo hygiene patterns). Every other number is window.DATA.brightdesk
+     (extract_brightdesk.py, from the committed record demo/evidence/newuser-brightdesk-2026-11-01/). The cost is the
+     whole session (15 billed calls), the only cost on screen. The endpoint was hosted (Baseten), so "it can run on
+     yours" is what open weights allow, not something shown. -->
 <style>
 .grid6{display:grid;grid-template-columns:1fr 1fr;gap:36px;align-items:start}
 .ad{padding:28px 32px;display:flex;flex-direction:column;gap:12px}
@@ -38,48 +34,67 @@
 .vs{display:flex;flex-direction:column;gap:18px;justify-content:center}
 .vrow{display:flex;align-items:center;gap:18px;font:650 30px var(--sans);color:var(--ink2)}
 .vrow .verdict{min-width:180px;justify-content:center}
+.pages{position:absolute;left:96px;right:96px;top:150px;bottom:80px;display:flex;flex-direction:column;justify-content:center;gap:22px;z-index:3;background:var(--bg)}
+.pp{display:grid;grid-template-columns:1fr 1fr;gap:40px}
+.pg{border-radius:18px;overflow:hidden;border:2px solid var(--line);box-shadow:var(--shadow);background:#fff}
+.pg .bar9{height:48px;background:#ECECE8;display:flex;align-items:center;gap:10px;padding:0 16px;font:600 24px var(--sans);color:var(--ink2)}
+.pg .bar9 i{width:12px;height:12px;border-radius:50%;background:#D4D4CF}
+.pg img{display:block;width:100%}
 .cost{display:flex;align-items:baseline;gap:16px;margin-top:6px}
 .cost b{font:850 88px/1 var(--disp);letter-spacing:-.04em;color:var(--accent)}
 .cost span{font:600 26px/1.3 var(--sans);color:var(--ink2)}
-</style></head><body data-duration="20">
+</style></head><body data-duration="18.5">
 <div id="hd"></div>
+<div class="pages only-out" data-outcue="adapter+-0.65">
+  <div class="k9 fade" data-cue="agent">Brightdesk 1.0, the agent's own app, as SRA captured it</div>
+  <div class="pp" id="pp"></div>
+</div>
 <div class="stage">
   <div class="grid6">
-    <div class="card9 ad in" style="--at:5.3"><span class="k9">Its adapter, my-app/adapter.py</span>
-      <div class="big"><b data-count="0" data-at="5.5" data-d=".9" id="lines">0</b><span>lines · <span id="nv"></span> verbs</span></div>
+    <div class="card9 ad in" data-cue="adapter"><span class="k9">Its adapter, my-app/adapter.py</span>
+      <div class="big"><b data-count="0" data-at="0" data-d=".9" id="lines">0</b><span>lines · <span id="nv"></span> verbs</span></div>
       <code id="verbs"></code></div>
-    <div class="card9 ep in" style="--at:7.4"><span class="k9" style="color:var(--accent)">Its own endpoint</span><code id="model"></code>
-      <div class="ow fade" style="--at:11.1">Open weights<span>so it can run on your own endpoint</span></div></div>
+    <div class="card9 ep in" data-cue="pointed"><span class="k9" style="color:var(--accent)">Its own endpoint</span><code id="model"></code>
+      <div class="ow fade" data-cue="ow">Open weights<span>so it can run on your own endpoint</span></div></div>
   </div>
   <div class="rel6">
-    <div class="rule9 br in" style="--at:13.9"><span class="k9">Its rule · B1</span><span class="t" id="rule"></span>
+    <div class="rule9 br in" data-cue="broken"><span class="k9">Its rule · B1</span><span class="t" id="rule"></span>
       <div class="pr" id="prices"></div></div>
     <div class="vs">
-      <div class="vrow in" style="--at:14.5"><span class="verdict bad pop" style="--at:15.3" id="hold"></span><span>broken release</span></div>
-      <div class="vrow in" style="--at:16.5"><span class="verdict good pop" style="--at:17" id="ship"></span><span>fixed release</span></div>
-      <div class="cost in" style="--at:17.7"><b id="cost"></b><span id="costw"></span></div>
+      <div class="vrow in" data-cue="broken+0.6"><span class="verdict bad pop" data-cue="hold" id="hold"></span><span>broken release</span></div>
+      <div class="vrow in" data-cue="ship+-0.5"><span class="verdict good pop" data-cue="ship" id="ship"></span><span>fixed release</span></div>
+      <div class="cost in" data-cue="cost"><b id="cost"></b><span id="costw"></span></div>
     </div>
   </div>
 </div>
 <div class="src9 fade" style="--at:.3"><b>Source:</b> SRA release reviews of Brightdesk 1.0 and 1.1 and their model-call ledger (demo/evidence/newuser-brightdesk-2026-11-01)</div>
+<script>
+// THE cue table (2.4 words/s from 0.3 s). Re-time here only.
+const CUES = {agent: 0.3, built: 3.63, adapter: 5.3, pointed: 7.38, ow: 11.13, broken: 14.05, hold: 15.3, ship: 16.97, cost: 17.38};
+</script>
 <script src="_v9.inc.js"></script>
 <script>
 const B = window.DATA.brightdesk;
-document.getElementById('hd').innerHTML = v9Head({app: 'brightdesk', note: 'a small app an AI agent built from SRA\'s docs', model: 'Muse Spark Open · open weights'});
+document.getElementById('hd').innerHTML = v9Head({app: 'brightdesk', note: 'a small app, built by an AI agent working from SRA\'s docs', model: 'Muse Spark Open · open weights'});
 document.getElementById('lines').dataset.count = B.adapter_lines;
 document.getElementById('nv').textContent = B.adapter_verbs.length;
-document.getElementById('verbs').innerHTML = B.adapter_verbs.map((v, i) => `<span class="fade" style="--at:${5.9 + i * .25}"><i>def</i> verb_${esc(v)}</span>`).join('<br>');
+document.getElementById('verbs').innerHTML = B.adapter_verbs.map((v, i) => `<span class="fade" data-cue="adapter+${(0.6 + i * .25).toFixed(2)}"><i>def</i> verb_${esc(v)}</span>`).join('<br>');
 document.getElementById('model').textContent = B.model;
 document.getElementById('rule').textContent = '“' + B.rule + '”';
 const LBL = {pricing: 'pricing page', checkout: 'checkout', inbox: 'email'};
 const vals = Object.values(B.prices_broken), odd = vals.find(v => vals.filter(w => w === v).length === 1);
 document.getElementById('prices').innerHTML = '<span style="border:0;background:none;padding:0;font-weight:500;color:var(--ink2);flex-basis:100%">On the broken release</span>' +
-  ['pricing', 'checkout', 'inbox'].map((k, i) => `<span class="${B.prices_broken[k] === odd ? 'bad' : ''} fade" style="--at:${14.3 + i * .2}">${B.prices_broken[k]} ${LBL[k]}</span>`).join('');
+  ['pricing', 'checkout', 'inbox'].map((k, i) => `<span class="${B.prices_broken[k] === odd ? 'bad' : ''} fade" data-cue="broken+${(0.4 + i * .2).toFixed(2)}">${B.prices_broken[k]} ${LBL[k]}</span>`).join('');
 document.getElementById('hold').textContent = B.hold.label;
 document.getElementById('ship').textContent = B.ship.label;
 document.getElementById('cost').textContent = B.cost_shown;
-document.getElementById('costw').innerHTML = `in model calls, start to finish<br>${B.billed_calls} billed calls`;
+const BP = window.DATA.v9.brightdesk_pages;
+document.getElementById('pp').innerHTML = ['pricing', 'checkout'].map((k, i) => `<div class="pg in" data-cue="${i ? 'built' : 'agent+0.3'}">
+  <div class="bar9"><i></i><i></i><i></i>&nbsp;${k === 'pricing' ? 'Pricing' : 'Checkout'}</div><img class="push" style="--pd:6s;--ps:1.04;--po:0 0" src="${BP[k].crop}" alt="Brightdesk ${k} page"></div>`).join('');
+if (BP.pricing.price !== B.prices_broken.pricing || BP.checkout.price !== B.prices_broken.checkout) throw new Error('page prices');
+document.getElementById('costw').innerHTML = `in model calls, the whole session<br>${B.billed_calls} billed calls`;
 </script>
+<script>applyCues(CUES); document.getElementById('lines').dataset.at = CUES.adapter;</script>
 <script src="motion.js"></script>
 <script>counters();</script>
 </body></html>
