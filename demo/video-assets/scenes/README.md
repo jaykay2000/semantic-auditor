@@ -1,5 +1,7 @@
 # Video scenes: still frames for the 3-minute demo
 
+> **The video's production files are not in this repository** (owner, 2026-11-02): slide sources, renderers, renders and cue sheets stay with the video. This note is kept because it records where each number on the frames came from; the commands and file names below refer to those files.
+
 3840×2160 PNGs (1920×1080 CSS px, device scale 2), one takeaway each, for assembly in Canva. Scene times follow
 `docs/archive/07-demo-reframe-draft.md` (v3.1, superseded). Every number on a frame comes from that file's Evidence table or from a
 source named below. Nothing is rounded differently from its source.
@@ -106,5 +108,5 @@ Notes:
 ## Motion clips and replacement stills (2026-11-01)
 
 Clips for beats 1, 2, 3, 4 (three transitions), 7 and the end card, plus a transparent beat-6 rule overlay, are
-mapped in [`../motion/README.md`](../motion/README.md). Their stills (`m7-*.png`, `o7-*.png`) sit in this folder. The
+mapped in `../motion/README.md` (not in this repository). Their stills (`m7-*.png`, `o7-*.png`) sit in this folder. The
 `s7-*` stills above are unchanged.

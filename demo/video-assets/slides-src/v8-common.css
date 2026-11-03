@@ -1,6 +1,0 @@
-.crop{border-radius:14px;border:1.5px solid var(--line);box-shadow:var(--shadow);background-color:#fff}
-.hd8{display:flex;align-items:center;gap:16px}
-.h2big{font:750 60px/1.05 var(--disp);letter-spacing:-.03em;margin:0}
-.kick{font:650 20px var(--sans);letter-spacing:.09em;text-transform:uppercase;color:var(--ink3)}
-.callout{font:750 64px/1 var(--disp);letter-spacing:-.03em}
-.when{font:650 19px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--ink3)}

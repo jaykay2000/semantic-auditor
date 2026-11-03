@@ -7,3 +7,13 @@ runs/
 examples/northbound/outbox/
 .DS_Store
 *.swp
+
+# The demo video's production files (slide sources, renders, motion, cue sheets) stay out of the repo (owner, 2026-11-02).
+# Kept: the two notes that record where each number on the video's frames came from.
+demo/video-assets/*
+!demo/video-assets/scenes/
+demo/video-assets/scenes/*
+!demo/video-assets/scenes/README.md
+!demo/video-assets/page/
+demo/video-assets/page/*
+!demo/video-assets/page/README.md

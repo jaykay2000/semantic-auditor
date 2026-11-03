@@ -1,28 +1,35 @@
-"""The demo assets name no local path, no coding agent and no non-Meta model (re-audit R2-03).
+"""The committed demo files name no local path, no coding agent and no non-Meta model (re-audit R2-03).
 
-Every text file under demo/video-assets/ (binaries skipped) is scanned for an absolute home or temp path and for
-the name of a coding agent or a non-Meta model. The frames say "no coding agent and no non-Meta model is named on any
-frame"; this makes that a check rather than a promise.
+Every committed text file under demo/ (binaries skipped) is scanned for an absolute home or temp path and for the name
+of a coding agent or a non-Meta model. The video's production files under demo/video-assets/ are not in the repository
+(owner, 2026-11-02) and are skipped, except the two notes that are. demo/build_sample_review.py imports the two
+patterns below.
 """
 
 import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-ASSETS = ROOT / "demo" / "video-assets"
+ASSETS = ROOT / "demo"
+KEPT = {ASSETS / "video-assets" / "scenes" / "README.md", ASSETS / "video-assets" / "page" / "README.md"}
 
 LOCAL_PATH = re.compile(r"/Users/|/home/[a-z]|/private/tmp|(?<![\w.])/tmp/|[A-Za-z]:\\Users\\")
 NAMES = re.compile(r"\b(?:codex|claude|anthropic|openai|chatgpt|gpt-?\d\w*|gemini|copilot|cursor|opus|sonnet|haiku|"
                    r"llama|mistral|mixtral|grok|qwen|deepseek|devin|windsurf|aider)\b", re.I)
 
-# Lines allowed to match, with the reason. Nothing is allowed today; add (path, substring, reason) only with a reason.
-ALLOWED: list[tuple[str, str, str]] = []
+# Lines allowed to match, with the reason. Add (path, substring, reason) only with a reason.
+ALLOWED: list[tuple[str, str, str]] = [
+    ("demo/build_sample_review.py", 'the CSS property "cursor:"', "names the CSS property the builder strips, not a tool"),
+    ("demo/build_sample_review.py", 're.sub(r"cursor', "the code that strips the CSS property cursor:"),
+]
 
 
 def _text_files():
     for p in sorted(ASSETS.rglob("*")):
         if not p.is_file():
             continue
+        if (ASSETS / "video-assets") in p.parents and p not in KEPT:
+            continue                                   # not committed (see the docstring)
         data = p.read_bytes()
         if b"\0" in data[:8192]:
             continue                                   # binary (images, video, fonts)
@@ -48,12 +55,12 @@ def test_the_scan_sees_the_assets():
 
 def test_no_absolute_home_or_temp_path():
     hits = _hits(LOCAL_PATH)
-    assert not hits, "local paths in demo/video-assets:\n" + "\n".join(hits)
+    assert not hits, "local paths in demo/:\n" + "\n".join(hits)
 
 
 def test_no_coding_agent_or_non_meta_model_name():
     hits = _hits(NAMES)
-    assert not hits, "agent or non-Meta model names in demo/video-assets:\n" + "\n".join(hits)
+    assert not hits, "agent or non-Meta model names in demo/:\n" + "\n".join(hits)
 
 
 def test_the_patterns_bite():

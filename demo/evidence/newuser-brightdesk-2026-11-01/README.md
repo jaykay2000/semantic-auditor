@@ -1,7 +1,7 @@
 # Brightdesk: a new user's first SRA run, on their own app and endpoint (2026-11-01)
 
-The evidence behind beat 6 of the v8 video (`demo/video-assets/slides-src/m8-b6-your-app.html`): HOLD on the broken
-release, SHIP on the fixed one, and $0.13 in model calls.
+HOLD on the broken release, SHIP on the fixed one, and $0.13 in model calls. (This was the evidence behind an earlier
+cut of the demo video; the video's files are not in this repository.)
 
 **Where it comes from.** A separate working folder, `sra-newuser-test`, where a fresh AI agent set up SRA on a small
 fictional subscription app it built (Brightdesk, synthetic data, served on 127.0.0.1) and pointed SRA at its own
@@ -40,8 +40,6 @@ the hold review's own issue text (`plan_price 12 on pricing; 15 on checkout; …
 was set up; these files do not show what the agent read. No duration is claimed: the ledger's 58 rows span about 12 minutes,
 but when the session started reading the docs is not recorded.
 
-**Regenerate:** `python3 demo/video-assets/slides-src/extract_brightdesk.py [--runs <sra-newuser-test/work/runs>] [--app <sra-newuser-test/my-app>]`.
-It refuses to write if the recommendations are not hold and ship, if the new issues are not one rule or the
-broken release shows a single price, if the new and resolved issues differ, or if a
-review's cost disagrees with its ledger rows. `tests/test_demo_brightdesk_evidence.py` checks this folder and the
-frame data (`demo/video-assets/scenes-data/brightdesk.json`) without the source folder.
+**Checks.** The extractor that wrote this folder lived with the video files and is not in this repository.
+`tests/test_brightdesk_evidence.py` checks what the folder itself claims: the billed rows add up to the record, every
+source carries a sha256, and the two reviews are hold then ship.

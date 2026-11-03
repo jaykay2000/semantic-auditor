@@ -1,5 +1,7 @@
 # Release review page: video stills
 
+> **The video's production files are not in this repository** (owner, 2026-11-02): slide sources, renderers, renders and cue sheets stay with the video. This note is kept because it records where each number on the frames came from; the commands and file names below refer to those files.
+
 Rendered with Playwright (Chromium) from the built `file://` pages at 1920×1080, device scale 2 (3840×2160 PNGs),
 network blocked. Each page was built with `semaudit.report.page.build` into a scratch folder outside any run folder
 (the same as `semaudit report <review.json> --out <folder>`); nothing was written into a run folder. Scene numbers refer to `docs/archive/07-demo-reframe-draft.md` (superseded).
