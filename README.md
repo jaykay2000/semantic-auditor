@@ -166,6 +166,11 @@ All from [docs/evidence/imported-checks/README.md](docs/evidence/imported-checks
   [`cards-run3c.html`](docs/evidence/imported-checks/acceptance/cards-run3c.html)). C1-04: beta2 FAIL 3/3 with
   verified evidence, beta3 PASS 3/3 with verified evidence, memory `fix_confirmed`. A variant with a different basket
   (three blenders) gives the same FAIL then PASS, also `fix_confirmed`.
+- **Why keep discoveries at all.** Three AI agents (one built on Muse Spark) explored the same store against the
+  same rules, two runs each, graded blind. Each run found real problems, but a different set: two runs of one agent
+  shared as little as about half of the problem types they found, and the best single run found 13 of the 18 types
+  all runs found together. SRA's own reviews found fewer, the same ones every run
+  ([evidence](docs/evidence/agent-exploration-2026-10-31/README.md)).
 - **A second app, refused.** Finablo's 401(k) limit bug was tried as a check. The developers' written record names
   what the user saw but no step they took, so the frozen converter graded it `partially_converted` and SRA refused
   to approve it. That is the gate working. The bug stays one of SRA's own release-review journeys
