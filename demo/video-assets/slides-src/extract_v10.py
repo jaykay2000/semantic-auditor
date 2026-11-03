@@ -64,8 +64,9 @@ SHOTS = {   # app -> (source, crop box in page px): the top of one real page eac
 }
 # The four contributions and each card's one Muse Spark job (storyboard v14.1). The Northbound/Spree evidence behind
 # each is what V3-V6 show; tests/test_demo_v10.py pins the wording (no "every", no model but Muse Spark).
+CARD1_TITLE = 'Judges what no test assertion can check'   # pending the owner's choice: "Catches what tests can't"
 CONTRIBUTIONS = [
-    {'n': 1, 'title': 'Judges what no test assertion can check', 'muse': 'Muse Spark reads each message and judges each rule.'},
+    {'n': 1, 'title': CARD1_TITLE, 'muse': 'Muse Spark reads each message and judges each rule.'},
     {'n': 2, 'title': 'Keeps what agents find', 'muse': 'Muse Spark drafts the steps and the rule from an agent\'s report.'},
     {'n': 3, 'title': 'Checks its own work', 'muse': 'Muse Spark looks at the screenshot, and is tested before it judges.'},
     {'n': 4, 'title': 'Plugs into your app', 'muse': 'It runs on the open-weight Muse Spark Open.'},
@@ -132,6 +133,25 @@ def personas(errors):
             'maya_plain': out.get('maya_plain'), 'lena_plain': out.get('lena_plain'),
             'rule_source': rel(rp), 'rule_sha256': sha256(rp), 'rule_lines': keep, 'key_phrase': v9['key_phrase'],
             'app': 'Northbound · a demo travel app'}
+
+
+ANA_SHOT = 'wide-run-3k/captures/10ff1e3/ana__S-guest-then-sign-up/10ff1e3.ana.S-guest-then-sign-up.s03.c01.screenshot.png'
+ANA_BOX = (290, 238, 1212, 652)     # page px (1x): the report's "Your freedom" card only, measured on her page
+ANA_PROBES = ('Work becomes optional at 45', '10 years ahead of your goal of 55')
+
+
+def ana_report(errors):
+    # V1's opening card (owner ruling: Ana's report, 45 and ahead, not the 61-year-old's 75, which reads as bad news
+    # about a user and is not the bug). Same release (v706), same run and layout as the beat-1 card it replaces.
+    shot = FINABLO / ANA_SHOT
+    dom = re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', ' ', shot.with_name(shot.name.replace('screenshot.png', 'dom.html')).read_text()))
+    dom = __import__('html').unescape(dom)
+    if not all(p in dom.replace(' .', '.') or p in dom for p in ANA_PROBES):
+        errors.append(f'Ana\'s v706 report does not say {ANA_PROBES}')
+    IMG.mkdir(parents=True, exist_ok=True)
+    Image.open(shot).crop(ANA_BOX).save(IMG / 'ana-freedom-v706.png')
+    return {'source': ANA_SHOT, 'sha256': sha256(shot), 'box': list(ANA_BOX), 'crop': 'img/v10/ana-freedom-v706.png',
+            'persona': 'ana', 'release': 'v706', 'headline': ANA_PROBES[0], 'note': ANA_PROBES[1]}
 
 
 def finablo_rules(errors):
@@ -289,7 +309,7 @@ def fmt(d):
 
 def main():
     errors = []
-    data = {'contributions': CONTRIBUTIONS, 'v3': personas(errors)}
+    data = {'contributions': CONTRIBUTIONS, 'v1': {'ana': ana_report(errors)}, 'v3': personas(errors)}
     data['v3']['finablo'] = finablo_rules(errors)
     data['v3']['verdict'] = maya_verdict(errors)
     data['v4'] = saved_check(errors)

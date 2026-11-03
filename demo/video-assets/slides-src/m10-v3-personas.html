@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><title>m10 V3: rules and test users you write, judged by Muse Spark</title>
 <link rel="stylesheet" href="slides.css"><link rel="stylesheet" href="motion.css"><link rel="stylesheet" href="v9.css"><link rel="stylesheet" href="v10.css">
-<!-- V3 (storyboard v15): "1 Judges what no test assertion can check". It opens on Finablo, then moves to the demo
+<!-- V3 (storyboard v15): contribution 1 (its title is extract_v10.CARD1_TITLE, one edit). It opens on Finablo, then moves to the demo
      travel app. Cue names are the screen's sections; times are PROVISIONAL placeholders until the owner's v15 V3
      take exists (re-time by editing CUES only):
        [one]     the contribution heading
@@ -44,7 +44,7 @@
 </style></head><body data-duration="21.5">
 <div class="only-out" data-outcue="nb+-0.4" id="hdA"></div><div class="fade" data-cue="nb" id="hdB"></div><div id="mk"></div>
 <div class="stage" style="justify-content:flex-start;top:132px">
-  <div class="ch in" data-cue="one"><b>1</b><span>Judges what no test assertion can check</span></div>
+  <div class="ch in" data-cue="one"><b>1</b><span id="ct1"></span></div>
   <div class="ph only-out" data-outcue="nb+-0.4">
     <div class="rules" id="rules"></div>
     <div class="gl fade" data-cue="grid"><span>Next release, v707: every place that states the limit</span><b id="ok"></b><span id="n8"></span></div>
@@ -69,6 +69,7 @@ const V = window.DATA.v10.v3, L = window.DATA.v9.finablo.limits.places, OK = win
 document.getElementById('hdA').innerHTML = v9Head({app: 'finablo', note: 'my finance app, the app under audit', model: 'Muse Spark · Meta'});
 document.getElementById('hdB').innerHTML = v9Head({app: 'northbound', note: 'a demo travel app', model: 'Muse Spark · Meta'});
 document.getElementById('mk').innerHTML = marker10(1);
+document.getElementById('ct1').textContent = window.DATA.v10.contributions[0].title;   // CARD1_TITLE, extract_v10.py
 document.getElementById('rules').innerHTML = V.finablo.rules.map((r, i) => `<div class="rule9 rl in" data-cue="${i ? 'h2' : 'fin'}">
   <span class="id">${esc(r.id)}</span><span class="t">${esc(r.title)}</span><span class="x">${esc(r.text)}</span></div>`).join('');
 document.getElementById('ok').textContent = OK;

@@ -75,13 +75,19 @@ def test_the_frames_type_no_figure_they_show():
 
 def test_contributions_are_the_storyboard_s_four():
     c = V10["contributions"]
-    assert [x["title"] for x in c] == ["Judges what no test assertion can check", "Keeps what agents find",
-                                       "Checks its own work", "Plugs into your app"]
+    # card 1's title is one variable (extract_v10.CARD1_TITLE), pending the owner's choice between these two
+    assert c[0]["title"] in ("Judges what no test assertion can check", "Catches what tests can't")
+    assert [x["title"] for x in c[1:]] == ["Keeps what agents find", "Checks its own work", "Plugs into your app"]
+    for p in FRAMES:                                     # no frame types card 1's title: it is read from the data
+        assert "Judges what no test assertion" not in _visible(p) and "Catches what tests" not in _visible(p), p.name
     assert all("Muse Spark" in x["muse"] for x in c) and not any("every" in x["muse"].lower() for x in c)
 
 
 def test_v1_shows_the_right_limit_beside_the_wrong_ones():
     src = _visible(SLIDES / "m10-v1-problem.html")
+    ana = V10["v1"]["ana"]
+    assert "window.DATA.v10.v1.ana.crop" in src and "V.finablo.freedom.crop" not in src   # owner ruling: Ana opens
+    assert (ana["persona"], ana["release"], ana["headline"]) == ("ana", "v706", "Work becomes optional at 45")
     assert "correct for age 61:" in src and "V.finablo.correct_limit" in src
     assert "what users see." in src
 

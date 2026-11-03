@@ -21,6 +21,23 @@
    "muse": "It runs on the open-weight Muse Spark Open."
   }
  ],
+ "v1": {
+  "ana": {
+   "source": "wide-run-3k/captures/10ff1e3/ana__S-guest-then-sign-up/10ff1e3.ana.S-guest-then-sign-up.s03.c01.screenshot.png",
+   "sha256": "7c77afce7fe247af56fe2a04efd44710cd4918b59b8c275cc4fe637f857fb552",
+   "box": [
+    290,
+    238,
+    1212,
+    652
+   ],
+   "crop": "img/v10/ana-freedom-v706.png",
+   "persona": "ana",
+   "release": "v706",
+   "headline": "Work becomes optional at 45",
+   "note": "10 years ahead of your goal of 55"
+  }
+ },
  "v3": {
   "source": "examples/northbound/contract/personas.yaml",
   "sha256": "8e1a5d482e9f6e0fe1f45ddaa653ed7e1ca919102edf2190fb62c5f4abe6dfbc",

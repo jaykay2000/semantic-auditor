@@ -9,8 +9,10 @@
        automated [checks] checks. [yet] But a sixty-one-year-old test user saw [two] two different 401(k) [limits]
        limits, and [neither] neither was [right] right. [tests] Tests check the code. They [dont] don't check [what]
        what users see.
-     Data: window.DATA.v9 (extract_v9.py), as in m9-b1: the freedom crop, the gate record, the two figures this test
-     user was shown, and the limit the IRS sets at 61 with its basis. -->
+     The opening card is Ana's v706 report (owner ruling: 45 and ahead; the 61-year-old's "75" card reads as bad news
+     about a user and is not the bug): window.DATA.v10.v1.ana (extract_v10.py, the same run and page layout).
+     Everything else is window.DATA.v9 (extract_v9.py), as in m9-b1: the gate record, the two figures the
+     61-year-old test user was shown, and the limit the IRS sets at 61 with its basis. -->
 <style>
 .free{position:absolute;left:330px;top:190px;width:1260px;transition:none}
 .free .k9{margin-bottom:14px}
@@ -41,7 +43,7 @@
 </style></head><body data-duration="18.9">
 <div id="hd"></div>
 <div class="free in out" style="--at:0" data-outcue="one+-0.3" id="free"><div class="k9">Finablo · the report, v706</div>
-  <div class="shotbox push" style="--pd:4.4s;--ps:1.05;--po:20% 30%"><img id="freeimg" alt="Finablo report: Work could be optional at 75"></div></div>
+  <div class="shotbox push" style="--pd:4.4s;--ps:1.05;--po:20% 30%"><img id="freeimg" alt="Finablo report for Ana, a test user: Work becomes optional at 45"></div></div>
 <div class="gate in" data-cue="one">
   <div class="top" id="gtop"></div>
   <div class="n"><b data-count="0" data-at="0" id="gn">0</b><span>checks<br>passed</span></div>
@@ -69,7 +71,7 @@ const CUES = {built: 0.3, optional: 2.47, one: 3.34, count: 5.08, checks: 5.95, 
 <script>
 const V = window.DATA.v9, G = V.gate;
 document.getElementById('hd').innerHTML = v9Head({app: 'finablo', note: 'my existing app, the app under audit — not part of this submission'});
-document.getElementById('freeimg').src = V.finablo.freedom.crop;
+document.getElementById('freeimg').src = window.DATA.v10.v1.ana.crop;   // owner ruling: Ana's report (45, ahead) opens V1
 document.getElementById('gtop').textContent = `Finablo ${G.release} · deploy gate · ${new Date(G.date + 'T12:00:00Z').toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC'})}`;
 document.getElementById('gn').dataset.count = G.ok;
 document.getElementById('gline').textContent = G.summary_line;
