@@ -11,7 +11,12 @@ for byte with its committed copy. Measured on 2026-11-01: both equal, in under 1
 
 ## Where the inputs come from
 
-- `northbound-2.3-2.4/review-2.3-2.4.json` is the Northbound 2.3 → 2.4 review **rebuilt at commit `8c2c762`**
+- `northbound-2.3-2.4/review-2.3-2.4.json` is the Northbound 2.3 → 2.4 review run **with the judge self-check on**
+  (2026-11-02, run `sc-live-1`, [evidence](../evidence/judge-self-check-2026-11-02/README.md)): the same episodes,
+  the same 62 cached model replies and the same 9 issues as the review described below, plus the self-check result
+  (6 of 6, $0.046 on Muse Spark 1.3). Its three manifest paths are written relative in the same way. It replaced
+  the review below on 2026-11-03.
+- Before that, the file was the Northbound 2.3 → 2.4 review **rebuilt at commit `8c2c762`**
   (2026-11-01) from the recorded run `e2e-2`: the same episodes and the same recorded re-captures, every model reply
   read from the model cache (62 calls, all cached, $0). The three absolute paths in its manifest (run folder,
   contract, adapter) are written relative to the repository, the same rewrite `demo/build_sample_review.py` makes on
