@@ -157,3 +157,31 @@ python3 slides-src/render_motion.py m9            # every v9 clip + still + the 
 Re-timing to the recorded voice: every beat except the end card keeps one `CUES` table, the second each word starts in
 the recorded take (`publish-audit/voice/word-times-v10.json`); edit the table, re-render the clip. `tests/test_demo_v9.py`
 checks each clip's length against the recording and that its last cue is spoken a second before it ends. `slides-src/_v9.inc.js::applyCues` turns `data-cue="name"` into the element's start time.
+
+## v10 screens: demo cut 3, storyboard v15 (2026-11-02, unvoiced, provisional timing)
+
+Seven screens for the owner's review before recording, same visual language as m9 (`v9.css`), with `v10.css` and
+`slides-src/_v10.inc.js` adding the corner marker of the four contributions (V3-V6, the current number lit). Every
+cue table is **provisional** (2.3 words a second from 0.3 s, from the storyboard v14.1 lines; V3's are section
+placeholders) until the owner's V1-V7 takes exist; re-time by editing each `CUES` table only, as for v9.
+
+| Clip | Beat | Provisional length | Shows |
+|---|---|---|---|
+| `m10-v1-problem` | V1 | 18.9 s | m9-b1 with the owner-review changes: the two wrong limits struck, beside them "correct for age 61: $35,750" with its basis; the close "They don't check what users see." |
+| `m10-v2-contributions` | V2 | 13.5 s | SRA's name and one line → the four contributions, each with its one-line Muse Spark job; they hold ~2 s, then shrink into the corner marker |
+| `m10-v3-personas` | V3 | 21.5 s | "1 Judges what no test assertion can check": Finablo's rules H1 and H2 (id, title, text only; finablo-semaudit `contract-wide/principles.yaml`) → v707, all 8 places at $35,750 → Maya's and Lena's persona cards in plain words, "written by the owner" → ONE real Muse Spark verdict for Maya with its reasoning (the sample review's "Unexplained tradeoff"), labelled `muse-spark-1.3` |
+| `m10-v4-keeps` | V4 | 37 s | the eight-box flow over the real check card's own sections (the owner's run ic-owner-rec-1); the stamp from `approvals.yaml`; "edit the check and the approval no longer applies"; "prototype: today SRA keeps only reports where it can verify every step (6 of 57)" |
+| `m10-v5-checks-itself` | V5 | 28.3 s | "a second, real bug": $43.19 shown ≠ $39.99 in the record → the screenshot crop, read $43.19, Confirmed → the planted control, the same crop claiming $39.99, Contradicted → the review page's "Judge self-check: 6 of 6" |
+| `m10-v6-plugs-in` | V6 | 21 s | the two files in plain words (Spree's 13 rules, id + title, from `contract-spree/principles.yaml`; the adapter named, not scrolled) → one real page per app (Spree, a Finablo test user, Maya on Northbound) → "Spree checks: Muse Spark Open (open weights)", from Run 3c's record. No Brightdesk |
+| `m10-v7-results` | V7 | 29.5 s | Finablo Fixed (8 of 8) · Finablo 1 regression (introduced in v708, confirmed by me on a test user) · Spree Fix merged (Nov 1, reported Oct 30, github.com/spree/storefront PR #289) · Saved check Kept |
+
+```bash
+SPREE_HARNESS_DIR=<spree-semaudit> FINABLO_HARNESS_DIR=<finablo-semaudit> python3 slides-src/extract_v10.py
+python3 slides-src/shoot_v10.py                   # img/v10/card-*.png (the check card), maya-verdict.png (sample review)
+python3 slides-src/render_motion.py m10           # every v10 clip + still
+python3 slides-src/contact_v10.py                 # scenes/m10-contact-sheet.png, with the layout check per frame
+```
+
+`tests/test_demo_v10.py` checks `scenes-data/v10.json` against the committed records without the harness repos (the
+approval fingerprint is recomputed from the stored check; Spree's rules file is compared by git blob id) and fails on
+a figure typed into a frame, or on any agent, model or app name other than Muse Spark's.

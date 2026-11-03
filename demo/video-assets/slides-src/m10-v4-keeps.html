@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>m10 V4: an agent's report becomes a check SRA keeps</title>
+<link rel="stylesheet" href="slides.css"><link rel="stylesheet" href="motion.css"><link rel="stylesheet" href="v9.css"><link rel="stylesheet" href="v10.css">
+<!-- V4 (storyboard v14.1). Voice-over ([cue] = CUES entry; PROVISIONAL times, 2.3 words/s from 0.3 s, until the
+     owner's V4 take exists: re-time by editing CUES only):
+       [two] Two: it keeps what agents find. [agents] AI agents can explore an app, but each run finds a different set
+       of problems. [one] One agent exploring Spree, an open-source store, reported an order email whose numbers didn't
+       add up. [muse] Muse Spark turned the report into a shopper's steps and a rule. [code] Code checked each step
+       against the report, and I [approved] approved the check. It [fails] fails on the older release and [passes]
+       passes on the newer one. A [later] later run reloads it and [confirms] confirms the fix.
+     The flow strip lights each box as the voice reaches it; under it, the real check card (the owner's run
+     ic-owner-rec-1, docs/evidence/imported-checks/acceptance/cards-run-owner-2026-11-01.html), one of its own
+     sections at a time (shoot_v10.py). Not run 3c's card: that one records its approval as the acceptance run's
+     ("owner has not reviewed this digest"), and this frame shows the owner's stamp. Data: window.DATA.v10.v4
+     (extract_v10.py): the stamp is approvals.yaml's entry, which must pin the digest C1-04 hashes to today, so "edit
+     the check and the approval no longer applies" is what approvals.yaml's status check does ('changed'). The
+     drafting model is the record's (Muse Spark Open). "6 of 57" is the imported-checks README's, checked against its
+     conversions file; v15 label (owner review): "prototype: today SRA keeps only reports where it can verify every step". -->
+<style>
+.ch{margin-bottom:18px}.ch b{font-size:64px}.ch span{font-size:46px}
+.strip{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:10px}
+.st{position:relative;padding:12px 14px;border-radius:14px;border:2px solid var(--line);background:var(--panel);font:600 24px/1.2 var(--sans);color:var(--ink3);min-height:116px;display:flex;align-items:center}
+.st.on{color:var(--ink);border-color:var(--ink2);box-shadow:var(--shadow)}
+.st.m.on{color:var(--accent);background:var(--accentbg);border-color:var(--accentln)}
+.st.no.on{color:var(--bad);background:var(--badbg);border-color:#F3C2BB}
+.st.ok.on{color:var(--good);background:var(--goodbg);border-color:#9FD3B6}
+.st.ap.on{color:var(--rule);background:var(--rulebg);border-color:var(--ruleln)}
+.pan{position:relative;margin-top:22px;height:610px;display:grid;grid-template-columns:1064px 1fr;gap:34px}
+.vw{position:relative;height:610px}
+.vw .ly{position:absolute;left:0;top:0;right:0}
+.vw img{display:block;width:1060px;border-radius:16px;border:2px solid var(--line);box-shadow:var(--shadow);background:#fff}
+.sd{position:relative}
+.sd .ly{position:absolute;left:0;right:0;top:0;display:flex;flex-direction:column;gap:16px}
+.note{font:500 27px/1.35 var(--sans);color:var(--ink2)}
+.note b{color:var(--ink);font-weight:700}
+.gate{padding:20px 24px;border-radius:18px;background:var(--accentbg);border:2px solid var(--accentln)}
+.gate b{display:block;font:750 30px/1.2 var(--disp);color:var(--accent)}.gate span{font:500 26px var(--sans);color:var(--ink2)}
+.stamp{padding:22px 26px;border-radius:18px;background:var(--rulebg);border:3px solid var(--ruleln);display:flex;flex-direction:column;gap:8px}
+.stamp b{font:800 36px/1.1 var(--disp);color:var(--rule)}
+.stamp .r{display:grid;grid-template-columns:150px 1fr;font:600 27px var(--sans);color:#3B2A00}
+.stamp .r i{font-style:normal;color:var(--rule);font-weight:650}
+.small{font:600 24px var(--sans);color:var(--ink3);border:2px dashed var(--line);border-radius:12px;padding:6px 14px;align-self:flex-start}
+.vd{display:flex;align-items:center;gap:16px;font:600 27px var(--sans);color:var(--ink2)}
+.vd .verdict{min-width:170px;justify-content:center}
+.fx{padding:24px 28px;border-radius:20px;background:var(--goodbg);border:3px solid #9FD3B6}
+.fx b{font:850 54px/1 var(--disp);letter-spacing:-.02em;color:var(--good)}
+.proto{position:absolute;left:96px;bottom:56px;font:600 24px var(--sans);color:var(--ink3)}
+</style></head><body data-duration="37">
+<div id="hd"></div><div id="mk"></div>
+<div class="stage" style="justify-content:flex-start;top:126px">
+  <div class="ch in" data-cue="two"><b>2</b><span>Keeps what agents find</span></div>
+  <div class="strip fade" data-cue="agents" id="strip"></div>
+  <div class="pan">
+    <div class="vw" id="vw"></div>
+    <div class="sd" id="sd"></div>
+  </div>
+</div>
+<div class="proto fade" data-cue="one" id="proto"></div>
+<div class="src9 fade" style="--at:.3"><b>Source:</b> saved check C1-04 and its approval (docs/try-it/spree-saved-checks) · the owner's run ic-owner-rec-1 · docs/evidence/imported-checks</div>
+<script>
+// THE cue table. PROVISIONAL (2.3 words/s from 0.3 s) until the V4 take: re-time here only.
+const CUES = {two: 0.3, agents: 2.9, one: 9.4, muse: 16.4, code: 21.6, approved: 25.5, fails: 27.3, passes: 29.9,
+  later: 32.5, confirms: 34.6};
+</script>
+<script src="_v9.inc.js"></script><script src="_v10.inc.js"></script>
+<script>
+const C = window.DATA.v10.v4, A = C.approval, P = C.prototype;
+document.getElementById('hd').innerHTML = v9Head({app: 'spree', note: 'a real open-source store', model: 'Muse Spark Open · open weights'});
+document.getElementById('mk').innerHTML = marker10(2);
+const UP = s => s.toUpperCase();
+// the eight boxes; each lights on its cue (data-oncue) and stays lit
+const BOX = [['', 'one', 'Agent\'s report, word for word'], ['m', 'muse', `Muse Spark Open drafts ${C.steps.length} steps + the rule`],
+  ['', 'code', 'Code checks each step against the report'], ['ap', 'approved', 'Approved · who · date · fingerprint'],
+  ['no', 'fails', `Older release: ${UP(C.older.assertion)}`], ['ok', 'passes', `Newer release: ${UP(C.newer.assertion)}`],
+  ['', 'later', 'A later run reloads it'], ['ok', 'confirms', 'Fix confirmed']];
+document.getElementById('strip').innerHTML = BOX.map(([c, cue, t]) => `<div class="st ${c}" data-oncue="${cue}">${esc(t)}</div>`).join('');
+// the real card, one section per stage
+const layer = (src, inCue, outCue, extra = '') => `<div class="ly in${outCue ? ' out' : ''}" data-cue="${inCue}"${outCue ? ` data-outcue="${outCue}"` : ''}>
+  <img src="${src}" ${extra} alt="the saved check's card"></div>`;
+document.getElementById('vw').innerHTML =
+  layer('img/v10/card-a.png', 'one', 'muse+-0.4') +
+  layer('img/v10/card-b.png', 'muse', 'fails+-0.4', 'class="push" id="pushb" style="--pd:11s;--ps:1.02;--po:0 0"') +
+  layer('img/v10/card-c.png', 'fails', 'later+-0.4') +
+  layer('img/v10/card-d.png', 'later');
+document.getElementById('sd').innerHTML = `
+  <div class="ly in out" data-cue="one" data-outcue="muse+-0.4"><span class="k9">The report, as the agent wrote it</span>
+    <span class="note">“${esc(C.report.claim)}”</span><span class="note">Kept as evidence only: the judging model never sees it.</span></div>
+  <div class="ly in out" data-cue="muse" data-outcue="approved+-0.4">
+    <span class="note fade" data-cue="muse+0.3"><b>${C.steps.length} steps</b> in the store adapter's own verbs, each tied to the report's words</span>
+    <span class="note fade" data-cue="muse+1.2"><b>Rule ${esc(C.rule.id)}</b> · ${esc(C.rule.title)}</span>
+    <div class="gate in" data-cue="code"><b>Code checks each step against the report</b>
+      <span>${C.gate_problems_per_round.map(n => n ? `${n} problems, redrafted` : 'passed').join(' → ')}</span></div></div>
+  <div class="ly in out" data-cue="approved" data-outcue="later+-0.4">
+    <div class="stamp pop" data-cue="approved"><b>✓ Approved</b>
+      <span class="r"><i>by</i>${esc(A.by)}</span><span class="r"><i>on</i>${esc(A.date)}</span>
+      <span class="r"><i>fingerprint</i><span class="mono9">${esc(A.fingerprint)}</span></span></div>
+    <span class="small fade" data-cue="approved+0.6">edit the check and the approval no longer applies</span>
+    <div class="vd fade" data-cue="fails+-0.3" style="margin-top:14px"><span class="verdict bad pop" data-cue="fails">${UP(C.older.assertion)}</span><span>older release · ${esc(C.older.name)}</span></div>
+    <div class="vd fade" data-cue="passes+-0.3"><span class="verdict good pop" data-cue="passes">${UP(C.newer.assertion)}</span><span>newer release · ${esc(C.newer.name)}</span></div></div>
+  <div class="ly in" data-cue="later"><span class="note">A later run, <span class="mono9">${esc(C.run.id)}</span>, reloads the check from storage, hashed</span>
+    <div class="fx pop" data-cue="confirms"><b>✓ fix confirmed</b></div></div>`;
+document.getElementById('proto').textContent = `prototype: today SRA keeps only reports where it can verify every step (${P.converted} of ${P.held_out})`;
+document.getElementById('pushb').style.setProperty('--pat', cueAt(CUES, 'muse'));
+if (C.older.assertion !== 'fail' || C.newer.assertion !== 'pass' || C.memory !== 'fix_confirmed') throw new Error('V4 data');
+applyCues(CUES);
+</script>
+<script src="motion.js"></script>
+<script>toggles();</script>
+</body></html>
