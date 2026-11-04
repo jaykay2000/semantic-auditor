@@ -83,7 +83,7 @@ A `universal` rule names one verb in `check.must`. These are the verbs the rule 
 
 | `must:` | Also needs | What the code checks |
 |---|---|---|
-| `match_oracle` | `claims` (fact ids) | each claim of those facts equals the app's own record at the moment it was shown (`facts.yaml` says which oracle field holds the truth); a fact with no recorded value is skipped, never a violation |
+| `match_oracle` | `claims` (fact ids), optional `oracle` (one or a list) | each claim of those facts equals the app's own record at the moment it was shown (`facts.yaml` says which oracle field holds the truth). With `oracle`, the claim is compared with that oracle's field of the fact, not the fact's first source, so one fact can be checked against the store's record by one rule and against an expected value by another. A fact with no recorded value is skipped, never a violation |
 | `match_charge` | `claims`, `charge` | each displayed amount equals what the user is finally charged (the state value `charge` names, same feature); no charge in the story means not applicable |
 | `agree_across_surfaces` | `claims` | every claim of the same fact that one persona sees reads the same on every surface, when shown in the same state; no oracle needed |
 | `agree_across_states` | `claims`, `states: {var: [before, after]}` | a fact shown before a state change (for example signed out → signed in) reads the same after it, when nothing else changed |

@@ -109,19 +109,44 @@ def _status(verdict: str) -> str:
     return {"mismatch": "violated", "unreadable": "unreadable"}.get(verdict, "passed")
 
 
+def named_oracles(rule: Rule, fact) -> list[str]:
+    """The oracles a match_oracle rule is checked against for this fact: those the rule names (`check.oracle`, one
+    or a list) that are sources of the fact. Empty: the rule names none of the fact's oracles, so the fact's own
+    truth (first source that reads) is used, as before."""
+    named = rule.check.get("oracle")
+    named = [] if named is None else (named if isinstance(named, list) else [named])
+    srcs = {s.oracle for s in getattr(fact, "sources", [])}
+    return [o for o in named if o in srcs]
+
+
+def rule_truth(rule: Rule, story: Story, fact_def, fact: str, at, feature) -> list[tuple[str | None, Any]]:
+    """(oracle, true value) pairs a claim of `fact` is compared with under this rule; None values left out."""
+    oracles = named_oracles(rule, fact_def)
+    pairs = ([(o, story.truth_at(fact, at, feature, oracle=o)) for o in oracles] if oracles
+             else [(None, story.truth_at(fact, at, feature))])
+    return [(o, t) for o, t in pairs if t is not None]
+
+
 def eval_match_oracle(rule: Rule, story: Story, contract: Contract | None = None) -> list[Entry]:
-    """Claims of the given types must equal the named oracle; a missing oracle is unverifiable, not false."""
+    """Claims of the given types must equal the oracle the rule names (each, for a list), when that oracle is a
+    source of the fact; otherwise the fact's own truth. A missing value is unverifiable, not false."""
     defs = {f.id: f for f in getattr(contract, "facts", [])}
     out = []
     for e in story.messages():
         for c in e.extraction.claims:
             if c["type"] not in rule.check["claims"] or not checkable(c, defs.get(c["type"]), contract_roles(contract)):
                 continue
-            truth = story.truth_at(c["type"], e.at, e.feature)
-            if truth is None:
+            pairs = rule_truth(rule, story, defs.get(c["type"]), c["type"], e.at, e.feature)
+            if not pairs:
                 continue                      # unverifiable: an owner question, never a violation
-            out.append(Entry(rule.id, e.id, _status(compare(in_period(c, defs.get(c["type"])), truth)),
-                             note=f"claim {shown(c)} vs true {c['type']} {truth}", meta={"fact": c["type"]}))
+            claim = in_period(c, defs.get(c["type"]))
+            verdicts = [(o, t, compare(claim, t)) for o, t in pairs]
+            bad = [v for v in verdicts if v[2] == MISMATCH]
+            o, truth, verdict = bad[0] if bad else verdicts[0]
+            where = f" ({o})" if o else ""
+            out.append(Entry(rule.id, e.id, _status(verdict),
+                             note=f"claim {shown(c)} vs true {c['type']}{where} {truth}",
+                             meta={"fact": c["type"], **({"oracle": o} if o else {})}))
     return out
 
 

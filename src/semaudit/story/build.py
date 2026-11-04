@@ -19,12 +19,16 @@ CHANNEL_ATTRS = ("data-channel",)
 KIND_CHANNEL = {"email": "email", "push": "push", "chat": "chat", "pdf": "pdf", "text": "text"}
 
 
-def fact_value(fact: Fact, state: dict[str, OracleReading], feature: str | None = None) -> Any:
+def fact_value(fact: Fact, state: dict[str, OracleReading], feature: str | None = None,
+               oracle: str | None = None) -> Any:
     """The fact's value in one state snapshot: the first source whose oracle reads. None if none applies.
+    `oracle`: only that oracle's sources (a rule that names the oracle it is checked against).
 
     A source with match_feature keeps only list items belonging to `feature` (a fee claim is checked against
     the claiming feature's own charges, never another transaction's)."""
     for src in fact.sources:
+        if oracle is not None and src.oracle != oracle:
+            continue
         reading = state.get(src.oracle)
         if reading is None or reading.status != "ok" or src.field not in reading.values:
             continue
@@ -42,15 +46,27 @@ def fact_value(fact: Fact, state: dict[str, OracleReading], feature: str | None 
 
 
 def snapshot(at: datetime, state: dict[str, OracleReading], contract: Contract) -> dict[str, Any]:
+    """`truth`: each fact's value (first source that reads). `by_oracle`: for a fact with sources on more than one
+    oracle, each oracle's own value, so a rule that names its oracle (`check.oracle`) is checked against that one
+    and not against whichever source happens to come first. Kept apart from `truth`, so nothing that reads
+    `truth` (the extraction schema, the report's state rows) changes."""
     truth: dict[str, Any] = {}
+    by_oracle: dict[str, dict[str, Any]] = {}
     for f in contract.facts:
-        if any(s.match_feature for s in f.sources):
-            for feat in contract.features:
-                if (v := fact_value(f, state, feat.id)) is not None:
-                    truth[f"{f.id}@{feat.id}"] = v
-        elif (v := fact_value(f, state)) is not None:
-            truth[f.id] = v
-    return {"at": at, "truth": truth}
+        oracles = list(dict.fromkeys(s.oracle for s in f.sources))
+        names = ([(f"{f.id}@{feat.id}", feat.id) for feat in contract.features]
+                 if any(s.match_feature for s in f.sources) else [(f.id, None)])
+        for name, feat in names:
+            if (v := fact_value(f, state, feat)) is not None:
+                truth[name] = v
+            if len(oracles) > 1:
+                per = {o: v for o in oracles if (v := fact_value(f, state, feat, o)) is not None}
+                if per:
+                    by_oracle[name] = per
+    out: dict[str, Any] = {"at": at, "truth": truth}
+    if by_oracle:
+        out["by_oracle"] = by_oracle
+    return out
 
 
 SHORT_WORDS = 4      # a block this short ("$860K", "Net worth") is read with its neighbours

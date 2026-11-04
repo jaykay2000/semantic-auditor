@@ -19,7 +19,7 @@ from semaudit.extract.messages import extract_unique, message_key
 from semaudit.models.router import Router
 from semaudit.relate.claims import checkable
 from semaudit.relate.interpret import model_interpreter, story_view
-from semaudit.relate.rules import p2_candidates
+from semaudit.relate.rules import named_oracles, p2_candidates, rule_truth
 from semaudit.story.align import event_keys
 from semaudit.story.episode import Episode
 from semaudit.story.model import Story
@@ -292,6 +292,11 @@ def step_oracle(issue: Issue, stories: dict[str, Story], contract: Contract) -> 
             for c in (e.extraction.claims if e.extraction else []):
                 if c["type"] not in facts or not checkable(c, next((f for f in contract.facts if f.id == c["type"]), None),
                                                            bool(getattr(contract.app, "claim_roles", False))):
+                    continue
+                fdef = next((f for f in contract.facts if f.id == c["type"]), None)
+                if named_oracles(contract.rule(issue.rule), fdef):
+                    if not rule_truth(contract.rule(issue.rule), story, fdef, c["type"], e.at, e.feature):
+                        gaps.append(f"{o.persona}/{e.id}: no {'/'.join(named_oracles(contract.rule(issue.rule), fdef))} value for {c['type']}")
                     continue
                 if story.truth_at(c["type"], e.at, e.feature) is None and story.final_truth(c["type"], e.feature) is None:
                     gaps.append(f"{o.persona}/{e.id}: no oracle value for {c['type']}")

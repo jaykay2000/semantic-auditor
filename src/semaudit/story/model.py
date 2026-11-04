@@ -63,12 +63,22 @@ class Story(BaseModel):
     snapshots: list[dict[str, Any]] = Field(default_factory=list)  # [{at, truth: {fact: value}}] from captures
     events: list[Event]
 
-    def truth_at(self, fact: str, t: datetime, feature: str | None = None) -> Any:
+    def truth_at(self, fact: str, t: datetime, feature: str | None = None, oracle: str | None = None) -> Any:
         """The fact's true value in force at t: the latest snapshot taken at or before t, else the static truth.
 
         A fact scoped to the claiming feature (e.g. a fee: only that feature's own charges) is stored as
-        'fact@feature'; it is preferred when present.
+        'fact@feature'; it is preferred when present. `oracle`: that oracle's own value (the snapshot's
+        `by_oracle`), for a rule that names the oracle it is checked against; None when it never read.
         """
+        names = ([f"{fact}@{feature}"] if feature else []) + [fact]
+        if oracle is not None and any(n in (x.get("by_oracle") or {}) for x in self.snapshots for n in names):
+            for name in names:
+                snaps = [x for x in self.snapshots if _dt(x["at"]) <= t
+                         and oracle in (x.get("by_oracle") or {}).get(name, {})]
+                if snaps:
+                    return max(snaps, key=lambda x: _dt(x["at"]))["by_oracle"][name][oracle]
+            return None                       # the fact has per-oracle values, and this oracle never read
+        # one oracle (or a hand-authored story): its truth is that oracle's
         for name in ([f"{fact}@{feature}"] if feature else []) + [fact]:
             snaps = [x for x in self.snapshots if _dt(x["at"]) <= t and name in x["truth"]]
             if snaps:
