@@ -4,6 +4,10 @@ Semantic Release Auditor turns validated discoveries, from developers and AI age
 Each one keeps the user's journey, the rule that was broken, and the evidence, so the next release doesn't start
 from zero.
 
+**[Watch the 3-minute demo video](https://youtu.be/qUd4R_XNhvg)** · [live sample review](https://jaykay2000.github.io/semantic-auditor/sample-review/)
+
+[![Demo video: Tests check the code. SRA checks what your users experience.](docs/video-thumbnail.jpg)](https://youtu.be/qUd4R_XNhvg)
+
 The Python package is `semaudit`; the short name is SRA. It was built during the Meta Global AI Developer Hackathon
 (Oct 26 – Nov 4, 2026). The reusable checks are a **prototype**: tested on one open-source store, with the limits
 listed [below](#limits).
@@ -27,9 +31,9 @@ It rebuilds two pages from files committed in this repo and prints where they we
 Each rebuilt file is compared byte for byte with its committed copy, and the command says so. To check the review
 itself against its pinned inputs, also offline:
 `.venv/bin/semaudit verify-report docs/try-it/northbound-2.3-2.4/review-2.3-2.4.json` (prints `CONSISTENT`). The
-sample review was rebuilt at commit `8c2c762` from the run's recorded episodes and cached model replies; some
-defender explanations in it are the wording of a later run that sent identical requests, and no result changed
-([details](docs/try-it/README.md)). It makes no model
+sample review is the Northbound 2.3 → 2.4 review run `sc-live-1` (2026-11-02, with the judge self-check on), rebuilt
+from its recorded episodes and cached model replies; some defender explanations in it are the wording of a later run
+that sent identical requests, and no result changed ([details](docs/try-it/README.md)). It makes no model
 call: it only re-renders recorded results, and its test runs it with every model call and network connection made to
 fail ([tests/test_demo.py](tests/test_demo.py)). The inputs are listed in
 [docs/try-it/demo.json](docs/try-it/demo.json). Running a new review or a saved check needs a model key and the app
