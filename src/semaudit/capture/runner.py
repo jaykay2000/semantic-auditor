@@ -318,6 +318,8 @@ class Runner:
         for b in blocks:
             sec = surface.sections[b["section"]]
             attribution = mapped(sec, keys(sec.feature, b["text"]), b["section"])
+            if sec.each:
+                attribution["root"] = b.get("root")
             cap.elements.append(Element(locator={"kind": "css", "css": b["css"], "span": [0, len(b["text"])],
                                                  **({"own_text": True} if b["own"] else {}),
                                                  **({"truncated": True, "full_text": b["full_text"]}

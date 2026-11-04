@@ -148,6 +148,7 @@ class SectionMap(Strict):
     feature: str
     component: str | None = None
     around: int = 1     # neighbouring blocks on each side read as a short block's context (a chart's column labels)
+    each: bool = False  # every element the selector matches is its own section for that context (one labelled row)
 
 
 class Surface(Strict):

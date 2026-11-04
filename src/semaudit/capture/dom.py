@@ -100,6 +100,9 @@ BLOCKS_JS = r"""
   const roots = new Map();
   sels.forEach((sel, i) => { for (const r of document.querySelectorAll(sel)) roots.set(r, i); });
   const sectionOf = (el) => { for (let e = el; e; e = e.parentElement) if (roots.has(e)) return roots.get(e); return -1; };
+  const rootIds = new Map();        // each section root element's own number, for a section mapped with `each`
+  for (const r of roots.keys()) rootIds.set(r, rootIds.size);
+  const rootOf = (el) => { for (let e = el; e; e = e.parentElement) if (roots.has(e)) return rootIds.get(e); return -1; };
   const blurPx = (f) => { const m = /blur\(\s*([\d.]+)px/.exec(f || ''); return m ? parseFloat(m[1]) : 0; };
   const rgba = (c) => { const m = /rgba?\(([^)]+)\)/.exec(c || ''); if (!m) return null; const v = m[1].split(',').map(x => parseFloat(x));
                         return {r: v[0], g: v[1], b: v[2], a: v.length > 3 ? v[3] : 1}; };
@@ -218,7 +221,7 @@ BLOCKS_JS = r"""
       if (v.none) ob = 'clipped';
       else if (v.cut) { truncated = true; full = text; text = v.text; }
     }
-    return {css: css(el), text, attrs, own, section: sectionOf(el), bbox: box, obscured: ob, truncated, full_text: full};
+    return {css: css(el), text, attrs, own, section: sectionOf(el), root: rootOf(el), bbox: box, obscured: ob, truncated, full_text: full};
   });
   window.scrollTo(sx, sy);
   return res;

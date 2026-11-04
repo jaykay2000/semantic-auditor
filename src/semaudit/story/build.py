@@ -75,11 +75,13 @@ SHORT_WORDS = 4      # a block this short ("$860K", "Net worth") is read with it
 def around(cap, index: int, width: int = 1) -> str | None:
     """For a short block on a page, the readable text just before and after it: a figure's label often sits in
     its own block, and "$860K" alone cannot be told from any other amount. Context only, never a claim source.
-    Only for blocks the contract map cut out of a page; a message the app marks itself is already a whole unit."""
+    Only for blocks the contract map cut out of a page; a message the app marks itself is already a whole unit.
+    A section mapped with `each` bounds the context at each matched element (one labelled row), not at the selector."""
     el = cap.elements[index]
     if cap.kind != "web" or len((el.text or "").split()) > SHORT_WORDS:
         return None
-    sec = lambda e: (getattr(e, "attribution", None) or {}).get("section")  # noqa: E731
+    sec = lambda e: ((getattr(e, "attribution", None) or {}).get("section"),  # noqa: E731
+                     (getattr(e, "attribution", None) or {}).get("root"))      # set only for a section with `each`
     readable = lambda e: (bool((e.text or "").strip()) and not e.obscured  # noqa: E731
                           and sec(e) == sec(el))                                  # never across a section boundary
     clip = lambda t: " ".join(t.split())[:80]  # noqa: E731
