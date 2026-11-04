@@ -14,8 +14,13 @@ Event: **Meta Global AI Developer Hackathon** (Cerebral Valley). Source: the par
 | **Banned / anti-projects**: medical advice, basic RAG, simple image analyzers, etc. | semaudit is developer tooling. The apps it is shown on are Northbound (a fictional travel app), Spree (an open-source store) and Finablo (personal finance, the app under audit, not the submission). SRA gives no financial advice. |
 | **Team size** up to 4; solo allowed. | Solo, Indie Developer track. |
 | **Submission**: Wed **Nov 4, 9:00 PM ET**, via the CV platform. Public repo, accessible video link, all contributors listed. | Internal deadline: submit by **Nov 4, 12:00 PM ET**. |
-| **3-minute demo video**: a primary judging artifact, together with code and the live product. | The video, the README and the submission lead with the same sentence (see the Demo row below). Hosting a sample run report publicly as the "live product" is planned. The first demo design is archived ([docs/archive/06-demo-vision.md](docs/archive/06-demo-vision.md)). |
+| **3-minute demo video**: a primary judging artifact, together with code and the live product. | The video, the README and the submission lead with the same sentence (see the Demo row below). The live product is a sample release review, hosted at [jaykay2000.github.io/semantic-auditor/sample-review/](https://jaykay2000.github.io/semantic-auditor/sample-review/). The first demo design is archived ([docs/archive/06-demo-vision.md](docs/archive/06-demo-vision.md)). |
 | **Credits**: $150 Meta Model API (claim by Nov 4, 9 PM ET; card required; set a spend limit). Baseten $100 + 2M TPM, Modal $100, Fireworks $25 (each by application). | Meta Model API for Northbound and Finablo; Baseten for Muse Spark Open on Spree. Modal is not used. |
+
+## AI tools used
+
+Development used AI coding assistants. Two non-Meta AI agents, along with Meta's Muse Spark, ran the exploration
+runs. Every model call SRA made for the results shown here ran on Meta's Muse Spark.
 
 ## Judging (stage 2, 0–10 per category)
 
@@ -34,7 +39,7 @@ Where each beat's facts come from, and what is not built yet (checked 2026-10-31
 |---|---|---|
 | 1. Finablo bug | 61-year-old shown $32,500 and $24,500 where $35,750 applies (where the plan allows the age 60–63 catch-up): [demo/video-assets/scenes/README.md](demo/video-assets/scenes/README.md), from the Finablo review `review-10ff1e3-a183626.reader.json`. The 354 passing checks: Finablo's v706 deploy gate (354 OK, 0 FAIL: gate checks, not tests), quoted with its commit and tree in [demo/evidence/finablo-gate-v706](demo/evidence/finablo-gate-v706/README.md) | from Finablo's private repository; not publicly verifiable |
 | 2. The loop | [README, The loop](README.md#the-loop) and [Reusable checks](README.md#reusable-checks-prototype) | built (prototype) |
-| 3. Different runs find different things | the agent experiments' grading, in a separate private repo | description only, no counts in this repo |
+| 3. Different runs find different things | [docs/evidence/agent-exploration-2026-10-31](docs/evidence/agent-exploration-2026-10-31/README.md): 6 runs (three AI agents, two fresh trials each), graded in a separate private repo | counts in this repo; the per-run grading is private |
 | 4. Spree saved check | [imported-checks evidence](docs/evidence/imported-checks/README.md), Run 3c ([transcript](docs/evidence/imported-checks/acceptance/run3c-transcript.txt), [cards](docs/evidence/imported-checks/acceptance/cards-run3c.html)); reproduce in [spree-semaudit](https://github.com/jaykay2000/spree-semaudit) | built. Run 3c's approval was written by the acceptance run and labelled "owner has not reviewed this digest". On 2026-11-01 the owner approved both digests under their own name and ran the saved checks again from storage ([`ic-owner-rec-1`](docs/evidence/imported-checks/acceptance/cards-run-owner-2026-11-01.html)): C1-04 `fix_confirmed` |
 | 5. Found, reported, fixed upstream | [demo/evidence/taxline-upstream-2026-10-30](demo/evidence/taxline-upstream-2026-10-30/README.md): spree/storefront issue 283 (reported 2026-10-30) was closed on 2026-11-01 by PR #289, "Show tax-exclusive line amounts in checkout and order summaries" ("Fixes #283"), written and merged by a member of the Spree organisation, merge commit `f9fa77a` (checked with `gh api`, 2026-11-01). Found by SRA's own Spree journeys, not by an imported check | reported upstream; fix merged 2026-11-01 (PR #289). SRA has not run the fixed storefront |
 | 6. Northbound rule | rule P2 in [examples/northbound/contract/principles.yaml](examples/northbound/contract/principles.yaml); Maya and Lena in [docs/evidence/w9-review.md](docs/evidence/w9-review.md) | built; the rule is owner-written, not imported |
