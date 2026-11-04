@@ -496,8 +496,11 @@ docs/          design documents and measured evidence
 
 - **Dependencies are not locked.** `pyproject.toml` gives lower bounds only (ruff is pinned exactly); there is no
   lock or constraints file, so a fresh install resolves the newest compatible versions.
-- **The git history is kept as written**, by the owner's choice: commits carry the author's name and email and
-  co-author trailers, and nothing has been rewritten.
+- **The git history was rewritten once, on 2026-11-03, before submission.** An editor swap file and an API key
+  (since revoked) were removed from old commits, and three lines of unrelated wording were dropped from old file
+  versions. Every commit keeps its author, committer, dates and message; commit ids changed, and every id cited in
+  this repo and in [jaykay2000/spree-semaudit](https://github.com/jaykay2000/spree-semaudit) was updated to match.
+  Commits carry the author's name and email and co-author trailers.
 
 ## Status
 
