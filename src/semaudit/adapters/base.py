@@ -34,6 +34,18 @@ class StepFailed(Exception):
     """Raised by an adapter when a verb cannot be performed (unknown verb, broken selector, HTTP error)."""
 
 
+class AppFailed(Exception):
+    """Raised by an adapter when the APP refused or failed an action it offered (a disabled button where the action
+    should be, an error page, the store's own refusal), as opposed to StepFailed, where the harness could not do
+    the step. The message is the evidence in the app's own words; `landed` is the surface the user was left on, so
+    the runner captures what they saw. An app failure is a finding (rule verb offered_actions_complete), never a
+    hole in the measurement."""
+
+    def __init__(self, reason: str, landed: str | None = None):
+        super().__init__(reason)
+        self.landed = landed
+
+
 @dataclass
 class ChatTurn:
     who: str                              # the user's side or the product's side, as the adapter names them

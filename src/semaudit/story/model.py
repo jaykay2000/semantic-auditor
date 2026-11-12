@@ -36,7 +36,7 @@ class Evidence(BaseModel):
 class Event(BaseModel):
     id: str
     at: datetime
-    kind: Literal["message", "user_action"]
+    kind: Literal["message", "user_action", "failed_action"]   # failed_action: the app refused it
     feature: str | None = None
     surface: str | None = None
     channel: str | None = None          # card | banner | page | email | push | chat

@@ -297,6 +297,23 @@ def eval_match_charge(rule: Rule, story: Story, contract: Contract | None = None
     return out
 
 
+def eval_offered_actions_complete(rule: Rule, story: Story, contract: Contract | None = None) -> list[Entry]:
+    """Every action the app offered the user and the scenario took completes: `violated` for a step the app refused
+    or failed (an error page, a disabled button where the action should be, the store's own refusal), `passed` for
+    one that completed. `check.actions` limits it to those scenario verbs (default: every verb). A step the HARNESS
+    could not do is never here: that is a hole in the measurement, reported as not measured."""
+    want = set(rule.check.get("actions") or [])
+    out = []
+    for e in story.events:
+        if e.kind not in ("user_action", "failed_action") or (want and e.action not in want):
+            continue
+        failed = e.kind == "failed_action"
+        out.append(Entry(rule.id, e.id, "violated" if failed else "passed",
+                         note=f"{e.action} failed: {e.text}" if failed else "",
+                         meta={"action": e.action} if failed else {}))
+    return out
+
+
 def eval_actionable(rule: Rule, story: Story, contract: Contract) -> list[Entry]:
     out = []
     for e in story.messages():
@@ -501,6 +518,7 @@ _UNIVERSAL: dict[str, tuple[Callable, tuple[str, ...]]] = {
     "match_oracle": (eval_match_oracle, ("claims",)),
     "match_charge": (eval_match_charge, ("claims", "charge")),
     "precondition_holds_at_shown_time": (eval_actionable, ()),
+    "offered_actions_complete": (eval_offered_actions_complete, ()),
 }
 UNIVERSAL_CHECKS = frozenset(_UNIVERSAL)
 

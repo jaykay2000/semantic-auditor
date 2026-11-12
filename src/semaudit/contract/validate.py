@@ -63,6 +63,8 @@ def validate(c: Contract) -> list[str]:
                 need("oracle", o, oracles, f"rule {r.id} check")
         for claim in r.check.get("claims", []):
             need("fact", claim, facts, f"rule {r.id} check")
+        for a in r.check.get("actions", []) or []:
+            need("action", a, verbs, f"rule {r.id} check")
         for e in r.exceptions:
             for f in e.scope.get("features", []):
                 need("feature", f, features, f"exception {e.id} scope")

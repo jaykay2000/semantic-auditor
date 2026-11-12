@@ -583,6 +583,13 @@ function topBar() {
     ${m ? `<span class="tag">${esc(modelName(m))}${provider('interpreter') ? ' · ' + esc(provider('interpreter')) : ''}</span>` : ''}
     <span class="tag">built during the hackathon</span></div></div>`;
 }
+function partlyNote() {
+  // personas evaluated only up to a step the app failed: the steps after it were never reached, so say so
+  const pm = R.measurement || {};
+  const rows = [['base', pm.base_partly], ['head', pm.head_partly]].flatMap(([side, m]) =>
+    Object.entries(m || {}).map(([p, r]) => `${esc(pname(p))} in ${side === 'base' ? esc(BASE) : esc(HEAD)}: ${r.length} later step(s) not reached`));
+  return rows.length ? `<div class="vwhy muted">Partly measured, after the app failed an action: ${rows.join('; ')}</div>` : '';
+}
 function verdict() {
   const pol = R.policy, out = R.outcome || {status: 'decided', recommendation: pol.recommendation};
   const firedBy = (pol.fired_by || []).map(id => R.issues.find(x => x.id === id)).filter(Boolean);
@@ -603,7 +610,7 @@ function verdict() {
     <div style="min-width:0"><p class="h" style="margin:0">Release review · ${R.app ? esc(R.app.name) : ''}</p>
       <div class="rel"><span class="mono">${esc(BASE)}</span><span class="arr">→</span><span class="mono">${esc(HEAD)}</span></div>
       <div class="vline">${esc(lead)} <span class="word ${esc(word)}">${esc(words(word))}</span><span class="rec rec-${esc(out.recommendation)}">${esc(words(out.recommendation))}</span></div>
-      <div class="vwhy">${why}</div>
+      <div class="vwhy">${why}</div>${partlyNote()}
       <div class="vwhy sc-${esc((R.self_check || {}).status || 'none')}">${esc((R.self_check || {}).line || 'Judge self-check: not run (none recorded in this review)')}</div>
       <div class="vwhy">${ownerRelease()} · ${R.issues.length} open issue${R.issues.length === 1 ? '' : 's'} · ${R.personas.length} personas</div></div>
     <div><div class="tiles">${tiles}</div><div class="reach">${esc(nouns(R.personas.length))} played through both releases · ${ALL.length} issue${ALL.length === 1 ? '' : 's'} in this review</div></div>

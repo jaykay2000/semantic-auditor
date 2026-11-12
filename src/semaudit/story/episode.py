@@ -32,7 +32,9 @@ COMPONENT_ATTRS = ("data-component",)
 SHOWN_AT_ATTRS = ("data-shown-at", "sent_at")
 
 CaptureKind = Literal["web", "email", "push", "chat", "pdf", "text"]
-StepStatus = Literal["done", "skipped_not_offered", "failed"]
+StepStatus = Literal["done", "skipped_not_offered", "failed", "app_failed", "blocked"]
+# failed: the harness could not do the step (a hole in the measurement). app_failed: the app refused or failed an
+# action it offered (a finding). blocked: a later step that failed after an app failure, so not a harness fault.
 CaptureStatus = Literal["captured", "not_measured"]
 
 

@@ -38,6 +38,9 @@ def measurement(base: ReleaseEval, head: ReleaseEval, contract: Contract, reader
         rules = [{"rule": r, "reason": "; ".join(why[r])} for r in sorted(why, key=order.get)]
     out = {"complete": base.complete and head.complete and not rules, "base": base.not_measured,
            "head": head.not_measured}
+    for side, ev in (("base", base), ("head", head)):
+        if getattr(ev, "partly", None):
+            out[f"{side}_partly"] = ev.partly     # steps never reached after the app failed one: evaluated up to there
     if rules:
         out["rules_not_measured"] = rules
     return out

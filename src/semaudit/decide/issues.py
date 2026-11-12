@@ -166,6 +166,9 @@ def explain(entry: Entry, events: list[Event], story: Story, contract: Contract)
         need = ", ".join(f"{k} = {v}" for k, v in pre.items())
         was = ", ".join(f"{k} = {state.get(k)}" for k in pre)
         return f"'{e.extraction.action}' needs {need}; when shown at {_hm(e)}, {was}."
+    if r.check.get("must") == "offered_actions_complete" and e:
+        where = f" on {e.surface}" if e.surface else ""
+        return f"the {who} took '{e.action}' at {_hm(e)}{where} and the app did not complete it: {e.text}"
     if "message_kind" in r.applies_to and e:
         return f"a {r.applies_to['message_kind']} message at {_hm(e)}, after the {who} had committed."
     if r.kind == "conditional" and e:

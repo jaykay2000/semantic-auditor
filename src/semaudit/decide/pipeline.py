@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import random
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from semaudit.contract.schema import Contract
@@ -22,15 +22,18 @@ class ReleaseEval:
     episodes: dict[str, Episode]                      # persona -> episode
     results: dict[str, tuple[Story, list[Entry]]]     # persona -> (story, entries), measured personas only
     not_measured: dict[str, list[str]]                # persona -> reasons (failed steps, unreadable surfaces)
+    partly: dict[str, list[str]] = field(default_factory=dict)   # persona -> steps never reached because the app
+                                                                 # failed an earlier one (evaluated up to there)
 
     @property
     def complete(self) -> bool:
-        return not self.not_measured
+        return not self.not_measured      # a partly measured persona was evaluated; `partly` says what it missed
 
 
 def measurement_problems(ep: Episode) -> list[str]:
     """Everything that stops this episode from being a faithful measurement. Any problem excludes the persona
-    from the release's results: a story with a hole in it is not evaluated, it is reported as not measured."""
+    from the release's results: a story with a hole in it is not evaluated, it is reported as not measured. A step the
+    APP failed is not a hole but a finding, and the steps it blocked are reported by `blocked_steps`."""
     out = [f"step {s.seq} ({s.do}): {s.error}" for s in ep.steps if s.status == "failed"]
     out += [f"{c.id}: {c.error}" for c in ep.captures() if c.status == "not_measured"]
     out += [f"{n.surface}: {n.reason}" for n in ep.not_measured]
@@ -39,6 +42,11 @@ def measurement_problems(ep: Episode) -> list[str]:
     out += [f"oracle {name} after step {s.seq} ({s.do}): {r.error or 'not measured'}"
             for s in ep.steps for name, r in s.state.items() if r.status == "not_measured"]
     return out
+
+
+def blocked_steps(ep: Episode) -> list[str]:
+    """Steps never reached because the app failed an earlier one: the story is evaluated up to there."""
+    return [f"step {s.seq} ({s.do}): {s.error}" for s in ep.steps if s.status == "blocked"]
 
 
 def load_release(run_dir: Path, release: str, contract: Contract, personas: set[str] | None = None
@@ -70,6 +78,7 @@ def evaluate_release(run_dir: Path, release: str, contract: Contract, router: Ro
     `readings`: a message-key -> extraction map shared with the other release's evaluation; only messages not
     in it are extracted, and the new answers are added to it."""
     episodes, not_measured, stories = load_release(run_dir, release, contract, personas)
+    partly = {p: b for p, ep in episodes.items() if p in stories and (b := blocked_steps(ep))}
     msgs = [e for s in stories.values() for e in s.messages()]
     if readings is not None:
         msgs = [m for m in msgs if message_key(m) not in readings]
@@ -84,4 +93,4 @@ def evaluate_release(run_dir: Path, release: str, contract: Contract, router: Ro
             e.extraction = ext[message_key(e)]
         interp = model_interpreter(router, fresh=fresh, rng=random.Random(f"{seed}:{release}:{persona}"))
         results[persona] = (s, generator(s) if generator else evaluate(s, contract, interp))
-    return ReleaseEval(release, episodes, results, not_measured)
+    return ReleaseEval(release, episodes, results, not_measured, partly)

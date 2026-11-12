@@ -88,6 +88,7 @@ A `universal` rule names one verb in `check.must`. These are the verbs the rule 
 | `agree_across_surfaces` | `claims` | every claim of the same fact that one persona sees reads the same on every surface, when shown in the same state; no oracle needed |
 | `agree_across_states` | `claims`, `states: {var: [before, after]}` | a fact shown before a state change (for example signed out → signed in) reads the same after it, when nothing else changed |
 | `precondition_holds_at_shown_time` | — | each recommendation's action is possible at the moment it is shown (the action's precondition in `decisions.yaml`) |
+| `offered_actions_complete` | optional `actions` (scenario verbs) | every action the app offered and the user took completes; a step your adapter reports with `AppFailed` (or `StepResult(error=…)`) is a violation, with the app's own reason as evidence |
 
 **A figure that is correct in more than one form.** A price can be right with or without VAT, before or after a
 promotion. If you accept a second form, declare it on the fact as a `basis`. A claim that misses the true value
@@ -183,7 +184,7 @@ The adapter turns each scenario verb into clicks and requests on **your** app. I
 docstring of `src/semaudit/adapters/base.py`; the shape is:
 
 ```python
-from semaudit.adapters.base import StepFailed, StepResult
+from semaudit.adapters.base import AppFailed, StepFailed, StepResult
 
 class Adapter:
     def persona_body(self, persona, context):   # JSON body for your `persona` hook
@@ -205,6 +206,14 @@ class Adapter:
 
 Drive through the browser wherever a user would. Use `session.http` only for hooks and oracles. A verb the app does
 not offer in a release returns `StepResult(offered=False)`; the step is then recorded as skipped, not failed.
+
+**Who failed: the app, or the harness.** When the app refuses or fails an action it offered (an error page, a
+disabled button where the action should be, the store's own refusal), raise
+`AppFailed("<what the user saw>", landed="<surface>")`. SRA captures that surface, records the step as `app_failed`,
+and a rule with `must: offered_actions_complete` turns it into an issue. Later steps that fail because of it are
+recorded as `blocked`: the persona is still evaluated up to there, and the review says which steps were not reached.
+Raise `StepFailed` only when **your harness** could not do the step (a selector broke, a hook timed out). That is a
+hole in the measurement, so the whole persona is reported as not measured, never as passed.
 
 ## 3. The first run
 

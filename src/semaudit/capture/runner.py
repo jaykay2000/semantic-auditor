@@ -18,7 +18,7 @@ from urllib.parse import urlsplit
 
 import httpx
 
-from ..adapters.base import Session, StepResult, load_adapter
+from ..adapters.base import AppFailed, Session, StepResult, load_adapter
 from ..adapters.hooks import HookClient, HookError, OracleClient
 from ..contract.schema import Contract, Persona, Scenario, Step, Surface, load_contract, resolve_context, resolve_time
 from ..story.episode import BBox, Capture, Element, Episode, NotMeasured, StepRecord, episode_path
@@ -49,6 +49,7 @@ class _EpisodeCtx:
     seen: dict[str, set[str]] = field(default_factory=dict)
     step: _StepCtx | None = None
     clock: bool = False                   # the app runs on the simulated clock (a clock hook)
+    app_failed: str | None = None         # the first step the app refused or failed ("step 13 (place_order)")
 
 
 class Runner:
@@ -204,6 +205,7 @@ class Runner:
         sctx = _StepCtx(seq, at, rec)
         ectx.step = sctx
         error: str | None = None
+        app_error: str | None = None          # the app refused or failed an action it offered: a finding
 
         if hooks.has("clock"):
             body = adapter.clock_body(at) if hasattr(adapter, "clock_body") else {"set": at.isoformat()}
@@ -216,6 +218,9 @@ class Runner:
         if error is None:
             try:
                 result = adapter.run_step(step, sess)
+            except AppFailed as exc:
+                app_error = str(exc)
+                result = StepResult(landed=exc.landed)          # capture what the user was left looking at
             except Exception as exc:
                 error = f"{type(exc).__name__}: {exc}"
         if result is not None:
@@ -225,7 +230,7 @@ class Runner:
                 else:
                     error = f"{step.do!r} is not offered here"
             elif result.error:
-                error = result.error
+                app_error = result.error        # StepResult.error: the verb ran and the app answered with a failure
 
         if result is not None and result.note:
             rec.note = result.note
@@ -239,8 +244,14 @@ class Runner:
         sink_surfaces = [s for s in self.contract.surfaces if s.sink and s.kind in ("email", "push")]
         rec.captures.extend(self._drain(ectx, sink_surfaces, sctx))
         rec.state = oracles.snapshot(adapter.oracle_params(sess.persona, sess))
-        if error is not None:
+        if error is not None and ectx.app_failed:
+            # after the app refused an earlier action, a later step failing is a consequence, not a harness fault
+            rec.status, rec.error = "blocked", f"after {ectx.app_failed} failed in the app: {error}"
+        elif error is not None:
             rec.status, rec.error = "failed", error
+        elif app_error is not None:
+            rec.status, rec.error = "app_failed", app_error
+            ectx.app_failed = ectx.app_failed or f"step {seq} ({step.do})"
         return rec
 
     @staticmethod

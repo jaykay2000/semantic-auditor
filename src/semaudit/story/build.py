@@ -112,6 +112,16 @@ def story_from_episode(ep: Episode, contract: Contract) -> Story:
         if st.status == "done":
             events.append(Event(id=f"a{st.seq:02d}_{st.do}", at=st.at, kind="user_action", action=st.do,
                                 params=dict(st.params)))
+        elif st.status == "app_failed":
+            # never a user_action: it changed no state. copy_key names the action, so the same failure in base and
+            # head is one issue whatever the app's wording
+            shot = next((c for c in st.captures if c.kind == "web" and c.status != "not_measured"), None)
+            ev = Evidence(episode=ep.id, step=st.seq, capture_id=shot.id, element=0, locator={},
+                          capture_sha256=dict(shot.sha256), attribution={"method": "step", "confidence": 1.0}) \
+                if shot else None
+            events.append(Event(id=f"a{st.seq:02d}_{st.do}", at=st.at, kind="failed_action", action=st.do,
+                                params=dict(st.params), surface=shot.surface if shot else None,
+                                copy_key=f"action:{st.do}", text=st.error, evidence=ev))
 
     seen = Counter()
     for m in ep.messages():
