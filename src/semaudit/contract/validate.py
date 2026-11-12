@@ -5,6 +5,8 @@ from __future__ import annotations
 from datetime import UTC
 from itertools import product
 
+from semaudit.relate.basis import names as basis_names
+
 from .schema import CONFIDENCE, SEVERITY, VERIFICATION, Contract, ReleasePolicy, resolve_time
 
 DATA_TESTS = {"time_until", "claim_matches_oracle"}     # condition tests the core knows how to evaluate
@@ -109,6 +111,25 @@ def validate(c: Contract) -> list[str]:
             o = next((o for o in c.oracles if o.id == src.oracle), None)
             if o and src.field not in o.fields:
                 p.append(f"fact {f.id}: oracle {src.oracle} has no field {src.field!r}")
+        seen_bases = [b.id for b in f.bases]
+        for dup in {i for i in seen_bases if seen_bases.count(i) > 1}:
+            p.append(f"fact {f.id}: duplicate basis id {dup!r}")
+        for b in f.bases:
+            for part, expr in (("value", b.value), ("when", b.when)):
+                if expr is None:
+                    continue
+                try:
+                    used = basis_names(expr)
+                except (SyntaxError, ValueError) as e:
+                    p.append(f"fact {f.id} basis {b.id}: {part} {expr!r} is not an allowed expression ({e})")
+                    continue
+                for n in sorted(used - facts):
+                    p.append(f"fact {f.id} basis {b.id}: {part} reads unknown fact {n!r}")
+            if f.id not in (basis_names(b.value) if _parses(b.value) else {f.id}):
+                p.append(f"fact {f.id} basis {b.id}: value does not read {f.id} itself, so it is not another form "
+                         "of this fact's value")
+            for s in b.surfaces:
+                need("surface", s, surfaces, f"fact {f.id} basis {b.id}")
 
     scheduled = set()
     for sc in c.scenarios:
@@ -149,6 +170,14 @@ def validate(c: Contract) -> list[str]:
             if exhaustive and i not in fired:
                 p.append(f"release policy row {i + 1} ({row.recommendation}) can never fire")
     return p
+
+
+def _parses(expr: str) -> bool:
+    try:
+        basis_names(expr)
+        return True
+    except (SyntaxError, ValueError):
+        return False
 
 
 def _type_problem(f, v, day0) -> str | None:

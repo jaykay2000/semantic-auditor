@@ -89,6 +89,29 @@ A `universal` rule names one verb in `check.must`. These are the verbs the rule 
 | `agree_across_states` | `claims`, `states: {var: [before, after]}` | a fact shown before a state change (for example signed out → signed in) reads the same after it, when nothing else changed |
 | `precondition_holds_at_shown_time` | — | each recommendation's action is possible at the moment it is shown (the action's precondition in `decisions.yaml`) |
 
+**A figure that is correct in more than one form.** A price can be right with or without VAT, before or after a
+promotion. If you accept a second form, declare it on the fact as a `basis`. A claim that misses the true value
+but states a basis declared for its surface is correct in that basis: the four verbs above all accept it, and the
+issue text says which basis. A form you did not declare is still a violation. Bases are evaluation only, so adding
+one costs no new reading: re-run the review and it replays for free.
+
+```yaml
+- id: unit_price
+  sources: [{oracle: expected, field: unit_price}]
+  bases:
+  - id: with_vat
+    value: unit_price * (1 + tax_rate / 100)     # numbers, fact ids, + - * / and parentheses
+    surfaces: [storefront_checkout, storefront_order_page]   # omit: every surface
+    round: 0.01                                  # round to cents before comparing
+  - id: after_promotion
+    value: unit_price * (1 - promo_percent / 100)
+    when: discount_total > 0                     # the basis applies only when this holds
+```
+
+On Medusa v2.18.0, seven bases written from the owner's rulings cut 129 issues to 35 on a free replay. The release
+with a real VAT bug kept every one of its VAT violations, and 1,037 claims nudged off a basis were all still
+violations ([evidence](evidence/fact-bases-medusa.md)).
+
 A `universal` rule with no `must:` but `applies_to: {message_kind: …, state: …}` forbids that kind of message in
 that state. Any other verb is not evaluated: the review lists the rule as not measured, never as passed
 (`review --reader` judges the rule's text instead). `conditional`, `coherence` and `load` rules have their own

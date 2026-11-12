@@ -16,7 +16,9 @@ from typing import Any
 from semaudit.contract.schema import Contract, Rule
 from semaudit.contract.validate import DATA_TESTS
 from semaudit.extract.messages import contract_roles
+from semaudit.relate import basis as B
 from semaudit.relate.claims import (
+    MATCH,
     MISMATCH,
     UNREADABLE,
     checkable,
@@ -119,6 +121,30 @@ def named_oracles(rule: Rule, fact) -> list[str]:
     return [o for o in named if o in srcs]
 
 
+def basis_match(c: dict, fact_def, truth, story: Story, e: Event) -> str | None:
+    """The basis the owner declared for this fact on this surface that the claim states, when the claim misses the
+    truth itself (relate/basis.py). None: no declared basis matches, so a mismatch stays a mismatch."""
+    if fact_def is None or not getattr(fact_def, "bases", None) or truth is None:
+        return None
+    for bid, v in B.values(fact_def, e.surface, truth, lambda n: story.truth_at(n, e.at, e.feature)):
+        if compare(c, v) == MATCH:
+            return bid
+    return None
+
+
+def as_base(c: dict, e: Event, fact_def, story: Story) -> dict:
+    """The claim restated in the fact's own form when it states a declared basis of the truth at its moment (so a
+    price shown with VAT on one surface agrees with the same price shown without it on another). Unchanged when
+    the claim matches the truth, misses every basis, or the truth is unknown."""
+    if fact_def is None or not getattr(fact_def, "bases", None) or stated(c) is None:
+        return c
+    t = story.truth_at(c["type"], e.at, e.feature)
+    if t is None or compare(c, t) != MISMATCH:
+        return c
+    b = basis_match(c, fact_def, t, story, e)
+    return {**c, "value": t, "precision": 0, "basis": b} if b else c
+
+
 def rule_truth(rule: Rule, story: Story, fact_def, fact: str, at, feature) -> list[tuple[str | None, Any]]:
     """(oracle, true value) pairs a claim of `fact` is compared with under this rule; None values left out."""
     oracles = named_oracles(rule, fact_def)
@@ -140,13 +166,19 @@ def eval_match_oracle(rule: Rule, story: Story, contract: Contract | None = None
             if not pairs:
                 continue                      # unverifiable: an owner question, never a violation
             claim = in_period(c, defs.get(c["type"]))
-            verdicts = [(o, t, compare(claim, t)) for o, t in pairs]
+            fdef = defs.get(c["type"])
+            verdicts = []
+            for o, t in pairs:
+                v = compare(claim, t)
+                b = basis_match(claim, fdef, t, story, e) if v == MISMATCH else None
+                verdicts.append((o, t, MATCH if b else v, b))
             bad = [v for v in verdicts if v[2] == MISMATCH]
-            o, truth, verdict = bad[0] if bad else verdicts[0]
+            o, truth, verdict, b = bad[0] if bad else verdicts[0]
             where = f" ({o})" if o else ""
+            as_ = f" as {b}" if b else ""
             out.append(Entry(rule.id, e.id, _status(verdict),
-                             note=f"claim {shown(c)} vs true {c['type']}{where} {truth}",
-                             meta={"fact": c["type"], **({"oracle": o} if o else {})}))
+                             note=f"claim {shown(c)}{as_} vs true {c['type']}{where} {truth}",
+                             meta={"fact": c["type"], **({"oracle": o} if o else {}), **({"basis": b} if b else {})}))
     return out
 
 
@@ -180,24 +212,27 @@ def eval_agree_across_surfaces(rule: Rule, story: Story, contract: Contract | No
     One entry per claiming message: `violated` when some other surface stated a different value in the same
     state, with every disagreeing message in meta["events"]; otherwise `passed`."""
     facts = set(rule.check.get("claims", []))
-    shown_at = [(e, c) for e in story.messages() if e.extraction for c in e.extraction.claims if c["type"] in facts]
     model = contract.state if contract is not None else []
     defs = {f.id: f for f in getattr(contract, "facts", [])}
     roles_on = contract_roles(contract)
     same = lambda a, b, fact: same_state(story, model, a, b, fact)  # noqa: E731
+    # each claim beside its form in the fact's own basis (as_base), so a declared second form agrees with the first
+    shown_at = [(e, c, as_base(c, e, defs.get(c["type"]), story)) for e in story.messages() if e.extraction
+                for c in e.extraction.claims if c["type"] in facts]
 
     out = []
-    for e, c in shown_at:                                 # every claim, including a second one of the same fact
-        others = [(o, oc) for o, oc in shown_at if o.surface != e.surface and oc["type"] == c["type"] and same(e, o, c["type"])
-                  and comparable(defs.get(c["type"]), c, oc, roles_on) and stated(oc) is not None]
-        verdicts = [(o, compare(c, stated(oc), precision(oc))) for o, oc in others]
+    for e, c, bc in shown_at:                             # every claim, including a second one of the same fact
+        others = [(o, oc, boc) for o, oc, boc in shown_at if o.surface != e.surface and oc["type"] == c["type"]
+                  and same(e, o, c["type"]) and comparable(defs.get(c["type"]), c, oc, roles_on)
+                  and stated(oc) is not None]
+        verdicts = [(o, compare(bc, stated(boc), precision(boc))) for o, oc, boc in others]
         if any(v == UNREADABLE for _, v in verdicts) and not any(v == MISMATCH for _, v in verdicts):
             continue                                   # nothing readable to compare it with
         bad = [o for o, v in verdicts if v == MISMATCH]
         if not others:
             continue                                   # shown on one surface only: nothing to agree with
         note = (f"{c['type']} {shown(c)} on {e.surface}; " +
-                "; ".join(f"{shown(oc)} on {o.surface}" for o, oc in others if o in bad)) if bad else ""
+                "; ".join(f"{shown(oc)} on {o.surface}" for o, oc, _ in others if o in bad)) if bad else ""
         out.append(Entry(rule.id, e.id, "violated" if bad else "passed", note=note,
                          meta={"events": [e.id, *dict.fromkeys(o.id for o in bad)], "fact": c["type"]} if bad else {}))
     return out
@@ -213,7 +248,8 @@ def eval_agree_across_states(rule: Rule, story: Story, contract: Contract | None
     model = contract.state if contract is not None else []
     defs = {f.id: f for f in getattr(contract, "facts", [])}
     state = {e.id: story.state_at(e.at, model, inclusive=True) for e in story.messages()}
-    shown_at = [(e, c) for e in story.messages() if e.extraction for c in e.extraction.claims if c["type"] in facts]
+    shown_at = [(e, c, as_base(c, e, defs.get(c["type"]), story)) for e in story.messages() if e.extraction
+                for c in e.extraction.claims if c["type"] in facts]
     rest = lambda s: {k: v for k, v in s.items() if k != var}  # noqa: E731
 
     roles_on = contract_roles(contract)
@@ -226,25 +262,26 @@ def eval_agree_across_states(rule: Rule, story: Story, contract: Contract | None
         return truth_steady(story, fact, a, b)
 
     out = []
-    for e, c in shown_at:
+    for e, c, bc in shown_at:
         if stated(c) is None:
             continue
-        others = [(o, oc) for o, oc in shown_at if oc["type"] == c["type"] and pair(e, o, c["type"])
+        others = [(o, oc, boc) for o, oc, boc in shown_at if oc["type"] == c["type"] and pair(e, o, c["type"])
                   and comparable(defs.get(c["type"]), c, oc, roles_on) and stated(oc) is not None]
         if not others:
             continue
-        verdicts = [(o, compare(c, stated(oc), precision(oc))) for o, oc in others]
+        verdicts = [(o, compare(bc, stated(boc), precision(boc))) for o, oc, boc in others]
         bad = [o for o, v in verdicts if v == MISMATCH]
         if not bad and all(v == UNREADABLE for _, v in verdicts):
             continue
         note = (f"{c['type']} {shown(c)} on {e.surface} as {before}; " +
-                "; ".join(f"{shown(oc)} on {o.surface} as {after}" for o, oc in others if o in bad)) if bad else ""
+                "; ".join(f"{shown(oc)} on {o.surface} as {after}" for o, oc, _ in others if o in bad)) if bad else ""
         out.append(Entry(rule.id, e.id, "violated" if bad else "passed", note=note,
                          meta={"events": [e.id, *dict.fromkeys(o.id for o in bad)], "fact": c["type"]} if bad else {}))
     return out
 
 
-def eval_match_charge(rule: Rule, story: Story) -> list[Entry]:
+def eval_match_charge(rule: Rule, story: Story, contract: Contract | None = None) -> list[Entry]:
+    defs = {f.id: f for f in getattr(contract, "facts", [])}
     out = []
     for e in story.messages():
         for c in e.extraction.claims:
@@ -252,8 +289,11 @@ def eval_match_charge(rule: Rule, story: Story) -> list[Entry]:
                 charged = story.final_truth(rule.check["charge"], e.feature)   # ultimately charged, same feature
                 if charged is None:       # no transaction in this story: not applicable
                     continue
-                out.append(Entry(rule.id, e.id, _status(compare(c, charged)),
-                                 note=f"shown {shown(c)} vs charged {charged}"))
+                v = compare(c, charged)
+                b = basis_match(c, defs.get(c["type"]), charged, story, e) if v == MISMATCH else None
+                out.append(Entry(rule.id, e.id, _status(MATCH if b else v),
+                                 note=f"shown {shown(c)}{f' as {b}' if b else ''} vs charged {charged}",
+                                 meta={"basis": b} if b else {}))
     return out
 
 
@@ -459,7 +499,7 @@ _UNIVERSAL: dict[str, tuple[Callable, tuple[str, ...]]] = {
     "agree_across_surfaces": (eval_agree_across_surfaces, ()),
     "agree_across_states": (eval_agree_across_states, ("states",)),
     "match_oracle": (eval_match_oracle, ("claims",)),
-    "match_charge": (lambda r, s, c: eval_match_charge(r, s), ("claims", "charge")),
+    "match_charge": (eval_match_charge, ("claims", "charge")),
     "precondition_holds_at_shown_time": (eval_actionable, ()),
 }
 UNIVERSAL_CHECKS = frozenset(_UNIVERSAL)

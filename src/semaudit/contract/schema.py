@@ -214,6 +214,18 @@ class FactKey(Strict):
     describe: str = ""                                 # what the field names, for the extractor
 
 
+class FactBasis(Strict):
+    """Another form in which the owner accepts the fact's true value being shown ("with VAT", "after the
+    promotion"): an arithmetic expression over this fact and other facts at the same moment (relate/basis.py).
+    Evaluation only: the extractor never sees it, so adding one costs no new reading."""
+    id: str
+    value: str                                     # e.g. "unit_price * (1 + tax_rate / 100)"
+    when: str | None = None                        # e.g. "discount_total > 0"; the basis applies only then
+    surfaces: list[str] = Field(default_factory=list)   # empty: every surface
+    round: float | None = None                     # e.g. 0.01: the value is rounded to cents before comparing
+    note: str = ""                                 # the owner's words, or where the ruling is recorded
+
+
 class Fact(Strict):
     """A kind of claim a message can make, and where its true value comes from (first source that reads)."""
     id: str
@@ -229,6 +241,7 @@ class Fact(Strict):
                                                               # `per` month/year is scaled to it before comparing
     truth_roles: list[str] = Field(default_factory=lambda: ["as_is"])   # with claim roles: the roles whose claims
                                                               # state this fact's true value (a limit fact: limit)
+    bases: list[FactBasis] = Field(default_factory=list)      # other forms the owner accepts (VAT, promotion)
 
 
 # ---------- derived state ----------
