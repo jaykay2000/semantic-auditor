@@ -37,7 +37,9 @@ class _Adapter:
         if step.do == "broken_selector":
             raise StepFailed("selector #pay not found")
         if step.do == "app_error_result":
-            return StepResult(landed="cart", error="HTTP 500 from POST /store/carts/x/promotions")
+            return StepResult(landed="cart", app_error="HTTP 500 from POST /store/carts/x/promotions")
+        if step.do == "harness_error_result":
+            return StepResult(error="persona has no items")
         return StepResult(landed="home")
 
     def oracle_params(self, persona, sess):
@@ -79,14 +81,24 @@ def test_a_step_that_fails_after_an_app_failure_is_blocked_not_a_harness_fault()
     assert recs[1].error.startswith("after step 1 (place_order) failed in the app:")
 
 
+def test_a_later_step_reporting_an_app_error_after_an_app_failure_is_blocked_not_a_second_finding():
+    recs, _ = _run(["place_order", "app_error_result"])
+    assert [x.status for x in recs] == ["app_failed", "blocked"]
+
+
 def test_a_harness_failure_with_no_app_failure_before_it_is_still_a_hole():
     recs, _ = _run(["open_home", "broken_selector"])
     assert [x.status for x in recs] == ["done", "failed"]
 
 
-def test_an_error_the_adapter_returns_is_the_app_answering_with_a_failure():
+def test_an_app_error_the_adapter_returns_is_the_app_answering_with_a_failure():
     recs, captured = _run(["app_error_result"])
     assert recs[0].status == "app_failed" and "HTTP 500" in recs[0].error and captured == ["cart"]
+
+
+def test_a_returned_error_keeps_its_old_meaning_a_hole_so_existing_adapters_raise_no_new_findings():
+    recs, _ = _run(["harness_error_result"])
+    assert recs[0].status == "failed"
 
 
 def _ep(statuses):

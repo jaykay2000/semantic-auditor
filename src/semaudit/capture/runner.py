@@ -229,8 +229,10 @@ class Runner:
                     rec.status = "skipped_not_offered"
                 else:
                     error = f"{step.do!r} is not offered here"
+            elif result.app_error:
+                app_error = result.app_error    # the adapter's way to say "the app refused it" without raising
             elif result.error:
-                app_error = result.error        # StepResult.error: the verb ran and the app answered with a failure
+                error = result.error            # unchanged meaning: the step did not happen (a hole, not a finding)
 
         if result is not None and result.note:
             rec.note = result.note
@@ -244,9 +246,10 @@ class Runner:
         sink_surfaces = [s for s in self.contract.surfaces if s.sink and s.kind in ("email", "push")]
         rec.captures.extend(self._drain(ectx, sink_surfaces, sctx))
         rec.state = oracles.snapshot(adapter.oracle_params(sess.persona, sess))
-        if error is not None and ectx.app_failed:
-            # after the app refused an earlier action, a later step failing is a consequence, not a harness fault
-            rec.status, rec.error = "blocked", f"after {ectx.app_failed} failed in the app: {error}"
+        if (error is not None or app_error is not None) and ectx.app_failed:
+            # after the app refused an earlier action, a later step failing is a consequence (no order to read, no
+            # page to open), neither a harness fault nor a second finding
+            rec.status, rec.error = "blocked", f"after {ectx.app_failed} failed in the app: {error or app_error}"
         elif error is not None:
             rec.status, rec.error = "failed", error
         elif app_error is not None:

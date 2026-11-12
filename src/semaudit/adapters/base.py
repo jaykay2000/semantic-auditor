@@ -72,7 +72,8 @@ class TextCapture:
 class StepResult:
     offered: bool = True                  # False: the app does not offer this action here (see Step.when_offered)
     landed: str | None = None             # surface id of the page the step ended on; the runner captures it
-    error: str | None = None              # set when the verb ran but the app answered with a failure
+    error: str | None = None              # the step could not be done: a hole in the measurement (as before)
+    app_error: str | None = None          # the APP refused or failed the action it offered: a finding (= AppFailed)
     chat: list[ChatTurn] | None = None    # the transcript, when `landed` is a chat surface
     pdf: PdfDownload | None = None        # a document the step downloaded
     text: TextCapture | None = None       # plain text the step gave the user (copied, exported)
