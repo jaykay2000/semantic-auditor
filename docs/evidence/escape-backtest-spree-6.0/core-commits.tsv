@@ -1,0 +1,221 @@
+220
+70ab2cd7	2026-10-27	Added hints for Docker network exhaustion and busy mail ports (#14989)
+75e29731	2026-10-27	Fix: Allocated stock from a warehouse that can deliver over one that cannot (#14986)
+a50d80f0	2026-10-28	Add digital marketplaces to changelog
+30493b4f	2026-10-28	Added custom fields expansion to Store API records (#14996)
+730c9daa	2026-10-28	Added localized storefront SEO settings (#14997)
+4ed1d0d7	2026-10-28	Document Node.js/npm requirements and npm troubleshooting (#14998)
+c9ff36e0	2026-10-28	Changed docs homepage to the sidebar layout and renamed AI-Assisted Development (#14999)
+21dc28f6	2026-10-28	Standardize store time zones and admin locales to IANA/ISO codes (#15001)
+e95a418b	2026-10-28	Added Stripe transfer reversals on refund (#15000)
+72a77c4d	2026-10-28	Changed agent instructions from CLAUDE.md to lean AGENTS.md files (#15002)
+cd4a0e73	2026-10-28	Rewrote the Marketplace, Sellers, and Catalogs user guides (#15003)
+6116abf1	2026-10-28	Added metadata to every admin dashboard record that carries it (#15004)
+f227994f	2026-10-28	Added external references to the dashboard metadata card (#15006)
+27bbcfa8	2026-10-29	Changed list filters to checkboxes with an Only shortcut (#15007)
+c0b62dc4	2026-10-29	Changed custom fields to stay open on pages whose form saves them (#15008)
+9f0550e8	2026-10-29	Changed Getting Started from a nav entry to a sidebar checklist (#15010)
+ec8ebe27	2026-10-29	Removed the redirect that made Marketplace Settings unreachable (#15005)
+75e17c94	2026-10-29	Added Japanese translations to the admin and seller dashboards (#15012)
+35712084	2026-10-29	Fix: Added missing lockout columns to upgraded spree_admin_users tables (#15013)
+300e5b77	2026-10-29	Changed TypeScript packages to share one version of each dependency (#15011)
+29d95e38	2026-10-29	Fix: Accepting an invitation while signed in (#15015)
+d1d07297	2026-10-29	Fixed styling of seller onboarding card
+49d72a8d	2026-10-29	Released Spree 6.0.1 (#15016)
+d4fd2e94	2026-10-30	Fix template default spree version (#15017)
+bf2ddb63	2026-10-30	Fix: Updated the Rails app template for Spree 6 (#15018)
+adf2eda7	2026-10-30	Fix: Test apps rendering unexpected errors as 500 pages (#15019)
+94baf2da	2026-10-30	Removed unused Ruby dependencies (#15021)
+7442130e	2026-10-30	Fix docs layout and config docs
+b2ac4e5f	2026-10-30	Removed timecop in favour of Rails time helpers (#15023)
+8890e33b	2026-10-30	Removed unused TypeScript dependencies (#15022)
+79fb08ab	2026-10-30	Advertise sandbox in spree docs
+6d2e0afe	2026-10-30	Added an icons rule to the dashboard starters' agent instructions (#15025)
+b04997e5	2026-10-30	Update README.md
+3abf656e	2026-10-30	Added try sandbox button in docs navbar
+4e46436f	2026-10-30	Removed the shadcn CLI from dashboard-ui's dependencies (#15026)
+838386a8	2026-10-30	Added the PayPal payment provider plan for Spree 6
+9c99cede	2026-10-30	Added the spree_paypal_checkout provider gem skeleton
+c307f977	2026-10-30	Added PayPal amount formatting and the order presenter
+669cd64e	2026-10-30	Added the PayPal client, credential check and money verbs
+8fc240e7	2026-10-30	Added PayPal payment sessions and settlement
+f03ea4a5	2026-10-30	Added PayPal webhook verification and registration
+8a7b6ceb	2026-10-30	Added the PayPal payment and webhook upgrade steps
+d102fb70	2026-10-30	Changed the PayPal docs and CLI catalog for the 6.0 gem
+52213387	2026-10-30	Fix: PayPal webhook registration failing for a webhook already subscribed
+a86623a0	2026-10-30	Added the PayPal sandbox VCR cassettes
+8dce4971	2026-10-30	Changed the PayPal storefront guide to ask for Pay Later and Venmo
+4bb58ba4	2026-10-30	Changed Alba dependency to version 4 (#15028)
+6167a24e	2026-10-30	Scope paymenet source uniqueness to payment method (#15020)
+80eeee24	2026-10-30	Fix: PayPal access tokens left readable in the sandbox cassettes
+2cdfba5f	2026-10-30	Fix: PayPal refunds, long SKUs and webhook registration from review
+8ccf48b7	2026-10-30	Fix: core specs failing on the PayPal locale and upgrade step
+4cfb2abf	2026-10-30	Changed the command palette to Base UI Autocomplete (#15029)
+09ca35e7	2026-10-31	Fix orphaned OptionValueVariant rows after product re-import (#15035)
+7d1906fb	2026-10-31	Changed the shadcn style to Base UI (#15036)
+5646a0be	2026-10-31	Changed release notes to render GitHub's HTML (#15032)
+88d063ea	2026-10-31	Fixed missing agent write tools on installs from the published gems (#15038)
+eca9057a	2026-10-31	Fix: Allowed http://localhost OAuth redirect URIs with an explicit port (#15043)
+0c4c73ef	2026-10-31	Fix NoMethodError applying a line-item promotion with a usage limit to a cart (#15045)
+1af7990a	2026-10-31	Added `/open-pr` workflow with review gate (#15042)
+16421ce3	2026-11-01	Fix: Added Claude Code's localhost callback to the Claude preset (#15052)
+7f75f8fd	2026-11-01	feat(i18n): add Vietnamese (vi) locale bundles for dashboard apps (#15051)
+db0f23d5	2026-11-01	Fix: Built payment webhook URLs with a scheme (#15058)
+7e7f5bc9	2026-11-01	Fix: Stock reservation crashing when a stock level is deleted mid-checkout (#15054)
+9faf50d5	2026-11-01	Fix: Keep 5.6 delivery method zones through the 6.0 upgrade (#15060)
+68b5a16a	2026-11-01	Fix: Rename calculator calculable_type to Spree::DeliveryMethod on upgrade (#15059)
+ab0dec33	2026-11-01	Fix: Void offered on captured payments the gateway cannot void (#15057)
+22c36c08	2026-11-01	Fix: Clarify promotion item total operators (#15053)
+7416961c	2026-11-01	Added status, last activity and sessions to the staff settings page (#15040)
+f114556b	2026-11-01	Changed pnpm install to build the spree CLI and link its command (#15063)
+6f0dc185	2026-11-02	Return none from Order.search for non-string queries (#15065)
+12e1cbdc	2026-11-02	Fix: Deleting a promotion applied to open carts no longer breaks them (#15056)
+7152857e	2026-11-02	Added @spree/dashboard/orders so plugins can build their own order pages (#15067)
+6951d2e5	2026-11-02	Add context7.json to claim the Spree library on Context7 (#15071)
+439f7350	2026-11-02	Released Spree 6.0.2 (#15068)
+b37f058e	2026-11-02	Fixed the Admin API reference for payments and digital links (#15072)
+eed96af0	2026-11-02	Changed dashboard Vite configs to avoid native config loader warnings (#15069)
+dc7ec228	2026-11-02	Merge pull request #15031 from spree/feature/v-3764-update-paypal-for-spree-6
+b0e63e07	2026-11-02	Merge pull request #15075 from spree/feat/orders-complete-validate-hook
+d3a14221	2026-11-02	Added the /release command for cutting Spree releases (#15070)
+cdd9a02b	2026-11-02	Added the 6.1 dashboard code splitting plan (#15074)
+18ff2b8e	2026-11-02	Document MCP and agent tools architecture guidelines (#15077)
+ea3f6073	2026-11-02	Added cart copiers and a merge hook for carrying extension records onto orders (#15078)
+9055801f	2026-11-02	Added the custom fields roadmap plan (V-3731) (#15076)
+88d4af61	2026-11-03	Fix: Skipped removing a line from a cart that completed before the job ran (#15082)
+da016eb3	2026-11-03	Fixed Docker Compose Postgres 18 volume mount in deployment docs (#15081)
+c2a130cd	2026-11-03	Fixed agents being unable to add rules or actions to a promotion (V-3777) (#15079)
+1b3818d1	2026-11-03	Fix: Preserve paragraph and line breaks in translation dialog Original column (#15066)
+84e9fbd9	2026-11-03	Changed CI into one workflow with required backend and frontend checks (#15039)
+dce5d228	2026-11-03	Document Docker port security and upgrade guidance (#15088)
+5de30746	2026-11-03	Fix: Fixed "crypto.randomUUID is not a function" on plain-HTTP dashboards (#15087)
+f7588f0e	2026-11-03	Let the generic agent tools reach records nested under another (V-3779) (#15094)
+fc3f80df	2026-11-03	Documented ten admin actions that had no API reference (V-3779) (#15093)
+383228be	2026-11-03	Shipped the rswag helpers so extensions can document their Admin API (V-3779) (#15095)
+b60273d5	2026-11-03	Fix: Published a product status event once for concurrent moves (V-3779) (#15097)
+54d32275	2026-11-03	Added endpoints that move one product's status through its workflow (V-3779) (#15092)
+3e1c2bde	2026-11-03	Auto-discoverability of new agent tools for MCP server (V-3779) (#15086)
+ca75d097	2026-11-03	Fix: Added ostruct as a spree_core dependency for stringex on Ruby 4.0 (#15099)
+4fb0885a	2026-11-04	Fix: Reported unresolvable addresses as handled warnings instead of errors (#15100)
+13b06c60	2026-11-04	Fixed an address's company skipping readers layered on the column (#15102)
+6ecf69e5	2026-11-04	Post Spree releases to Discord #changelog (#15103)
+42b589f0	2026-11-04	Changed the Discord release post to summarize changes and ping contributors (#15105)
+e23637d7	2026-11-04	Retarget payment method rules to 6.1; add company and multi-account support (#15108)
+c9235530	2026-11-04	Added total_on_hand to the Admin API product (#15106)
+fe0ff4c9	2026-11-04	Fix: Stopped marking every MCP write tool as destructive (#15107)
+0b301a50	2026-11-04	Added total_on_hand to the Seller API product and the seller products list (#15109)
+842fe2fd	2026-11-04	Added dependency keys for extensions' own workflows and services (V-3778) (#15112)
+41bbba32	2026-11-04	Added SDK extensions and generated types for an extension's endpoints (V-3780) (#15113)
+e3f2f2be	2026-11-05	Upgraded Typelizer to 0.14 (#15114)
+dc4f7afc	2026-11-05	Skip newsletter double opt-in when signed-in email differs only by case (#15115)
+b0378803	2026-11-05	Added a Category mapper preview; fixed product saves dropping lists changed elsewhere (V-3768) (#15111)
+b16f6333	2026-11-05	Published only an extension's own filter tables in its OpenAPI documents (V-3780) (#15116)
+5eee57cd	2026-11-05	Add RuboCop linting for Spree Ruby code (#15117)
+0eb13214	2026-11-05	Pin dashboard-ui catalog dependencies to exact versions (#15119)
+47f77d01	2026-11-05	Released Spree 6.0.3 (#15122)
+33fd2ee0	2026-11-05	Document manual Discord release notification workflow (#15124)
+0280bb60	2026-11-05	Build(deps): Bump the typescript-packages group across 1 directory with 26 updates (#15118)
+7a1b1a06	2026-11-05	Fix MCP README auth and SDK list filter examples (#15126)
+08ca62b4	2026-11-05	Changed the dashboard font to Inter
+9457ff5c	2026-11-05	Changed the sidebar setup checklist into one row with a popover
+6eaf72e6	2026-11-05	Changed the order page to lead with totals and the next payment step
+1afc1936	2026-11-05	Changed form headers to flag unsaved changes and show a clearly disabled Save
+7bb251b3	2026-11-05	Added a compact row density for tables
+4b7a2c56	2026-11-05	Changed the home dashboard to stay quiet when there is nothing to compare
+124481e2	2026-11-05	Changed the dashboard's surfaces, dark theme, fields and search box
+1eb87abc	2026-11-05	Added names and an Add new customer row to customer pickers
+9495a16c	2026-11-05	Fixed spree sdk generate for nested, inline-typed and renamed endpoints (V-3780) (#15127)
+c144b3c3	2026-11-05	Added a Dependabot lockfile dedupe workflow and fixed tiptap overrides (#15125)
+9f4e219f	2026-11-05	Fixed email lookups for apps that encrypt emails (#15123)
+ce06121b	2026-11-05	Added the 6.1 collections merchandising plan (V-3782) (#15121)
+8009b559	2026-11-05	Changed table date filters to a preset list beside a range calendar
+d6769f3a	2026-11-05	Fix: Stopped the home dashboard spec failing on a cancelled report query
+92808d6e	2026-11-05	Changed the dark theme to a near-black ground
+fc766095	2026-11-05	Fix: Restored the close button on the product media sheet
+7a33046d	2026-11-05	Moved the settings nav out of the content sheet, beside the icon rail
+509207a9	2026-11-05	Changed settings pages to titled sections and a phone-only settings index
+2cecd1a7	2026-11-05	Build(deps): Bump the typescript-packages group with 2 updates (#15129)
+5cd9f286	2026-11-06	Retry payment webhook job when settlement fails (#15133)
+880b8b74	2026-11-06	Added card and field style tokens and a shared toolbar sort menu
+bb3def6a	2026-11-06	Changed fields, cards, items and list tables to the new design
+fd2364a3	2026-11-06	Added a media library dialog, a full-screen media editor and variant images
+eca48030	2026-11-06	Changed hand-made bordered boxes to the Item component
+39e1b40c	2026-11-06	Changed order and inventory cards to titled sections
+b67452b2	2026-11-06	Added one customer picker and adding company members by customer
+a47d5ad2	2026-11-06	Add product_category.created / .deleted and product_collection.created / .deleted events. (#15104)
+7699adb6	2026-11-06	Fix: Fixed video uploads from the media picker and other review findings
+4d66f990	2026-11-06	Fixed agent search returning at most 25 records (V-3789) (#15135)
+018cd001	2026-11-06	Allow price column mapping in import tool without decimal validation (#15134)
+8df54ec0	2026-11-06	Gate exports and imports by resource scope instead of settings (#15137)
+0218f74e	2026-11-06	Add reason field to stock level bulk upsert operations (#15138)
+7a5dca8d	2026-11-06	Added the customer to company memberships in the Admin API
+4f546597	2026-11-06	Fix: Refused an overlong stock movement reason with a validation error (#15139)
+7cdc02fd	2026-11-06	Added a customer group page
+2465c69d	2026-11-06	Added a supplier page
+1f642d7c	2026-11-07	Fix: Stock item unique index migration failing on MariaDB (#15141)
+6bb42c3a	2026-11-07	Fixed SDK requests in native runtimes without browser location (#15145)
+ce54dbdf	2026-11-07	Fixed cart deletion during checkout completion (#15147)
+083303e4	2026-11-07	Fixed idempotency replay for different query targets (#15149)
+3877e0ca	2026-11-07	Fixed store credit payment method selection for the order store (#15151)
+21e96a3b	2026-11-09	Fix: Normalized the newsletter email before matching the signed-in customer (#15158)
+c19ea78f	2026-11-09	Added out of stock and low stock filters across all locations
+a27d82f1	2026-11-09	Changed the dashboard to a neutral palette and 12px corners
+e42a9fd4	2026-11-09	Changed the switch, tabs and stacked sheets
+44ad1db4	2026-11-09	Added step buttons to number fields
+971c713d	2026-11-09	Changed remove buttons to red ghost buttons
+bbcec4cd	2026-11-09	Changed every card to one style
+58693f84	2026-11-09	Added shared product, read-only and stat rows
+2e2b9da0	2026-11-09	Changed nested records on detail pages to sections
+8bde597f	2026-11-09	Grouped the home dashboard's needs attention counts
+36dafaee	2026-11-09	Changed collection rules to one control per rule kind
+1038e294	2026-11-09	Added a range calendar to the filter panel's date filters
+68a3fb89	2026-11-09	Fix: Padded the fulfill items form inside its card
+4c33c4ba	2026-11-09	Added currency symbols wherever the dashboard shows a currency
+d1a043df	2026-11-09	Added a regions column with flags to the markets table
+e789003b	2026-11-09	Changed search fields to the outline button's edge and widened the list search in use
+145ff00a	2026-11-09	Fix: Animated the command palette like every other dialog
+cb6791cd	2026-11-09	Fix: Drew a top edge on table headers that sit below other content
+cdcec96c	2026-11-09	Changed the product list empty state to the Empty component
+8c988e16	2026-11-09	Added picking products while creating a category
+014b3323	2026-11-10	Fixed cart completion rejecting its own reserved stock (#15157)
+27974d7d	2026-11-10	Changed Alert to card corners and status fills, and Tabs to flat capsules
+68787c67	2026-11-10	Changed the customer marketing opt-in to a switch
+c7ba0e18	2026-11-10	Changed the seller page layout and made the returns address editable
+4a3e27d3	2026-11-10	Added optional markers to address form fields
+88bb26aa	2026-11-10	Fix: Image import crashed saving its external URL because custom_fields had no inverse (#15162)
+56147005	2026-11-10	Add option to disable free-text search filter (#15164)
+6f3de613	2026-11-10	Added product_id to order line items in the Admin and Seller APIs
+810007d0	2026-11-10	Changed the date range picker to the field trigger style
+f19e91f0	2026-11-10	Added save confirmations and a completion toast to Getting Started
+a6785616	2026-11-10	Added own and seller tabs to the stock locations list
+e527d7be	2026-11-10	Fix: Kept the closed command palette out of the page
+da1391eb	2026-11-10	Changed settings pages to a centred, capped width
+337bea9f	2026-11-10	Changed returns, exchanges and claims to show items like fulfillments
+82abec00	2026-11-10	Changed New order items to the order edit layout
+a3cf201e	2026-11-10	Changed the dashboard to one 13px text size on a 4px line grid
+af4264fe	2026-11-10	Added a missing-price warning and a storefront visibility checklist (#15165)
+68a6cb21	2026-11-10	Changed payment, storefront and store settings into their own pages
+a9a86b92	2026-11-10	Changed the order's Edit customer to an inline form
+93fb0f2f	2026-11-10	Merge remote-tracking branch 'origin/main' into feat/dashboard-ui-improvements-6-0-4
+688ae75c	2026-11-10	Added changesets for the dashboard changes on this branch
+0664050e	2026-11-10	Fix: Restored the generated enums file from main
+3930b896	2026-11-10	Changed the dashboard UI: fields, list tables, media library and order sections (#15136)
+cf6199d7	2026-11-11	Fix: Refused direct cart item adds while completion holds the cart (#15169)
+09b1cdef	2026-11-11	Fix: Added team invitations for sellers past onboarding (#15170)
+42c7a92e	2026-11-11	Added agent skills update to spree upgrade (#15171)
+450dcac2	2026-11-11	Fix: Restored the product filters endpoint on the Meilisearch provider (#15173)
+1269d0f3	2026-11-11	Standardize Meilisearch API parameter naming to snake_case (#15175)
+ff9c58c9	2026-11-11	Changed the pull request gate to check the branch it opens (#15172)
+ab8f82fc	2026-11-11	Changed the seller page to show sales, products and orders with in-place editing (#15177)
+41597c49	2026-11-12	Build(deps): Bump peter-evans/create-pull-request from 8.1.1 to 8.1.2 in the github-actions group (#15180)
+9af32fb4	2026-11-12	Fixed draft order totals after a line is removed (V-3794) (#15179)
+648fbf7f	2026-11-12	Update shopify integration docs: access_scopes and API version (#15182)
+8a1a8765	2026-11-12	Added diagnostics and issue reporting for self-hosted installations (#15176)
+9895bd8c	2026-11-12	Build(deps): Bump the typescript-packages group with 16 updates (#15181)
+4fff6748	2026-11-12	Added a CI check for the dashboards' oldest supported peer versions (#15183)
+ed7fad59	2026-11-12	Clarify open-pr command workflow and execution guidelines (#15189)
+d08e5721	2026-11-12	Support listing resources under parents by id prefix (#15184)
+f9db63d5	2026-11-12	Changed the seller panel settings into single-column form pages (#15190)
+8d0f0d1b	2026-11-12	Allow operators to approve sellers without completing onboarding (#15187)
+335fa1bb	2026-11-12	Changed Complete profile to not require a contact email by default (#15191)
+f03d0414	2026-11-12	Released Spree 6.0.4 (#15193)
