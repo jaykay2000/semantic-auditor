@@ -249,3 +249,94 @@ def test_model_family_ignores_the_provider_prefix_and_fails_closed():
     assert one_family(_Roles(cross_checker_extract=other, cross_checker_interpret=other,
                              defender="unknown-model"))                           # unrecognised: not independent
     assert not one_family(_Roles(cross_checker_extract=other, cross_checker_interpret=other, defender=other))
+
+
+# ---------- a figure's fact can be disputed (Spree 6.0.4, 2026-11-12) ----------
+# The admin order page showed "$955.79" (the payment) just above the "Taxes" heading; the reader typed it as
+# tax_total, so tax "$955.79" disagreed with "$70.80" everywhere else. The defender said so, but the only fields it
+# could dispute were a message's kind/decision/action/strength, so the false alarm stood. A "claim" dispute now
+# stands where the other model does not read the issue's fact on that message and reads what the defense says.
+
+def _read(*claims):
+    return Extraction(message_kind="information", decision="none", action="none", strength="inform",
+                      urgency_cue="none", explains_own_tradeoff=False,
+                      claims=[{"type": t, "value": v, "unit": "USD"} for t, v in claims])
+
+
+_PAY = Story(id="s", release="after", persona="lena", events=[
+    Event(id="admin#2", at=_AT, kind="message", feature="admin", text="$955.79", extraction=_read(("tax_total", 955.79)))])
+
+
+def _fact_issue(fact="tax_total"):
+    e = Entry("U1", "admin#2", "violated", meta={"fact": fact})
+    return Issue(id="I", signature=(), rule="U1", rule_kind="universal", layer="release", label=None,
+                 occurrences=[Occurrence("lena", "x", ["admin#2"], e, "after_decision")], severity={}, why="")
+
+
+def _claim_defense(value, event_id="admin#2"):
+    return _defense("extraction_wrong", disputed_readings=[{"event_id": event_id, "field": "claim", "value": value}])
+
+
+def test_a_figure_dispute_stands_when_the_other_model_reads_the_figure_as_what_the_defense_says():
+    i = _fact_issue()
+    other = {"admin#2": _read(("payment_amount", 955.79))}
+    stands, why = adjudicate(_claim_defense("payment_amount"), i, i.occurrences[0], _PAY, C, other)
+    assert stands and "tax_total vs payment_amount" in why
+
+
+def test_a_figure_dispute_is_overruled_when_both_models_share_the_misreading():
+    i = _fact_issue()
+    same = {"admin#2": _read(("tax_total", 955.79))}
+    assert not adjudicate(_claim_defense("payment_amount"), i, i.occurrences[0], _PAY, C, same)[0]
+    # the other model also reads the issue's fact on the message (beside another): still a shared reading
+    both = {"admin#2": _read(("tax_total", 955.79), ("payment_amount", 955.79))}
+    assert not adjudicate(_claim_defense("payment_amount"), i, i.occurrences[0], _PAY, C, both)[0]
+
+
+def test_a_figure_dispute_needs_the_other_reading_to_say_what_the_defense_says():
+    i = _fact_issue()
+    other = {"admin#2": _read(("order_total", 955.79))}
+    assert not adjudicate(_claim_defense("payment_amount"), i, i.occurrences[0], _PAY, C, other)[0]
+    assert adjudicate(_claim_defense("order_total"), i, i.occurrences[0], _PAY, C, other)[0]
+    # "none": the other model reads no figure at all on the message
+    assert adjudicate(_claim_defense("none"), i, i.occurrences[0], _PAY, C, {"admin#2": _read()})[0]
+    assert not adjudicate(_claim_defense("none"), i, i.occurrences[0], _PAY, C, other)[0]
+
+
+def test_a_figure_dispute_without_a_second_reading_or_restating_the_reading_is_overruled():
+    i = _fact_issue()
+    other = {"admin#2": _read(("payment_amount", 955.79))}
+    assert not adjudicate(_claim_defense("payment_amount"), i, i.occurrences[0], _PAY, C, None)[0]
+    assert not adjudicate(_claim_defense("tax_total"), i, i.occurrences[0], _PAY, C, other)[0]
+    assert not adjudicate(_claim_defense("payment_amount", "nowhere"), i, i.occurrences[0], _PAY, C, other)[0]
+    # the dispute must be about the issue's own fact: this message's reading never stated order_total
+    j = _fact_issue("order_total")
+    assert not adjudicate(_claim_defense("payment_amount"), j, j.occurrences[0], _PAY, C, other)[0]
+
+
+def test_the_defender_is_shown_the_figures_read_and_may_dispute_them():
+    from semaudit.verify import steps as S
+    assert "claim" in S.DEFENSE_SCHEMA["properties"]["disputed_readings"]["items"]["properties"]["field"]["enum"]
+    sent = {}
+
+    class _R:
+        roles = {}
+
+        def complete(self, role, messages, **kw):
+            import json as _json
+            sent["payload"] = _json.loads(messages[1]["content"])
+            from types import SimpleNamespace
+            return SimpleNamespace(parsed=_claim_defense("payment_amount"))
+    i = _fact_issue()
+    i.occurrences[0].entry.meta["events"] = ["admin#2"]
+    ok, why = S._defend_one(i, i.occurrences[0], _PAY, C, _R(), fresh=False,
+                            cross={"admin#2": _read(("payment_amount", 955.79))})
+    assert sent["payload"]["cited_messages"][0]["reading"]["claims"][0]["type"] == "tax_total"
+    assert not ok and "the defense takes the other reading" in why       # the defense stands: the issue does not hold
+
+
+def test_a_figure_dispute_that_stands_with_a_second_model_disagreeing_fails_the_issue():
+    v = verification_status({"reproduced": {"result": "pass"}, "evidence_linked": {"result": "pass"},
+                             "cross_model": {"result": "fail"}, "defended": {"result": "fail"},
+                             "oracle_checked": {"result": "pass"}})
+    assert (v["status"], v["reason"]) == ("failed", "disputed")

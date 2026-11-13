@@ -43,6 +43,9 @@ def rule_fields(contract: Contract, rule_id: str) -> tuple[str, ...]:
 
 GROUNDS = ["exception_applies", "extraction_wrong", "reconciled", "timing", "rule_does_not_apply", "none"]
 FIELDS_DISPUTABLE = ["message_kind", "decision", "action", "strength", "explains_own_tradeoff"]
+# "claim": a figure rule's issue rests on which fact a message's figure states (its reading's claim type); the
+# defender may say the cited message states another fact, or none
+DISPUTE_FIELDS = FIELDS_DISPUTABLE + ["claim"]
 
 DEFENSE_SCHEMA = {
     "type": "object", "additionalProperties": False,
@@ -54,7 +57,7 @@ DEFENSE_SCHEMA = {
         "exception_conditions_met": {"type": "array", "items": {"type": "string"}},
         "disputed_readings": {"type": "array", "items": {
             "type": "object", "additionalProperties": False, "required": ["event_id", "field", "value"],
-            "properties": {"event_id": {"type": "string"}, "field": {"type": "string", "enum": FIELDS_DISPUTABLE},
+            "properties": {"event_id": {"type": "string"}, "field": {"type": "string", "enum": DISPUTE_FIELDS},
                            "value": {"type": "string"}}}},
         "reconciling_event_id": {"type": "string"},
         "addresses_actions": {"type": "array", "items": {"type": "string"}},
@@ -67,7 +70,9 @@ Using ONLY the owner's rules and exceptions, the rubric, and the messages the us
 strongest honest case that this is NOT a violation. Write that defense first, then name its ground:
 - exception_applies: an exception's conditions all hold; list the condition ids you say are met.
 - extraction_wrong: a cited message does not say what its reading says; list each disputed reading as
-  {event_id, field, value} with the value you say is correct under the rubric.
+  {event_id, field, value} with the value you say is correct under the rubric. For an issue about a figure
+  (the issue names a fact such as tax_total), use field "claim" when the cited message's figure is not that
+  fact: value is the fact the figure does state under the rubric (e.g. payment_amount), or "none".
 - reconciled: another message reconciled the cited recommendations in time; give its id and which of the
   pair's actions it addresses.
 - timing: the cited moments did not overlap, or came after the decision the rule protects.
@@ -209,8 +214,23 @@ def adjudicate(defense: dict, issue: Issue, o, story: Story, contract: Contract,
     if ground == "extraction_wrong":
         by = {e.id: e for e in story.events}
         relevant = set(rule_fields(contract, issue.rule))
+        fact = o.entry.meta.get("fact")
         for d in defense["disputed_readings"]:
             e = by.get(d["event_id"])
+            if d["field"] == "claim":
+                # the figure's fact: stands only where the other model does not read the issue's fact on this
+                # message and reads what the defense says instead (another fact, or no figure at all)
+                other = cross.get(e.id) if (cross and e is not None) else None
+                if fact is None or e is None or e.extraction is None or other is None:
+                    continue
+                mine = {c.get("type") for c in e.extraction.claims}
+                theirs = {c.get("type") for c in other.claims}
+                said = d["value"].strip().lower()
+                if fact in mine and fact not in theirs and \
+                        (said in theirs or (said == "none" and not theirs)):
+                    return True, (f"the models disagree on {e.id}: {fact} vs "
+                                  f"{', '.join(sorted(map(str, theirs))) or 'no figure'}; the defense takes the other reading")
+                continue
             if e is None or e.extraction is None or d["field"] not in relevant:
                 continue
             mine = str(getattr(e.extraction, d["field"])).lower()
@@ -252,7 +272,8 @@ def _defend_one(issue: Issue, o, story: Story, contract: Contract, router: Route
         "rubric": contract.rubric,
         "cited_messages": [{"id": e.id, "feature": e.feature, "channel": e.channel, "at": e.at.isoformat(),
                             "text": e.text, **({"around": e.around} if e.around else {}),
-                            "reading": {f: getattr(e.extraction, f) for f in FIELDS_DISPUTABLE}
+                            "reading": {**{f: getattr(e.extraction, f) for f in FIELDS_DISPUTABLE},
+                                        "claims": e.extraction.claims}
                             if e.extraction else None} for e in cited],
         "story_in_time_order": story_view(story),
     }
