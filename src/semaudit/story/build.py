@@ -148,6 +148,8 @@ def story_from_episode(ep: Episode, contract: Contract) -> Story:
             id=eid, at=at, kind="message", feature=m["feature"], surface=cap.surface, channel=channel,
             component=m["component"] or default_component, topic=feat.topic if feat else None,
             user_initiated=initiated, copy_key=m["key"], text=m["text"],
+            before_action=bool(cap.surface in surfaces and surfaces[cap.surface].shown_before_action),
+            alternate_format=bool(cap.surface in surfaces and surfaces[cap.surface].format_of),
             around=around(cap, m["element"], _around_width(surfaces.get(cap.surface), el))
             if attr_src == "contract_map" else None,
             evidence=evidence))

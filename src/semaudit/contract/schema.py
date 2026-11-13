@@ -172,6 +172,12 @@ class Surface(Strict):
                                          # are not driven (not measured). False: sent only by user actions (a sign-up
                                          # email), which every scenario drives without a clock
     user_turn: dict[str, str] = Field(default_factory=dict)   # chat: attrs marking the user's own turn
+    shown_before_action: bool = False    # captured as the page first appears, before its step's action takes effect
+                                         # (a form the user is about to fill): its messages are read in the state
+                                         # BEFORE that action, not after it
+    format_of: str | None = None         # another format of the same message as this surface (an email's text part
+                                         # beside its HTML part): checked for claims like any surface, but never
+                                         # counted as a separate contact
 
 
 class OracleVariant(Strict):

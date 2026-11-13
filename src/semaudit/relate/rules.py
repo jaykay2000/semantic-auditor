@@ -199,7 +199,7 @@ def same_state(story: Story, model: list, a, b, fact: str | None = None) -> bool
         return False
     if fact is not None and not truth_steady(story, fact, a, b):
         return False
-    return story.state_at(a.at, model, inclusive=True) == story.state_at(b.at, model, inclusive=True)
+    return story.shown_state(a, model) == story.shown_state(b, model)
 
 
 def eval_agree_across_surfaces(rule: Rule, story: Story, contract: Contract | None = None) -> list[Entry]:
@@ -247,7 +247,7 @@ def eval_agree_across_states(rule: Rule, story: Story, contract: Contract | None
     (var, (before, after)), = rule.check["states"].items()
     model = contract.state if contract is not None else []
     defs = {f.id: f for f in getattr(contract, "facts", [])}
-    state = {e.id: story.state_at(e.at, model, inclusive=True) for e in story.messages()}
+    state = {e.id: story.shown_state(e, model) for e in story.messages()}
     shown_at = [(e, c, as_base(c, e, defs.get(c["type"]), story)) for e in story.messages() if e.extraction
                 for c in e.extraction.claims if c["type"] in facts]
     rest = lambda s: {k: v for k, v in s.items() if k != var}  # noqa: E731
@@ -321,7 +321,7 @@ def eval_actionable(rule: Rule, story: Story, contract: Contract) -> list[Entry]
             continue
         dec = contract.decision(e.extraction.decision)
         pre = dec.precondition(e.extraction.action) if dec else {}
-        status = "passed" if holds(pre, story.state_at(e.at, contract.state, inclusive=True)) else "violated"
+        status = "passed" if holds(pre, story.shown_state(e, contract.state)) else "violated"
         out.append(Entry(rule.id, e.id, status))
     return out
 
@@ -331,7 +331,7 @@ def eval_message_kind(rule: Rule, story: Story, contract: Contract) -> list[Entr
     kind, state = rule.applies_to["message_kind"], rule.applies_to.get("state", {})
     return [Entry(rule.id, e.id, "violated") for e in story.messages()
             if e.extraction.message_kind == kind
-            and holds(state, story.state_at(e.at, contract.state, inclusive=True))]
+            and holds(state, story.shown_state(e, contract.state))]
 
 
 # ---------- conditional rules ----------
@@ -496,7 +496,7 @@ def reconciler_is_timely(story: Story, cand: PairCandidate, rid: str | None, con
 def eval_load(rule: Rule, story: Story) -> list[Entry]:
     c = rule.count
     contacts = sorted((e for e in story.messages()
-                       if e.channel in c["channels"] and not e.user_initiated
+                       if e.channel in c["channels"] and not e.user_initiated and not e.alternate_format
                        and e.topic not in c.get("exclude_topics", [])), key=lambda e: e.at)
     window = timedelta(hours=c["window_hours"])
     for i, start in enumerate(contacts):

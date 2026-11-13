@@ -176,6 +176,21 @@ folder, and SRA reads every new file after each step, in file-name order. The fo
   is placed at the step that received it.
 - Every other top-level field (`subject`, `to`, `title`…) and header is kept with the message.
 
+### Two things to declare about how a surface is captured
+
+Both are fields on a surface in `surfaces.yaml`. Without them a review can raise false alarms.
+
+- **An email sent in two formats** (an HTML part and a text part) is one email. If your sink writes each part as
+  its own file, put each part on its own surface and mark the second one `format_of: <the first surface>`. Both
+  parts are still read for claims, so a figure that differs between them is still found, but a load rule ("one
+  confirmation per order") counts the email once. A second email is still counted.
+- **A page captured before its step's action takes effect.** A step's captures are normally read in the state
+  after the step (a confirmation shown at 10:06 follows the 10:06 action). If your adapter captures a page as it
+  first appears and *then* acts (a checkout form before the shopper fills it in), mark that surface
+  `shown_before_action: true`. Its figures are then compared with pages in the state before the action, not after
+  it. In the Spree test, the address step shows the total before tax and delivery are known; without this
+  declaration it was compared with the delivery step and raised four false alarms.
+
 ## 2. The adapter: your scenario verbs, in Python
 
 The adapter turns each scenario verb into clicks and requests on **your** app. It is a file named in `app.yaml`

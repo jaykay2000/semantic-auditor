@@ -52,6 +52,9 @@ class Event(BaseModel):
     effects: dict[str, Any] = Field(default_factory=dict)   # state changes caused by a user action
     extraction: Extraction | None = None
     evidence: Evidence | None = None    # None only for hand-authored stories; captured stories always carry it
+    before_action: bool = False         # messages: shown before the action of the step that captured them
+                                        # (the surface's shown_before_action)
+    alternate_format: bool = False      # messages: another format of a message already counted (surface format_of)
 
 
 class Story(BaseModel):
@@ -95,6 +98,11 @@ class Story(BaseModel):
 
     def messages(self) -> list[Event]:
         return [e for e in self.events if e.kind == "message"]
+
+    def shown_state(self, e: Event, model: list) -> dict[str, Any]:
+        """The state a message was shown in: the result of the step it appears in (actions AT its time count),
+        unless its surface is captured before that step's action takes effect (before_action)."""
+        return self.state_at(e.at, model, inclusive=not e.before_action)
 
     def state_at(self, t: datetime, model: list, *, inclusive: bool = False) -> dict[str, Any]:
         """State derived from the contract's state model and user actions strictly before t.

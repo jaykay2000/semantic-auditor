@@ -162,7 +162,7 @@ def explain(entry: Entry, events: list[Event], story: Story, contract: Contract)
     if r.check.get("must") == "precondition_holds_at_shown_time" and e:
         dec = contract.decision(e.extraction.decision)
         pre = dec.precondition(e.extraction.action) if dec else {}
-        state = story.state_at(e.at, contract.state, inclusive=True)
+        state = story.shown_state(e, contract.state)
         need = ", ".join(f"{k} = {v}" for k, v in pre.items())
         was = ", ".join(f"{k} = {state.get(k)}" for k in pre)
         return f"'{e.extraction.action}' needs {need}; when shown at {_hm(e)}, {was}."

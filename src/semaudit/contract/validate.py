@@ -52,6 +52,19 @@ def validate(c: Contract) -> list[str]:
         for dup in {i for i in seen if seen.count(i) > 1}:
             p.append(f"duplicate {what} id {dup!r}")
 
+    kinds = {s.id: getattr(s, "kind", None) for s in c.surfaces}
+    for s in c.surfaces:
+        fmt = getattr(s, "format_of", None)
+        if fmt is not None:
+            if fmt == s.id:
+                p.append(f"surface {s.id}: format_of names itself")
+            elif fmt not in kinds:
+                p.append(f"surface {s.id}: format_of names unknown surface {fmt!r}")
+            elif kinds[fmt] != s.kind:
+                p.append(f"surface {s.id}: format_of {fmt!r} is a {kinds[fmt]} surface, not {s.kind}")
+        if getattr(s, "shown_before_action", False) and not getattr(s, "reached_by", None):
+            p.append(f"surface {s.id}: shown_before_action needs reached_by (the step whose action it precedes)")
+
     for r in c.rules:
         if "decision" in r.applies_to:
             need("decision", r.applies_to["decision"], decisions, f"rule {r.id}")
