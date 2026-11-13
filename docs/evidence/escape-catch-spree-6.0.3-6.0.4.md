@@ -48,20 +48,45 @@ Espresso Machine (Color: Matte Black)" is not available.`, and 6.0.4 placed the 
 
 Both captures exited 0: every step ran or was blocked by the refusal, and nothing went unmeasured.
 
-## The full review, with every rule (paid, stopped at its cap)
+## The full review, with every rule (paid)
 
-The other rules (figures, totals, the one-email rule) need model readings. The review used the Meta Model API with a
-hard cap of $0.635 and stopped there after 29 reading calls ($0.66). The estimate had been 20 calls. 6.0.3 was fully
-read, 6.0.4 only partly, and **no verification ran**. 6.0.3, all rules, unverified:
+The other rules (figures, totals, the one-email rule) need model readings. Reviews used the Meta Model API
+(`muse-spark-1.3` reads, `muse-spark-1.2` cross-checks and defends).
 
-| issue | count | our reading (checked against the saved pages and notes, not by SRA's verifier) |
-|---|---|---|
-| R25: an offered action did not complete | 1 | **the real defect** |
-| L1: two outbound contacts within 1 h | 1 (ana) | false alarm: ana got one email, sent as an HTML part and a text part, and the contract counts each part as a contact |
-| U2: an order total disagrees across surfaces | 4 | likely false alarms: the address step shows a total before tax and delivery are known, compared with the delivery step; one reading took the $70.80 tax line for the total. A gap in the contract's checkout-state model, plus a mislabel |
+**First pass (capped, unverified).** A $0.635 cap stopped it after 29 reading calls ($0.66): 6.0.3 fully read, 6.0.4
+partly, no verification. On 6.0.3 it raised 6 issues: R25 (the real defect), L1 (one email counted twice: its HTML
+and text parts) and four U2 "totals disagree" issues (the address step, captured before the address is entered,
+compared with the delivery step). Both causes were in how the contract described the captures, not in Spree.
 
-So the full rule set adds no second true finding on 6.0.3 and would, unverified, add 5 false alarms. Both causes
-belong to the contract, not to the release.
+**Fix ($0).** Two surface declarations, now part of the contract format (see [Add your app](../10-add-your-app.md)):
+`shown_before_action` (read a surface in the state before its step's action) and `format_of` (an email's second
+format is not a second contact). With them, the saved 6.0.3 readings re-score to **one issue, R25**. The totals rule
+still runs: it now compares the address step with the cart (30 comparisons in the 6.0.3 run, all agreeing) instead
+of the delivery step.
+
+**Second pass (finished, verified).** 5 more reading calls finished 6.0.4 ($0.11). Verification ran on each
+release's issues: re-running the affected shoppers on a fresh store, a second model re-reading the cited messages,
+and a defender arguing against each issue.
+
+| release | issues | verification | cost |
+|---|---|---|---|
+| 6.0.3 | 1: R25, lena and milo refused at "Place Order" | **verified**: both refusals reproduced on a fresh run; the defender found no defence | $0.10 |
+| 6.0.4 | R25 **resolved**; 4 new issues (U1 + three U2), all from one reading of lena's admin order page | 2 verified, 2 partly verified (low confidence) | $0.44 |
+
+**The four 6.0.4 issues are one false alarm.** On the admin order page, "$955.79" sits between "Completed" and the
+"Taxes" heading: it is the payment amount, and the order's tax is $70.80. The reading model labelled it as tax, so
+"tax $955.79" disagreed with "$70.80" everywhere else. The defender said exactly this ("the cited $955.79 ... is
+not a tax_total claim"), but SRA's rule is that a disputed reading stands only when the two models disagree, and the
+second model, from the same family, misread it the same way. So the defence was overruled and the false alarm kept
+"verified".
+
+What this measures: one real escape caught and verified on 6.0.3, seen resolved on 6.0.4, with no false alarm left
+on 6.0.3 after the contract fix; and one false alarm on 6.0.4 that verification did not remove, because both readers
+share the same blind spot. The review's overall outcome is "not measurable": 11 of the contract's rules use check
+verbs the rule engine does not have (this contract was written for reader mode), and SRA says so rather than passing
+them.
+
+Spend for this test: $1.30 in all ($0.66 first pass, $0.65 second pass with verification).
 
 ## What went wrong on the way
 
@@ -76,3 +101,9 @@ belong to the contract, not to the release.
 - One escape, one store, one run each. It shows the mechanism catches this class of defect, not a rate.
 - The rule's catch depends on the adapter telling an app refusal from a harness failure. That boundary is now part
   of the adapter contract (`AppFailed`, `StepResult(app_error=…)`; see [Add your app](../10-add-your-app.md)).
+- The reading and cross-checking models are one family (Muse Spark 1.3 and 1.2). The 6.0.4 false alarm shows what
+  that costs: a misreading both share is not caught by the cross-check, and the defender's correct objection is
+  overruled. A second reader from another family, or a rule that lets a defence grounded in the page's own labels
+  stand, are untested options.
+- The harness that drove the stores is public: https://github.com/jaykay2000/spree-semaudit (`ESCAPE-CATCH.md`,
+  `contract-escape/`).
