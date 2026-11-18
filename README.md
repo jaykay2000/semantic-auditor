@@ -176,7 +176,7 @@ All from [docs/evidence/imported-checks/README.md](docs/evidence/imported-checks
   shared as little as about half of the problem types they found, and the best single run found 13 of the 18 types
   all runs found together. SRA's own reviews found fewer, the same ones every run
   ([evidence](docs/evidence/agent-exploration-2026-10-31/README.md)).
-- **A second app, refused.** Finablo's 401(k) limit bug was tried as a check. The developers' written record names
+- **A second app, refused.** [Finablo](https://app.finablo.com)'s 401(k) limit bug was tried as a check. The developers' written record names
   what the user saw but no step they took, so the frozen converter graded it `partially_converted` and SRA refused
   to approve it. That is the gate working. The bug stays one of SRA's own release-review journeys
   ([docs/evidence/imported-checks/finablo/README.md](docs/evidence/imported-checks/finablo/README.md)).
@@ -363,7 +363,7 @@ in rules mode, and 6 of 6 for $0.042 for the reader-mode cases run on their own.
 the extractor, the verifier or `semaudit visual`, and its cases come from the fixture the prompts were tuned on, so
 it is a canary, not an accuracy figure ([evidence](docs/evidence/judge-self-check-2026-11-02/README.md)).
 
-**On a real app, Finablo v707 → v731 (24 release numbers apart, reader mode, 2026-11-01).** SRA reported 3 fixes,
+**On a real app, [Finablo](https://app.finablo.com) v707 → v731 (24 release numbers apart, reader mode, 2026-11-01).** SRA reported 3 fixes,
 all real per the code history. It flagged 2 new issues that the owner confirmed: 1 regression, bisected to v708, and
 1 small one, both on target personas (written earlier to reproduce a known bug), not blind ones. It raised 2
 pre-existing issues (the owner: 1 real, 1 unsure). Limits: each reading alone missed items the other caught, and
@@ -418,7 +418,7 @@ Every model call goes through `semaudit.models.complete(role=…)`; the role nam
 is set in the app's `semaudit.toml` (defaults in [`router.py`](src/semaudit/models/router.py)). This table is what
 the runs actually used.
 
-| Role | Job | Northbound (fictional travel app) | Finablo (real finance app) | Spree (real open-source store) |
+| Role | Job | Northbound (fictional travel app) | [Finablo](https://app.finablo.com) (real finance app) | Spree (real open-source store) |
 |---|---|---|---|---|
 | `extractor` | reads messages, directives and claims out of each capture | Muse Spark 1.3 (Meta API) | not called (reader-mode review) | Muse Spark Open (Baseten) |
 | `interpreter` | judges candidate conflicts against the rules; in reader mode, reads every rule and story | Muse Spark 1.3 | Muse Spark 1.3 (Meta API) | Muse Spark Open |
