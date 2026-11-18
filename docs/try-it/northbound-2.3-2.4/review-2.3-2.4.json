@@ -315,7 +315,7 @@
      "defended": {
       "result": "pass",
       "detail": {
-       "kai": "[none] the defender found no defense · Strongest honest case: price_watch (10:01) and fare_lock (10:03) both address when_to_book, wait_for_drop vs book_now. The fare_lock banner says 'Book now, or lock it for 12 h for €9 total if your plans might change' and is read as explains_own_tradeoff:true, offering lock as a fallback that bridges"
+       "kai": "[none] the defender found no defense · The strongest non-violation argument is that fl.banner.urgent at 10:03 with explains_own_tradeoff=true satisfies P2 by weighing its own recommendation (Book now vs lock 12h for €9 if plans might change). Honestly it fails: under the rubric the cited readings are correct – pw.email.forecast (10:01) i"
       },
       "occurrences": {
        "kai": "pass"
@@ -328,7 +328,7 @@
     }
    },
    "memory": null,
-   "repro": "semaudit repro I-2.4-P2-fare-lock-price-watch-conflict --review runs/sc-live-1/review-2.3-2.4.json --max-usd 1",
+   "repro": "semaudit repro I-2.4-P2-fare-lock-price-watch-conflict --review runs/sc-live-2/review-2.3-2.4.json --max-usd 1",
    "other_rules": [
     {
      "rule": "U1",
@@ -401,7 +401,7 @@
    ],
    "delta": "new",
    "delta_basis": "absent in base",
-   "why": "claim 2 vs true units_left 9",
+   "why": "claim 2 vs true units_left (inventory) 9",
    "rule_text": "Every scarcity, availability and policy claim matches our own data.",
    "rule_source": null,
    "conditions": [],
@@ -496,7 +496,7 @@
      "defended": {
       "result": "pass",
       "detail": {
-       "omar": "[none] the defender found no defense · Strongest honest case for NOT a violation would have to argue the scarcity phrase is not a U1 units_left claim or not comparable to the measured 9: that 'only 2 seats left at this fare' is fare-bucket availability, not total cabin inventory, so the 9 vs 2 comparison is not like-for-like, and the fee"
+       "omar": "[none] the defender found no defense · The banner fl.banner.urgent states \"only 2 seats left at this fare\" which the rubric classifies as a units_left claim value 2. The measured own data for units_left (inventory) is 9. Rule U1 by its text covers every scarcity/availability claim and requires it to match own data, with no exception list"
       },
       "occurrences": {
        "omar": "pass"
@@ -509,7 +509,7 @@
     }
    },
    "memory": null,
-   "repro": "semaudit repro I-2.4-U1-fare-lock-fl-banner-urgent --review runs/sc-live-1/review-2.3-2.4.json --max-usd 1",
+   "repro": "semaudit repro I-2.4-U1-fare-lock-fl-banner-urgent --review runs/sc-live-2/review-2.3-2.4.json --max-usd 1",
    "other_rules": [
     {
      "rule": "U3",
@@ -630,7 +630,7 @@
      "defended": {
       "result": "pass",
       "detail": {
-       "sam_alex": "[none] the defender found no defense · Strongest honest attempt: argue U2 does not cover this because (a) the 'same transaction' is the fare purchase (Total to pay today: €306 = €258 + €48) and the Fare Lock line is a separate optional-service transaction, or (b) the banner's '€9 total, for your whole booking' could be read as per-travel"
+       "sam_alex": "[none] the defender found no defense · No honest defense under U2 on what the user actually saw. fl.banner at 2026-11-02T10:03 displays fee_total €9 with explicit text '€9 total, for your whole booking' for a 2-traveller LIS-BER search. The same transaction (buy_lock at 10:04) for the same travellers with an unchanged price quote (core f"
       },
       "occurrences": {
        "sam_alex": "pass"
@@ -643,7 +643,7 @@
     }
    },
    "memory": null,
-   "repro": "semaudit repro I-2.4-U2-fare-lock-fl-banner --review runs/sc-live-1/review-2.3-2.4.json --max-usd 1",
+   "repro": "semaudit repro I-2.4-U2-fare-lock-fl-banner --review runs/sc-live-2/review-2.3-2.4.json --max-usd 1",
    "other_rules": [
     {
      "rule": "U1",
@@ -855,9 +855,9 @@
      "defended": {
       "result": "pass",
       "detail": {
-       "hana": "[none] the defender found no defense · Under P1 the message's inventory statement ('only 2 seats left at this fare') is expressly permitted as true inventory information. The imperative 'Book now' is not a standalone urge in the rubric's sense because the same message in the same sentence offers the primary-plus-fallback alternative 'or ",
-       "raj_72h_1m": "[exception_applies] the defender found no defense · P1 permits true inventory sharing and bars urge book_now except for genuinely time-sensitive trips as defined by P1-E1. The cited banner is the only directive urging book_now, but on what the traveller actually saw it satisfies all other P1-E1 elements: b - units_left claim 'only 2 seats' is true pe",
-       "raj_72h_30s": "[none] the defender found no defense · Strongest honest case on what the user actually saw: fl.banner.urgent shares true inventory ('only 2 seats left at this fare') which P1 expressly permits. The remainder 'Book now, or lock it for 12 h for €9 total if your plans might change' offers a primary instruction plus an immediate, priced fall"
+       "hana": "[none] the defender found no defense · No honest defense shows P1 is not violated on what the user saw. The banner fl.banner.urgent is directive when_to_book:book_now and contains U-a immediacy 'Book now' (U-a) in the same message as the primary recommendation, so strength=urge is correct per rubric (U-a attached to action). It is not co",
+       "raj_72h_1m": "[none] the defender found no defense · Strongest honest reading: fl.banner.urgent is a directive about when_to_book with PRIMARY action book_now and fallback lock ('Book now, or lock it for 12 h for €9 total if your plans might change' - rubric's own primary+fallback example, not 'conditional' equals). Strength is 'urge' per rubric U-a (",
+       "raj_72h_30s": "[exception_applies] the defender found no defense · On the user-visible record P1-E1 permits this fare_lock banner. Departure shown to the user in core.fare.summary is Thu 05 Nov 2026 10:03 UTC, which is 72h00m after fl.banner.urgent at 2026-11-02T10:03:00Z, satisfying time_until 72h (a). It states 'only 2 seats left' (units_left=2) true per inventor"
       },
       "occurrences": {
        "hana": "pass",
@@ -872,7 +872,7 @@
     }
    },
    "memory": null,
-   "repro": "semaudit repro I-2.4-P1-fare-lock-fl-banner-urgent-a --review runs/sc-live-1/review-2.3-2.4.json --max-usd 1",
+   "repro": "semaudit repro I-2.4-P1-fare-lock-fl-banner-urgent-a --review runs/sc-live-2/review-2.3-2.4.json --max-usd 1",
    "other_rules": [
     {
      "rule": "U1",
@@ -1016,7 +1016,7 @@
      "defended": {
       "result": "pass",
       "detail": {
-       "raj_x": "[none] the defender found no defense · Strongest honest case was examined and fails. fl.banner.urgent_bare text \"Only 2 seats left. Book now.\" is correctly read under the rubric as directive, when_to_book/book_now, strength=urge via U-a (\"now\" attached to \"Book\") - U-c would also require same-sentence coupling which is not needed. explai"
+       "raj_x": "[none] the defender found no defense · The strongest non-violation argument would be that fl.banner.urgent_bare is protected either as true inventory sharing or as a genuinely time-sensitive trip. Under the rubric the message is correctly read as directive/when_to_book/book_now/urge: U-a is present in the same message ('Book now' attache"
       },
       "occurrences": {
        "raj_x": "pass"
@@ -1029,7 +1029,7 @@
     }
    },
    "memory": null,
-   "repro": "semaudit repro I-2.4-P1-fare-lock-fl-banner-urgent-bare-c --review runs/sc-live-1/review-2.3-2.4.json --max-usd 1",
+   "repro": "semaudit repro I-2.4-P1-fare-lock-fl-banner-urgent-bare-c --review runs/sc-live-2/review-2.3-2.4.json --max-usd 1",
    "other_rules": [
     {
      "rule": "U1",
@@ -1122,18 +1122,17 @@
     }
    },
    "confidence": {
-    "level": "medium",
+    "level": "low",
     "basis": [
      "evidence: interpreted",
      "a second model agrees",
-     "defense failed to explain it away",
-     "reduced independence: extractor, cross-checker and defender are one model family",
-     "capped at medium until an independent model family agrees"
+     "defense explained it away",
+     "reduced independence: extractor, cross-checker and defender are one model family"
     ]
    },
    "verification": {
-    "status": "verified",
-    "reason": "",
+    "status": "partially_verified",
+    "reason": "defended",
     "steps": {
      "reproduced": {
       "result": "pass",
@@ -1157,15 +1156,15 @@
       }
      },
      "defended": {
-      "result": "pass",
+      "result": "fail",
       "detail": {
-       "family": "[rule_does_not_apply] the defender found no defense · Strongest honest NOT-a-violation case: Both cited directives are about when_to_book and are compatible, but before the 10:06 booking the traveller had actually seen both material facts: pw.email.forecast (10:01) disclosed the 14-day forecast window for waiting, and fl.banner (10:03) disclosed the lo",
-       "maya": "[none] the defender found no defense · On the rubric, pw.email.forecast (10:01) and fl.banner (10:03) are both directive suggest for decision when_to_book (wait_for_drop and lock_fare). The strongest no-violation argument is that P2 requires reconciling incompatible actions or explaining material tradeoffs between compatible actions whil",
-       "sam_alex": "[timing] the defender found no defense · The two cited directives were never co-present to the traveller live before the decision the rule protects (a04_buy_lock at 10:04). pw.email.forecast was shown in the email channel at 10:01 after a02_check_inbox, then the traveller executed a03_open_fare at 10:03 and moved to the fare page where fl."
+       "family": "[none] the defender found no defense · Under the rubric both cited messages are honestly classified as directives about the same decision when_to_book: pw.email.forecast (10:01) says 'We suggest waiting' = wait_for_drop/suggest, and fl.banner (10:03) says 'Lock it for 48 h for €9 total' = lock_fare/suggest. Both are offers/recommendation",
+       "maya": "[timing] timing (judged) · P2 requires more than one active recommendation about the same decision to be simultaneously live before the traveller decides so the product can reconcile or explain the tradeoff. The traveller did not see wait_for_drop and lock_fare live at the same time before the 10:06 book decision. wait_for_dr",
+       "sam_alex": "[timing] the defender found no defense · The strongest honest case is timing/non-overlap. On the measured story the traveller never saw both active recommendations live together before deciding. pw.email.forecast was seen only while in the inbox at 10:01 (pw.card at 10:00 on results), then the traveller navigated away (check_inbox -> open_"
       },
       "occurrences": {
        "family": "pass",
-       "maya": "pass",
+       "maya": "fail",
        "sam_alex": "pass"
       }
      },
@@ -1176,7 +1175,7 @@
     }
    },
    "memory": null,
-   "repro": "semaudit repro I-2.4-P2-fare-lock-price-watch-unexplained-tradeoff --review runs/sc-live-1/review-2.3-2.4.json --max-usd 1",
+   "repro": "semaudit repro I-2.4-P2-fare-lock-price-watch-unexplained-tradeoff --review runs/sc-live-2/review-2.3-2.4.json --max-usd 1",
    "other_rules": [
     {
      "rule": "U1",
@@ -1309,9 +1308,9 @@
      "defended": {
       "result": "pass",
       "detail": {
-       "family": "[none] the defender found no defense · Strongest honest non-violation argument: pw.email.after at 12:00 (\"Keep waiting to book. We'll tell you when prices drop.\") is a stale asynchronous Price Watch notification duplicating the 10:00/10:01 forecast that WAS actionable when generated (booking_status=not_booked), and its core content is a ",
-       "maya": "[none] the defender found no defense · Honest best case for NOT a violation would be to argue pw.email.after at 12:00 is not a directive recommendation at all. Under the rubric a forecast or a promise to notify is not by itself a recommendation; a message recommends waiting only if it says so (e.g. \"we suggest waiting\"). Viewed that way ",
-       "maya_r": "[none] the defender found no defense · Strongest honest NOT-violation case for U3 for pw.email.after at 12:00: (1) extraction_wrong - argue the text 'Keep waiting to book. We'll tell you when prices drop.' is a forecast/promise to notify which the rubric says 'is not by itself a recommendation; a message recommends waiting only if it say"
+       "family": "[none] the defender found no defense · On the measured data there is no honest non-violation for U3. U3 requires every directive recommendation to be actionable at show time. pw.email.after at 2026-11-02T12:00:00Z text 'Keep waiting to book. We'll tell you when prices drop.' is a directive about when_to_book/wait_for_drop (rubric: 'we su",
+       "maya": "[extraction_wrong] the defender found no defense · On the rubric's own terms a 'directive' must 'recommend[] or offer[] an action the traveller can take'. The cited text 'Keep waiting to book. We'll tell you when prices drop.' at 12:00 is, when booking_status=booked (booked at 10:06 NB0001), not an action the traveller can take now - the why for U3 ",
+       "maya_r": "[none] the defender found no defense · On its face the strongest non-violation argument is that pw.email.after at 12:00 is not a fresh actionable directive but a stale queued Price Watch status update whose primary content is a promise to notify ('We'll tell you when prices drop') - which the rubric says is not by itself a recommendation"
       },
       "occurrences": {
        "family": "pass",
@@ -1326,7 +1325,7 @@
     }
    },
    "memory": null,
-   "repro": "semaudit repro I-2.4-U3-price-watch-pw-email-after --review runs/sc-live-1/review-2.3-2.4.json --max-usd 1",
+   "repro": "semaudit repro I-2.4-U3-price-watch-pw-email-after --review runs/sc-live-2/review-2.3-2.4.json --max-usd 1",
    "other_rules": []
   },
   {
@@ -1437,9 +1436,9 @@
      "defended": {
       "result": "pass",
       "detail": {
-       "family": "[none] the defender found no defense · Strongest honest defense considered: (1) rule_does_not_apply - that U4 only bars second-guessing the decision to purchase itself, not fare_type, or that the second sentence exempts regretting a choice that was once correctable; (2) extraction_wrong - that cg.regret at 2026-11-04T09:02:00Z 'You shoul",
-       "maya": "[none] the defender found no defense · Strongest honest argument: U4 says ‘Offering an action the traveller can still take is not second-guessing.’ One could argue cg.regret at 2026-11-04T09:02:00 (“You should have booked a refundable fare.”) is implicitly about the same action offered in cg.upgrade/core.confirmed.fare_window and therefo",
-       "maya_r": "[none] the defender found no defense · The strongest honest attempt would be to argue cg.regret (2026-11-04T09:02:00 'You should have booked a refundable fare.') is not U4 second-guessing because it does not offer a now-action and therefore is merely informational, or that the rule's carve-out 'Offering an action the traveller can still "
+       "family": "[none] the defender found no defense · On its face cg.regret at 2026-11-04T09:02:00Z ('You should have booked a refundable fare.') is a retrospective judgment after the completed purchase at 2026-11-02T10:06:00Z. The rubric classifies it as retrospective/fare_type/choose_refundable. The Rule U4 prohibits second-guessing a completed choic",
+       "maya": "[none] the defender found no defense · Strongest honest case under U4 and the rubric: U4 prohibits second-guessing a completed choice after purchase, with the only carve-out being offering an action the traveller can still take. The cited message cg.regret at 2026-11-04T09:02:00Z text \"You should have booked a refundable fare.\" is classi",
+       "maya_r": "[none] the defender found no defense · The only honest non-violation theory for U4 is its second sentence: 'Offering an action the traveller can still take is not second-guessing.' The traveller was told after booking in core.confirmed.fare_window 'Switching to a refundable fare costs €30 and is available until Tue 03 Nov 2026, 10:06 UTC"
       },
       "occurrences": {
        "family": "pass",
@@ -1454,7 +1453,7 @@
     }
    },
    "memory": null,
-   "repro": "semaudit repro I-2.4-U4-concierge-cg-regret --review runs/sc-live-1/review-2.3-2.4.json --max-usd 1",
+   "repro": "semaudit repro I-2.4-U4-concierge-cg-regret --review runs/sc-live-2/review-2.3-2.4.json --max-usd 1",
    "other_rules": []
   },
   {
@@ -1571,9 +1570,9 @@
      "defended": {
       "result": "pass",
       "detail": {
-       "family": "[none] the defender found no defense · No honest defense avoids the count under P3 as written. P3 allows at most 2 outbound contacts (email or push) in any 24h beyond messages about the booking itself, with only in-app cards and user-initiated conversations excluded. The user actually saw: pw.email.forecast (email) at 2026-11-02T10:01:00",
-       "maya": "[none] the defender found no defense · No honest defense under P3 on the measured data. P3 counts every email or push beyond messages about the booking itself, excluding only in-app cards and user-initiated conversations. The three cited events are all email/push and none are about the booking itself: pw.email.forecast (email 10:01), pw.",
-       "maya_r": "[none] the defender found no defense · The strongest honest reading still shows 3 non-booking outbound contacts within ~8 hours. P3 counts every email or push beyond messages about the booking itself; in-app cards and user-initiated conversations are not contacts. core.email.confirmation at 2026-11-02T10:06 is about the booking (NB0001) "
+       "family": "[timing] the defender found no defense · Honest P3 defense: P3 counts 'Beyond messages about the booking itself' in any 24h, excluding in-app cards and user-initiated chat. core.email.confirmation at 2026-11-02T10:06 is the booking-itself message and is correctly excluded. The remaining countable set under a literal post-booking reading is",
+       "maya": "[none] the defender found no defense · P3 permits at most 2 outbound contacts (email or push) in any 24h beyond messages about the booking itself; in-app cards and user-initiated conversations are not contacts. The user actually saw pw.email.forecast (email 10:01), pw.email.after (email 12:00) and pw.push.moving (push 18:00) — three emai",
+       "maya_r": "[none] the defender found no defense · We found no honest P3-not-violated case on the user-visible record. Rule P3 counts every outbound email/push except (a) messages about the booking itself and (b) in-app cards / user-initiated conversations. Measured: pw.email.forecast 2026-11-02T10:01 email 'Prices ... likely to drop ... suggest wai"
       },
       "occurrences": {
        "family": "pass",
@@ -1588,7 +1587,7 @@
     }
    },
    "memory": null,
-   "repro": "semaudit repro I-2.4-P3-story --review runs/sc-live-1/review-2.3-2.4.json --max-usd 1",
+   "repro": "semaudit repro I-2.4-P3-story --review runs/sc-live-2/review-2.3-2.4.json --max-usd 1",
    "other_rules": [
     {
      "rule": "U3",
@@ -3183,7 +3182,7 @@
      "status": "passed",
      "label": null,
      "conditions": [],
-     "note": "claim 9 vs true units_left 9"
+     "note": "claim 9 vs true units_left (inventory) 9"
     },
     {
      "rule": "U3",
@@ -5280,7 +5279,7 @@
      "status": "passed",
      "label": null,
      "conditions": [],
-     "note": "claim 2 vs true units_left 2"
+     "note": "claim 2 vs true units_left (inventory) 2"
     },
     {
      "rule": "U3",
@@ -6227,7 +6226,7 @@
      "status": "passed",
      "label": null,
      "conditions": [],
-     "note": "claim 2 vs true units_left 2"
+     "note": "claim 2 vs true units_left (inventory) 2"
     },
     {
      "rule": "U3",
@@ -7363,7 +7362,7 @@
      "status": "passed",
      "label": null,
      "conditions": [],
-     "note": "claim 2 vs true units_left 2"
+     "note": "claim 2 vs true units_left (inventory) 2"
     },
     {
      "rule": "U1",
@@ -7371,7 +7370,7 @@
      "status": "passed",
      "label": null,
      "conditions": [],
-     "note": "claim 2 vs true units_left 2"
+     "note": "claim 2 vs true units_left (inventory) 2"
     },
     {
      "rule": "U3",
@@ -9472,7 +9471,7 @@
      "status": "passed",
      "label": null,
      "conditions": [],
-     "note": "claim 2 vs true units_left 2"
+     "note": "claim 2 vs true units_left (inventory) 2"
     },
     {
      "rule": "U3",
@@ -12583,7 +12582,7 @@
      "status": "passed",
      "label": null,
      "conditions": [],
-     "note": "claim 2 vs true units_left 2"
+     "note": "claim 2 vs true units_left (inventory) 2"
     },
     {
      "rule": "U1",
@@ -12591,7 +12590,7 @@
      "status": "passed",
      "label": null,
      "conditions": [],
-     "note": "claim 2 vs true units_left 2"
+     "note": "claim 2 vs true units_left (inventory) 2"
     },
     {
      "rule": "U3",
@@ -14696,7 +14695,7 @@
      "status": "violated",
      "label": null,
      "conditions": [],
-     "note": "claim 2 vs true units_left 9"
+     "note": "claim 2 vs true units_left (inventory) 9"
     },
     {
      "rule": "U3",
@@ -15643,7 +15642,7 @@
      "status": "passed",
      "label": null,
      "conditions": [],
-     "note": "claim 2 vs true units_left 2"
+     "note": "claim 2 vs true units_left (inventory) 2"
     },
     {
      "rule": "U3",
@@ -16590,7 +16589,7 @@
      "status": "passed",
      "label": null,
      "conditions": [],
-     "note": "claim 2 vs true units_left 2"
+     "note": "claim 2 vs true units_left (inventory) 2"
     },
     {
      "rule": "U3",
@@ -17537,7 +17536,7 @@
      "status": "passed",
      "label": null,
      "conditions": [],
-     "note": "claim 2 vs true units_left 2"
+     "note": "claim 2 vs true units_left (inventory) 2"
     },
     {
      "rule": "U3",
@@ -18484,7 +18483,7 @@
      "status": "passed",
      "label": null,
      "conditions": [],
-     "note": "claim 2 vs true units_left 2"
+     "note": "claim 2 vs true units_left (inventory) 2"
     },
     {
      "rule": "U3",
@@ -19423,7 +19422,7 @@
      "status": "passed",
      "label": null,
      "conditions": [],
-     "note": "claim 2 vs true units_left 2"
+     "note": "claim 2 vs true units_left (inventory) 2"
     },
     {
      "rule": "U3",
@@ -20802,7 +20801,7 @@
      "status": "passed",
      "label": null,
      "conditions": [],
-     "note": "claim 2 vs true units_left 2"
+     "note": "claim 2 vs true units_left (inventory) 2"
     },
     {
      "rule": "U2",
@@ -22278,7 +22277,7 @@
      "status": "passed",
      "label": null,
      "conditions": [],
-     "note": "claim 2 vs true units_left 2"
+     "note": "claim 2 vs true units_left (inventory) 2"
     },
     {
      "rule": "U3",
@@ -23160,12 +23159,12 @@
    ]
   }
  ],
- "cost_usd": 0.0,
+ "cost_usd": 0.489,
  "manifest": {
   "schema": "semaudit.manifest/1",
   "code": {
-   "git": "756df8b12facfa9ba56e0ba5511690f26f4271cb",
-   "src_dirty": true
+   "git": "721b6b7883a174db243bda3c19198c1aad6c7515",
+   "src_dirty": false
   },
   "contract": {
    "dir": "examples/northbound/contract",
@@ -23193,7 +23192,7 @@
    "base": "2.3",
    "head": "2.4"
   },
-  "run_dir": "runs/sc-live-1",
+  "run_dir": "runs/sc-live-2",
   "episodes": {
    "episodes/2.3/family__S-book-flexible.json": "14388ee56554a4faf6702d12d72b4638691e582b0a4f7849460b5a0226a5f3d3",
    "episodes/2.3/hana__S-browse-imminent.json": "ee789ac9493a92c7d8ed93496326a477dbacf71ea1ec4d890852e3f836a8c309",
@@ -23226,7 +23225,7 @@
    "episodes/2.4/sam_alex__S-lock-couple.json": "bda2137682a1303dc39eba7211e6329cf76b994821b1d564470e28f41e1b436f",
    "episodes/2.4/theo__S-direct-book.json": "15fbde4fdb258a0e47d1a88a6dc85404d264e8fc92f7ab3ac347a7c2ad69bebc"
   },
-  "repro_run": "sc-live-1-repro",
+  "repro_run": "sc-live-2-repro",
   "models": {
    "interpreter": "muse-spark-1.3",
    "extractor": "muse-spark-1.3",
@@ -23268,12 +23267,12 @@
    }
   },
   "spend": {
-   "tag": "semaudit-full:2.3-2.4:sc-live-1",
+   "tag": "semaudit-full:2.3-2.4:sc-live-2",
    "fresh": false,
    "calls": 62,
-   "cached": 62,
-   "spent_usd": 0.0,
-   "if_fresh_usd": 0.873859,
+   "cached": 43,
+   "spent_usd": 0.488994,
+   "if_fresh_usd": 0.880611,
    "by_role": {
     "cross_checker_extract": {
      "calls": 19,
@@ -23293,11 +23292,11 @@
     },
     "defender": {
      "calls": 19,
-     "cached": 19,
-     "spent_usd": 0.0,
-     "if_fresh_usd": 0.482243,
-     "prompt_tokens": 58150,
-     "completion_tokens": 96366
+     "cached": 0,
+     "spent_usd": 0.488994,
+     "if_fresh_usd": 0.488994,
+     "prompt_tokens": 59981,
+     "completion_tokens": 97416
     },
     "extractor": {
      "calls": 4,
@@ -23320,7 +23319,7 @@
   "prompts": {
    "extraction": "30d78067f00000e445e62f34f142ac63fa1e3bc126d8fd1b2528b1794fb575c6",
    "interpret": "2529592202c137a08ca3ca8b5e04c737c7771680acce4ffc673b1e56561bf914",
-   "defense": "11674daf1a4980a81fe6f52deac194fd04c6dfccfee2c4887748c8330af829d4"
+   "defense": "154f2f3f9a76e4da011c3d81e043cf780c3dc952882db4487eb51cc667f121b3"
   },
   "verifier": {
    "models": true,
@@ -23334,7 +23333,7 @@
     "oracle_checked"
    ]
   },
-  "max_usd": 0.25,
+  "max_usd": 0.6,
   "memory": {
    "file": "dispositions.yaml",
    "issues": [],
@@ -23349,7 +23348,7 @@
   "prompt_sha256": "1ada1f71ab07c129",
   "cases_file": "examples/judge-self-check.yaml",
   "calls": 6,
-  "cost_usd": 0.046092,
+  "cost_usd": 0.05007,
   "cases_sha256": "0e1033e2ddcf8d17",
   "model": "muse-spark-1.3",
   "provider": "meta",
@@ -23406,7 +23405,7 @@
   ],
   "status": "passed",
   "reason": "",
-  "line": "Judge self-check: 6 of 6 planted cases answered correctly (3 of 3 planted mistakes caught, 3 of 3 correct cases cleared) · $0.046"
+  "line": "Judge self-check: 6 of 6 planted cases answered correctly (3 of 3 planted mistakes caught, 3 of 3 correct cases cleared) · $0.050"
  },
- "written_at": "2026-11-02T19:48:56Z"
+ "written_at": "2026-11-18T22:58:43Z"
 }

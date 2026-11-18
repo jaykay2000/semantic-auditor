@@ -11,7 +11,17 @@ for byte with its committed copy. Measured on 2026-11-01: both equal, in under 1
 
 ## Where the inputs come from
 
-- `northbound-2.3-2.4/review-2.3-2.4.json` is the Northbound 2.3 → 2.4 review run **with the judge self-check on**
+- `northbound-2.3-2.4/review-2.3-2.4.json` is the Northbound 2.3 → 2.4 review **re-run on 2026-11-18** (run
+  `sc-live-2`), because the defender's instructions changed (it may now dispute which fact a figure states) and
+  `verify-report` refuses a review whose prompts have changed since. Same episodes and readings as `sc-live-1`;
+  the 19 defender replies are fresh ($0.489 on Muse Spark 1.2) and the self-check ran again (6 of 6, $0.050). Same
+  outcome, policy row, issues, resolved and not-raised lists. **One verification result changed:**
+  `I-2.4-P2-fare-lock-price-watch-unexplained-tradeoff` went from verified (medium) to partly verified (low),
+  because the fresh defender reply for maya argued timing (the two recommendations were not live together before
+  the booking) where the earlier reply named no defence. Timing is a judged ground, so it stands. P2 is not a
+  figure rule, so the change is the defender's new reply, not the new figure dispute. Its three manifest paths are
+  written relative in the same way. It replaced the review below on 2026-11-18.
+- Before that, the file was the Northbound 2.3 → 2.4 review run **with the judge self-check on**
   (2026-11-02, run `sc-live-1`, [evidence](../evidence/judge-self-check-2026-11-02/README.md)): the same episodes,
   the same 62 cached model replies and the same 9 issues as the review described below, plus the self-check result
   (6 of 6, $0.046 on Muse Spark 1.3). Its three manifest paths are written relative in the same way. It replaced

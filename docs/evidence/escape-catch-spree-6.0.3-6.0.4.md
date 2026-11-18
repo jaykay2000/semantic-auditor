@@ -86,7 +86,25 @@ share the same blind spot. The review's overall outcome is "not measurable": 11 
 verbs the rule engine does not have (this contract was written for reader mode), and SRA says so rather than passing
 them.
 
-Spend for this test: $1.30 in all ($0.66 first pass, $0.65 second pass with verification).
+**Third pass: a second reader from another family (2026-11-18).** The same saved captures and readings, verified
+again with Claude Sonnet 5.5 (Anthropic API) as the cross-checker; reading and defence stay on Muse Spark. Two code
+changes came first. The defender may now dispute which fact a figure states (before, it could only dispute a
+message's kind, decision, action, strength or trade-off, so its objection had nothing to stand on). And measuring
+this pass exposed two more faults, fixed before the result below. The rule required the other model to call the
+figure exactly what the defender called it: Claude read "$955.79" as the order total, the defender as the payment
+amount, and that disagreement overruled a defence both sides support. The rule now asks only whether either side
+reads it as the tax. And on one occurrence Claude read the figure as the item total, which broke the same rule for
+the item total. The cross-check counted that as re-deriving the tax issue; it now requires the same fact.
+
+| release | result | cost |
+|---|---|---|
+| 6.0.3 | R25 **verified**, as before (the rule needs no model; repro, evidence and defence pass) | $0.10 |
+| 6.0.4 | R25 resolved. Of the four false-alarm occurrences, **3 fail verification as disputed** and drop out: Claude does not read $955.79 as tax and the defender's objection stands. **1 remains, partly verified, low confidence**: Claude disagrees, but in that reply the defender argued the point in prose without filling in the structured dispute, and SRA acts only on the structured one | $0.39 |
+
+So the other-family reader removes most of this false alarm but not all of it. It costs $0.04 for the four Claude
+cross-checks; the rest of this pass is the defender re-arguing under its new instructions.
+
+Spend for this test: $1.80 in all ($0.66 first pass, $0.65 second pass, $0.49 third pass).
 
 ## What went wrong on the way
 
@@ -101,9 +119,10 @@ Spend for this test: $1.30 in all ($0.66 first pass, $0.65 second pass with veri
 - One escape, one store, one run each. It shows the mechanism catches this class of defect, not a rate.
 - The rule's catch depends on the adapter telling an app refusal from a harness failure. That boundary is now part
   of the adapter contract (`AppFailed`, `StepResult(app_error=…)`; see [Add your app](../10-add-your-app.md)).
-- The reading and cross-checking models are one family (Muse Spark 1.3 and 1.2). The 6.0.4 false alarm shows what
-  that costs: a misreading both share is not caught by the cross-check, and the defender's correct objection is
-  overruled. A second reader from another family, or a rule that lets a defence grounded in the page's own labels
-  stand, are untested options.
+- With one model family (Muse Spark 1.3 and 1.2) a misreading both share is not caught by the cross-check, and the
+  defender's correct objection is overruled (second pass). With a second reader from another family (third pass) 3
+  of the 4 occurrences drop out; the fourth stays at low confidence because the defender's reply left its structured
+  dispute empty. One figure on one page: not a rate. Confidence stays capped at medium while the defender is in the
+  reader's family.
 - The harness that drove the stores is public: https://github.com/jaykay2000/spree-semaudit (`ESCAPE-CATCH.md`,
   `contract-escape/`).

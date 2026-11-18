@@ -31,9 +31,10 @@ It rebuilds two pages from files committed in this repo and prints where they we
 Each rebuilt file is compared byte for byte with its committed copy, and the command says so. To check the review
 itself against its pinned inputs, also offline:
 `.venv/bin/semaudit verify-report docs/try-it/northbound-2.3-2.4/review-2.3-2.4.json` (prints `CONSISTENT`). The
-sample review is the Northbound 2.3 → 2.4 review run `sc-live-1` (2026-11-02, with the judge self-check on), rebuilt
-from its recorded episodes and cached model replies; some defender explanations in it are the wording of a later run
-that sent identical requests, and no result changed ([details](docs/try-it/README.md)). It makes no model
+sample review is the Northbound 2.3 → 2.4 review run `sc-live-2` (2026-11-18, with the judge self-check on), from
+the recorded episodes and readings of the earlier sample with fresh defender replies, after the defender's
+instructions changed; one issue's verification moved from verified to partly verified
+([details](docs/try-it/README.md)). It makes no model
 call: it only re-renders recorded results, and its test runs it with every model call and network connection made to
 fail ([tests/test_demo.py](tests/test_demo.py)). The inputs are listed in
 [docs/try-it/demo.json](docs/try-it/demo.json). Running a new review or a saved check needs a model key and the app

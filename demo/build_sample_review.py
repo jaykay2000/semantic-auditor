@@ -26,9 +26,10 @@ SRA = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SRA / 'src'))
 sys.path.insert(0, str(SRA / 'tests'))
 
-# The review run with the judge self-check on (docs/evidence/judge-self-check-2026-11-02, run 1): the same
-# Northbound 2.3 -> 2.4 review as runs/e2e-2, whose verdicts it matches, plus the self-check result.
-REVIEW = SRA / 'runs' / 'sc-live-1' / 'review-2.3-2.4.json'
+# The Northbound 2.3 -> 2.4 review re-run on 2026-11-18 (run sc-live-2) after the defender's instructions changed
+# (it may now dispute which fact a figure states): the episodes and readings of runs/sc-live-1, fresh defender
+# replies, and the judge self-check on.
+REVIEW = SRA / 'runs' / 'sc-live-2' / 'review-2.3-2.4.json'
 OUT = SRA / 'docs' / 'sample-review'
 URL = 'https://jaykay2000.github.io/semantic-auditor/sample-review/'
 
