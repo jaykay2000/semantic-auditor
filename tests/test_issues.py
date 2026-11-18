@@ -255,7 +255,9 @@ def test_model_family_ignores_the_provider_prefix_and_fails_closed():
 # The admin order page showed "$955.79" (the payment) just above the "Taxes" heading; the reader typed it as
 # tax_total, so tax "$955.79" disagreed with "$70.80" everywhere else. The defender said so, but the only fields it
 # could dispute were a message's kind/decision/action/strength, so the false alarm stood. A "claim" dispute now
-# stands where the other model does not read the issue's fact on that message and reads what the defense says.
+# stands where the other model does not read the issue's fact on that message and the defense says it is not that
+# fact either. They need not agree on what it is instead: in the measured run the other model read the payment as
+# order_total and the defender as payment_amount.
 
 def _read(*claims):
     return Extraction(message_kind="information", decision="none", action="none", strength="inform",
@@ -293,14 +295,17 @@ def test_a_figure_dispute_is_overruled_when_both_models_share_the_misreading():
     assert not adjudicate(_claim_defense("payment_amount"), i, i.occurrences[0], _PAY, C, both)[0]
 
 
-def test_a_figure_dispute_needs_the_other_reading_to_say_what_the_defense_says():
+def test_a_figure_dispute_stands_when_neither_other_reading_is_the_issues_fact_whatever_each_calls_it():
     i = _fact_issue()
-    other = {"admin#2": _read(("order_total", 955.79))}
-    assert not adjudicate(_claim_defense("payment_amount"), i, i.occurrences[0], _PAY, C, other)[0]
+    other = {"admin#2": _read(("order_total", 955.79))}           # the Spree run: Claude said order_total ...
+    stands, why = adjudicate(_claim_defense("payment_amount"), i, i.occurrences[0], _PAY, C, other)
+    assert stands and "tax_total vs order_total" in why and "(payment_amount)" in why   # ... the defender payment
     assert adjudicate(_claim_defense("order_total"), i, i.occurrences[0], _PAY, C, other)[0]
-    # "none": the other model reads no figure at all on the message
+    # "none": no figure at all, by either side
     assert adjudicate(_claim_defense("none"), i, i.occurrences[0], _PAY, C, {"admin#2": _read()})[0]
-    assert not adjudicate(_claim_defense("none"), i, i.occurrences[0], _PAY, C, other)[0]
+    assert adjudicate(_claim_defense("none"), i, i.occurrences[0], _PAY, C, other)[0]
+    # the defense must name something: an empty value is not a side
+    assert not adjudicate(_claim_defense(" "), i, i.occurrences[0], _PAY, C, other)[0]
 
 
 def test_a_figure_dispute_without_a_second_reading_or_restating_the_reading_is_overruled():
@@ -332,7 +337,7 @@ def test_the_defender_is_shown_the_figures_read_and_may_dispute_them():
     ok, why = S._defend_one(i, i.occurrences[0], _PAY, C, _R(), fresh=False,
                             cross={"admin#2": _read(("payment_amount", 955.79))})
     assert sent["payload"]["cited_messages"][0]["reading"]["claims"][0]["type"] == "tax_total"
-    assert not ok and "the defense takes the other reading" in why       # the defense stands: the issue does not hold
+    assert not ok and "the defense takes the other side" in why          # the defense stands: the issue does not hold
 
 
 def test_a_figure_dispute_that_stands_with_a_second_model_disagreeing_fails_the_issue():
@@ -340,3 +345,23 @@ def test_a_figure_dispute_that_stands_with_a_second_model_disagreeing_fails_the_
                              "cross_model": {"result": "fail"}, "defended": {"result": "fail"},
                              "oracle_checked": {"result": "pass"}})
     assert (v["status"], v["reason"]) == ("failed", "disputed")
+
+
+def test_the_cross_check_re_derives_a_figure_issue_only_for_the_same_fact(monkeypatch):
+    # Spree 6.0.4: the other model read the payment "$955.79" as item_total; that broke U2 for item_total on the
+    # same message, which the cross-check counted as re-deriving the tax_total issue
+    from semaudit.relate import rules as R
+    from semaudit.verify import steps as S
+    i = _fact_issue()
+    i.occurrences[0].entry.meta["events"] = ["admin#2"]
+    monkeypatch.setattr(S, "extract_unique", lambda cited, *a, **k: {S.message_key(e): _read(("item_total", 955.79))
+                                                                     for e in cited})
+    monkeypatch.setattr(S, "model_interpreter", lambda *a, **k: None)
+    found = {}
+    monkeypatch.setattr(R, "evaluate", lambda story, contract, interp: [Entry("U1", "admin#2", "violated",
+                                                                              meta={"fact": found["fact"]})])
+    found["fact"] = "item_total"
+    ok, why = S._cross_one(i, i.occurrences[0], _PAY, C, None, fresh=False)
+    assert not ok and "does not produce this violation" in why
+    found["fact"] = "tax_total"
+    assert S._cross_one(i, i.occurrences[0], _PAY, C, None, fresh=False)[0]

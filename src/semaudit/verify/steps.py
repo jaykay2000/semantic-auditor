@@ -164,9 +164,13 @@ def _cross_one(issue: Issue, o, story: Story, contract: Contract, router: Router
             readings[e.id] = x
     interp = model_interpreter(router, fresh=fresh, rng=random.Random(f"x:{issue.id}:{o.persona}"),
                                role="cross_checker_interpret")
+    fact = o.entry.meta.get("fact")
+    # the same violation: a figure rule's violation must be about the same fact (a payment the other model reads
+    # as the item total breaks the rule for the item total, not for the issue's tax)
     again = [x for x in evaluate(story, contract, interp)
              if x.rule == issue.rule and x.status == "violated"
-             and (x.subject == o.entry.subject or issue.rule_kind != "coherence" and x.subject in o.events)]
+             and (x.subject == o.entry.subject or issue.rule_kind != "coherence" and x.subject in o.events)
+             and (fact is None or x.meta.get("fact") == fact)]
     same = [x for x in again if issue.rule_kind != "coherence" or x.label == o.entry.label]
     if same:
         return True, "re-derived" + (f" (reading differs: {changed})" if changed else "")
@@ -196,8 +200,9 @@ def adjudicate(defense: dict, issue: Issue, o, story: Story, contract: Contract,
     """Code checks a successful defense against what was measured. Returns (defense_stands, why).
 
     A claim about a data condition is decided by its measured value; a disputed reading stands only where the two
-    models disagree and the defense takes the other model's reading (a reading both share, or a restatement of
-    the reading, is overruled; whether the violation follows from the reading is the cross-check's job); a claimed reconciler must be timely and address
+    models disagree and the defense takes the other model's side (for a figure: neither the other model nor the
+    defense reads the issue's fact on the message; a reading both share, or a restatement of the reading, is
+    overruled; whether the violation follows from the reading is the cross-check's job); a claimed reconciler must be timely and address
     both actions of the pair. Judged grounds (a reading the models disagree on, timing, the rule's scope) stand.
     """
     if not defense["defense_succeeds"]:
@@ -218,18 +223,20 @@ def adjudicate(defense: dict, issue: Issue, o, story: Story, contract: Contract,
         for d in defense["disputed_readings"]:
             e = by.get(d["event_id"])
             if d["field"] == "claim":
-                # the figure's fact: stands only where the other model does not read the issue's fact on this
-                # message and reads what the defense says instead (another fact, or no figure at all)
+                # the figure's fact: stands only where this message's reading states the issue's fact, the other
+                # model's reading of it does not, and the defense also says it is not that fact. The issue rests on
+                # the figure being that fact; the two need not agree on what it is instead (one may read a payment as
+                # the order total, the other as the payment amount; neither as the tax)
                 other = cross.get(e.id) if (cross and e is not None) else None
                 if fact is None or e is None or e.extraction is None or other is None:
                     continue
                 mine = {c.get("type") for c in e.extraction.claims}
                 theirs = {c.get("type") for c in other.claims}
                 said = d["value"].strip().lower()
-                if fact in mine and fact not in theirs and \
-                        (said in theirs or (said == "none" and not theirs)):
+                if fact in mine and fact not in theirs and said and said != fact:
                     return True, (f"the models disagree on {e.id}: {fact} vs "
-                                  f"{', '.join(sorted(map(str, theirs))) or 'no figure'}; the defense takes the other reading")
+                                  f"{', '.join(sorted(map(str, theirs))) or 'no figure'}; the defense takes the other "
+                                  f"side ({said})")
                 continue
             if e is None or e.extraction is None or d["field"] not in relevant:
                 continue
