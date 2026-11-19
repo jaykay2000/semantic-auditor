@@ -104,7 +104,25 @@ the item total. The cross-check counted that as re-deriving the tax issue; it no
 So the other-family reader removes most of this false alarm but not all of it. It costs $0.04 for the four Claude
 cross-checks; the rest of this pass is the defender re-arguing under its new instructions.
 
-Spend for this test: $1.80 in all ($0.66 first pass, $0.65 second pass, $0.49 third pass).
+**Fourth pass: the misreading fixed at its source (2026-11-18).** A drafted shopper from
+[coverage drafting](coverage-drafting-2026-11-18/README.md) placed a discounted order, whose admin page adds an
+"Adjustments" row, and the reader shifted that summary by one row. Seen together, the 6.0.4 false alarm is the same
+fault: on the admin page each figure follows its label, but the reader sees the labels on both sides and took the
+one after it ("Completed | $955.79 | Taxes" read as the tax). Two sentences in the contract's reader instructions fix
+it (`contract-escape/rubric.md` in the harness): on the admin order page a figure's label is the text before it, and
+the Adjustments row is not a claim; a third tells the reader that the price beside a cart line is the unit price
+(the quantity is a form field the page text does not show), which a re-read of milo's cart had misread. Both
+releases were read again from scratch under the new instructions and verified, every role on Muse Spark:
+
+| release | result | cost |
+|---|---|---|
+| 6.0.4 | **no issues**; R25 resolved | $0.52 (the full re-read of both releases) |
+| 6.0.3 | R25 only, **verified** (both refusals reproduced; the defender found no defence) | $0.10 |
+
+Both reviews re-derive offline (`semaudit verify-report`: consistent). They are the first to pin each message's
+reading in the manifest, 492 of them.
+
+Spend for this test: $2.42 in all ($0.66 first pass, $0.65 second, $0.49 third, $0.62 fourth).
 
 ## What went wrong on the way
 
@@ -119,6 +137,8 @@ Spend for this test: $1.80 in all ($0.66 first pass, $0.65 second pass, $0.49 th
 - One escape, one store, one run each. It shows the mechanism catches this class of defect, not a rate.
 - The rule's catch depends on the adapter telling an app refusal from a harness failure. That boundary is now part
   of the adapter contract (`AppFailed`, `StepResult(app_error=…)`; see [Add your app](../10-add-your-app.md)).
+- The fourth pass removed this false alarm by telling the reader how this page is laid out: a contract fix for one
+  store's layout, not a general one. Before it:
 - With one model family (Muse Spark 1.3 and 1.2) a misreading both share is not caught by the cross-check, and the
   defender's correct objection is overruled (second pass). With a second reader from another family (third pass) 3
   of the 4 occurrences drop out; the fourth stays at low confidence because the defender's reply left its structured

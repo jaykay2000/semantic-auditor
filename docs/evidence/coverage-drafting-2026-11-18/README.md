@@ -21,7 +21,9 @@ discount line and amount due (shown 8 and 6 times, never twice comparably). Draf
 the admin order page. They are misreadings, not store bugs: a discounted order adds an "Adjustments $58.60" row
 (discount plus tax, arithmetic correct), which the reader took as the tax, and it then read the tax as the item
 total. That is the same kind of misreading as the known 6.0.4 false alarm, on a row only a discounted order shows,
-which no earlier shopper reached.
+which no earlier shopper reached. Fixed at its source the same day (two sentences in the contract's reader
+instructions), which also removed the 6.0.4 false alarm: see the
+[escape catch write-up](../escape-catch-spree-6.0.3-6.0.4.md), fourth pass.
 
 ## What the validation corrected
 
