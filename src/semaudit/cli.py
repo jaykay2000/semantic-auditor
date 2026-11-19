@@ -295,7 +295,11 @@ def coverage_cmd(review: Path = typer.Argument(..., exists=True, dir_okay=False)
                                                                     "that would close the gaps; needs --max-usd"),
                  max_usd: float = typer.Option(None, "--max-usd", help="spend cap for the drafting call"),
                  out: Path = typer.Option(None, "--out", help="drafts file (default: coverage-drafts.yaml beside "
-                                                              "the review)")):
+                                                              "the review)"),
+                 index_readings: bool = typer.Option(False, "--index-readings",
+                                                     help="also record the review's message readings in the model "
+                                                          "cache's readings index, so the run that tries a draft "
+                                                          "reads only the new persona's messages")):
     """What the review's personas never exercised: rules, checked figures, surfaces, exceptions (offline, no model).
     With --draft, one model call proposes personas for them; code checks each against the contract. Drafts are never
     written into the contract: `coverage-accept` adds one."""
@@ -305,7 +309,7 @@ def coverage_cmd(review: Path = typer.Argument(..., exists=True, dir_okay=False)
     from .models.router import Router
     from .onboard.coverage import CannotMap, coverage_map, draft_personas
     try:
-        cov = coverage_map(review)
+        cov = coverage_map(review, index_readings=index_readings)
     except CannotMap as e:
         typer.echo(f"cannot map: {e}", err=True)
         raise typer.Exit(2)

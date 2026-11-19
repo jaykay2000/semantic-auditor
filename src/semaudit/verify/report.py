@@ -82,6 +82,7 @@ def verify_report(review_path: Path, *, root: Path | None = None, cache: Path | 
         return problems
     base, head = r["release"]["base"], r["release"]["head"]
     router = Router(root=root or Path.cwd(), offline=True)
+    router.pinned_readings = m.get("readings")
     beside = review_path.parent / "model-cache"
     if cache is not None or beside.is_dir():
         router.cache_dir = cache if cache is not None else beside

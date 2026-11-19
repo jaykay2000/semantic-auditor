@@ -40,6 +40,7 @@ def run_review(contract_dir: Path, base: str, head: str, *, run_id: str, runs_di
     recorded = mem.snapshot(contract_dir)
     contract = load_contract(contract_dir, memory=recorded["issues"])
     router = Router(root=root or Path.cwd(), max_usd=max_usd)
+    router.reading_index = True        # a message read in an earlier run is not read again (extract/messages.py)
     router.tag = f"{('ablation-' + ablation) if ablation else 'semaudit-full'}:{base}-{head}:{run_id}"
     generator = None
     if ablation == "no-exceptions":

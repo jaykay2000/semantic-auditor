@@ -184,6 +184,7 @@ class Result:
     raw: dict = field(repr=False, default_factory=dict)
     unreadable_attempts: int = 0          # replies discarded as not JSON before this one (each charged, logged)
     unreadable_cost_usd: float = 0.0
+    digest: str = ""                      # the request's cache key: the reply is <cache_dir>/<digest>.json
 
 
 class ModelError(RuntimeError):
@@ -230,6 +231,14 @@ class Router:
         # still keys on it)
         self.sample = 0
         self.usage: dict[str, dict[str, float]] = {}   # role -> calls, cached, spent, if_fresh, tokens
+        # per-message readings (extract/messages.py). `used_readings`: every message reading this router served,
+        # reading key -> {reply digest, row id}; a review pins it in its manifest. `pinned_readings`: a review's
+        # pinned map, replayed exactly. `reading_index`: also look readings up in, and add them to,
+        # <cache_dir>/readings/, so a message read once is not read again when the batch around it changes.
+        self.used_readings: dict[str, dict] = {}
+        self.pinned_readings: dict[str, dict] | None = None
+        self.reading_index = False
+        self.index_offline = False      # an offline router (a replay) adds to the index only when asked to
 
     def _provider(self, provider: str) -> dict:
         if provider not in self.providers:
@@ -248,7 +257,8 @@ class Router:
                  schema_name: str = "output", tools: list[dict] | None = None,
                  reasoning_effort: str | None = None, seed: int | None = None,
                  max_completion_tokens: int | None = None, fresh: bool = False,
-                 timeout_s: float = 180.0) -> Result:
+                 timeout_s: float = 180.0, cache_only: bool = False) -> Result | None:
+        """`cache_only`: return the recorded reply, or None when there is none (never a model call)."""
         spec = self.roles[role]
         provider, model = spec["provider"], spec["model"]
         pconf = self._provider(provider)
@@ -274,6 +284,8 @@ class Router:
         keyed = body if provider == "meta" else {**body, "_provider": provider}   # meta keys unchanged: old cache stays valid
         digest = hashlib.sha256(json.dumps(keyed, sort_keys=True).encode()).hexdigest()
         cache_file = self.cache_dir / f"{digest}.json"
+        if cache_only and (fresh or not cache_file.exists()):
+            return None
         if not fresh and cache_file.exists():
             raw, latency = json.loads(cache_file.read_text()), 0.0
             lost, lost_usd = 0, 0.0
@@ -317,7 +329,7 @@ class Router:
         u["completion_tokens"] += usage.get("completion_tokens", 0)
         self._log(role, model, usage, cost, cached, latency, digest, provider=provider)
         result = Result(role, model, content, parsed, usage, cost, cached, latency, raw,
-                        0 if cached else lost, 0.0 if cached else lost_usd)
+                        0 if cached else lost, 0.0 if cached else lost_usd, digest)
         return result
 
     def _fetch(self, role, provider, model, body, digest, timeout_s):

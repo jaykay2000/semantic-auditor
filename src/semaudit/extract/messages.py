@@ -6,10 +6,11 @@ vocabulary and rubric. The model sees raw text only; nothing is pre-labelled.
 
 from __future__ import annotations
 
+import hashlib
 import json
 
 from semaudit.contract.schema import Contract
-from semaudit.models.router import Router, UnreadableReply
+from semaudit.models.router import ModelError, Router, UnreadableReply
 from semaudit.story.model import Extraction, Story
 
 
@@ -201,6 +202,63 @@ def extract_story(story: Story, contract: Contract, router: Router, *, fresh: bo
     return out
 
 
+def reading_key(router: Router, role: str, system: str, prompt: str, schema: dict, key: tuple) -> str:
+    """One message's reading, independent of the batch it was read in: the model setting, the instructions, the
+    schema, the repeat sample and the message itself (with its reading context)."""
+    spec = router.roles[role]
+    ident = {k: spec.get(k) for k in ("provider", "model", "reasoning_effort", "max_completion_tokens")}
+    body = [ident, system, prompt, schema, router.sample, list(key)]
+    return hashlib.sha256(json.dumps(body, sort_keys=True, ensure_ascii=False).encode()).hexdigest()[:32]
+
+
+def _recorded_row(router: Router, entry: dict, replies: dict) -> dict | None:
+    """The row `entry` points at ({reply digest, row id}) in a recorded reply, or None when the reply is absent."""
+    d = entry["reply"]
+    if d not in replies:
+        f = router.cache_dir / f"{d}.json"
+        replies[d] = ({r["id"]: r for r in json.loads(json.loads(f.read_text())["choices"][0]["message"]["content"])
+                       ["messages"]} if f.is_file() else None)
+    rows = replies[d]
+    return rows.get(entry["id"]) if rows is not None else None
+
+
+def _listing(chunk) -> list[dict]:
+    return [{"id": f"m{j}", "feature": f, "channel": c, "text": t, **({"around": a} if a else {})}
+            for j, (f, c, t, a) in enumerate(chunk)]
+
+
+def _keep(router: Router, key: tuple, rk: str, entry: dict, index) -> None:
+    router.used_readings[rk] = entry
+    if index is not None and entry["reply"]:
+        index.mkdir(parents=True, exist_ok=True)
+        f = index / f"{rk}.json"
+        if not f.is_file():
+            f.write_text(json.dumps(entry))     # the first reading stays
+
+
+def _recorded_batches(uniq, router, role, system, prompt_text, schema, batch, contract, keys, index, out) -> set:
+    """Messages answered by a batch recorded under the plain batching (every distinct message, sorted, in batches
+    of `batch`): a run recorded before per-message readings is reused exactly, with no model call."""
+    done = set()
+    for i in range(0, len(uniq), batch):
+        chunk = uniq[i:i + batch]
+        listing = _listing(chunk)
+        r = router.complete(role, [{"role": "system", "content": system},
+                                   {"role": "user", "content": prompt_text + json.dumps(listing, ensure_ascii=False,
+                                                                                        indent=1)}],
+                            schema=schema, schema_name="extraction", cache_only=True)
+        if r is None:
+            continue
+        rows = {row["id"]: row for row in r.parsed["messages"]}
+        if any(x["id"] not in rows for x in listing):
+            continue
+        for x, key in zip(listing, chunk):
+            _keep(router, key, keys[key], {"reply": r.digest, "id": x["id"]}, index)
+            out[key] = normalize(Extraction(**{k: v for k, v in rows[x["id"]].items() if k != "id"}), contract)
+            done.add(key)
+    return done
+
+
 def extract_unique(messages: list[dict], contract: Contract, router: Router, *, fresh: bool = False,
                    role: str = "extractor", batch: int = 25,
                    observed: set[str] = frozenset()) -> dict[tuple[str, str, str], Extraction]:
@@ -208,19 +266,53 @@ def extract_unique(messages: list[dict], contract: Contract, router: Router, *, 
 
     The rubric classifies every message independently, so a message's extraction never depends on which
     story it appears in; deduplicating across stories is the same task at a fraction of the cost.
+
+    Each answer is recorded per message (`router.used_readings`: reading key -> the reply and row it came from), so
+    a review can pin exactly which recorded answer each message got. A message already read is not read again when
+    its reading is known: from the review being replayed (`router.pinned_readings`), or, with `router.reading_index`,
+    from <cache_dir>/readings/. Only the rest is batched, so adding a persona reads only its new messages instead of
+    every message whose batch moved. With neither, batching is exactly as before (old reviews replay unchanged).
     """
     uniq = sorted({message_key(m) for m in messages})
     out: dict[tuple[str, str, str, str], Extraction] = {}
-    pending = [uniq[i:i + batch] for i in range(0, len(uniq), batch)]
+    system, prompt_text = contract.rubric, _prompt(contract, observed)
+    schema = extraction_schema(contract, observed)
+    track = hasattr(router, "used_readings")         # a stand-in router in a test may record nothing
+    pinned = getattr(router, "pinned_readings", None)
+    index = router.cache_dir / "readings" if getattr(router, "reading_index", False) else None
+    writes = index if index is not None and (not getattr(router, "offline", False)
+                                             or getattr(router, "index_offline", False)) else None
+    replies: dict[str, dict | None] = {}
+    keys = {key: reading_key(router, role, system, prompt_text, schema, key) for key in uniq} if track else {}
+    todo = [] if track else list(uniq)
+    legacy = _recorded_batches(uniq, router, role, system, prompt_text, schema, batch, contract,
+                               keys, writes, out) if track and pinned is None and not fresh else set()
+    for key in (uniq if track else []):
+        if key in legacy:
+            continue
+        rk = keys[key]
+        entry = None
+        if not fresh and pinned is not None and rk in pinned:
+            entry = pinned[rk]
+        elif not fresh and index is not None and (index / f"{rk}.json").is_file():
+            entry = json.loads((index / f"{rk}.json").read_text())
+        row = _recorded_row(router, entry, replies) if entry else None
+        if row is None and pinned is not None and rk in pinned and not fresh:
+            raise ModelError(f"offline: no cached answer for {role} ({entry['reply'][:12]}, pinned reading)")
+        if row is None:
+            todo.append(key)
+            continue
+        router.used_readings[rk] = dict(entry)
+        out[key] = normalize(Extraction(**{k: v for k, v in row.items() if k != "id"}), contract)
+    pending = [todo[i:i + batch] for i in range(0, len(todo), batch)]
     while pending:
         chunk = pending.pop(0)
-        listing = [{"id": f"m{j}", "feature": f, "channel": c, "text": t, **({"around": a} if a else {})}
-                   for j, (f, c, t, a) in enumerate(chunk)]
-        prompt = (_prompt(contract, observed) + json.dumps(listing, ensure_ascii=False, indent=1))
+        listing = _listing(chunk)
+        prompt = prompt_text + json.dumps(listing, ensure_ascii=False, indent=1)
         try:
-            r = router.complete(role, [{"role": "system", "content": contract.rubric},
+            r = router.complete(role, [{"role": "system", "content": system},
                                        {"role": "user", "content": prompt}],
-                                schema=extraction_schema(contract, observed), schema_name="extraction", fresh=fresh)
+                                schema=schema, schema_name="extraction", fresh=fresh)
         except UnreadableReply:
             if len(chunk) == 1:
                 raise
@@ -232,5 +324,10 @@ def extract_unique(messages: list[dict], contract: Contract, router: Router, *, 
         if missing:
             raise ValueError(f"extraction missing ids: {missing}")
         for x, key in zip(listing, chunk):
+            entry = {"reply": getattr(r, "digest", ""), "id": x["id"]}
+            if track and entry["reply"]:
+                if fresh and writes is not None:
+                    (writes / f"{keys[key]}.json").unlink(missing_ok=True)   # a fresh read replaces the old one
+                _keep(router, key, keys[key], entry, writes)
             out[key] = normalize(Extraction(**{k: v for k, v in rows[x["id"]].items() if k != "id"}), contract)
     return out

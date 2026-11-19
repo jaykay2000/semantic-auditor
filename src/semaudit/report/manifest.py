@@ -98,6 +98,10 @@ def build(contract_dir: Path, contract: Contract, run_dir: Path, base: str, head
                      "repeats": repeats},
         "max_usd": max_usd,
         "memory": memory,
+        # which recorded reply and row each message's reading came from (reading key -> {reply, id}); a replay uses
+        # exactly these. Absent in reviews made before per-message readings: those replay by their batches.
+        **({"readings": dict(sorted(router.used_readings.items()))}
+           if router is not None and getattr(router, "used_readings", None) else {}),
     }
 
 

@@ -139,6 +139,7 @@ def replay(review_path: Path, issue_id: str, *, max_usd: float, runs_dir: Path |
     runs_dir = runs_dir or Path(m["run_dir"]).parent
     run_id = f"repro-{issue_id[:40]}-{time.strftime('%Y%m%dT%H%M%S')}"
     router = Router(root=root or Path.cwd(), max_usd=max_usd)
+    router.reading_index = True
     with Runner(contract_dir, runs_dir=runs_dir, run_id=run_id) as run:
         eps = run.capture(rel, personas)
         if kind == "resolved":                 # the fix must hold on a fresh head capture too

@@ -111,6 +111,7 @@ def test_verify_report_checks_each_step_result_against_its_recorded_runs(tmp_pat
     """On the committed sample review: recorded runs that give the recorded result are consistent; a result the runs
     do not give (a forged pass over a failed run) is reported."""
     import shutil
+
     from semaudit.verify.report import verify_report
     dst = tmp_path / "sample"
     shutil.copytree(ROOT / "docs" / "try-it" / "northbound-2.3-2.4", dst)
@@ -139,6 +140,7 @@ def test_compare_prompts_runs_each_issue_under_both_defender_prompts_and_restore
     import subprocess
 
     import pytest
+
     from semaudit.verify import compare as K
     if subprocess.run(["git", "-C", str(ROOT), "cat-file", "-e", "96eb296"], capture_output=True).returncode:
         pytest.skip("needs the repository history (commit 96eb296)")
@@ -183,6 +185,7 @@ def test_compare_prompts_restores_the_current_prompt_when_a_run_fails(tmp_path, 
     import subprocess
 
     import pytest
+
     from semaudit.verify import compare as K
     if subprocess.run(["git", "-C", str(ROOT), "cat-file", "-e", "96eb296"], capture_output=True).returncode:
         pytest.skip("needs the repository history (commit 96eb296)")

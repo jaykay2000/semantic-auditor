@@ -40,8 +40,12 @@ def _claim_facts(rule) -> list[str]:
     return list(check.get("claims") or (rule.applies_to or {}).get("claims") or [])
 
 
-def coverage_map(review_path: Path, *, root: Path | None = None, cache: Path | None = None) -> dict:
-    """The review's head release, re-derived offline from its manifest's inputs; every gap with what it is."""
+def coverage_map(review_path: Path, *, root: Path | None = None, cache: Path | None = None,
+                 index_readings: bool = False) -> dict:
+    """The review's head release, re-derived offline from its manifest's inputs; every gap with what it is.
+    `index_readings`: also add both releases' message readings to <cache>/readings/, so the run that tries a drafted
+    persona reads only that persona's new messages (a review made before per-message readings has no other record
+    of them)."""
     r = json.loads(review_path.read_text())
     m = r.get("manifest") or {}
     if not m:
@@ -51,11 +55,16 @@ def coverage_map(review_path: Path, *, root: Path | None = None, cache: Path | N
         run_dir = review_path.parent
     contract = load_contract(Path(m["contract"]["dir"]), memory=(m.get("memory") or {}).get("issues", []))
     router = Router(root=root or Path.cwd(), offline=True)
+    router.pinned_readings = m.get("readings")
     beside = review_path.parent / "model-cache"
     if cache is not None or beside.is_dir():
         router.cache_dir = cache if cache is not None else beside
     head = r["release"]["head"]
+    router.reading_index = router.index_offline = index_readings
     try:
+        if index_readings:
+            evaluate_release(run_dir, r["release"]["base"], contract, router,
+                             readings={} if getattr(contract.app, "share_readings", False) else None)
         h = evaluate_release(run_dir, head, contract, router,
                              readings={} if getattr(contract.app, "share_readings", False) else None)
     except ModelError as e:
@@ -77,7 +86,7 @@ def gaps_of(contract: Contract, h, head: str) -> dict:
     facts_seen: dict[str, set] = {r.id: set() for r in contract.rules}
     met: dict[tuple[str, str], int] = {}
     surfaces_captured: set[str] = set()
-    for persona, (story, entries) in h.results.items():
+    for story, entries in h.results.values():
         by = {e.id: e for e in story.events}
         for e in story.events:
             if e.surface:
@@ -208,7 +217,7 @@ def check_draft(d: dict, contract: Contract, gap_ids: set[str]) -> list[str]:
         problems.append(f"axes the contract's personas do not use: {', '.join(sorted(set(axes) - known_axes))}")
     try:
         Persona(id=d["id"], name=d["name"], role=d["role"], axes=axes, context=ctx)
-    except Exception as e:                                                          # noqa: BLE001
+    except Exception as e:
         problems.append(f"not a valid persona: {str(e)[:200]}")
     verbs = {s.do for sc in contract.scenarios for s in sc.steps}
     scen_ids = {s.id for s in contract.scenarios}
@@ -227,7 +236,7 @@ def check_draft(d: dict, contract: Contract, gap_ids: set[str]) -> list[str]:
             problems.append(f"new scenario id {raw.get('id')} already exists")
         try:
             Scenario(**{**raw, "personas": [d["id"]]})
-        except Exception as e:                                                      # noqa: BLE001
+        except Exception as e:
             problems.append(f"not a valid scenario: {str(e)[:200]}")
     else:
         problems.append("joins no scenario and proposes none")

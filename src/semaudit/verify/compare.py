@@ -44,8 +44,8 @@ def constants_at(rev: str, path: str, names: tuple[str, ...], repo: Path = SRA_R
             and node.value is not None else []
         if targets and all(isinstance(t, ast.Name) and t.id.lstrip("_").isupper() for t in targets):
             try:
-                exec(compile(ast.Module([node], []), f"{rev}:{path}", "exec"), ns)   # noqa: S102 - this repo's own history
-            except Exception:                                                       # noqa: BLE001
+                exec(compile(ast.Module([node], []), f"{rev}:{path}", "exec"), ns)
+            except Exception:
                 continue
     missing = [n for n in names if n not in ns]
     if missing:
@@ -67,6 +67,7 @@ def compare_prompts(review_path: Path, old_rev: str, *, repeats: int, root: Path
         run_dir = review_path.parent
     contract = load_contract(Path(m["contract"]["dir"]), memory=(m.get("memory") or {}).get("issues", []))
     router = Router(root=root, max_usd=max_usd)
+    router.pinned_readings = m.get("readings")
     router.tag = f"compare-prompts:{old_rev}:{r['release']['base']}-{r['release']['head']}"
     shared = {} if getattr(contract.app, "share_readings", False) else None
     evaluate_release(run_dir, r["release"]["base"], contract, router, readings=shared)
