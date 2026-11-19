@@ -126,7 +126,7 @@ def test_drafting_keeps_only_what_the_check_passes_and_says_what_stays_open():
         def complete(self, role, messages, **kw):
             payload = json.loads(messages[1]["content"])
             assert {g["id"] for g in payload["gaps"]} == GAPS and payload["contract"]["personas"]
-            return SimpleNamespace(cached=False, cost=0.01, parsed={
+            return SimpleNamespace(cached=False, cost_usd=0.01, unreadable_cost_usd=0.0, parsed={
                 "personas": [_draft(), _draft(id="maya", closes=["U2:rule"])],
                 "not_closable": [{"gap": "U2:rule", "reason": "needs a fee the store does not charge"}]})
     cov = {"release": "2.4", "gaps": [{"id": g} for g in sorted(GAPS)]}
@@ -134,6 +134,7 @@ def test_drafting_keeps_only_what_the_check_passes_and_says_what_stays_open():
     assert [(d["id"], d["check"]) for d in out["drafts"]] == [("nina", "ok"), ("maya", "refused")]
     assert out["gaps_left_open"] == ["U2:rule"] and out["status"].startswith("DRAFT")
     assert out["drafts"][0]["context"] == {"route": "LIS-BER", "hotel": "LIS-H1"}
+    assert out["cost_usd"] == 0.01
 
 
 def _drafts_file(tmp_path, **over):

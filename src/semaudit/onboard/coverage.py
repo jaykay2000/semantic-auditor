@@ -260,7 +260,7 @@ def draft_personas(contract: Contract, cov: dict, router: Router, *, fresh: bool
     return {"status": "DRAFT: not part of the contract until the owner accepts it", "release": cov["release"],
             "drafts": drafts, "not_closable": res.parsed["not_closable"],
             "gaps_left_open": sorted(gap_ids - closed), "model": router.roles["interpreter"]["model"],
-            "cost_usd": round(res.cost or 0.0, 6) if not res.cached else 0.0}
+            "cost_usd": round((res.cost_usd or 0.0) + res.unreadable_cost_usd, 6) if not res.cached else 0.0}
 
 
 def _loads(s: str):
