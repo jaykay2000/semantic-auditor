@@ -317,7 +317,8 @@ def coverage_cmd(review: Path = typer.Argument(..., exists=True, dir_okay=False)
     for g in cov["gaps"]:
         typer.echo(f"  {g['kind']:22} {g['id']:36} {g['why']}")
     for x in cov["engine_gaps"]:
-        typer.echo(f"  engine cannot check    {x['rule']:36} {x['reason'][:90]} (a persona cannot fix this)")
+        what = x["rule"] + (f":fact:{x['fact']}" if x.get("fact") else "")
+        typer.echo(f"  engine cannot check    {what:36} {x['reason'][:90]} (a persona cannot fix this)")
     if not draft:
         return
     if max_usd is None:

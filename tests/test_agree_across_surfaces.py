@@ -121,3 +121,10 @@ def test_two_surfaces_each_showing_the_truth_of_their_moment_do_not_disagree():
     from semaudit.verify.steps import _step_agreement
     occ = SimpleNamespace(persona="p", entry=Entry("C1", "page", "violated", meta={"events": ["page", "export"]}))
     assert _step_agreement(SimpleNamespace(occurrences=[occ]), {"p": moved}, {"annual_limit"})["result"] == "fail"
+
+
+def test_a_passing_comparison_names_the_fact_it_compared():
+    """Coverage counts a fact as checked only when a check names it (onboard/coverage.py), passes included."""
+    es = eval_agree_across_surfaces(RULE, Story(id="s", release="r", persona="p", events=[
+        msg("page", "report", 32500, 0), msg("export", "export", 32500, 1)]))
+    assert [(x.status, x.meta) for x in es] == [("passed", {"fact": "annual_limit"})] * 2

@@ -76,7 +76,7 @@ def test_a_first_move_that_changes_at_sign_up_is_a_violation():
     story = journey(msg("auth_first", "signed_in_report", 3, value=None, word="deploy_idle_cash"),
                     msg("auth_score", "signed_in_report", 3, fact="score", value=55))
     got = {(x.subject, x.status, x.meta.get("fact")) for x in eval_agree_across_states(STATES, story, C)}
-    assert got == {("guest_first", "violated", "first_move"), ("guest_score", "passed", None)}
+    assert got == {("guest_first", "violated", "first_move"), ("guest_score", "passed", "score")}   # a pass names its fact
     occ = SimpleNamespace(persona="p", entry=Entry("U4", "guest_first", "violated",
                                                    meta={"events": ["guest_first", "auth_first"]}))
     assert _step_states(SimpleNamespace(rule="U4", occurrences=[occ]), {"p": story}, C)["result"] == "pass"

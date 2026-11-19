@@ -234,7 +234,8 @@ def eval_agree_across_surfaces(rule: Rule, story: Story, contract: Contract | No
         note = (f"{c['type']} {shown(c)} on {e.surface}; " +
                 "; ".join(f"{shown(oc)} on {o.surface}" for o, oc, _ in others if o in bad)) if bad else ""
         out.append(Entry(rule.id, e.id, "violated" if bad else "passed", note=note,
-                         meta={"events": [e.id, *dict.fromkeys(o.id for o in bad)], "fact": c["type"]} if bad else {}))
+                         meta={"events": [e.id, *dict.fromkeys(o.id for o in bad)], "fact": c["type"]} if bad
+                         else {"fact": c["type"]}))      # a pass names its fact too: coverage counts what was compared
     return out
 
 
@@ -276,7 +277,8 @@ def eval_agree_across_states(rule: Rule, story: Story, contract: Contract | None
         note = (f"{c['type']} {shown(c)} on {e.surface} as {before}; " +
                 "; ".join(f"{shown(oc)} on {o.surface} as {after}" for o, oc, _ in others if o in bad)) if bad else ""
         out.append(Entry(rule.id, e.id, "violated" if bad else "passed", note=note,
-                         meta={"events": [e.id, *dict.fromkeys(o.id for o in bad)], "fact": c["type"]} if bad else {}))
+                         meta={"events": [e.id, *dict.fromkeys(o.id for o in bad)], "fact": c["type"]} if bad
+                         else {"fact": c["type"]}))      # a pass names its fact too: coverage counts what was compared
     return out
 
 

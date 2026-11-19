@@ -50,12 +50,34 @@ def test_a_rule_no_message_was_evaluated_under_is_a_gap(derived):
         next(g for g in got["gaps"] if g["id"] == "U2:rule").items()
 
 
-def test_a_fact_a_rule_checks_that_no_message_stated_is_a_gap(derived):
+def _listing(c, rule_id, *facts):
+    rules = [r.model_copy(update={"check": {**r.check, "claims": [*r.check.get("claims", []), *facts]}})
+             if r.id == rule_id else r for r in c.rules]
+    return c.model_copy(update={"rules": rules})
+
+
+def test_a_fact_no_message_stated_is_a_gap(derived):
+    c, h = derived                                     # U2 compares with the charge, not the oracle
+    got = K.gaps_of(_listing(c, "U2", "seats_total"), h, "2.4")
+    assert [(g["id"], g["stated"]) for g in got["gaps"] if g["kind"] == "fact_never_checked"] == \
+        [("U2:fact:seats_total", 0)]
+
+
+def test_a_fact_shown_beside_a_checked_one_but_never_compared_is_still_a_gap(derived):
+    """Every U1 message states fee_total beside units_left; U1 compared only units_left. Counting every figure in a
+    checked message as checked would hide this gap."""
     c, h = derived
-    rules = [r.model_copy(update={"check": {**r.check, "claims": [*r.check["claims"], "seats_total"]}})
-             if r.id == "U1" else r for r in c.rules]
-    got = K.gaps_of(c.model_copy(update={"rules": rules}), h, "2.4")
-    assert [g["id"] for g in got["gaps"] if g["kind"] == "fact_never_checked"] == ["U1:fact:seats_total"]
+    got = K.gaps_of(_listing(c, "U1", "fee_total"), h, "2.4")
+    g = next(g for g in got["gaps"] if g["id"] == "U1:fact:fee_total")
+    assert g["kind"] == "fact_never_checked" and g["stated"] > 0 and "never compared" in g["why"]
+
+
+def test_a_fact_the_oracle_never_supplies_is_listed_apart_not_as_a_persona_gap(derived):
+    c, h = derived
+    got = K.gaps_of(_listing(c, "U1", "seats_total"), h, "2.4")
+    assert not [g for g in got["gaps"] if g.get("fact") == "seats_total"]
+    x = next(x for x in got["engine_gaps"] if x.get("fact") == "seats_total")
+    assert x["rule"] == "U1" and "no true value" in x["reason"]
 
 
 def test_an_exception_that_never_applied_is_a_gap(derived):
@@ -191,3 +213,33 @@ def test_accept_puts_the_files_back_when_the_contract_no_longer_loads(tmp_path, 
     with pytest.raises(ValueError, match="no longer loads"):
         K.accept(_drafts_file(tmp_path), "nina", cdir)
     assert {f: (cdir / f).read_text() for f in before} == before
+
+
+def test_a_new_scenario_the_owner_edited_in_the_drafts_file_is_accepted(tmp_path):
+    """YAML reads a hand-edited day0 as a datetime; accepting the draft must still work."""
+    import datetime as dt
+
+    import yaml
+    cdir = tmp_path / "contract"
+    shutil.copytree(CONTRACT, cdir)
+    (cdir.parent / "adapter.py").symlink_to(CONTRACT.parent / "adapter.py")
+    f = _drafts_file(tmp_path, joins_scenario="")
+    d = yaml.safe_load(f.read_text())
+    d["drafts"][0]["new_scenario"] = {"id": "S-hotel-only", "day0": dt.datetime(2026, 11, 2, tzinfo=dt.UTC),
+                                      "steps": [{"at": "D0 10:00", "do": "open_hotel", "params": {"hotel": "LIS-H1"}}]}
+    f.write_text(yaml.safe_dump(d))
+    assert K.accept(f, "nina", cdir) == ["personas.yaml: + nina", "scenarios.yaml: + S-hotel-only"]
+    assert "S-hotel-only" in {s.id for s in load_contract(cdir).scenarios}
+
+
+def test_a_text_fact_with_no_word_list_is_listed_apart_not_as_a_persona_gap(derived):
+    """The extraction cannot state such a fact's value, so no persona can get a rule to compare it."""
+    from semaudit.contract.schema import Fact
+    c, h = derived
+    c2 = _listing(c, "U2", "seat_class", "seat_word")
+    c2 = c2.model_copy(update={"facts": [*c2.facts, Fact(id="seat_class", unit="text"),
+                                         Fact(id="seat_word", unit="text", words=["window", "aisle"])]})
+    got = K.gaps_of(c2, h, "2.4")
+    x = next(x for x in got["engine_gaps"] if x.get("fact") == "seat_class")
+    assert "no word list" in x["reason"]
+    assert [g["id"] for g in got["gaps"] if g.get("fact", "").startswith("seat_")] == ["U2:fact:seat_word"]

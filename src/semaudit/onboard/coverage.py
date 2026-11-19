@@ -5,11 +5,14 @@ The coverage map re-derives a review from its pinned episodes and recorded readi
 does) and lists, from the contract's own model, each such gap:
 
   rule_never_exercised   a rule the engine evaluates that no message of any persona was evaluated under
-  fact_never_checked     a figure or word a rule lists in check.claims that no evaluated message stated
+  fact_never_checked     a figure or word a rule lists in check.claims that the rule never compared (a check counts
+                         only for the fact it compared; the gap says how often the fact was shown at all)
   surface_never_reached  a surface no persona's episode captured (its reached_by verb, if any, in no scenario)
   exception_never_met    a rule exception whose conditions never all held for any message
 
-Rules the engine does not evaluate are listed apart (`engine_gaps`): a new persona cannot measure them.
+Listed apart (`engine_gaps`), because a new persona cannot fix them: rules the engine does not evaluate, facts an
+oracle rule lists that the oracle gave no true value for in any story (the contract or adapter must read them), and
+text facts with no word list (the extraction cannot state their value).
 
 `draft_personas` asks one model call to propose, for the gaps, new personas (and the scenario each joins, or a new
 scenario built only from the contract's existing scenario verbs). Code checks every draft against the contract: the
@@ -73,7 +76,8 @@ def coverage_map(review_path: Path, *, root: Path | None = None, cache: Path | N
 
 
 def gaps_of(contract: Contract, h, head: str) -> dict:
-    from semaudit.relate.claims import unmeasurable_rules
+    from semaudit.relate.claims import TEXT_UNITS, unmeasurable_rules
+    defs = {f.id: f for f in getattr(contract, "facts", [])}
     from semaudit.relate.rules import engine_support
     engine: dict[str, str] = {}
     for x in unmeasurable_rules(contract):
@@ -86,17 +90,24 @@ def gaps_of(contract: Contract, h, head: str) -> dict:
     facts_seen: dict[str, set] = {r.id: set() for r in contract.rules}
     met: dict[tuple[str, str], int] = {}
     surfaces_captured: set[str] = set()
+    stated: dict[str, int] = {}               # fact -> claims of it, in any message of any persona
+    known: set[str] = set()                   # facts the oracle gave a true value for, in any story
     for story, entries in h.results.values():
         by = {e.id: e for e in story.events}
         for e in story.events:
             if e.surface:
                 surfaces_captured.add(e.surface)
+            for c in (e.extraction.claims if getattr(e, "extraction", None) else []):
+                stated[c.get("type")] = stated.get(c.get("type"), 0) + 1
+        known |= {n.split("@", 1)[0] for n in story.truth} | {
+            n.split("@", 1)[0] for snap in story.snapshots for n in snap["truth"]}
         for x in entries:
             evaluated[x.rule] = evaluated.get(x.rule, 0) + 1
             fact = x.meta.get("fact")
-            if fact:
+            if fact:                          # the fact this check compared: only that one counts as checked
                 facts_seen.setdefault(x.rule, set()).add(fact)
-            ev = by.get(x.subject)
+                continue
+            ev = by.get(x.subject)            # a check that names no fact: every fact its message stated
             if ev is not None and ev.extraction is not None:
                 facts_seen.setdefault(x.rule, set()).update(c.get("type") for c in ev.extraction.claims)
             if x.status == "excepted" and x.meta.get("exception"):
@@ -107,6 +118,7 @@ def gaps_of(contract: Contract, h, head: str) -> dict:
 
     verbs = {s.do for sc in contract.scenarios for s in sc.steps}
     gaps: list[dict[str, Any]] = []
+    unknowable: list[dict[str, Any]] = []
     for rule in contract.rules:
         if rule.id in engine:
             continue
@@ -115,10 +127,30 @@ def gaps_of(contract: Contract, h, head: str) -> dict:
                          "why": f"{rule.id} is evaluated by the engine, but no message of any persona was evaluated "
                                 f"under it in release {head}"})
             continue
+        oracle_rule = (rule.check or {}).get("must") == "match_oracle" if isinstance(rule.check, dict) else False
         for f in _claim_facts(rule):
-            if f not in facts_seen.get(rule.id, set()):
-                gaps.append({"id": f"{rule.id}:fact:{f}", "kind": "fact_never_checked", "rule": rule.id, "fact": f,
-                             "why": f"{rule.id} checks {f}, but no evaluated message of any persona stated it"})
+            if f in facts_seen.get(rule.id, set()):
+                continue
+            n = stated.get(f, 0)
+            d = defs.get(f)
+            if d is not None and getattr(d, "unit", None) in TEXT_UNITS and not getattr(d, "words", None):
+                unknowable.append({"rule": rule.id, "fact": f,
+                                   "reason": f"{f} is text with no word list: the extraction cannot state its value, so "
+                                             f"{rule.id} cannot compare it ({'shown ' + str(n) + ' time(s)' if n else 'never shown'}); "
+                                             "give the fact a word list"})
+                continue
+            if oracle_rule and f not in known:
+                unknowable.append({"rule": rule.id, "fact": f,
+                                   "reason": f"the oracle gave no true value for {f} in any story, so {rule.id} cannot "
+                                             f"compare it ({'shown ' + str(n) + ' time(s)' if n else 'never shown'}); "
+                                             "give the fact an oracle field, or the adapter a reading of it"})
+                continue
+            gaps.append({"id": f"{rule.id}:fact:{f}", "kind": "fact_never_checked", "rule": rule.id, "fact": f,
+                         "stated": n,
+                         "why": (f"{rule.id} checks {f}; it was shown {n} time(s) but never compared "
+                                 + ("(on one surface only, or never twice in the same state)" if not oracle_rule
+                                    else "(no claim of it could be checked against the oracle)")) if n else
+                                f"{rule.id} checks {f}, but no message of any persona stated it"})
         for ex in rule.exceptions:
             if not met.get((rule.id, ex.id)):
                 gaps.append({"id": f"{rule.id}:exception:{ex.id}", "kind": "exception_never_met", "rule": rule.id,
@@ -136,7 +168,7 @@ def gaps_of(contract: Contract, h, head: str) -> dict:
         for k, v in (p.axes or {}).items():
             axes.setdefault(k, set()).add(str(v))
     return {"release": head, "personas": sorted(h.results), "gaps": gaps,
-            "engine_gaps": [{"rule": k, "reason": v} for k, v in engine.items()],
+            "engine_gaps": [{"rule": k, "reason": v} for k, v in engine.items()] + unknowable,
             "evaluated": evaluated, "persona_axes": {k: sorted(v) for k, v in sorted(axes.items())}}
 
 
@@ -292,7 +324,8 @@ def accept(drafts_path: Path, draft_id: str, contract_dir: Path) -> list[str]:
     contract = load_contract(contract_dir)
     problems = check_draft({**d, "axes_json": json.dumps(d["axes"] or {}), "context_json": json.dumps(d["context"] or {}),
                             "joins_scenario": d["joins_scenario"] or "",
-                            "new_scenario_json": json.dumps(d["new_scenario"]) if d["new_scenario"] else ""},
+                            # default=str: YAML reads a hand-edited day0 as a datetime
+                            "new_scenario_json": json.dumps(d["new_scenario"], default=str) if d["new_scenario"] else ""},
                            contract, set(d["closes"]))
     if problems:
         raise ValueError(f"draft {draft_id} no longer fits the contract: {'; '.join(problems)}")
