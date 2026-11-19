@@ -19,7 +19,7 @@ from semaudit.decide.pipeline import evaluate_release
 from semaudit.models.router import ModelError, Router
 from semaudit.report import manifest as mf
 from semaudit.report.review import outcome_of
-from semaudit.verify.steps import confidence_of, one_family, step_evidence, verification_status
+from semaudit.verify.steps import combined_result, confidence_of, one_family, step_evidence, verification_status
 
 
 class CannotVerify(RuntimeError):
@@ -122,6 +122,11 @@ def verify_report(review_path: Path, *, root: Path | None = None, cache: Path | 
         if _row(i) != _row_of(d):
             problems.append(f"{iid}: review says {_row_of(d)}, episodes give {_row(i)}")
         steps = d["verification"]["steps"]
+        for name, st in steps.items():
+            sm = st.get("samples") if isinstance(st, dict) else None
+            if sm and (combined_result(sm["results"]) != st["result"] or len(sm["results"]) != sm["k"]
+                       or sum(r == "pass" for r in sm["results"]) != sm["passed"]):
+                problems.append(f"{iid}: {name} result does not follow from its {sm['k']} recorded samples")
         if verification_status(steps)["status"] != d["verification"]["status"]:
             problems.append(f"{iid}: verification status does not follow from its recorded steps")
         if confidence_of(i, steps, contract, reduced_independence=reduced)["level"] != d["confidence"]["level"]:

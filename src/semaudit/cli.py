@@ -111,7 +111,11 @@ def review_cmd(contract_dir: Path = typer.Option(..., "--contract", exists=True,
                                                help="send the model judge a fixed set of known cases (planted "
                                                     "mistakes and correct stories) in calls of its own; any wrong "
                                                     "answer, or a self-check that cannot run, blocks Hold and Ship. "
-                                                    "Its spend counts toward --max-usd")):
+                                                    "Its spend counts toward --max-usd"),
+               repeats: int = typer.Option(1, "--repeats", min=1,
+                                           help="run the second-model check and the defence this many times per "
+                                                "issue; a step passes only if every run passed (n of k is "
+                                                "recorded). Each extra run costs about as much as the first")):
     """Review a release against its base: issues, verification, recommendation. Writes review-<base>-<head>.json.
 
     Exit 0: a decided Ship (complete measurement, approved contract, judge self-check passed or turned off);
@@ -127,7 +131,7 @@ def review_cmd(contract_dir: Path = typer.Option(..., "--contract", exists=True,
     try:
         path = run_review(contract_dir, base, head, run_id=run_id, runs_dir=runs_dir, max_usd=max_usd,
                           reuse=reuse, fresh=fresh, ablation=ablation, reader=reader, reader_chunk=reader_chunk,
-                          self_check=self_check)
+                          self_check=self_check, repeats=repeats)
     except ModelError as e:
         typer.echo(f"cannot measure: {e}", err=True)
         raise typer.Exit(2)
@@ -283,6 +287,29 @@ def serve_cmd(review: Path = typer.Option(..., "--review", exists=True, dir_okay
     """Serve the Release Story locally with working decision buttons."""
     from .report.serve import serve
     serve(review, by=by, port=port)
+
+
+@app.command("compare-prompts")
+def compare_prompts_cmd(review: Path = typer.Argument(..., exists=True, dir_okay=False),
+                        old: str = typer.Option(..., "--old", help="an earlier SRA commit whose defender "
+                                                                   "instructions to compare with the current ones"),
+                        repeats: int = typer.Option(3, "--repeats", min=1, help="runs per prompt version"),
+                        max_usd: float = typer.Option(..., "--max-usd", help="spend cap for every model call")):
+    """Re-run one recorded review's verification under an earlier defender prompt and the current one, k runs each,
+    and show per issue how often each step held. Writes compare-<old>-k<repeats>.json beside the review."""
+    import json
+
+    from .verify.compare import compare_prompts
+    out = compare_prompts(review, old, repeats=repeats, root=Path.cwd(), max_usd=max_usd)
+    path = review.parent / f"compare-{old}-k{repeats}.json"
+    path.write_text(json.dumps(out, indent=1, ensure_ascii=False) + "\n")
+    typer.echo(f"prompts vs {old}: " + ", ".join(f"{k} {v}" for k, v in out["prompts"].items()))
+    for i in out["issues"]:
+        typer.echo(f"  {i['id'][:60]:60} {i['in_review'][:28]:28}")
+        for ver in ("old", "current"):
+            x = i[ver]
+            typer.echo(f"      {ver:8} cross-check {x['cross_model']:>5}  defence held {x['defended']:>5}  -> {x['status']}")
+    typer.echo(f"spent ${out['spend']['spent_usd']:.4f} · {path}")
 
 
 @app.command("verify-report")

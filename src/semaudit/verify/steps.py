@@ -410,14 +410,18 @@ def confidence_of(issue: Issue, steps: dict[str, dict], contract: Contract,
     cm = steps.get("cross_model", {}).get("result", "not_run")
     df = steps.get("defended", {}).get("result", "not_run")
     basis.append({"pass": "a second model agrees", "fail": "a second model disagrees",
-                  "not_run": "no second-model check"}[cm])
+                  "mixed": "a second model agrees in some samples only", "not_run": "no second-model check"}[cm])
     basis.append({"pass": "defense failed to explain it away", "fail": "defense explained it away",
-                  "not_run": "no defense run"}[df])
+                  "mixed": "defense explained it away in some samples only", "not_run": "no defense run"}[df])
+    for name in ("cross_model", "defended"):
+        sm = steps.get(name, {}).get("samples")
+        if sm:
+            basis.append(f"{name.replace('_', ' ')}: held in {sm['passed']} of {sm['k']} samples")
     unknown = any(o.entry.meta.get("unknown_validity") for o in issue.occurrences) or \
         any(v == "unknown" for o in issue.occurrences for _, v in o.entry.conditions)
     if unknown:
         basis.append("an unknown validity or exception condition")
-    if cm == "fail" or df == "fail":
+    if cm in ("fail", "mixed") or df in ("fail", "mixed"):
         level = "low"
     elif cm == "not_run" or df == "not_run" or unknown:
         level = "medium"
@@ -456,17 +460,58 @@ def one_family(router: Router) -> bool:
     return False
 
 
+def combined_result(results: list[str]) -> str:
+    """One model-judged step repeated k times: pass only if every sample passed (pass^k), fail only if every sample
+    failed, otherwise mixed. A mixed step counts as neither: the issue is not verified and not disputed by it."""
+    if all(r == "pass" for r in results):
+        return "pass"
+    if all(r == "fail" for r in results):
+        return "fail"
+    return "mixed"
+
+
+def combine_samples(samples: list[dict]) -> dict:
+    """k runs of one step -> one step record. With k = 1 the record is the sample itself, unchanged."""
+    if len(samples) == 1:
+        return samples[0]
+    results = [x["result"] for x in samples]
+    personas = list(samples[0].get("occurrences", {}))
+    occ = {p: combined_result([x["occurrences"][p] for x in samples]) for p in personas}
+    return {"result": combined_result(results), "detail": samples[0]["detail"], "occurrences": occ,
+            "samples": {"k": len(samples), "passed": sum(r == "pass" for r in results), "results": results,
+                        "occurrences": {p: f"{sum(x['occurrences'][p] == 'pass' for x in samples)}/{len(samples)}"
+                                        for p in personas},
+                        "details": [x["detail"] for x in samples[1:]]}}
+
+
+def model_steps(issue: Issue, stories: dict[str, Story], contract: Contract, router: Router, *, fresh: bool,
+                repeats: int = 1) -> tuple[dict, dict]:
+    """The second-model check and the defence, each run `repeats` times. Sample s sends seed s (sample 0 is the
+    ordinary call), and each sample's defence is adjudicated against that sample's cross-check reading."""
+    cross, defence = [], []
+    before = getattr(router, "sample", 0)
+    try:
+        for s in range(max(1, repeats)):
+            router.sample = s
+            readings: dict[str, dict] = {}        # persona -> event id -> the cross-checker's reading
+            cross.append(step_cross_model(issue, stories, contract, router, fresh=fresh, readings=readings))
+            defence.append(step_defended(issue, stories, contract, router, fresh=fresh, cross=readings))
+    finally:
+        router.sample = before
+    return combine_samples(cross), combine_samples(defence)
+
+
 def verify(issue: Issue, stories: dict[str, Story], episodes: dict[str, Episode], run_dir: Path,
            contract: Contract, router: Router, *, repro: dict[str, Story] | None, fresh: bool = False,
-           models: bool = True) -> None:
-    readings: dict[str, dict] = {}            # persona -> event id -> the cross-checker's reading
+           models: bool = True, repeats: int = 1) -> None:
+    off = {"result": "not_run", "detail": "models off"}
+    cross, defence = model_steps(issue, stories, contract, router, fresh=fresh, repeats=repeats) if models \
+        else (off, dict(off))
     steps: dict[str, Any] = {
         "reproduced": step_reproduced(issue, stories, repro),
         "evidence_linked": step_evidence(issue, stories, episodes, run_dir),
-        "cross_model": step_cross_model(issue, stories, contract, router, fresh=fresh, readings=readings) if models
-        else {"result": "not_run", "detail": "models off"},
-        "defended": step_defended(issue, stories, contract, router, fresh=fresh, cross=readings) if models
-        else {"result": "not_run", "detail": "models off"},
+        "cross_model": cross,
+        "defended": defence,
         "oracle_checked": step_oracle(issue, stories, contract),
     }
     issue.verification = verification_status(steps)

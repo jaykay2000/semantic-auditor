@@ -225,6 +225,10 @@ class Router:
         self.spent_usd = 0.0
         self.offline = offline            # cache only: a miss is an error, never a model call
         self.tag: str | None = None       # the run/condition each ledger row belongs to (benchmark accounting)
+        # repeat sample of a model-judged step: 0 is the ordinary call (its cache entries are unchanged); n > 0 sends
+        # seed n, so each repeat is its own request and cache entry (a provider without seeds drops it, the cache
+        # still keys on it)
+        self.sample = 0
         self.usage: dict[str, dict[str, float]] = {}   # role -> calls, cached, spent, if_fresh, tokens
 
     def _provider(self, provider: str) -> dict:
@@ -257,6 +261,8 @@ class Router:
                                        "json_schema": {"name": schema_name, "schema": schema, "strict": True}}
         if tools:
             body["tools"] = tools
+        if seed is None and self.sample:
+            seed = self.sample
         if seed is not None:
             body["seed"] = seed
         max_completion_tokens = (max_completion_tokens or spec.get("max_completion_tokens")

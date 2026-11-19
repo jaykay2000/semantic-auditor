@@ -203,7 +203,7 @@ mark.now b.f{color:var(--good);font-weight:800;background:#CDEBD9;border-radius:
 .vstep{display:flex;flex-direction:column;gap:0}
 .vstep>span:first-child{font-weight:600}
 .vstep>span:last-child{color:var(--ink3);padding-left:18px;font-size:12.5px}
-.vstep.v-pass>span:first-child{color:var(--good)}.vstep.v-fail>span:first-child{color:var(--bad)}.vstep.v-not_run>span:first-child{color:var(--ink3)}
+.vstep.v-pass>span:first-child{color:var(--good)}.vstep.v-fail>span:first-child{color:var(--bad)}.vstep.v-not_run>span:first-child{color:var(--ink3)}.vstep.v-mixed>span:first-child{color:var(--warn)}
 .basisl{margin:4px 0 0;padding-left:16px;font-size:13px;color:var(--ink2);line-height:1.5}
 .modelstrip{display:flex;gap:18px;flex-wrap:wrap;align-items:center;font-size:13.5px;color:var(--ink2);padding:12px 16px;border-radius:12px;background:var(--sunk);border:1px solid var(--line2)}
 .modelstrip b{color:var(--ink)}
@@ -521,7 +521,7 @@ const STEP = {
   defended: [`Argued against${MODELS.defender ? ' (' + mname(MODELS.defender) + ')' : ''}`, {pass: 'no defense held', fail: 'a defense held: needs owner review'}],
   oracle_checked: ['Checked against the oracle', {pass: 'claims match what was measured', fail: 'a claim does not match'}],
 };
-const stepResult = (k, v) => (STEP[k] && STEP[k][1][v.result]) || {not_run: 'not run', not_applicable: 'not applicable'}[v.result] || v.result;
+const stepResult = (k, v) => (STEP[k] && STEP[k][1][v.result]) || {not_run: 'not run', not_applicable: 'not applicable', mixed: 'mixed across runs'}[v.result] || v.result;
 function issueTitle(i) {
   const L = {unexplained_tradeoff: 'Unexplained tradeoff', conflict: 'Conflicting advice'};
   if (i.label && L[i.label]) return L[i.label];
@@ -770,7 +770,7 @@ function trust(i, occ) {
   const evBox = ev ? `<div class="box"><p class="h">Evidence</p><div class="lvl ${ev.result === 'pass' ? 'good' : 'warn'}">${ev.result === 'pass' ? '✓ Quotes found' : '✗ Some citations refused'}</div>
       <div class="muted">${withQ ? `${esc(nouns(withQ))} whose quoted text was found in their own captured message` : esc(STEP.evidence_linked[1][ev.result] || ev.result)}${refused ? ` · ${refused} citation${refused === '1' ? '' : 's'} refused (quote not in the cited message)` : ''}${unq.length ? ` · ${unq.length} more named without a usable quote, not counted` : ''}</div></div>`
     : `<div class="box"><p class="h">Evidence</p><div class="lvl dim">Not checked</div><div class="muted">no evidence step recorded</div></div>`;
-  const vline = Object.entries(vs).map(([k, s]) => `<div class="vstep v-${s.result}" title="${esc(typeof s.detail === 'string' ? s.detail : JSON.stringify(s.detail || ''))}"><span>${{pass: '✓', fail: '✗', not_run: '○', not_applicable: '–'}[s.result] || ''} ${esc(STEP[k] ? STEP[k][0] : k.replace(/_/g, ' '))}</span><span>${esc(stepResult(k, s))}${s.occurrences ? ` · ${Object.values(s.occurrences).filter(x => x === 'pass').length}/${Object.keys(s.occurrences).length}` : ''}</span></div>`).join('');
+  const vline = Object.entries(vs).map(([k, s]) => `<div class="vstep v-${s.result}" title="${esc(typeof s.detail === 'string' ? s.detail : JSON.stringify(s.detail || ''))}"><span>${{pass: '✓', fail: '✗', mixed: '≈', not_run: '○', not_applicable: '–'}[s.result] || ''} ${esc(STEP[k] ? STEP[k][0] : k.replace(/_/g, ' '))}</span><span>${esc(stepResult(k, s))}${s.occurrences ? ` · ${Object.values(s.occurrences).filter(x => x === 'pass').length}/${Object.keys(s.occurrences).length}` : ''}${s.samples ? ` · held in ${s.samples.passed} of ${s.samples.k} runs` : ''}</span></div>`).join('');
   const vcls = v.status === 'verified' ? 'good' : v.status === 'failed' ? 'bad' : 'dim';
   const ccls = i.confidence.level === 'high' ? 'good' : i.confidence.level === 'low' ? 'warn' : 'dim';
   return `<div class="three">

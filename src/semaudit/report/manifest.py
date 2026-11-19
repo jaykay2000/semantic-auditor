@@ -72,7 +72,7 @@ def episode_digests(run_dir: Path, releases: list[str]) -> dict[str, str]:
 
 
 def build(contract_dir: Path, contract: Contract, run_dir: Path, base: str, head: str, *, router,
-          models: bool, max_usd: float, repro_run: str | None, memory: dict | None = None) -> dict[str, Any]:
+          models: bool, max_usd: float, repro_run: str | None, memory: dict | None = None, repeats: int = 1) -> dict[str, Any]:
     ad = adapter_path(contract_dir, contract)
     return {
         "schema": "semaudit.manifest/1",
@@ -93,7 +93,9 @@ def build(contract_dir: Path, contract: Contract, run_dir: Path, base: str, head
                      # one family: the second model's agreement is a second pass, not independent agreement
                      "independence": ("one_family" if _same_family(router) else "independent_families")
                      if router and models else None,
-                     "steps": ["reproduced", "evidence_linked", "cross_model", "defended", "oracle_checked"]},
+                     "steps": ["reproduced", "evidence_linked", "cross_model", "defended", "oracle_checked"],
+                     # how many times each model-judged step (cross_model, defended) ran; > 1 records n of k per step
+                     "repeats": repeats},
         "max_usd": max_usd,
         "memory": memory,
     }
