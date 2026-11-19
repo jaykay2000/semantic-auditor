@@ -342,6 +342,8 @@ semaudit repro <issue-id> --review runs/<id>/review-2.3-2.4.json --max-usd 1   #
 semaudit verify-report runs/<id>/review-2.3-2.4.json                           # offline: is the report what its inputs give?
 semaudit review ... --repeats 3                                                # each model-judged verification step 3 times (n of k)
 semaudit compare-prompts runs/<id>/review-2.3-2.4.json --old <commit> --repeats 3 --max-usd 2   # old vs current defender prompt
+semaudit coverage runs/<id>/review-2.3-2.4.json [--draft --max-usd 0.1]       # what the personas never exercised; drafts
+semaudit coverage-accept runs/<id>/coverage-drafts.yaml --id <draft> --contract <dir>   # add one draft, owner's call
 semaudit decide <issue-id> fix --review runs/<id>/review-2.3-2.4.json --by <you>   # or not-an-issue --reason …, accept --expires …
 semaudit decide-release hold --review runs/<id>/review-2.3-2.4.json --by <you>
 semaudit serve --review runs/<id>/review-2.3-2.4.json --by <you>                 # the page with working decision buttons
@@ -374,6 +376,16 @@ from run-to-run variation. First measurement, the Spree 6.0.4 false alarm (a pay
 prompt: with the old instructions the defence never stood (0 of 12 runs dropped an occurrence); with the current
 ones 3 of the 4 occurrences were disputed in all 3 runs, and the fourth in 2 of 3, so it is `mixed`, not verified.
 $1.97 ([evidence](docs/evidence/verdict-stability-2026-11-18/README.md)).
+
+**Coverage drafting.** `semaudit coverage <review>` lists, offline and for free, what a review's personas never
+exercised: rules that never fired, figures a rule never compared (and how often each was shown at all), screens
+nobody reached, exceptions that never applied. Figures no persona can get checked (no oracle value, or text with no
+word list) are listed apart, with what the contract would need. `--draft` asks one model call for personas that
+would close the gaps; code checks each draft against the contract, and `coverage-accept` adds one only when the
+owner says so. A draft is a guess until it runs: on the Spree 6.0.4 store the first draft's code was refused, and
+the owner moved the code step after delivery; the second closed the discount total on every surface. Readings are
+kept per message, so adding a persona reads only its own pages. $0.68 in all
+([evidence](docs/evidence/coverage-drafting-2026-11-18/README.md)).
 
 **On a real app, [Finablo](https://app.finablo.com) v707 → v731 (24 release numbers apart, reader mode, 2026-11-01).** SRA reported 3 fixes,
 all real per the code history. It flagged 2 new issues that the owner confirmed: 1 regression, bisected to v708, and
