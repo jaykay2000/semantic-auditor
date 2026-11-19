@@ -1,0 +1,102 @@
+{
+ "review": "spree-semaudit: runs/esc-2/review-before-after.json (Spree 6.0.3 -> 6.0.4, escape catch test)",
+ "old_rev": "96eb296",
+ "repeats": 3,
+ "prompts": {
+  "defense": "differs",
+  "interpret": "same",
+  "extraction": "same"
+ },
+ "issues": [
+  {
+   "id": "I-after-U1-admin-admin-4f237b451a-2",
+   "in_review": "dropped (verification failed: disputed)",
+   "old": {
+    "cross_model": "0/3",
+    "defended": "3/3",
+    "status": "partially_verified: cross_model"
+   },
+   "current": {
+    "cross_model": "0/3",
+    "defended": "0/3",
+    "status": "failed: disputed"
+   }
+  },
+  {
+   "id": "I-after-U2-tax-total-admin-4f237b451a-2-core-4f237b451a-4",
+   "in_review": "raised",
+   "old": {
+    "cross_model": "0/3",
+    "defended": "3/3",
+    "status": "partially_verified: cross_model"
+   },
+   "current": {
+    "cross_model": "0/3",
+    "defended": "1/3",
+    "status": "partially_verified: cross_model, defended"
+   }
+  },
+  {
+   "id": "I-after-U2-tax-total-admin-4f237b451a-2-core-e8e27c0a09",
+   "in_review": "dropped (verification failed: disputed)",
+   "old": {
+    "cross_model": "0/3",
+    "defended": "3/3",
+    "status": "partially_verified: cross_model"
+   },
+   "current": {
+    "cross_model": "0/3",
+    "defended": "0/3",
+    "status": "failed: disputed"
+   }
+  },
+  {
+   "id": "I-after-U2-tax-total-admin-4f237b451a-2-order-email-order-confirmation",
+   "in_review": "dropped (verification failed: disputed)",
+   "old": {
+    "cross_model": "0/3",
+    "defended": "3/3",
+    "status": "partially_verified: cross_model"
+   },
+   "current": {
+    "cross_model": "0/3",
+    "defended": "0/3",
+    "status": "failed: disputed"
+   }
+  }
+ ],
+ "spend": {
+  "tag": "compare-prompts:96eb296:before-after",
+  "fresh": false,
+  "calls": 106,
+  "cached": 102,
+  "spent_usd": 0.232846,
+  "if_fresh_usd": 3.335507,
+  "by_role": {
+   "cross_checker_extract": {
+    "calls": 36,
+    "cached": 36,
+    "spent_usd": 0.0,
+    "if_fresh_usd": 0.320724,
+    "prompt_tokens": 110472,
+    "completion_tokens": 9978
+   },
+   "defender": {
+    "calls": 36,
+    "cached": 32,
+    "spent_usd": 0.232846,
+    "if_fresh_usd": 2.24596,
+    "prompt_tokens": 1364448,
+    "completion_tokens": 127153
+   },
+   "extractor": {
+    "calls": 34,
+    "cached": 34,
+    "spent_usd": 0.0,
+    "if_fresh_usd": 0.768823,
+    "prompt_tokens": 94498,
+    "completion_tokens": 153106
+   }
+  }
+ }
+}

@@ -340,6 +340,8 @@ semaudit contract check examples/northbound/contract        # validate; lists it
 semaudit review --contract examples/northbound/contract --base 2.3 --head 2.4 --max-usd 3
 semaudit repro <issue-id> --review runs/<id>/review-2.3-2.4.json --max-usd 1   # re-capture + re-derive one finding
 semaudit verify-report runs/<id>/review-2.3-2.4.json                           # offline: is the report what its inputs give?
+semaudit review ... --repeats 3                                                # each model-judged verification step 3 times (n of k)
+semaudit compare-prompts runs/<id>/review-2.3-2.4.json --old <commit> --repeats 3 --max-usd 2   # old vs current defender prompt
 semaudit decide <issue-id> fix --review runs/<id>/review-2.3-2.4.json --by <you>   # or not-an-issue --reason …, accept --expires …
 semaudit decide-release hold --review runs/<id>/review-2.3-2.4.json --by <you>
 semaudit serve --review runs/<id>/review-2.3-2.4.json --by <you>                 # the page with working decision buttons
@@ -362,6 +364,16 @@ never changes an issue or the policy row. First live run, Northbound 2.3 → 2.4
 in rules mode, and 6 of 6 for $0.042 for the reader-mode cases run on their own. It covers the interpreter only, not
 the extractor, the verifier or `semaudit visual`, and its cases come from the fixture the prompts were tuned on, so
 it is a canary, not an accuracy figure ([evidence](docs/evidence/judge-self-check-2026-11-02/README.md)).
+
+**Verdict stability (opt-in).** One model reply can move a verdict. `review --repeats K` runs the second-model check
+and the defence K times per issue: a step passes only if every run passed, fails only if every run failed, and is
+otherwise `mixed`, which neither verifies nor drops the issue and caps its confidence at low; each step records n of
+k and the page shows "held in n of k runs". `compare-prompts` re-runs a recorded review's verification under the
+defender instructions of an earlier commit and under the current ones, K runs each, so a prompt change can be told
+from run-to-run variation. First measurement, the Spree 6.0.4 false alarm (a payment read as the tax), 3 runs per
+prompt: with the old instructions the defence never stood (0 of 12 runs dropped an occurrence); with the current
+ones 3 of the 4 occurrences were disputed in all 3 runs, and the fourth in 2 of 3, so it is `mixed`, not verified.
+$1.97 ([evidence](docs/evidence/verdict-stability-2026-11-18/README.md)).
 
 **On a real app, [Finablo](https://app.finablo.com) v707 → v731 (24 release numbers apart, reader mode, 2026-11-01).** SRA reported 3 fixes,
 all real per the code history. It flagged 2 new issues that the owner confirmed: 1 regression, bisected to v708, and
