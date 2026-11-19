@@ -289,6 +289,65 @@ def serve_cmd(review: Path = typer.Option(..., "--review", exists=True, dir_okay
     serve(review, by=by, port=port)
 
 
+@app.command("coverage")
+def coverage_cmd(review: Path = typer.Argument(..., exists=True, dir_okay=False),
+                 draft: bool = typer.Option(False, "--draft", help="ask the model (interpreter role) to draft personas "
+                                                                    "that would close the gaps; needs --max-usd"),
+                 max_usd: float = typer.Option(None, "--max-usd", help="spend cap for the drafting call"),
+                 out: Path = typer.Option(None, "--out", help="drafts file (default: coverage-drafts.yaml beside "
+                                                              "the review)")):
+    """What the review's personas never exercised: rules, checked figures, surfaces, exceptions (offline, no model).
+    With --draft, one model call proposes personas for them; code checks each against the contract. Drafts are never
+    written into the contract: `coverage-accept` adds one."""
+    import yaml
+
+    from .contract.schema import load_contract
+    from .models.router import Router
+    from .onboard.coverage import CannotMap, coverage_map, draft_personas
+    try:
+        cov = coverage_map(review)
+    except CannotMap as e:
+        typer.echo(f"cannot map: {e}", err=True)
+        raise typer.Exit(2)
+    typer.echo(f"release {cov['release']}, {len(cov['personas'])} personas: {len(cov['gaps'])} gap(s)")
+    for g in cov["gaps"]:
+        typer.echo(f"  {g['kind']:22} {g['id']:36} {g['why']}")
+    for x in cov["engine_gaps"]:
+        typer.echo(f"  engine cannot check    {x['rule']:36} {x['reason'][:90]} (a persona cannot fix this)")
+    if not draft:
+        return
+    if max_usd is None:
+        typer.echo("--draft needs --max-usd", err=True)
+        raise typer.Exit(2)
+    if not cov["gaps"]:
+        typer.echo("no gaps to draft for")
+        return
+    import json as _json
+    contract = load_contract(Path(_json.loads(review.read_text())["manifest"]["contract"]["dir"]))
+    res = draft_personas(contract, cov, Router(root=Path.cwd(), max_usd=max_usd))
+    path = out or review.parent / "coverage-drafts.yaml"
+    path.write_text(yaml.safe_dump(res, sort_keys=False, allow_unicode=True))
+    for d in res["drafts"]:
+        typer.echo(f"  draft {d['id']:16} {d['check']:8} closes {', '.join(d['closes'])}"
+                   + (f"  problems: {'; '.join(d['problems'])}" if d["problems"] else ""))
+    typer.echo(f"left open: {', '.join(res['gaps_left_open']) or 'none'} · ${res['cost_usd']:.4f} · {path}")
+
+
+@app.command("coverage-accept")
+def coverage_accept_cmd(drafts: Path = typer.Argument(..., exists=True, dir_okay=False),
+                        draft_id: str = typer.Option(..., "--id"),
+                        contract_dir: Path = typer.Option(..., "--contract", exists=True, file_okay=False)):
+    """Add one checked draft to the contract (appended; nothing existing is edited). It then needs owner approval
+    like any other contract change (`semaudit contract check` lists it)."""
+    from .onboard.coverage import accept
+    try:
+        for line in accept(drafts, draft_id, contract_dir):
+            typer.echo(line)
+    except ValueError as e:
+        typer.echo(str(e), err=True)
+        raise typer.Exit(1)
+
+
 @app.command("compare-prompts")
 def compare_prompts_cmd(review: Path = typer.Argument(..., exists=True, dir_okay=False),
                         old: str = typer.Option(..., "--old", help="an earlier SRA commit whose defender "
